@@ -51,13 +51,13 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     motherAge: application.motherAge?.toString() ?? '',
     motherOccupation: application.motherOccupation ?? '',
     motherMonthlyIncome: application.motherMonthlyIncome?.toString() ?? '',
-    siblings: application.siblings.map((sibling) => ({
+    siblings: application.siblings.map((sibling: (typeof application.siblings)[number]) => ({
       name: sibling.name ?? '',
       age: sibling.age?.toString() ?? '',
       education: sibling.education ?? '',
       occupation: sibling.occupation ?? '',
     })),
-    relatives: application.relatives.map((relative) => ({
+    relatives: application.relatives.map((relative: (typeof application.relatives)[number]) => ({
       relativeType: relative.relativeType ?? 'paternal_uncle',
       name: relative.name ?? '',
       age: relative.age?.toString() ?? '',
@@ -65,7 +65,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       occupation: relative.occupation ?? '',
       hasFamily: relative.hasFamily ?? false,
     })),
-    householdAssets: application.householdAssets.map((asset) => ({
+    householdAssets: application.householdAssets.map((asset: (typeof application.householdAssets)[number]) => ({
       assetType: asset.assetType ?? '',
       quantity: asset.quantity?.toString() ?? '',
       value: asset.value?.toString() ?? '',

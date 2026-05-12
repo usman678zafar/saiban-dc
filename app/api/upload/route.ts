@@ -49,7 +49,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    let processedFile = file;
+    let processedBody: File | Blob | ArrayBufferView = file;
+    let processedName = file.name;
     let finalMimeType = file.type;
 
     if (file.type.startsWith('image/') && file.size > 1024 * 1024) {
@@ -58,14 +59,14 @@ export async function POST(request: NextRequest) {
         .webp({ quality: 80 })
         .toBuffer();
 
-      processedFile = new File([compressedBuffer], file.name.replace(/\.[^/.]+$/, '.webp'), {
-        type: 'image/webp',
-      });
+      processedBody = new Uint8Array(compressedBuffer);
+      processedName = file.name.replace(/\.[^/.]+$/, '.webp');
       finalMimeType = 'image/webp';
     }
 
-    const fileKey = generateFileKey(documentType, applicationId, processedFile.name);
-    const fileUrl = await uploadToR2(processedFile, fileKey);
+    const fileKey = generateFileKey(documentType, applicationId, processedName);
+    const fileUrl = await uploadToR2(processedBody, fileKey, finalMimeType);
+    const size = processedBody instanceof Uint8Array ? processedBody.byteLength : file.size;
 
     const document = await prisma.applicationDocument.create({
       data: {
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
         fileKey,
         fileUrl,
         mimeType: finalMimeType,
-        size: processedFile.size,
+        size,
         documentType: documentType as any,
       },
     });
