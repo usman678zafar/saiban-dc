@@ -43,12 +43,10 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     gender: app.gender ?? '',
     dateOfBirth: app.dateOfBirth ? app.dateOfBirth.toISOString().slice(0, 10) : '',
     bFormNumber: app.bFormNumber ?? '',
-    birthCity: app.birthCity ?? '',
     city: app.city ?? '',
     fatherName: app.fatherName ?? '',
     fatherAge: app.fatherAge?.toString() ?? '',
     fatherOccupation: app.fatherOccupation ?? '',
-    fatherMonthlyIncome: app.fatherMonthlyIncome?.toString() ?? '',
     motherName: app.motherName ?? '',
     motherAge: app.motherAge?.toString() ?? '',
     motherOccupation: app.motherOccupation ?? '',
@@ -56,8 +54,8 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     siblings: app.siblings.map((sibling: (typeof app.siblings)[number]) => ({
       name: sibling.name ?? '',
       age: sibling.age?.toString() ?? '',
-      education: sibling.education ?? '',
       occupation: sibling.occupation ?? '',
+      monthlyIncomeOrFee: sibling.monthlyIncomeOrFee?.toString() ?? '',
     })),
     relatives: app.relatives.map((relative: (typeof app.relatives)[number]) => ({
       relativeType: relative.relativeType ?? 'paternal_uncle',
@@ -65,20 +63,13 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       age: relative.age?.toString() ?? '',
       monthlyIncome: relative.monthlyIncome?.toString() ?? '',
       occupation: relative.occupation ?? '',
-      hasFamily: relative.hasFamily ?? false,
     })),
     householdAssets: app.householdAssets.map((asset: (typeof app.householdAssets)[number]) => ({
       assetType: asset.assetType ?? '',
       quantity: asset.quantity?.toString() ?? '',
       value: asset.value?.toString() ?? '',
     })),
-    totalHouseholdMembers: app.totalHouseholdMembers?.toString() ?? '',
     monthlyMedicalExpenses: app.monthlyMedicalExpenses?.toString() ?? '',
-    rentAmount: app.rentAmount?.toString() ?? '',
-    phoneNumber: app.phoneNumber ?? '',
-    propertyAddress: app.propertyAddress ?? '',
-    nearestSchool: app.nearestSchool ?? '',
-    collectorRemarks: app.collectorRemarks ?? '',
     status: (app.status === 'draft' ? 'draft' : 'submitted') as 'draft' | 'submitted',
   };
 
