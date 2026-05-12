@@ -1,11 +1,42 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 
-async function getRecentApplications() {
-  return prisma.orphanApplication.findMany({
+type ApplicationListRecord = {
+  id: string;
+  registrationNumber: string | null;
+  childName: string | null;
+  status: string;
+  updatedAt: Date;
+};
+
+type ApplicationListItem = {
+  id: string;
+  registrationNumber: string;
+  childName: string;
+  status: string;
+  updatedAt: string;
+};
+
+async function getRecentApplications(): Promise<ApplicationListItem[]> {
+  const applications = await prisma.orphanApplication.findMany({
     orderBy: { createdAt: 'desc' },
     take: 10,
-  });
+    select: {
+      id: true,
+      registrationNumber: true,
+      childName: true,
+      status: true,
+      updatedAt: true,
+    },
+  }) as ApplicationListRecord[];
+
+  return applications.map((application: ApplicationListRecord) => ({
+    id: application.id,
+    registrationNumber: application.registrationNumber ?? application.id,
+    childName: application.childName ?? 'No child name',
+    status: application.status,
+    updatedAt: application.updatedAt.toLocaleDateString(),
+  }));
 }
 
 export default async function ApplicationsPage() {
@@ -50,14 +81,14 @@ export default async function ApplicationsPage() {
                   </td>
                 </tr>
               ) : (
-                applications.map((application) => (
+                applications.map((application: ApplicationListItem) => (
                   <tr key={application.id} className="border-t border-slate-100 hover:bg-slate-50">
                     <td className="px-4 py-4">
-                      <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
-                      <div className="text-xs text-slate-500">{application.childName ?? 'No child name'}</div>
+                      <div className="font-semibold text-slate-900">{application.registrationNumber}</div>
+                      <div className="text-xs text-slate-500">{application.childName}</div>
                     </td>
                     <td className="px-4 py-4 capitalize text-slate-700">{application.status}</td>
-                    <td className="px-4 py-4 text-slate-500">{new Date(application.updatedAt).toLocaleDateString()}</td>
+                    <td className="px-4 py-4 text-slate-500">{application.updatedAt}</td>
                     <td className="px-4 py-4">
                       <Link href={`/applications/${application.id}`} className="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-200">
                         View

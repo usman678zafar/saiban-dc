@@ -234,7 +234,7 @@ function DataGrid({ title, items }: { title: string; items: DataGridItem[] }) {
         {items.length === 0 ? (
           <p className="text-sm text-slate-500">None</p>
         ) : (
-          items.map((item, index) => (
+          items.map((item: DataGridItem, index: number) => (
             <div key={index} className="rounded-2xl border border-slate-200 bg-white p-3">
               <p className="text-sm font-semibold text-slate-900">{item.label}</p>
               <p className="text-sm text-slate-600">{item.value}</p>

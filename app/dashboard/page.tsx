@@ -16,10 +16,23 @@ async function getStats() {
   return { total, draft, submitted, validated, rejected, migrated };
 }
 
+type StatItem = {
+  label: string;
+  value: number;
+};
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const isAdmin = session?.user?.role === 'admin';
   const stats = await getStats();
+  const statItems: StatItem[] = [
+    { label: 'Total applications', value: stats.total },
+    { label: 'Draft applications', value: stats.draft },
+    { label: 'Submitted applications', value: stats.submitted },
+    { label: 'Validated applications', value: stats.validated },
+    { label: 'Rejected applications', value: stats.rejected },
+    { label: 'Migrated applications', value: stats.migrated },
+  ];
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-8">
@@ -42,14 +55,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {[
-            { label: 'Total applications', value: stats.total },
-            { label: 'Draft applications', value: stats.draft },
-            { label: 'Submitted applications', value: stats.submitted },
-            { label: 'Validated applications', value: stats.validated },
-            { label: 'Rejected applications', value: stats.rejected },
-            { label: 'Migrated applications', value: stats.migrated },
-          ].map((stat) => (
+          {statItems.map((stat: StatItem) => (
             <div key={stat.label} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
               <p className="text-sm uppercase tracking-[0.2em] text-slate-500">{stat.label}</p>
               <p className="mt-3 text-3xl font-semibold text-slate-900">{stat.value}</p>

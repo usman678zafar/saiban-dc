@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(applications);
   }
 
-  const headers = [
+  const headers: Array<keyof ApplicationRow> = [
     'id',
     'registrationNumber',
     'status',
@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
   const csvBody = applications
     .map((application: ApplicationRow) =>
       headers
-        .map((header) => {
-          const value = application[header as keyof ApplicationRow];
+        .map((header: keyof ApplicationRow) => {
+          const value = application[header];
           if (typeof value === 'string') return JSON.stringify(value);
           if (typeof value === 'number' || typeof value === 'boolean') return String(value);
           if (value instanceof Date) return JSON.stringify(value.toISOString());
