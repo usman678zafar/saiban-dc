@@ -424,19 +424,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   return (
     <div className="space-y-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:space-y-6 sm:p-8">
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Step {step} of 14</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{stepTitles[step - 1]}</p>
-          </div>
-          <p className="shrink-0 rounded-full bg-white px-3 py-1 text-sm font-semibold text-slate-600">{Math.round((step / 14) * 100)}%</p>
-        </div>
-        <div className="mt-3 h-2 rounded-full bg-slate-200">
-          <div className="h-2 rounded-full bg-blue-600 transition-all" style={{ width: `${(step / 14) * 100}%` }} />
-        </div>
-      </div>
-
+      
       <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 sm:pb-0">
         {Array.from({ length: 14 }, (_, index) => index + 1).map((item) => (
           <button
