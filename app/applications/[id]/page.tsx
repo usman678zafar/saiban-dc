@@ -58,6 +58,19 @@ type ApplicationDocumentRecord = {
   size: number;
 };
 
+type DataGridItem = {
+  label: string;
+  value: string;
+};
+
+type DocumentItem = {
+  id: string;
+  documentType: string;
+  fileUrl: string;
+  mimeType: string;
+  sizeInKb: string;
+};
+
 export default async function ApplicationDetailPage({ params }: ApplicationDetailPageProps) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -82,19 +95,19 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
 
   const isAdmin = session.user.role === 'admin';
   const canEdit = application.status === 'draft' || isAdmin;
-  const siblingItems = application.siblings.map((sibling: SiblingRecord) => ({
+  const siblingItems: DataGridItem[] = application.siblings.map((sibling: SiblingRecord) => ({
     label: sibling.name ?? 'Unnamed',
     value: `${sibling.age ?? '-'} years - ${sibling.occupation ?? 'No occupation'}`,
   }));
-  const relativeItems = application.relatives.map((relative: RelativeRecord) => ({
+  const relativeItems: DataGridItem[] = application.relatives.map((relative: RelativeRecord) => ({
     label: `${relative.relativeType.replace('_', ' ')} - ${relative.name ?? '-'}`,
     value: `${relative.age ?? '-'} years - ${relative.monthlyIncome ?? '-'} PKR`,
   }));
-  const householdAssetItems = application.householdAssets.map((asset: HouseholdAssetRecord) => ({
+  const householdAssetItems: DataGridItem[] = application.householdAssets.map((asset: HouseholdAssetRecord) => ({
     label: asset.assetType,
     value: `${asset.quantity ?? '-'} units - ${asset.value ?? '-'} PKR`,
   }));
-  const documentItems = application.documents.map((document: ApplicationDocumentRecord) => ({
+  const documentItems: DocumentItem[] = application.documents.map((document: ApplicationDocumentRecord) => ({
     id: document.id,
     documentType: document.documentType,
     fileUrl: document.fileUrl ?? '#',
@@ -176,8 +189,8 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
                 {application.documents.length === 0 ? (
                   <p className="text-sm text-slate-500">No uploaded documents.</p>
                 ) : (
-                  documentItems.map((doc) => (
-                    <a key={doc.id} href={doc.fileUrl ?? '#'} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 hover:bg-slate-100">
+                  documentItems.map((doc: DocumentItem) => (
+                    <a key={doc.id} href={doc.fileUrl} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 hover:bg-slate-100">
                       <div className="font-semibold text-slate-900">{doc.documentType}</div>
                       <div className="text-xs text-slate-500">{doc.mimeType} - {doc.sizeInKb} KB</div>
                     </a>
@@ -213,7 +226,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function DataGrid({ title, items }: { title: string; items: Array<{ label: string; value: string }> }) {
+function DataGrid({ title, items }: { title: string; items: DataGridItem[] }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
