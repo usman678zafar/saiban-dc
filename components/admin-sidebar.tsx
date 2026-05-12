@@ -9,16 +9,12 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ email }: AdminSidebarProps) {
   return (
-    <aside className="border-b border-slate-200 bg-white px-6 py-6 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r">
+    <aside className="w-60 border-b border-slate-200 bg-white px-6 py-6 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r lg:flex lg:flex-col">
       <div className="flex items-center gap-4">
         <Image src={logo} alt="Saiban" width={128} height={100} className="h-16 w-auto object-contain" priority />
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-900">Admin Portal</p>
-          <p className="truncate text-xs text-slate-500">{email}</p>
-        </div>
       </div>
 
-      <nav className="mt-8 grid gap-2">
+      <nav className="mt-8 grid gap-2 flex-grow">
         <Link href="/admin" className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
           Overview
         </Link>
@@ -36,19 +32,13 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
         </Link>
       </nav>
 
-      <div className="mt-8 border-t border-slate-200 pt-6">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Exports</h2>
-        <div className="mt-3 grid gap-2">
-          <Link href="/api/applications/export?format=csv" className="rounded-lg bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-slate-800">
-            Export CSV
-          </Link>
-          <Link href="/api/applications/export?format=json" className="rounded-lg bg-slate-100 px-4 py-3 text-center text-sm font-semibold text-slate-900 hover:bg-slate-200">
-            Export JSON
-          </Link>
+      <div className="mt-auto border-t border-slate-200 pt-6">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-900">Admin Portal</p>
+            <p className="truncate text-xs text-slate-500">{email}</p>
+          </div>
         </div>
-      </div>
-
-      <div className="mt-8 border-t border-slate-200 pt-6">
         <SignOutButton className="w-full rounded-lg bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-200" />
       </div>
     </aside>
