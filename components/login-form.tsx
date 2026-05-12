@@ -46,8 +46,8 @@ export default function LoginForm({
     router.push(callbackUrl ?? defaultRedirect);
     router.refresh();
   };
-  const identifierLabel = loginRole === 'field_worker' ? 'Phone Number or CNIC' : 'Email';
-  const identifierType = loginRole === 'field_worker' ? 'text' : 'email';
+  const identifierLabel = loginRole === 'field_worker' ? 'Phone Number or CNIC' : loginRole === 'admin' ? 'Email or Username' : 'Email';
+  const identifierType = loginRole ? 'text' : 'email';
 
   return (
     <div className="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">

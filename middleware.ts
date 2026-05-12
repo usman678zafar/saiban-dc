@@ -9,7 +9,7 @@ function redirectTo(request: NextRequest, pathname: string, callbackPath?: strin
 }
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   const { pathname, search } = request.nextUrl;
   const callbackPath = `${pathname}${search}`;
 

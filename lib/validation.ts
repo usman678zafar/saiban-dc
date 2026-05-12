@@ -7,13 +7,13 @@ const parseDate = z.preprocess((value) => {
   if (!value) return undefined;
   if (typeof value === 'string' || value instanceof Date) return new Date(value);
   return undefined;
-}, z.date());
+}, z.date().optional());
 
 const nonNegativeNumber = z.preprocess((value) => {
   if (value === undefined || value === null || value === '') return undefined;
   if (typeof value === 'string') return Number(value);
   return value;
-}, z.number().min(0));
+}, z.number().min(0).optional());
 
 const optionalString = z.preprocess((value) => {
   if (typeof value === 'string') return value.trim() || undefined;
