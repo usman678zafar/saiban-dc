@@ -26,7 +26,7 @@ export default async function AppShell({ title, description, actions, maxWidth =
             <Image src={logo} alt="Saiban" width={112} height={88} className="h-11 w-auto shrink-0 object-contain sm:h-14" priority />
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-500">Saiban Orphan Support</p>
-              <p className="truncate text-xs text-slate-500">{session?.user?.email ?? 'Signed in'}</p>
+              <p className="truncate text-xs text-slate-500">{session?.user?.name ?? session?.user?.email ?? 'Signed in'}</p>
             </div>
           </div>
 
