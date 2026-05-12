@@ -106,7 +106,6 @@ export const labels: Record<string, LabelPair> = {
   neighborhoodCity: { ur: 'محلے/شہر', en: 'Neighborhood/City' },
   imamMobile: { ur: 'امام کا موبائل', en: 'Imam Mobile' },
   motherZakatStatus: { ur: 'والدہ کی زکات کی حیثیت', en: 'Mother Zakat Status' },
-  guardianZakatStatus: { ur: 'سرپرست کی زکات کی حیثیت', en: 'Guardian Zakat Status' },
   imamSignatureFileKey: { ur: 'امام کا دستخطی فائل کی', en: 'Imam Signature File Key' },
   mosqueStampFileKey: { ur: 'مسجد کا اسٹیمپ فائل کی', en: 'Mosque Stamp File Key' },
   guardianSignatureFileKey: { ur: 'سرپرست کے دستخط کی فائل کی', en: 'Guardian Signature File Key' },

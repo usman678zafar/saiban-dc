@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
+import type { FormData } from '@/components/orphan-application-wizard';
 
 interface EditApplicationPageProps {
   params: {
@@ -34,30 +35,31 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     notFound();
   }
 
-  const initialData = {
-    collectorName: application.collectorName ?? '',
-    collectorProject: application.collectorProject ?? '',
-    childName: application.childName ?? '',
-    gender: application.gender ?? '',
-    dateOfBirth: application.dateOfBirth ? application.dateOfBirth.toISOString().slice(0, 10) : '',
-    bFormNumber: application.bFormNumber ?? '',
-    birthCity: application.birthCity ?? '',
-    city: application.city ?? '',
-    fatherName: application.fatherName ?? '',
-    fatherAge: application.fatherAge?.toString() ?? '',
-    fatherOccupation: application.fatherOccupation ?? '',
-    fatherMonthlyIncome: application.fatherMonthlyIncome?.toString() ?? '',
-    motherName: application.motherName ?? '',
-    motherAge: application.motherAge?.toString() ?? '',
-    motherOccupation: application.motherOccupation ?? '',
-    motherMonthlyIncome: application.motherMonthlyIncome?.toString() ?? '',
-    siblings: application.siblings.map((sibling: (typeof application.siblings)[number]) => ({
+  const app = application as any;
+  const initialData: Partial<FormData> = {
+    collectorName: app.collectorName ?? '',
+    collectorProject: app.collectorProject ?? '',
+    childName: app.childName ?? '',
+    gender: app.gender ?? '',
+    dateOfBirth: app.dateOfBirth ? app.dateOfBirth.toISOString().slice(0, 10) : '',
+    bFormNumber: app.bFormNumber ?? '',
+    birthCity: app.birthCity ?? '',
+    city: app.city ?? '',
+    fatherName: app.fatherName ?? '',
+    fatherAge: app.fatherAge?.toString() ?? '',
+    fatherOccupation: app.fatherOccupation ?? '',
+    fatherMonthlyIncome: app.fatherMonthlyIncome?.toString() ?? '',
+    motherName: app.motherName ?? '',
+    motherAge: app.motherAge?.toString() ?? '',
+    motherOccupation: app.motherOccupation ?? '',
+    motherMonthlyIncome: app.motherMonthlyIncome?.toString() ?? '',
+    siblings: app.siblings.map((sibling: (typeof app.siblings)[number]) => ({
       name: sibling.name ?? '',
       age: sibling.age?.toString() ?? '',
       education: sibling.education ?? '',
       occupation: sibling.occupation ?? '',
     })),
-    relatives: application.relatives.map((relative: (typeof application.relatives)[number]) => ({
+    relatives: app.relatives.map((relative: (typeof app.relatives)[number]) => ({
       relativeType: relative.relativeType ?? 'paternal_uncle',
       name: relative.name ?? '',
       age: relative.age?.toString() ?? '',
@@ -65,19 +67,19 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       occupation: relative.occupation ?? '',
       hasFamily: relative.hasFamily ?? false,
     })),
-    householdAssets: application.householdAssets.map((asset: (typeof application.householdAssets)[number]) => ({
+    householdAssets: app.householdAssets.map((asset: (typeof app.householdAssets)[number]) => ({
       assetType: asset.assetType ?? '',
       quantity: asset.quantity?.toString() ?? '',
       value: asset.value?.toString() ?? '',
     })),
-    totalHouseholdMembers: application.totalHouseholdMembers?.toString() ?? '',
-    monthlyMedicalExpenses: application.monthlyMedicalExpenses?.toString() ?? '',
-    rentAmount: application.rentAmount?.toString() ?? '',
-    phoneNumber: application.phoneNumber ?? '',
-    propertyAddress: application.propertyAddress ?? '',
-    nearestSchool: application.nearestSchool ?? '',
-    collectorRemarks: application.collectorRemarks ?? '',
-    status: application.status === 'draft' ? 'draft' : 'submitted',
+    totalHouseholdMembers: app.totalHouseholdMembers?.toString() ?? '',
+    monthlyMedicalExpenses: app.monthlyMedicalExpenses?.toString() ?? '',
+    rentAmount: app.rentAmount?.toString() ?? '',
+    phoneNumber: app.phoneNumber ?? '',
+    propertyAddress: app.propertyAddress ?? '',
+    nearestSchool: app.nearestSchool ?? '',
+    collectorRemarks: app.collectorRemarks ?? '',
+    status: (app.status === 'draft' ? 'draft' : 'submitted') as 'draft' | 'submitted',
   };
 
   return (
@@ -90,7 +92,10 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
 
         <OrphanApplicationWizard
           initialData={initialData}
-          initialDocuments={application.documents}
+          initialDocuments={application.documents.map((document) => ({
+            ...document,
+            fileUrl: document.fileUrl ?? '',
+          }))}
           initialApplicationId={application.id}
         />
       </div>

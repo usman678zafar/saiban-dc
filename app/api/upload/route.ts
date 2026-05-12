@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    let processedBody: File | Blob | ArrayBufferView = file;
+    let processedBody: File | Blob | ArrayBuffer | Uint8Array = file;
     let processedName = file.name;
     let finalMimeType = file.type;
 

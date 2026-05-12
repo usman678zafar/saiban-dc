@@ -1,6 +1,6 @@
-import { defineConfig } from 'prisma/config';
+import defineConfig from 'prisma/config';
 
-export default defineConfig({
+const prismaConfig: any = defineConfig({
   schema: './schema.prisma',
   datasource: {
     provider: 'postgresql',
@@ -14,3 +14,5 @@ export default defineConfig({
   },
   connectionString: process.env.DATABASE_URL,
 });
+
+export default prismaConfig;

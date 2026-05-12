@@ -10,13 +10,13 @@ export const r2Client = new S3Client({
   },
 });
 
-export async function uploadToR2(file: File | Blob | ArrayBuffer | ArrayBufferView, key: string, contentType: string): Promise<string> {
+export async function uploadToR2(file: File | Blob | ArrayBuffer | Uint8Array, key: string, contentType: string): Promise<string> {
   const upload = new Upload({
     client: r2Client,
     params: {
       Bucket: process.env.CLOUDFLARE_R2_BUCKET,
       Key: key,
-      Body: file,
+      Body: file as any,
       ContentType: contentType,
       ACL: 'public-read',
     },
