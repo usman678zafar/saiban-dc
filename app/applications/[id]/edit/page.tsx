@@ -11,6 +11,15 @@ interface EditApplicationPageProps {
   };
 }
 
+type EditableDocument = {
+  id: string;
+  documentType: string;
+  fileUrl: string | null;
+  mimeType: string;
+  size: number;
+  fileKey: string;
+};
+
 export default async function EditApplicationPage({ params }: EditApplicationPageProps) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -72,6 +81,14 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     monthlyMedicalExpenses: app.monthlyMedicalExpenses?.toString() ?? '',
     status: (app.status === 'draft' ? 'draft' : 'submitted') as 'draft' | 'submitted',
   };
+  const initialDocuments: FormData['documents'] = application.documents.map((document: EditableDocument) => ({
+    id: document.id,
+    documentType: document.documentType,
+    fileUrl: document.fileUrl ?? '',
+    mimeType: document.mimeType,
+    size: document.size,
+    fileKey: document.fileKey,
+  }));
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-8">
@@ -83,10 +100,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
 
         <OrphanApplicationWizard
           initialData={initialData}
-          initialDocuments={application.documents.map((document) => ({
-            ...document,
-            fileUrl: document.fileUrl ?? '',
-          }))}
+          initialDocuments={initialDocuments}
           initialApplicationId={application.id}
         />
       </div>
