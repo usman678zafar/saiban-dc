@@ -31,9 +31,11 @@ export default async function AppShell({ title, description, actions, maxWidth =
           </div>
 
           <nav className="-mx-1 flex snap-x items-center gap-2 overflow-x-auto px-1 pb-1 lg:mx-0 lg:overflow-visible lg:pb-0">
-            <Link href="/dashboard" className="snap-start whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100">
-              Dashboard
-            </Link>
+            {isAdmin ? (
+              <Link href="/dashboard" className="snap-start whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+                Dashboard
+              </Link>
+            ) : null}
             <Link href="/applications" className="snap-start whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100">
               Applications
             </Link>

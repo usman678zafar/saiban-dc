@@ -1,12 +1,9 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import SignOutButton from '@/components/sign-out-button';
-import FieldWorkerForm from '@/components/field-worker-form';
-import logo from '@/assests/logo.png';
+import AdminShell from '@/components/admin-shell';
 
 type AdminMetric = {
   label: string;
@@ -100,56 +97,7 @@ export default async function AdminPortalPage() {
   const { metrics, fieldWorkers, recentApplications } = await getAdminPortalData();
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="grid min-h-screen lg:grid-cols-[360px_1fr]">
-        <aside className="border-b border-slate-200 bg-white px-6 py-6 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r">
-          <div className="flex items-center gap-4">
-            <Image src={logo} alt="Saiban" width={128} height={100} className="h-16 w-auto object-contain" priority />
-            <div>
-              <p className="text-sm font-semibold text-slate-900">Admin Portal</p>
-              <p className="text-xs text-slate-500">{session.user.email}</p>
-            </div>
-          </div>
-
-          <nav className="mt-8 grid gap-2">
-            <Link href="/admin" className="rounded-lg bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800">
-              Overview
-            </Link>
-            <Link href="/applications" className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
-              Applications
-            </Link>
-            <Link href="/applications/new" className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
-              New Application
-            </Link>
-            <Link href="/dashboard" className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
-              Field Dashboard
-            </Link>
-          </nav>
-
-          <div className="mt-8 border-t border-slate-200 pt-6">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Add Field Worker</h2>
-            <p className="mt-2 text-sm text-slate-600">Create field credentials using name, phone, and CNIC.</p>
-            <FieldWorkerForm />
-          </div>
-
-          <div className="mt-8 border-t border-slate-200 pt-6">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Exports</h2>
-            <div className="mt-3 grid gap-2">
-              <Link href="/api/applications/export?format=csv" className="rounded-lg bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-slate-800">
-                Export CSV
-              </Link>
-              <Link href="/api/applications/export?format=json" className="rounded-lg bg-slate-100 px-4 py-3 text-center text-sm font-semibold text-slate-900 hover:bg-slate-200">
-                Export JSON
-              </Link>
-            </div>
-          </div>
-
-          <div className="mt-8 border-t border-slate-200 pt-6">
-            <SignOutButton className="w-full rounded-lg bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-200" />
-          </div>
-        </aside>
-
-        <section className="px-6 py-8 sm:px-8">
+    <AdminShell email={session.user.email}>
           <header className="mb-8 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Control Center</p>
@@ -159,10 +107,10 @@ export default async function AdminPortalPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link href="/applications/new" className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+              <Link href="/admin/applications/new" className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
                 New Application
               </Link>
-              <Link href="/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+              <Link href="/admin/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
                 View All
               </Link>
             </div>
@@ -212,7 +160,7 @@ export default async function AdminPortalPage() {
                           <td className="px-4 py-4 capitalize">{application.migrationStatus}</td>
                           <td className="px-4 py-4 text-slate-500">{application.updatedAt.toLocaleDateString()}</td>
                           <td className="px-4 py-4">
-                            <Link href={`/applications/${application.id}`} className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-200">
+                            <Link href={`/admin/applications/${application.id}`} className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-200">
                               Review
                             </Link>
                           </td>
@@ -247,8 +195,6 @@ export default async function AdminPortalPage() {
               </div>
             </div>
           </div>
-        </section>
-      </div>
-    </main>
+    </AdminShell>
   );
 }

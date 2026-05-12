@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
       return redirectTo(request, '/admin/login', callbackPath);
     }
     if (token.role !== 'admin') {
-      return redirectTo(request, '/dashboard');
+      return redirectTo(request, '/applications');
     }
     return NextResponse.next();
   }

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import AppShell from '@/components/app-shell';
+import { redirect } from 'next/navigation';
 
 async function getStats() {
   const [total, draft, submitted, validated, rejected, migrated] = await Promise.all([
@@ -24,6 +25,10 @@ type StatItem = {
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
+  if (session?.user?.role === 'field_worker') {
+    redirect('/applications');
+  }
+
   const isAdmin = session?.user?.role === 'admin';
   const stats = await getStats();
   const fieldWorkerStats: StatItem[] = [

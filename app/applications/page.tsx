@@ -1,6 +1,8 @@
 import Link from 'next/link';
+import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
+import { authOptions } from '@/lib/auth';
 
 type ApplicationListRecord = {
   id: string;
@@ -41,6 +43,8 @@ async function getRecentApplications(): Promise<ApplicationListItem[]> {
 }
 
 export default async function ApplicationsPage() {
+  const session = await getServerSession(authOptions);
+  const isAdmin = session?.user?.role === 'admin';
   const applications = await getRecentApplications();
 
   return (
@@ -53,12 +57,16 @@ export default async function ApplicationsPage() {
           <Link href="/applications/new" className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
             New Application
           </Link>
-          <Link href="/api/applications/export?format=csv" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
-            Export CSV
-          </Link>
-          <Link href="/api/applications/export?format=json" className="rounded-lg bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-300">
-            Export JSON
-          </Link>
+          {isAdmin ? (
+            <>
+              <Link href="/api/applications/export?format=csv" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                Export CSV
+              </Link>
+              <Link href="/api/applications/export?format=json" className="rounded-lg bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-300">
+                Export JSON
+              </Link>
+            </>
+          ) : null}
         </>
       }
     >

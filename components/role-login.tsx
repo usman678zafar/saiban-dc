@@ -17,7 +17,7 @@ const loginOptions: Array<{
     role: 'field_worker',
     label: 'Field Worker',
     title: 'Field Worker Login',
-    redirect: '/dashboard',
+    redirect: '/applications',
   },
   {
     role: 'admin',
