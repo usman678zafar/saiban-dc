@@ -21,7 +21,7 @@ export default async function AppShell({ title, description, actions, maxWidth =
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className={`mx-auto flex ${maxWidth} flex-col gap-2 px-3 py-2 sm:px-6 sm:py-3 lg:flex-row lg:items-center lg:justify-between`}>
+        <div className={`mx-auto flex ${maxWidth} items-center justify-between px-3 py-2 sm:px-6 sm:py-3`}>
           <div className="flex min-w-0 items-center gap-2">
             <Image src={logo} alt="Saiban" width={112} height={88} className="h-8 w-auto shrink-0 object-contain sm:h-11" priority />
             <div className="min-w-0">
