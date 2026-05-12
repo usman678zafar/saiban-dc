@@ -381,6 +381,22 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     { type: 'father_cnic', label: 'Father CNIC' },
     { type: 'mother_cnic', label: 'Mother CNIC' },
   ];
+  const stepTitles = [
+    'Collector',
+    'Father',
+    'Mother',
+    'Guardian',
+    'Relatives',
+    'Home',
+    'Assets',
+    'Child',
+    'Health',
+    'Income',
+    'School',
+    'Imam',
+    'Documents',
+    'Review',
+  ];
 
   const renderTextField = (field: keyof FormData, type = 'text') => (
     <label key={field} className="grid gap-2 text-sm text-slate-700">
@@ -389,13 +405,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         value={formData[field] as string}
         onChange={(event) => updateField(field, event.target.value)}
         type={type}
-        className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
       />
     </label>
   );
 
   const renderCheckbox = (field: keyof FormData, labelText?: string) => (
-    <label key={field} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
+    <label key={field} className="flex min-h-12 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
       <input
         type="checkbox"
         checked={formData[field] as boolean}
@@ -407,22 +423,35 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   );
 
   return (
-    <div className="space-y-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-      <div className="grid gap-2 sm:grid-cols-4">
+    <div className="space-y-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:space-y-6 sm:p-8">
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Step {step} of 14</p>
+            <p className="mt-1 text-lg font-semibold text-slate-900">{stepTitles[step - 1]}</p>
+          </div>
+          <p className="shrink-0 rounded-full bg-white px-3 py-1 text-sm font-semibold text-slate-600">{Math.round((step / 14) * 100)}%</p>
+        </div>
+        <div className="mt-3 h-2 rounded-full bg-slate-200">
+          <div className="h-2 rounded-full bg-blue-600 transition-all" style={{ width: `${(step / 14) * 100}%` }} />
+        </div>
+      </div>
+
+      <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 sm:pb-0">
         {Array.from({ length: 14 }, (_, index) => index + 1).map((item) => (
           <button
             key={item}
             type="button"
             onClick={() => setStep(item)}
-            className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${item === step ? 'border-blue-600 bg-blue-50 text-blue-900' : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100'}`}
+            className={`min-w-[112px] snap-start rounded-lg border px-4 py-3 text-sm font-semibold transition sm:min-w-0 ${item === step ? 'border-blue-600 bg-blue-50 text-blue-900' : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100'}`}
           >
-            Step {item}
+            {item}. {stepTitles[item - 1]}
           </button>
         ))}
       </div>
 
       {message ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">{message}</div>
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">{message}</div>
       ) : null}
 
       {step === 1 && (
@@ -825,13 +854,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-        <div className="flex gap-3">
+      <div className="sticky bottom-0 z-20 -mx-4 flex flex-col gap-3 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur sm:static sm:mx-0 sm:flex-row sm:justify-between sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none">
+        <div className="grid grid-cols-2 gap-3 sm:flex">
           <button
             type="button"
             onClick={goBack}
             disabled={step === 1}
-            className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-12 rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Back
           </button>
@@ -839,19 +868,19 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <button
               type="button"
               onClick={goNext}
-              className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="min-h-12 rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
               Next
             </button>
           ) : null}
         </div>
         {step === 14 ? (
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="grid gap-3 sm:flex">
             <button
               type="button"
               onClick={() => submit('draft')}
               disabled={isSubmitting}
-              className="rounded-2xl bg-slate-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="min-h-12 rounded-lg bg-slate-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? 'Saving…' : 'Save Draft'}
             </button>
@@ -859,7 +888,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               type="button"
               onClick={() => submit('submitted')}
               disabled={isSubmitting}
-              className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="min-h-12 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? 'Submitting…' : 'Submit Application'}
             </button>

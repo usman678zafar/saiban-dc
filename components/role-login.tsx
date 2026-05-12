@@ -10,48 +10,36 @@ type LoginRole = 'admin' | 'field_worker';
 const loginOptions: Array<{
   role: LoginRole;
   label: string;
-  description: string;
   title: string;
   redirect: string;
 }> = [
   {
-    role: 'admin',
-    label: 'Admin',
-    description: 'Manage users, exports, migration status, and application review.',
-    title: 'Admin Login',
-    redirect: '/admin',
-  },
-  {
     role: 'field_worker',
     label: 'Field Worker',
-    description: 'Collect applications, upload documents, and update draft records.',
     title: 'Field Worker Login',
     redirect: '/dashboard',
+  },
+  {
+    role: 'admin',
+    label: 'Admin',
+    title: 'Admin Login',
+    redirect: '/admin',
   },
 ];
 
 export default function RoleLogin() {
   const [selectedRole, setSelectedRole] = useState<LoginRole>('field_worker');
-  const selectedOption = loginOptions.find((option) => option.role === selectedRole) ?? loginOptions[1];
+  const selectedOption = loginOptions.find((option) => option.role === selectedRole) ?? loginOptions[0];
 
   return (
-    <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1fr_440px]">
-      <section className="space-y-8">
-        <div className="flex items-center gap-5">
-          <Image src={logo} alt="Saiban" width={170} height={132} className="h-24 w-auto object-contain" priority />
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">Data Collection Portal</p>
-            <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">Saiban Orphan Support</h1>
-          </div>
+    <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-sm items-center">
+      <div className="w-full rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+        <div className="flex flex-col items-center text-center">
+          <Image src={logo} alt="Saiban" width={80} height={60} className="h-12 w-auto object-contain" priority />
+          <h1 className="mt-2 text-lg font-semibold tracking-tight text-slate-950">Saiban Login</h1>
         </div>
 
-        <div className="max-w-2xl">
-          <p className="text-lg leading-8 text-slate-700">
-            Secure access for field registration, application review, and migration management.
-          </p>
-        </div>
-
-        <div className="grid max-w-2xl gap-3 sm:grid-cols-2">
+        <div className="mt-3 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-0.5">
           {loginOptions.map((option) => {
             const isSelected = option.role === selectedRole;
             return (
@@ -59,27 +47,24 @@ export default function RoleLogin() {
                 key={option.role}
                 type="button"
                 onClick={() => setSelectedRole(option.role)}
-                className={`rounded-lg border px-5 py-4 text-left transition ${
-                  isSelected
-                    ? 'border-blue-600 bg-blue-50 text-slate-900 ring-2 ring-blue-100'
-                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                className={`rounded-md px-2 py-1.5 text-xs font-semibold transition ${
+                  isSelected ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <span className="block text-sm font-semibold">{option.label}</span>
-                <span className="mt-1 block text-sm text-slate-600">{option.description}</span>
+                {option.label}
               </button>
             );
           })}
         </div>
-      </section>
 
-      <LoginForm
-        key={selectedOption.role}
-        title={selectedOption.title}
-        description={selectedOption.description}
-        defaultRedirect={selectedOption.redirect}
-        loginRole={selectedOption.role}
-      />
+        <LoginForm
+          key={selectedOption.role}
+          title={selectedOption.title}
+          defaultRedirect={selectedOption.redirect}
+          loginRole={selectedOption.role}
+          compact
+        />
+      </div>
     </div>
   );
 }

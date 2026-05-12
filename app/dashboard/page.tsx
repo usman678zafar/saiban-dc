@@ -26,14 +26,18 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const isAdmin = session?.user?.role === 'admin';
   const stats = await getStats();
-  const statItems: StatItem[] = [
-    { label: 'Total applications', value: stats.total },
-    { label: 'Draft applications', value: stats.draft },
-    { label: 'Submitted applications', value: stats.submitted },
+  const fieldWorkerStats: StatItem[] = [
+    { label: 'Total collected', value: stats.total },
+    { label: 'Drafts in progress', value: stats.draft },
+    { label: 'Submitted for review', value: stats.submitted },
+  ];
+  const adminStats: StatItem[] = [
+    ...fieldWorkerStats,
     { label: 'Validated applications', value: stats.validated },
     { label: 'Rejected applications', value: stats.rejected },
     { label: 'Migrated applications', value: stats.migrated },
   ];
+  const statItems = isAdmin ? adminStats : fieldWorkerStats;
 
   return (
     <AppShell
@@ -53,10 +57,10 @@ export default async function DashboardPage() {
         </>
       }
     >
-      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className={`grid gap-4 ${isAdmin ? 'sm:grid-cols-3 lg:grid-cols-6' : 'sm:grid-cols-3'}`}>
           {statItems.map((stat: StatItem) => (
             <div key={stat.label} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-sm uppercase tracking-[0.2em] text-slate-500">{stat.label}</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">{stat.label}</p>
               <p className="mt-3 text-3xl font-semibold text-slate-900">{stat.value}</p>
             </div>
           ))}
