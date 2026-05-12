@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
   const applications = await prisma.orphanApplication.findMany({
     orderBy: { createdAt: 'desc' },
   });
+  type ApplicationRow = (typeof applications)[number];
 
   if (format === 'json') {
     return NextResponse.json(applications);
@@ -35,11 +36,14 @@ export async function GET(request: NextRequest) {
 
   const csvRows = [headers.join(',')];
   const csvBody = applications
-    .map((application) =>
+    .map((application: ApplicationRow) =>
       headers
         .map((header) => {
-          const value = application[header as keyof typeof application];
-          return typeof value === 'string' ? JSON.stringify(value) : value ?? '';
+          const value = application[header as keyof ApplicationRow];
+          if (typeof value === 'string') return JSON.stringify(value);
+          if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+          if (value instanceof Date) return JSON.stringify(value.toISOString());
+          return '';
         })
         .join(',')
     )
