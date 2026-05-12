@@ -1,0 +1,367 @@
+You are an expert full-stack developer. Build a production-ready data collection application for the Saiban Orphan Support Program.
+
+PROJECT GOAL
+Create a temporary data collection app for collecting orphan registration data from field workers. Later this data will be migrated into the main Saiban application, which uses PostgreSQL. So the database schema must be clean, relational, and migration-friendly.
+
+TECH STACK
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Neon PostgreSQL
+- Cloudflare R2 for media/documents storage
+- Prisma ORM or Drizzle ORM, choose the better option and set it up cleanly
+- Zod for validation
+- Server Actions or API routes where appropriate
+
+IMPORTANT CONTEXT
+The main Saiban app already has concepts like:
+- Family
+- Individual
+- OrphanProfile
+- Assessment
+- AssessmentDocument
+
+The temporary data collection app should use similar structure so migration becomes easy later.
+
+MAIN FEATURES
+
+1. Authentication
+Create simple role-based authentication:
+- admin
+- field_worker
+- viewer
+
+Admin can:
+- create users
+- view all records
+- edit records
+- delete records
+- export data
+
+Field worker can:
+- create orphan applications
+- edit their own submitted records while status is draft or needs_correction
+- upload documents
+
+Viewer can:
+- view records only
+
+2. Dashboard
+Create dashboard with:
+- total applications
+- draft applications
+- submitted applications
+- approved/validated applications
+- rejected applications
+- migrated applications
+- recent applications table
+
+3. Orphan Application Form
+Create a multi-step form. UI labels must support both English and Urdu.
+
+Database field names must be English.
+Frontend labels should show Urdu + English, for example:
+- والدہ کا نام (Mother Name)
+- مرحوم والد کا نام (Deceased Father Name)
+- ماہانہ آمدنی (Monthly Income)
+
+Sections:
+
+A. Form Filler Details
+- form_id / registration_number
+- collector_name
+- collector_project
+- collector_cnic
+- collector_address
+- collector_contact
+
+B. Deceased Father Details
+- father_name
+- father_dob
+- father_age
+- father_cnic
+- father_education
+- father_occupation
+- father_date_of_death
+- father_cause_of_death
+
+C. Mother Details
+- mother_name
+- mother_dob
+- mother_age
+- mother_cnic
+- mother_education
+- mother_tongue
+- mother_native_area
+- mother_contact
+- mother_is_housewife
+- mother_occupation
+- mother_monthly_income
+- mother_remarried
+- mother_death_date
+- mother_death_cause
+
+D. Guardian Details
+- guardian_name
+- guardian_relationship
+- guardian_cnic
+- guardian_education
+- guardian_mother_tongue
+- guardian_native_area
+- guardian_contact
+- guardian_zakat_status
+- guardian_occupation
+- guardian_monthly_income
+
+E. Close Relatives
+- paternal_grandfather_name
+- paternal_grandfather_age
+- paternal_grandfather_occupation
+- paternal_grandfather_income
+- maternal_grandfather_name
+- maternal_grandfather_age
+- maternal_grandfather_occupation
+- maternal_grandfather_income
+- siblings list: name, age, occupation, monthly_income_or_fee
+- paternal_uncles list: name, occupation, monthly_income
+- maternal_uncles list: name, occupation, monthly_income
+
+F. Home Details
+- city
+- district
+- tehsil
+- residential_area
+- full_address
+- longitude
+- latitude
+- house_ownership_status
+- monthly_rent
+- house_owner
+- house_condition
+- furnishing_condition
+
+G. Household Assets
+Create repeatable assets:
+- asset_type
+- quantity
+- value
+
+Common asset types:
+- refrigerator
+- washing_machine
+- air_conditioner
+- television
+- vehicle_motorcycle
+- livestock_animals
+- property
+- smartphone
+- gold
+- silver
+- cash_savings
+- furniture
+- business_property
+- agricultural_land
+- other
+
+H. Orphan Child Details
+- child_name
+- gender
+- caste
+- sect
+- b_form_number
+- date_of_birth
+- age
+- total_brothers
+- total_sisters
+- registered_brothers
+- registered_sisters
+- siblings_under_12
+- child_lives_with_mother
+- living_situation_notes
+- health_status
+- disability_details
+- treatment_place
+- monthly_medical_expenses
+- currently_studying
+- not_studying_reason
+- education_start_condition
+- current_class
+- school_name
+- school_address
+- enrolled_in_madrasa
+- madrasa_name
+- madrasa_education_details
+- education_fee_status
+- monthly_school_fee
+- career_goal
+- technical_interest
+- learning_skill
+- child_monthly_income
+- household_earners_count
+- total_household_income
+- receiving_other_aid
+- other_aid_source
+- monthly_aid_amount
+- not_applied_elsewhere_reason
+
+I. Educational Institution Verification
+- principal_name
+- institution_name
+- verified_student_name
+- verified_father_name
+- verified_class
+- verified_monthly_fee
+- principal_signature_file_key
+- institution_stamp_file_key
+
+J. Mosque Imam Verification
+- imam_name
+- mosque_name
+- neighborhood_city
+- imam_mobile
+- mother_zakat_status
+- guardian_zakat_status
+- imam_signature_file_key
+- mosque_stamp_file_key
+
+K. Terms Acceptance
+- guardian_signature_file_key
+- terms_accepted
+- terms_accepted_at
+
+4. Documents Upload
+Use Cloudflare R2 for file storage.
+Required document types:
+- child_photo
+- child_b_form
+- father_cnic
+- father_death_certificate
+- mother_cnic
+- guardian_cnic
+- school_letter
+- imam_verification
+- principal_verification
+- house_photo
+- other
+
+Upload rules:
+- Images must be compressed before upload if larger than 1MB.
+- Final image size should be around or below 1MB.
+- Allowed image types: jpg, jpeg, png, webp.
+- Convert images to webp where suitable.
+- PDFs are allowed for documents.
+- Store only file_key, file_url if needed, mime_type, size, document_type in database.
+- Prefer storing file_key as main reference because CDN/domain can change later.
+
+5. Database Design
+Use separate temporary database tables but migration-friendly names.
+
+Suggested tables:
+- users
+- orphan_applications
+- siblings
+- relatives
+- household_assets
+- application_documents
+- audit_logs
+
+Every main table should include:
+- id UUID primary key
+- migration_status: pending, validated, migrated, rejected
+- main_saiban_id nullable
+- migration_errors nullable
+- created_by
+- created_at
+- updated_at
+
+Application status:
+- draft
+- submitted
+- needs_correction
+- validated
+- rejected
+- migrated
+
+6. Validation
+Use Zod validation.
+
+Rules:
+- CNIC must be 13 digits after removing dashes.
+- B-Form must be 13 or 15 digits depending on current form requirement; keep validation configurable.
+- Date of birth cannot be future.
+- Father date of death cannot be future.
+- Child age at registration must be less than 12 years.
+- Monthly income, rent, fee, and expenses must be non-negative.
+- Latitude must be between -90 and 90.
+- Longitude must be between -180 and 180.
+- Required documents must be checked before final submission.
+
+7. Urdu + English Labels
+Create a central labels config file:
+
+formLabels.ts
+
+Example:
+{
+  mother_name: {
+    en: "Mother Name",
+    ur: "والدہ کا نام"
+  }
+}
+
+Use this config throughout the UI.
+Do not hardcode labels everywhere.
+
+8. UI Requirements
+- Clean simple dashboard
+- Mobile-friendly form for field workers
+- Multi-step form with progress indicator
+- Save as draft button
+- Submit button
+- Urdu-friendly layout
+- Use clear section headings
+- Show validation errors in simple wording
+- Use Tailwind CSS
+- No heavy animations initially
+
+9. Export / Migration Support
+Admin should be able to:
+- export applications as CSV/JSON
+- view migration-ready records
+- mark records as validated
+- mark records as migrated
+- store main Saiban ID after migration
+
+10. Security
+- Do not expose R2 secret keys to frontend
+- Use signed upload URLs or backend upload route
+- Validate file type and size on backend too
+- Protect routes by role
+- Use environment variables
+
+Required environment variables:
+- DATABASE_URL
+- R2_ACCOUNT_ID
+- R2_ACCESS_KEY_ID
+- R2_SECRET_ACCESS_KEY
+- R2_BUCKET_NAME
+- R2_PUBLIC_URL or CDN_URL
+- NEXTAUTH_SECRET or AUTH_SECRET
+
+11. Deliverables
+Generate:
+- complete Next.js project structure
+- database schema
+- migrations
+- validation schemas
+- R2 upload utilities
+- authentication flow
+- dashboard pages
+- multi-step orphan application form
+- document upload component with compression
+- admin records table
+- export functionality
+- README with setup instructions
+
+IMPORTANT
+Keep the first version simple, clean, and working. Avoid overengineering. The goal is reliable data collection for around 2000 orphan records and easy future migration into the main Saiban application.
