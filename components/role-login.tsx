@@ -32,7 +32,7 @@ export default function RoleLogin() {
   const selectedOption = loginOptions.find((option) => option.role === selectedRole) ?? loginOptions[0];
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-sm items-center">
+    <div className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-sm items-center px-2 sm:px-0">
       <div className="w-full rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
         <div className="flex flex-col items-center text-center">
           <Image src={logo} alt="Saiban" width={80} height={60} className="h-12 w-auto object-contain" priority />
