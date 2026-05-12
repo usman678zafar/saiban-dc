@@ -1,7 +1,9 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import LoginForm from './login-form';
+import logo from '@/assests/logo.png';
 
 type LoginRole = 'admin' | 'field_worker';
 
@@ -33,13 +35,23 @@ export default function RoleLogin() {
   const selectedOption = loginOptions.find((option) => option.role === selectedRole) ?? loginOptions[1];
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[0.9fr_1fr]">
-      <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Saiban Access</p>
-        <h1 className="mt-2 text-3xl font-semibold text-slate-900">Choose Login Type</h1>
-        <p className="mt-2 text-sm text-slate-600">Select the portal you need, then sign in with the account created for that role.</p>
+    <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1fr_440px]">
+      <section className="space-y-8">
+        <div className="flex items-center gap-5">
+          <Image src={logo} alt="Saiban" width={170} height={132} className="h-24 w-auto object-contain" priority />
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">Data Collection Portal</p>
+            <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">Saiban Orphan Support</h1>
+          </div>
+        </div>
 
-        <div className="mt-8 grid gap-3">
+        <div className="max-w-2xl">
+          <p className="text-lg leading-8 text-slate-700">
+            Secure access for field registration, application review, and migration management.
+          </p>
+        </div>
+
+        <div className="grid max-w-2xl gap-3 sm:grid-cols-2">
           {loginOptions.map((option) => {
             const isSelected = option.role === selectedRole;
             return (
@@ -47,7 +59,7 @@ export default function RoleLogin() {
                 key={option.role}
                 type="button"
                 onClick={() => setSelectedRole(option.role)}
-                className={`rounded-2xl border px-5 py-4 text-left transition ${
+                className={`rounded-lg border px-5 py-4 text-left transition ${
                   isSelected
                     ? 'border-blue-600 bg-blue-50 text-slate-900 ring-2 ring-blue-100'
                     : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'

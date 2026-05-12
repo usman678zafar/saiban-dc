@@ -1,10 +1,12 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import SignOutButton from '@/components/sign-out-button';
 import FieldWorkerForm from '@/components/field-worker-form';
+import logo from '@/assests/logo.png';
 
 type AdminMetric = {
   label: string;
@@ -98,119 +100,154 @@ export default async function AdminPortalPage() {
   const { metrics, fieldWorkers, recentApplications } = await getAdminPortalData();
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-8">
-      <div className="mx-auto max-w-7xl space-y-8">
-        <header className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Admin Portal</p>
-            <h1 className="mt-2 text-3xl font-semibold text-slate-900">Saiban Control Center</h1>
-            <p className="mt-2 text-sm text-slate-600">Signed in as {session.user.email}. Manage application review, exports, and migration work.</p>
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="grid min-h-screen lg:grid-cols-[360px_1fr]">
+        <aside className="border-b border-slate-200 bg-white px-6 py-6 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r">
+          <div className="flex items-center gap-4">
+            <Image src={logo} alt="Saiban" width={128} height={100} className="h-16 w-auto object-contain" priority />
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Admin Portal</p>
+              <p className="text-xs text-slate-500">{session.user.email}</p>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/applications" className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+
+          <nav className="mt-8 grid gap-2">
+            <Link href="/admin" className="rounded-lg bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800">
+              Overview
+            </Link>
+            <Link href="/applications" className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
               Applications
             </Link>
-            <Link href="/applications/new" className="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+            <Link href="/applications/new" className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
               New Application
             </Link>
-            <SignOutButton />
+            <Link href="/dashboard" className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+              Field Dashboard
+            </Link>
+          </nav>
+
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Add Field Worker</h2>
+            <p className="mt-2 text-sm text-slate-600">Create field credentials using name, phone, and CNIC.</p>
+            <FieldWorkerForm />
           </div>
-        </header>
 
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
-          {metrics.map((metric: AdminMetric) => (
-            <div key={metric.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{metric.label}</p>
-              <p className="mt-3 text-3xl font-semibold text-slate-900">{metric.value}</p>
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Exports</h2>
+            <div className="mt-3 grid gap-2">
+              <Link href="/api/applications/export?format=csv" className="rounded-lg bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-slate-800">
+                Export CSV
+              </Link>
+              <Link href="/api/applications/export?format=json" className="rounded-lg bg-slate-100 px-4 py-3 text-center text-sm font-semibold text-slate-900 hover:bg-slate-200">
+                Export JSON
+              </Link>
             </div>
-          ))}
-        </section>
+          </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 px-6 py-5">
-              <h2 className="text-xl font-semibold text-slate-900">Recent Applications</h2>
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <SignOutButton className="w-full rounded-lg bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-200" />
+          </div>
+        </aside>
+
+        <section className="px-6 py-8 sm:px-8">
+          <header className="mb-8 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Control Center</p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Admin Overview</h1>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                Review application movement, manage field access, and open records that need attention.
+              </p>
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm text-slate-700">
-                <thead className="bg-slate-50 text-slate-700">
-                  <tr>
-                    <th className="px-4 py-3">Application</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Migration</th>
-                    <th className="px-4 py-3">Updated</th>
-                    <th className="px-4 py-3">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentApplications.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-slate-500">No applications found.</td>
-                    </tr>
-                  ) : (
-                    recentApplications.map((application: RecentApplication) => (
-                      <tr key={application.id} className="border-t border-slate-100 hover:bg-slate-50">
-                        <td className="px-4 py-4">
-                          <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
-                          <div className="text-xs text-slate-500">{application.childName ?? 'No child name'}</div>
-                        </td>
-                        <td className="px-4 py-4 capitalize">{application.status}</td>
-                        <td className="px-4 py-4 capitalize">{application.migrationStatus}</td>
-                        <td className="px-4 py-4 text-slate-500">{application.updatedAt.toLocaleDateString()}</td>
-                        <td className="px-4 py-4">
-                          <Link href={`/applications/${application.id}`} className="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-200">
-                            Review
-                          </Link>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/applications/new" className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+                New Application
+              </Link>
+              <Link href="/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                View All
+              </Link>
             </div>
+          </header>
+
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+            {metrics.map((metric: AdminMetric) => (
+              <div key={metric.label} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{metric.label}</p>
+                <p className="mt-3 text-3xl font-semibold text-slate-900">{metric.value}</p>
+              </div>
+            ))}
           </section>
 
-          <aside className="space-y-4">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Add Field Worker</h2>
-              <p className="mt-1 text-sm text-slate-600">Create login credentials for a field worker.</p>
-              <FieldWorkerForm />
-            </div>
+          <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_420px]">
+            <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">Recent Applications</h2>
+                  <p className="mt-1 text-sm text-slate-500">Latest records sorted by update time.</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm text-slate-700">
+                  <thead className="bg-slate-50 text-slate-700">
+                    <tr>
+                      <th className="px-4 py-3">Application</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Migration</th>
+                      <th className="px-4 py-3">Updated</th>
+                      <th className="px-4 py-3">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentApplications.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-8 text-center text-slate-500">No applications found.</td>
+                      </tr>
+                    ) : (
+                      recentApplications.map((application: RecentApplication) => (
+                        <tr key={application.id} className="border-t border-slate-100 hover:bg-slate-50">
+                          <td className="px-4 py-4">
+                            <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
+                            <div className="text-xs text-slate-500">{application.childName ?? 'No child name'}</div>
+                          </td>
+                          <td className="px-4 py-4 capitalize">{application.status}</td>
+                          <td className="px-4 py-4 capitalize">{application.migrationStatus}</td>
+                          <td className="px-4 py-4 text-slate-500">{application.updatedAt.toLocaleDateString()}</td>
+                          <td className="px-4 py-4">
+                            <Link href={`/applications/${application.id}`} className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-200">
+                              Review
+                            </Link>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Field Workers</h2>
-              <div className="mt-4 grid gap-3">
+            <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-200 px-6 py-5">
+                <h2 className="text-xl font-semibold text-slate-900">Field Workers</h2>
+                <p className="mt-1 text-sm text-slate-500">People with access to the field worker portal.</p>
+              </div>
+              <div className="max-h-[520px] overflow-y-auto p-4">
                 {fieldWorkers.length === 0 ? (
-                  <p className="text-sm text-slate-500">No field workers yet.</p>
+                  <p className="p-4 text-sm text-slate-500">No field workers yet.</p>
                 ) : (
                   fieldWorkers.map((worker: FieldWorker) => (
-                    <div key={worker.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div key={worker.id} className="border-b border-slate-100 px-2 py-4 last:border-b-0">
                       <p className="text-sm font-semibold text-slate-900">{worker.name ?? 'Unnamed worker'}</p>
-                      <p className="mt-1 text-sm text-slate-600">Phone: {worker.phoneNumber ?? '-'}</p>
-                      <p className="mt-1 text-sm text-slate-600">CNIC: {worker.cnic ?? '-'}</p>
+                      <div className="mt-2 grid gap-1 text-sm text-slate-600">
+                        <p>Phone: {worker.phoneNumber ?? '-'}</p>
+                        <p>CNIC: {worker.cnic ?? '-'}</p>
+                      </div>
                       <p className="mt-2 text-xs text-slate-500">Added {worker.createdAt.toLocaleDateString()}</p>
                     </div>
                   ))
                 )}
               </div>
             </div>
-
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Admin Actions</h2>
-              <div className="mt-4 grid gap-3">
-                <Link href="/api/applications/export?format=csv" className="rounded-2xl bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-slate-800">
-                  Export CSV
-                </Link>
-                <Link href="/api/applications/export?format=json" className="rounded-2xl bg-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-900 hover:bg-slate-300">
-                  Export JSON
-                </Link>
-                <Link href="/dashboard" className="rounded-2xl bg-slate-100 px-4 py-3 text-center text-sm font-semibold text-slate-900 hover:bg-slate-200">
-                  Field Dashboard
-                </Link>
-              </div>
-            </div>
-          </aside>
-        </div>
+          </div>
+        </section>
       </div>
     </main>
   );
