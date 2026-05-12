@@ -6,7 +6,7 @@ import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 
 export default async function AdminNewApplicationPage() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) redirect('/admin/login?callbackUrl=/admin/applications/new');
+  if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications/new');
   if (session.user.role !== 'admin') redirect('/dashboard');
 
   return (

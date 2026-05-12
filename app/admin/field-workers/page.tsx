@@ -15,7 +15,7 @@ type FieldWorker = {
 
 export default async function AdminFieldWorkersPage() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) redirect('/admin/login?callbackUrl=/admin/field-workers');
+  if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/field-workers');
   if (session.user.role !== 'admin') redirect('/dashboard');
 
   const fieldWorkers = await prisma.user.findMany({

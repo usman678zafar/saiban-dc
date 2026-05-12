@@ -87,7 +87,7 @@ async function getAdminPortalData() {
 export default async function AdminPortalPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
-    redirect('/admin/login?callbackUrl=/admin');
+    redirect('/signin?callbackUrl=/admin');
   }
 
   if (session.user.role !== 'admin') {

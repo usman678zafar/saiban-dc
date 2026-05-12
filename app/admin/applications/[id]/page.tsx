@@ -41,7 +41,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 export default async function AdminApplicationDetailPage({ params }: AdminApplicationDetailPageProps) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) redirect(`/admin/login?callbackUrl=/admin/applications/${params.id}`);
+  if (!session?.user?.email) redirect(`/signin?callbackUrl=/admin/applications/${params.id}`);
   if (session.user.role !== 'admin') redirect('/dashboard');
 
   const application = await prisma.orphanApplication.findUnique({

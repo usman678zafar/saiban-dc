@@ -16,7 +16,7 @@ type ApplicationListItem = {
 
 export default async function AdminApplicationsPage() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) redirect('/admin/login?callbackUrl=/admin/applications');
+  if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications');
   if (session.user.role !== 'admin') redirect('/dashboard');
 
   const applications = await prisma.orphanApplication.findMany({
