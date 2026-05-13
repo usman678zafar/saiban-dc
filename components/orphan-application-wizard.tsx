@@ -384,20 +384,20 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     { type: 'mother_cnic', label: 'Mother CNIC' },
   ];
   const stepTitles = [
-    'Collector',
-    'Father',
-    'Mother',
-    'Guardian',
-    'Relatives',
-    'Home',
-    'Assets',
-    'Child',
-    'Health',
-    'Income',
-    'School',
-    'Imam',
-    'Documents',
-    'Review',
+    'Collector / جمع کنندہ',
+    'Father / والد',
+    'Mother / والدہ',
+    'Guardian / سرپرست',
+    'Relatives / رشتہ دار',
+    'Home / گھر',
+    'Assets / اثاثے',
+    'Child / بچہ',
+    'Health / صحت',
+    'Income / آمدنی',
+    'School / سکول',
+    'Imam / امام',
+    'Documents / دستاویزات',
+    'Review / جائزہ',
   ];
 
   const lockedFormFillerFields: Array<keyof FormData> = [
@@ -443,7 +443,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             key={item}
             type="button"
             onClick={() => setStep(item)}
-            className={`min-w-[112px] snap-start rounded-lg border px-4 py-3 text-sm font-semibold transition sm:min-w-0 ${item === step ? 'border-blue-600 bg-blue-50 text-blue-900' : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100'}`}
+            className={`min-w-[168px] snap-start rounded-lg border px-3 py-3 text-sm font-semibold leading-5 transition sm:min-w-0 ${item === step ? 'border-blue-600 bg-blue-50 text-blue-900' : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100'}`}
           >
             {item}. {stepTitles[item - 1]}
           </button>
