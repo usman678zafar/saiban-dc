@@ -300,7 +300,7 @@ const defaultData: FormData = {
 
 function fieldLabel(field: keyof FormData) {
   const label = labels[field];
-  return label ? `${label.ur} (${label.en})` : field;
+  return label ? `${label.en} / ${label.ur}` : field;
 }
 
 interface OrphanApplicationWizardProps {
@@ -1023,7 +1023,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 5 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Close Relatives</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Close Relatives / قریبی رشتہ دار</h2>
             <p className="mt-1 text-sm text-slate-600">Include grandparent and uncle details for migration and verification.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -1032,11 +1032,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-slate-900">Uncles</h3>
-                <p className="text-sm text-slate-600">Add paternal and maternal uncles.</p>
+                <h3 className="text-lg font-semibold text-slate-900">Uncles / چچا اور ماموں</h3>
+                <p className="text-sm text-slate-600">Add paternal and maternal uncles / چچا اور ماموں شامل کریں۔</p>
               </div>
               <button type="button" onClick={() => addArrayItem('relatives')} className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
-                Add Relative
+                Add Relative / رشتہ دار شامل کریں
               </button>
             </div>
             <div className="space-y-4">
@@ -1044,18 +1044,18 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                 <div key={index} className="rounded-2xl border border-slate-200 bg-white p-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="grid gap-2 text-sm text-slate-700">
-                      <span>Relative Type</span>
+                      <span>Relative Type / رشتہ داری</span>
                       <select
                         value={relative.relativeType}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { relativeType: event.target.value as RelativeInput['relativeType'] })}
                         className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
                       >
-                        <option value="paternal_uncle">Paternal Uncle</option>
-                        <option value="maternal_uncle">Maternal Uncle</option>
+                        <option value="paternal_uncle">Paternal Uncle / چچا</option>
+                        <option value="maternal_uncle">Maternal Uncle / ماموں</option>
                       </select>
                     </label>
                     <label className="grid gap-2 text-sm text-slate-700">
-                      <span>Name</span>
+                      <span>Name / نام</span>
                       <input
                         value={relative.name}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { name: event.target.value })}
@@ -1065,7 +1065,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   </div>
                   <div className="grid gap-4 sm:grid-cols-3">
                     <label className="grid gap-2 text-sm text-slate-700">
-                      <span>Age</span>
+                      <span>Age / عمر</span>
                       <input
                         value={relative.age}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { age: event.target.value })}
@@ -1074,7 +1074,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       />
                     </label>
                     <label className="grid gap-2 text-sm text-slate-700">
-                      <span>Occupation</span>
+                      <span>Occupation / پیشہ</span>
                       <input
                         value={relative.occupation}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { occupation: event.target.value })}
@@ -1082,7 +1082,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       />
                     </label>
                     <label className="grid gap-2 text-sm text-slate-700">
-                      <span>Monthly Income</span>
+                      <span>Monthly Income / ماہانہ آمدنی</span>
                       <input
                         value={relative.monthlyIncome}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { monthlyIncome: event.target.value })}
@@ -1095,7 +1095,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     onClick={() => removeArrayItem('relatives', index)}
                     className="mt-4 rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500"
                   >
-                    Remove Relative
+                    Remove Relative / رشتہ دار ہٹائیں
                   </button>
                 </div>
               ))}
