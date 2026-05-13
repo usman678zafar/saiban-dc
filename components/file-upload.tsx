@@ -5,7 +5,8 @@ import { Upload, X } from 'lucide-react';
 
 interface FileUploadProps {
   documentType: string;
-  applicationId: string;
+  applicationId?: string | null;
+  ensureApplicationId?: () => Promise<string | null>;
   onUpload: (document: any) => void;
   onRemove?: (documentId: string) => void;
   existingDocument?: any;
@@ -16,6 +17,7 @@ interface FileUploadProps {
 export default function FileUpload({
   documentType,
   applicationId,
+  ensureApplicationId,
   onUpload,
   onRemove,
   existingDocument,
@@ -34,10 +36,15 @@ export default function FileUpload({
     setError(null);
 
     try {
+      const uploadApplicationId = applicationId ?? await ensureApplicationId?.();
+      if (!uploadApplicationId) {
+        throw new Error('Save a draft before uploading this file.');
+      }
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('documentType', documentType);
-      formData.append('applicationId', applicationId);
+      formData.append('applicationId', uploadApplicationId);
 
       const response = await fetch('/api/upload', {
         method: 'POST',

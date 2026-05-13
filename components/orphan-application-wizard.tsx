@@ -631,15 +631,42 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const goNext = () => setStep((current) => Math.min(current + 1, 14));
   const goBack = () => setStep((current) => Math.max(current - 1, 1));
 
+  const buildApplicationRequestBody = (saveStatus: 'draft' | 'submitted') => {
+    const { householdAssetSelection, ...formFields } = formData;
+    const householdAssets = householdSelectionToApiRows(householdAssetSelection);
+
+    return { ...formFields, householdAssets, status: saveStatus, id: applicationId } as any;
+  };
+
+  const ensureDraftForUpload = async () => {
+    if (applicationId) return applicationId;
+
+    setMessage(null);
+    const response = await fetch('/api/applications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildApplicationRequestBody('draft')),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error?.message ?? 'Unable to save draft before upload');
+    }
+
+    const application = await response.json();
+    setApplicationId(application.id);
+    setMessage('Draft saved. Uploading verification image...');
+
+    return application.id as string;
+  };
+
   const submit = async (saveStatus: 'draft' | 'submitted') => {
     setIsSubmitting(true);
     setMessage(null);
 
     try {
-      const { householdAssetSelection, ...formFields } = formData;
-      const householdAssets = householdSelectionToApiRows(householdAssetSelection);
       const method = applicationId ? 'PATCH' : 'POST';
-      const body = { ...formFields, householdAssets, status: saveStatus, id: applicationId } as any;
+      const body = buildApplicationRequestBody(saveStatus);
       const response = await fetch('/api/applications', {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -688,17 +715,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       types.push({ type: 'guardian_cnic', label: 'Guardian CNIC' });
     }
 
-    if (formData.currentlyStudying) {
-      types.push({ type: 'school_letter', label: 'School Letter' });
-      types.push({ type: 'principal_verification', label: 'Principal Verification' });
-    }
-
     if (formData.healthStatus === 'sick' || formData.healthStatus === 'disabled') {
       types.push({ type: 'medical_report', label: 'Medical Report' });
     }
 
     return types;
-  }, [formData.currentlyStudying, formData.healthStatus, formData.motherAlive, guardianDetailsNeeded]);
+  }, [formData.healthStatus, formData.motherAlive, guardianDetailsNeeded]);
   const stepTitles = [
     'Collector / جمع کنندہ',
     'Father / والد',
@@ -796,6 +818,23 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       <span>{labelText ?? fieldLabel(field)}</span>
     </label>
   );
+
+  const renderVerificationUpload = (documentType: string, label: string) => {
+    const existingDocument = documents.find((doc) => doc.documentType === documentType);
+
+    return (
+      <FileUpload
+        documentType={documentType}
+        applicationId={applicationId}
+        ensureApplicationId={ensureDraftForUpload}
+        onUpload={handleDocumentUpload}
+        onRemove={handleDocumentRemove}
+        existingDocument={existingDocument}
+        label={label}
+        accept="image/*"
+      />
+    );
+  };
 
   const shouldShowField = (field: keyof FormData) => {
     if (['motherDeathDate', 'motherDeathCause'].includes(field)) return formData.motherAlive === 'no';
@@ -1335,15 +1374,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Educational Institution Verification</h2>
-            <p className="mt-1 text-sm text-slate-600">Capture principal verification details.</p>
+            <p className="mt-1 text-sm text-slate-600">Upload the school verification letter image.</p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {['principalName', 'institutionName', 'verifiedStudentName', 'verifiedFatherName', 'verifiedClass', 'verifiedMonthlyFee'].map((field) =>
-              field === 'verifiedMonthlyFee'
-                ? renderTextField(field as keyof FormData, 'number')
-                : renderTextField(field as keyof FormData),
-            )}
-          </div>
+          {renderVerificationUpload('principal_verification', 'School Verification Letter Image')}
         </div>
       )}
 
@@ -1351,11 +1384,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Mosque Imam Verification</h2>
-            <p className="mt-1 text-sm text-slate-600">Capture imam verification and mosque details.</p>
+            <p className="mt-1 text-sm text-slate-600">Upload the mosque imam verification letter image.</p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {['imamName', 'mosqueName', 'neighborhoodCity', 'imamMobile', 'motherZakatStatus'].map((field) => renderTextField(field as keyof FormData))}
-          </div>
+          {renderVerificationUpload('imam_verification', 'Imam Verification Letter Image')}
         </div>
       )}
 
