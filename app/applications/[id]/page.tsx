@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
 import AppShell from '@/components/app-shell';
+import { assetUsesGrams, householdAssetDisplayLabel, type HouseholdAssetKey } from '@/lib/household-assets';
 
 function badgeClass(status: string) {
   switch (status) {
@@ -104,10 +105,16 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
     label: `${relative.relativeType.replace('_', ' ')} - ${relative.name ?? '-'}`,
     value: `${relative.age ?? '-'} years - ${relative.monthlyIncome ?? '-'} PKR`,
   }));
-  const householdAssetItems: DataGridItem[] = application.householdAssets.map((asset: HouseholdAssetRecord) => ({
-    label: asset.assetType,
-    value: `${asset.quantity ?? '-'} units - ${asset.value ?? '-'} PKR`,
-  }));
+  const householdAssetItems: DataGridItem[] = application.householdAssets.map((asset: HouseholdAssetRecord) => {
+    const key = asset.assetType as HouseholdAssetKey;
+    const label = householdAssetDisplayLabel(key) ?? asset.assetType;
+    const quantity = assetUsesGrams(key) ? `${asset.quantity ?? '-'} grams` : 'Selected';
+
+    return {
+      label,
+      value: `${quantity} - ${asset.value ?? '-'} PKR`,
+    };
+  });
   const documentItems: DocumentItem[] = application.documents.map((document: ApplicationDocumentRecord) => ({
     id: document.id,
     documentType: document.documentType,

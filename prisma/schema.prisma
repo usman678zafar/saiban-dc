@@ -240,7 +240,7 @@ model HouseholdAsset {
   application   OrphanApplication @relation(fields: [applicationId], references: [id])
   applicationId String
   assetType     String
-  quantity      Int?
+  quantity      Float?
   value         Float?
 }
 

@@ -56,9 +56,10 @@ export const relativeSchema = z.object({
 export const assetSchema = z.object({
   assetType: z.string().min(1),
   quantity: z.preprocess((value) => {
+    if (value === undefined || value === null || value === '') return undefined;
     if (typeof value === 'string') return Number(value);
     return value;
-  }, z.number().int().min(0).optional()),
+  }, z.number().min(0).optional()),
   value: nonNegativeNumber.optional(),
 });
 
@@ -150,6 +151,7 @@ const baseOrphanApplicationSchema = z.object({
   maternalGrandfatherIncome: nonNegativeNumber.optional(),
   siblings: z.array(siblingSchema).optional(),
   relatives: z.array(relativeSchema).optional(),
+  householdAssets: z.array(assetSchema).optional(),
   city: optionalString,
   district: optionalString,
   tehsil: optionalString,
@@ -426,6 +428,28 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
         message: 'Monthly aid amount is required when receiving other aid',
       });
     }
+  }
+
+  if (data.householdAssets?.length) {
+    data.householdAssets.forEach((asset, index) => {
+      if (asset.value === undefined) {
+        ctx.addIssue({
+          path: ['householdAssets', index, 'value'],
+          code: z.ZodIssueCode.custom,
+          message: 'Value is required for each selected household asset',
+        });
+      }
+
+      if (asset.assetType === 'gold' || asset.assetType === 'silver') {
+        if (asset.quantity === undefined || asset.quantity <= 0) {
+          ctx.addIssue({
+            path: ['householdAssets', index, 'quantity'],
+            code: z.ZodIssueCode.custom,
+            message: 'Grams are required for gold and silver',
+          });
+        }
+      }
+    });
   }
 });
 

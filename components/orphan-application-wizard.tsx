@@ -2,6 +2,18 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { labels } from '@/lib/labels';
+import {
+  HOUSEHOLD_ASSET_KEYS,
+  assetUsesGrams,
+  createDefaultHouseholdAssetSelection,
+  householdAssetDisplayLabel,
+  mergeHouseholdAssetSelection,
+  householdAssetRowsToSelection,
+  householdSelectionToApiRows,
+  type HouseholdAssetKey,
+  type HouseholdAssetEntry,
+  type HouseholdAssetSelection,
+} from '@/lib/household-assets';
 import FileUpload from './file-upload';
 
 type SiblingInput = {
@@ -19,13 +31,6 @@ type RelativeInput = {
   age: string;
   occupation: string;
   monthlyIncome: string;
-};
-
-type AssetInput = {
-  id?: string;
-  assetType: string;
-  quantity: string;
-  value: string;
 };
 
 type DocumentInput = {
@@ -161,7 +166,7 @@ export type FormData = {
   status: 'draft' | 'submitted';
   siblings: SiblingInput[];
   relatives: RelativeInput[];
-  householdAssets: AssetInput[];
+  householdAssetSelection: HouseholdAssetSelection;
   documents: DocumentInput[];
 };
 
@@ -289,7 +294,7 @@ const defaultData: FormData = {
   status: 'draft',
   siblings: [],
   relatives: [],
-  householdAssets: [],
+  householdAssetSelection: createDefaultHouseholdAssetSelection(),
   documents: [],
 };
 
@@ -334,6 +339,8 @@ function normalizeInitialData(data: FormData): FormData {
     next.motherIsGuardian = next.guardianName || next.guardianContact ? 'no' : 'yes';
   }
 
+  next.householdAssetSelection = mergeHouseholdAssetSelection(next.householdAssetSelection);
+
   return next;
 }
 
@@ -364,6 +371,18 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
       const persisted = JSON.parse(raw) as PersistedWizardState;
       const persistedFormData = persisted.formData ?? {};
+
+      if (Array.isArray((persistedFormData as { householdAssets?: unknown }).householdAssets)) {
+        const rawAssets = (persistedFormData as { householdAssets: { assetType: string; quantity?: string; value?: string }[] }).householdAssets;
+        (persistedFormData as Partial<FormData>).householdAssetSelection = householdAssetRowsToSelection(
+          rawAssets.map((a) => ({
+            assetType: a.assetType,
+            quantity: a.quantity === '' || a.quantity === undefined ? undefined : Number(a.quantity),
+            value: a.value === '' || a.value === undefined ? undefined : Number(a.value),
+          })),
+        );
+        delete (persistedFormData as { householdAssets?: unknown }).householdAssets;
+      }
 
       if (persistedFormData.status === 'submitted') {
         window.localStorage.removeItem(storageKey);
@@ -545,8 +564,30 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     });
   };
 
+  const handleHouseholdAssetHasChange = (key: HouseholdAssetKey, has: boolean) => {
+    setFormData((current) => ({
+      ...current,
+      householdAssetSelection: {
+        ...current.householdAssetSelection,
+        [key]: has
+          ? { ...current.householdAssetSelection[key], has: true }
+          : { has: false, value: '', grams: '' },
+      },
+    }));
+  };
+
+  const updateHouseholdAssetEntry = (key: HouseholdAssetKey, patch: Partial<HouseholdAssetEntry>) => {
+    setFormData((current) => ({
+      ...current,
+      householdAssetSelection: {
+        ...current.householdAssetSelection,
+        [key]: { ...current.householdAssetSelection[key], ...patch },
+      },
+    }));
+  };
+
   const updateArrayItem = <T extends object>(
-    key: 'siblings' | 'relatives' | 'householdAssets',
+    key: 'siblings' | 'relatives',
     index: number,
     value: Partial<T>,
   ) => {
@@ -557,18 +598,16 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     });
   };
 
-  const addArrayItem = (key: 'siblings' | 'relatives' | 'householdAssets') => {
+  const addArrayItem = (key: 'siblings' | 'relatives') => {
     setFormData((current) => {
       const item = key === 'siblings'
         ? { name: '', age: '', occupation: '', monthlyIncomeOrFee: '' }
-        : key === 'relatives'
-          ? { relativeType: 'paternal_uncle', name: '', age: '', occupation: '', monthlyIncome: '' }
-          : { assetType: '', quantity: '', value: '' };
+        : { relativeType: 'paternal_uncle' as const, name: '', age: '', occupation: '', monthlyIncome: '' };
       return { ...current, [key]: [...current[key], item] };
     });
   };
 
-  const removeArrayItem = (key: 'siblings' | 'relatives' | 'householdAssets', index: number) => {
+  const removeArrayItem = (key: 'siblings' | 'relatives', index: number) => {
     setFormData((current) => ({
       ...current,
       [key]: current[key].filter((_, idx) => idx !== index),
@@ -597,8 +636,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     setMessage(null);
 
     try {
+      const { householdAssetSelection, ...formFields } = formData;
+      const householdAssets = householdSelectionToApiRows(householdAssetSelection);
       const method = applicationId ? 'PATCH' : 'POST';
-      const body = { ...formData, status: saveStatus, id: applicationId } as any;
+      const body = { ...formFields, householdAssets, status: saveStatus, id: applicationId } as any;
       const response = await fetch('/api/applications', {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -774,11 +815,24 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     return true;
   };
 
-  const formatReviewValue = (field: keyof FormData) => {
+  const formatReviewValue = (field: keyof FormData): string => {
+    if (field === 'householdAssetSelection') {
+      const selected = HOUSEHOLD_ASSET_KEYS
+        .filter((key) => formData.householdAssetSelection[key].has)
+        .map((key) => {
+          const entry = formData.householdAssetSelection[key];
+          const grams = assetUsesGrams(key) && entry.grams ? `, ${entry.grams} grams` : '';
+          const amount = entry.value ? `${entry.value} PKR` : 'value missing';
+          return `${householdAssetDisplayLabel(key)}: ${amount}${grams}`;
+        });
+
+      return selected.length ? selected.join('; ') : '-';
+    }
+
     const value = formData[field];
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
     if (Array.isArray(value)) return value.length ? `${value.length} record(s)` : '-';
-    return value || '-';
+    return typeof value === 'string' ? value || '-' : '-';
   };
 
   const reviewSections: Array<{ title: string; fields: Array<keyof FormData> }> = [
@@ -786,6 +840,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     { title: 'Mother', fields: ['motherName', 'motherAlive', 'motherContact', 'motherEmploymentStatus', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
     { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
     { title: 'Home', fields: ['city', 'district', 'tehsil', 'fullAddress', 'houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseOwner', 'houseCondition', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks'] },
+    { title: 'Household Assets', fields: ['householdAssetSelection'] },
     { title: 'Health and Education', fields: ['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'currentClass', 'schoolName', 'educationFeeStatus', 'monthlySchoolFee', 'notStudyingReason', 'educationStartCondition', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails'] },
     { title: 'Income and Aid', fields: ['careerGoal', 'childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'notAppliedElsewhereReason'] },
   ];
@@ -1053,53 +1108,80 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Household Assets</h2>
-            <p className="mt-1 text-sm text-slate-600">Track household assets for support assessment.</p>
+            
           </div>
-          <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-700">Add asset type, quantity, and value.</p>
-              <button type="button" onClick={() => addArrayItem('householdAssets')} className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
-                Add Asset
-              </button>
-            </div>
-            {formData.householdAssets.map((asset, index) => (
-              <div key={index} className="rounded-2xl border border-slate-200 bg-white p-4">
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <label className="grid gap-2 text-sm text-slate-700">
-                    <span>Asset Type</span>
-                    <input
-                      value={asset.assetType}
-                      onChange={(event) => updateArrayItem<AssetInput>('householdAssets', index, { assetType: event.target.value })}
-                      className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
-                    />
-                  </label>
-                  <label className="grid gap-2 text-sm text-slate-700">
-                    <span>Quantity</span>
-                    <input
-                      value={asset.quantity}
-                      onChange={(event) => updateArrayItem<AssetInput>('householdAssets', index, { quantity: event.target.value })}
-                      type="number"
-                      className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
-                    />
-                  </label>
-                  <label className="grid gap-2 text-sm text-slate-700">
-                    <span>Value</span>
-                    <input
-                      value={asset.value}
-                      onChange={(event) => updateArrayItem<AssetInput>('householdAssets', index, { value: event.target.value })}
-                      className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
-                    />
-                  </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {HOUSEHOLD_ASSET_KEYS.map((key) => {
+              const entry = formData.householdAssetSelection[key];
+              const showGrams = assetUsesGrams(key);
+              return (
+                <div key={key} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <span className="text-base font-semibold text-slate-900">
+                      {householdAssetDisplayLabel(key)}
+                    </span>
+                    <div className="flex shrink-0 items-center gap-3 text-sm text-slate-700" role="group" aria-label={`${householdAssetDisplayLabel(key)} موجود ہے؟`}>
+                      <label className="flex cursor-pointer items-center gap-1.5">
+                        <input
+                          type="radio"
+                          name={`household-asset-${key}`}
+                          className="h-4 w-4 accent-blue-600"
+                          checked={!entry.has}
+                          onChange={() => handleHouseholdAssetHasChange(key, false)}
+                        />
+                        <span dir="rtl">نہیں</span>
+                      </label>
+                      <label className="flex cursor-pointer items-center gap-1.5">
+                        <input
+                          type="radio"
+                          name={`household-asset-${key}`}
+                          className="h-4 w-4 accent-blue-600"
+                          checked={entry.has}
+                          onChange={() => handleHouseholdAssetHasChange(key, true)}
+                        />
+                        <span dir="rtl">ہاں</span>
+                      </label>
+                    </div>
+                  </div>
+                  {entry.has ? (
+                    <div className={`mt-3 grid gap-3 ${showGrams ? 'sm:grid-cols-2' : ''}`}>
+                      {showGrams ? (
+                        <label className="grid gap-1.5 text-sm text-slate-700">
+                          <span>
+                            گرام <span className="text-slate-500">(Grams)</span>
+                          </span>
+                          <input
+                            value={entry.grams}
+                            onChange={(event) => updateHouseholdAssetEntry(key, { grams: event.target.value })}
+                            type="number"
+                            inputMode="decimal"
+                            min={0}
+                            step="any"
+                            className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+                            placeholder="0"
+                          />
+                        </label>
+                      ) : null}
+                      <label className={`grid gap-1.5 text-sm text-slate-700 ${showGrams ? '' : 'sm:col-span-2'}`}>
+                        <span>
+                          قدر (روپے) <span className="text-slate-500">/ Value (PKR)</span>
+                        </span>
+                        <input
+                          value={entry.value}
+                          onChange={(event) => updateHouseholdAssetEntry(key, { value: event.target.value })}
+                          type="number"
+                          inputMode="decimal"
+                          min={0}
+                          step="any"
+                          className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+                          placeholder="0"
+                        />
+                      </label>
+                    </div>
+                  ) : null}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeArrayItem('householdAssets', index)}
-                  className="mt-4 rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500"
-                >
-                  Remove Asset
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
