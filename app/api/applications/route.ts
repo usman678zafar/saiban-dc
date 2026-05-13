@@ -87,8 +87,12 @@ function normalizeConditionalPayload(payload: any) {
 
   next.guardianFamilyHolderAmount = '';
 
-  if (next.houseOwnershipStatus !== 'rented') {
-    clearPayloadFields(next, ['monthlyRent', 'houseOwner']);
+  if (next.houseOwnershipStatus === 'rented') {
+    next.houseOwnershipStatus = 'rent';
+  }
+
+  if (next.houseOwnershipStatus !== 'rent') {
+    clearPayloadFields(next, ['monthlyRent', 'rentPaidBy', 'houseOwner']);
   }
 
   if (next.healthStatus === 'healthy') {

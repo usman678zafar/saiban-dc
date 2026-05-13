@@ -165,9 +165,12 @@ const baseOrphanApplicationSchema = z.object({
   }, z.number().gte(-90).lte(90).optional()),
   houseOwnershipStatus: optionalString,
   monthlyRent: nonNegativeNumber.optional(),
+  rentPaidBy: optionalString,
   houseOwner: optionalString,
   houseCondition: optionalString,
+  houseConditionRemarks: optionalString,
   furnishingCondition: optionalString,
+  furnishingConditionRemarks: optionalString,
   childName: optionalString,
   gender: optionalString,
   caste: optionalString,
@@ -339,7 +342,7 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
     }
   }
 
-  if (data.houseOwnershipStatus === 'rented' && data.monthlyRent === undefined) {
+  if ((data.houseOwnershipStatus === 'rent' || data.houseOwnershipStatus === 'rented') && data.monthlyRent === undefined) {
     ctx.addIssue({
       path: ['monthlyRent'],
       code: z.ZodIssueCode.custom,

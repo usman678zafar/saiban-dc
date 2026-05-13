@@ -134,9 +134,12 @@ model OrphanApplication {
   latitude                   Float?
   houseOwnershipStatus       String?
   monthlyRent                Float?
+  rentPaidBy                 String?
   houseOwner                 String?
   houseCondition             String?
+  houseConditionRemarks      String?
   furnishingCondition        String?
+  furnishingConditionRemarks String?
   childName                  String?
   gender                     String?
   caste                      String?

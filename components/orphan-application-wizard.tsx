@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { labels } from '@/lib/labels';
 import FileUpload from './file-upload';
 
@@ -100,9 +100,12 @@ export type FormData = {
   latitude: string;
   houseOwnershipStatus: string;
   monthlyRent: string;
+  rentPaidBy: string;
   houseOwner: string;
   houseCondition: string;
+  houseConditionRemarks: string;
   furnishingCondition: string;
+  furnishingConditionRemarks: string;
   childName: string;
   gender: string;
   caste: string;
@@ -225,9 +228,12 @@ const defaultData: FormData = {
   latitude: '',
   houseOwnershipStatus: '',
   monthlyRent: '',
+  rentPaidBy: '',
   houseOwner: '',
   houseCondition: '',
+  houseConditionRemarks: '',
   furnishingCondition: '',
+  furnishingConditionRemarks: '',
   childName: '',
   gender: '',
   caste: '',
@@ -298,6 +304,13 @@ interface OrphanApplicationWizardProps {
   initialApplicationId?: string;
 }
 
+type PersistedWizardState = {
+  step?: number;
+  formData?: Partial<FormData>;
+  applicationId?: string | null;
+  documents?: DocumentInput[];
+};
+
 function normalizeInitialData(data: FormData): FormData {
   const next = { ...data };
 
@@ -326,12 +339,72 @@ function normalizeInitialData(data: FormData): FormData {
 
 export default function OrphanApplicationWizard({ initialData, initialDocuments, initialApplicationId }: OrphanApplicationWizardProps) {
   const mergedData = useMemo(() => normalizeInitialData({ ...defaultData, ...initialData }), [initialData]);
+  const storageKey = useMemo(() => {
+    const collectorKey = mergedData.collectorId || mergedData.collectorCnic || 'unknown';
+    return `saiban-orphan-application:new:${collectorKey}`;
+  }, [mergedData.collectorCnic, mergedData.collectorId]);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(mergedData);
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(initialApplicationId ?? null);
   const [documents, setDocuments] = useState<DocumentInput[]>(initialDocuments ?? []);
+  const [hasLoadedPersistedState, setHasLoadedPersistedState] = useState(Boolean(initialApplicationId));
+  const [shouldPersistNewApplication, setShouldPersistNewApplication] = useState(!initialApplicationId);
+
+  useEffect(() => {
+    if (initialApplicationId) return;
+
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) {
+        setHasLoadedPersistedState(true);
+        return;
+      }
+
+      const persisted = JSON.parse(raw) as PersistedWizardState;
+      const persistedFormData = persisted.formData ?? {};
+
+      if (persistedFormData.status === 'submitted') {
+        window.localStorage.removeItem(storageKey);
+        setHasLoadedPersistedState(true);
+        return;
+      }
+
+      setFormData(normalizeInitialData({
+        ...defaultData,
+        ...mergedData,
+        ...persistedFormData,
+        collectorId: mergedData.collectorId,
+        collectorName: mergedData.collectorName,
+        collectorProject: mergedData.collectorProject,
+        collectorCnic: mergedData.collectorCnic,
+        collectorAddress: mergedData.collectorAddress,
+        collectorContact: mergedData.collectorContact,
+      }));
+      setStep(Math.min(Math.max(Number(persisted.step) || 1, 1), 14));
+      setApplicationId(persisted.applicationId ?? null);
+      setDocuments(Array.isArray(persisted.documents) ? persisted.documents : []);
+      setHasLoadedPersistedState(true);
+    } catch (error) {
+      window.localStorage.removeItem(storageKey);
+      setHasLoadedPersistedState(true);
+    }
+  }, [initialApplicationId, mergedData, storageKey]);
+
+  useEffect(() => {
+    if (initialApplicationId || !shouldPersistNewApplication || !hasLoadedPersistedState) return;
+
+    const persisted: PersistedWizardState & { updatedAt: string } = {
+      step,
+      formData,
+      applicationId,
+      documents,
+      updatedAt: new Date().toISOString(),
+    };
+
+    window.localStorage.setItem(storageKey, JSON.stringify(persisted));
+  }, [applicationId, documents, formData, hasLoadedPersistedState, initialApplicationId, shouldPersistNewApplication, step, storageKey]);
 
   const updateField = (field: keyof FormData, value: string | boolean) => {
     setFormData((current) => ({ ...current, [field]: value }));
@@ -419,7 +492,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const handleHouseOwnershipStatusChange = (value: string) => {
     updateFields({
       houseOwnershipStatus: value,
-      ...(value === 'rented' ? {} : { monthlyRent: '', houseOwner: '' }),
+      ...(value === 'rent' ? {} : { monthlyRent: '', rentPaidBy: '', houseOwner: '' }),
     });
   };
 
@@ -540,6 +613,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       const application = await response.json();
       setApplicationId(application.id);
       setMessage(saveStatus === 'submitted' ? 'Application submitted successfully.' : 'Draft saved successfully.');
+      if (saveStatus === 'submitted' && !initialApplicationId) {
+        window.localStorage.removeItem(storageKey);
+        setShouldPersistNewApplication(false);
+      }
       if (!applicationId) {
         setStep(14);
       }
@@ -685,7 +762,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     if (['motherOccupation', 'motherMonthlyIncome'].includes(field)) return formData.motherAlive === 'yes' && formData.motherEmploymentStatus === 'working';
     if (['guardianName', 'guardianRelationship', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianOccupation', 'guardianFamilyHolder', 'guardianMonthlyIncome'].includes(field)) return guardianDetailsNeeded;
     if (field === 'guardianFamilyMembersCount') return guardianDetailsNeeded && formData.guardianFamilyHolder === 'yes';
-    if (['monthlyRent', 'houseOwner'].includes(field)) return formData.houseOwnershipStatus === 'rented';
+    if (['monthlyRent', 'rentPaidBy', 'houseOwner'].includes(field)) return formData.houseOwnershipStatus === 'rent';
     if (field === 'disabilityDetails') return formData.healthStatus === 'disabled';
     if (field === 'treatmentPlace') return formData.healthStatus === 'sick';
     if (field === 'monthlyMedicalExpenses') return formData.healthStatus === 'sick' || formData.healthStatus === 'disabled';
@@ -708,7 +785,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     { title: 'Collector', fields: lockedFormFillerFields },
     { title: 'Mother', fields: ['motherName', 'motherAlive', 'motherContact', 'motherEmploymentStatus', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
     { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
-    { title: 'Home', fields: ['city', 'district', 'tehsil', 'fullAddress', 'houseOwnershipStatus', 'monthlyRent', 'houseOwner', 'houseCondition'] },
+    { title: 'Home', fields: ['city', 'district', 'tehsil', 'fullAddress', 'houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseOwner', 'houseCondition', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks'] },
     { title: 'Health and Education', fields: ['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'currentClass', 'schoolName', 'educationFeeStatus', 'monthlySchoolFee', 'notStudyingReason', 'educationStartCondition', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails'] },
     { title: 'Income and Aid', fields: ['careerGoal', 'childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'notAppliedElsewhereReason'] },
   ];
@@ -944,16 +1021,30 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {renderSelectField('houseOwnershipStatus', [
               { value: '', label: 'Select ownership status' },
               { value: 'owned', label: 'Owned / ذاتی' },
-              { value: 'rented', label: 'Rented / کرایہ' },
+              { value: 'rent', label: 'Rent / کرایہ' },
               { value: 'other', label: 'Other / دیگر' },
             ], handleHouseOwnershipStatusChange)}
-            {formData.houseOwnershipStatus === 'rented' ? (
+            {formData.houseOwnershipStatus === 'rent' ? (
               <>
                 {renderTextField('monthlyRent', 'number')}
+                {renderTextField('rentPaidBy')}
                 {renderTextField('houseOwner')}
               </>
             ) : null}
-            {['houseCondition', 'furnishingCondition'].map((field) => renderTextField(field as keyof FormData))}
+            {renderSelectField('houseCondition', [
+              { value: '', label: 'Select house condition' },
+              { value: 'better', label: 'Better / بہتر' },
+              { value: 'appropriate', label: 'Appropriate / مناسب' },
+              { value: 'worst', label: 'Worst / خراب' },
+            ])}
+            {renderTextField('houseConditionRemarks')}
+            {renderSelectField('furnishingCondition', [
+              { value: '', label: 'Select furnishing condition' },
+              { value: 'better', label: 'Better / بہتر' },
+              { value: 'appropriate', label: 'Appropriate / مناسب' },
+              { value: 'worst', label: 'Worst / خراب' },
+            ])}
+            {renderTextField('furnishingConditionRemarks')}
           </div>
         </div>
       )}
