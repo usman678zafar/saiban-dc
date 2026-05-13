@@ -20,6 +20,11 @@ const optionalString = z.preprocess((value) => {
   return value;
 }, z.string().optional());
 
+const optionalEnum = <T extends [string, ...string[]]>(values: T) => z.preprocess((value) => {
+  if (typeof value === 'string') return value.trim() || undefined;
+  return value;
+}, z.enum(values).optional());
+
 const booleanString = z.preprocess((value) => {
   if (typeof value === 'string') {
     return value === 'true' || value === '1';
@@ -57,7 +62,7 @@ export const assetSchema = z.object({
   value: nonNegativeNumber.optional(),
 });
 
-export const orphanApplicationSchema = z.object({
+const baseOrphanApplicationSchema = z.object({
   registrationNumber: optionalString,
   collectorId: optionalString,
   collectorName: optionalString,
@@ -98,6 +103,9 @@ export const orphanApplicationSchema = z.object({
   motherEducation: optionalString,
   motherTongue: optionalString,
   motherNativeArea: optionalString,
+  motherAlive: optionalEnum(['yes', 'no']),
+  motherEmploymentStatus: optionalEnum(['housewife', 'working', 'unemployed']),
+  motherIsGuardian: optionalEnum(['yes', 'no']),
   motherContact: optionalString,
   motherIsHousewife: booleanString.optional(),
   motherOccupation: optionalString,
@@ -118,6 +126,13 @@ export const orphanApplicationSchema = z.object({
   guardianContact: optionalString,
   guardianZakatStatus: optionalString,
   guardianOccupation: optionalString,
+  guardianFamilyHolder: optionalEnum(['yes', 'no']),
+  guardianFamilyHolderAmount: nonNegativeNumber.optional(),
+  guardianFamilyMembersCount: z.preprocess((value) => {
+    if (value === undefined || value === null || value === '') return undefined;
+    if (typeof value === 'string') return Number(value);
+    return value;
+  }, z.number().int().positive().optional()),
   guardianMonthlyIncome: nonNegativeNumber.optional(),
   paternalGrandfatherName: optionalString,
   paternalGrandfatherAge: z.preprocess((value) => {
@@ -239,6 +254,176 @@ export const orphanApplicationSchema = z.object({
   migrationStatus: z.enum(['pending', 'validated', 'migrated', 'rejected']).optional(),
   mainSaibanId: optionalString,
   migrationErrors: optionalString,
+});
+
+export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((data, ctx) => {
+  const isSubmitted = data.status === 'submitted';
+  if (!isSubmitted) return;
+
+  if (data.motherAlive === 'no') {
+    if (!data.motherDeathDate) {
+      ctx.addIssue({
+        path: ['motherDeathDate'],
+        code: z.ZodIssueCode.custom,
+        message: 'Mother death date is required when mother is deceased',
+      });
+    }
+
+    if (!data.motherDeathCause) {
+      ctx.addIssue({
+        path: ['motherDeathCause'],
+        code: z.ZodIssueCode.custom,
+        message: 'Mother death cause is required when mother is deceased',
+      });
+    }
+  }
+
+  if (data.motherAlive === 'yes' && !data.motherContact) {
+    ctx.addIssue({
+      path: ['motherContact'],
+      code: z.ZodIssueCode.custom,
+      message: 'Mother contact is required when mother is alive',
+    });
+  }
+
+  if (data.motherAlive === 'yes' && data.motherEmploymentStatus === 'working') {
+    if (!data.motherOccupation) {
+      ctx.addIssue({
+        path: ['motherOccupation'],
+        code: z.ZodIssueCode.custom,
+        message: 'Mother occupation is required when mother is working',
+      });
+    }
+
+    if (data.motherMonthlyIncome === undefined) {
+      ctx.addIssue({
+        path: ['motherMonthlyIncome'],
+        code: z.ZodIssueCode.custom,
+        message: 'Mother monthly income is required when mother is working',
+      });
+    }
+  }
+
+  const guardianDetailsNeeded = data.motherAlive !== 'yes' || data.motherIsGuardian !== 'yes';
+  if (guardianDetailsNeeded) {
+    if (!data.guardianName) {
+      ctx.addIssue({
+        path: ['guardianName'],
+        code: z.ZodIssueCode.custom,
+        message: 'Guardian name is required',
+      });
+    }
+
+    if (!data.guardianRelationship) {
+      ctx.addIssue({
+        path: ['guardianRelationship'],
+        code: z.ZodIssueCode.custom,
+        message: 'Guardian relationship is required',
+      });
+    }
+
+    if (!data.guardianContact) {
+      ctx.addIssue({
+        path: ['guardianContact'],
+        code: z.ZodIssueCode.custom,
+        message: 'Guardian contact is required',
+      });
+    }
+
+    if (data.guardianFamilyHolder === 'yes' && data.guardianFamilyMembersCount === undefined) {
+      ctx.addIssue({
+        path: ['guardianFamilyMembersCount'],
+        code: z.ZodIssueCode.custom,
+        message: 'Number of family members is required when family holder is yes',
+      });
+    }
+  }
+
+  if (data.houseOwnershipStatus === 'rented' && data.monthlyRent === undefined) {
+    ctx.addIssue({
+      path: ['monthlyRent'],
+      code: z.ZodIssueCode.custom,
+      message: 'Monthly rent is required for rented house',
+    });
+  }
+
+  if (data.healthStatus === 'disabled' && !data.disabilityDetails) {
+    ctx.addIssue({
+      path: ['disabilityDetails'],
+      code: z.ZodIssueCode.custom,
+      message: 'Disability details are required',
+    });
+  }
+
+  if (data.healthStatus === 'sick' && !data.treatmentPlace) {
+    ctx.addIssue({
+      path: ['treatmentPlace'],
+      code: z.ZodIssueCode.custom,
+      message: 'Treatment place is required when child is sick',
+    });
+  }
+
+  if ((data.healthStatus === 'sick' || data.healthStatus === 'disabled') && data.monthlyMedicalExpenses === undefined) {
+    ctx.addIssue({
+      path: ['monthlyMedicalExpenses'],
+      code: z.ZodIssueCode.custom,
+      message: 'Monthly medical expenses are required when child is sick or disabled',
+    });
+  }
+
+  if (data.currentlyStudying) {
+    if (!data.schoolName) {
+      ctx.addIssue({
+        path: ['schoolName'],
+        code: z.ZodIssueCode.custom,
+        message: 'School name is required when currently studying',
+      });
+    }
+
+    if (data.educationFeeStatus === 'paid' && data.monthlySchoolFee === undefined) {
+      ctx.addIssue({
+        path: ['monthlySchoolFee'],
+        code: z.ZodIssueCode.custom,
+        message: 'Monthly school fee is required when education fee is paid',
+      });
+    }
+  }
+
+  if (data.enrolledInMadrasa) {
+    if (!data.madrasaName) {
+      ctx.addIssue({
+        path: ['madrasaName'],
+        code: z.ZodIssueCode.custom,
+        message: 'Madrasa name is required when enrolled in madrasa',
+      });
+    }
+
+    if (!data.madrasaEducationDetails) {
+      ctx.addIssue({
+        path: ['madrasaEducationDetails'],
+        code: z.ZodIssueCode.custom,
+        message: 'Madrasa education details are required when enrolled in madrasa',
+      });
+    }
+  }
+
+  if (data.receivingOtherAid) {
+    if (!data.otherAidSource) {
+      ctx.addIssue({
+        path: ['otherAidSource'],
+        code: z.ZodIssueCode.custom,
+        message: 'Other aid source is required when receiving other aid',
+      });
+    }
+
+    if (data.monthlyAidAmount === undefined) {
+      ctx.addIssue({
+        path: ['monthlyAidAmount'],
+        code: z.ZodIssueCode.custom,
+        message: 'Monthly aid amount is required when receiving other aid',
+      });
+    }
+  }
 });
 
 export const getOrphanApplicationSchema = orphanApplicationSchema;

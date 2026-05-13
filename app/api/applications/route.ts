@@ -21,6 +21,111 @@ function collectorPayload(user: NonNullable<Awaited<ReturnType<typeof getUser>>>
   };
 }
 
+function clearPayloadFields(payload: any, fields: string[]) {
+  for (const field of fields) {
+    if (typeof payload[field] === 'boolean') {
+      payload[field] = false;
+    } else {
+      payload[field] = '';
+    }
+  }
+}
+
+function normalizeConditionalPayload(payload: any) {
+  const next = { ...payload };
+
+  if (next.motherAlive === 'no') {
+    clearPayloadFields(next, ['motherContact', 'motherOccupation', 'motherMonthlyIncome']);
+    next.motherIsHousewife = false;
+    next.motherRemarried = false;
+    next.motherEmploymentStatus = '';
+    next.motherIsGuardian = 'no';
+  }
+
+  if (next.motherAlive === 'yes') {
+    clearPayloadFields(next, ['motherDeathDate', 'motherDeathCause']);
+  }
+
+  if (next.motherEmploymentStatus === 'housewife') {
+    next.motherIsHousewife = true;
+    clearPayloadFields(next, ['motherOccupation', 'motherMonthlyIncome']);
+  }
+
+  if (next.motherEmploymentStatus === 'unemployed') {
+    next.motherIsHousewife = false;
+    clearPayloadFields(next, ['motherOccupation', 'motherMonthlyIncome']);
+  }
+
+  if (next.motherEmploymentStatus === 'working') {
+    next.motherIsHousewife = false;
+  }
+
+  if (next.motherAlive === 'yes' && next.motherIsGuardian === 'yes') {
+    clearPayloadFields(next, [
+      'guardianName',
+      'guardianRelationship',
+      'guardianCnic',
+      'guardianEducation',
+      'guardianMotherTongue',
+      'guardianNativeArea',
+      'guardianContact',
+      'guardianZakatStatus',
+      'guardianOccupation',
+      'guardianFamilyHolder',
+      'guardianFamilyHolderAmount',
+      'guardianFamilyMembersCount',
+      'guardianMonthlyIncome',
+      'guardianSignatureFileKey',
+    ]);
+  }
+
+  next.guardianZakatStatus = '';
+
+  if (next.guardianFamilyHolder !== 'yes') {
+    clearPayloadFields(next, ['guardianFamilyHolderAmount', 'guardianFamilyMembersCount']);
+  }
+
+  next.guardianFamilyHolderAmount = '';
+
+  if (next.houseOwnershipStatus !== 'rented') {
+    clearPayloadFields(next, ['monthlyRent', 'houseOwner']);
+  }
+
+  if (next.healthStatus === 'healthy') {
+    clearPayloadFields(next, ['disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses']);
+  }
+
+  if (next.healthStatus === 'sick') {
+    clearPayloadFields(next, ['disabilityDetails']);
+  }
+
+  if (next.healthStatus === 'disabled') {
+    clearPayloadFields(next, ['treatmentPlace']);
+  }
+
+  if (next.currentlyStudying === false || next.currentlyStudying === 'false') {
+    clearPayloadFields(next, ['currentClass', 'schoolName', 'schoolAddress', 'educationFeeStatus', 'monthlySchoolFee']);
+  }
+
+  if (next.currentlyStudying === true || next.currentlyStudying === 'true') {
+    clearPayloadFields(next, ['notStudyingReason', 'educationStartCondition']);
+  }
+
+  if (next.educationFeeStatus !== 'paid') {
+    clearPayloadFields(next, ['monthlySchoolFee']);
+  }
+
+  if (next.enrolledInMadrasa === false || next.enrolledInMadrasa === 'false') {
+    clearPayloadFields(next, ['madrasaName', 'madrasaEducationDetails']);
+  }
+
+  if (next.receivingOtherAid === false || next.receivingOtherAid === 'false') {
+    clearPayloadFields(next, ['otherAidSource', 'monthlyAidAmount']);
+  }
+
+  return next;
+}
+
 function buildRegistrationNumber() {
   const now = new Date();
   const datePart = now.toISOString().slice(0, 10).replace(/-/g, '');
@@ -51,7 +156,8 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
 
   try {
-    const validated = getOrphanApplicationSchema.parse(body) as any;
+    const normalizedBody = normalizeConditionalPayload(body);
+    const validated = getOrphanApplicationSchema.parse(normalizedBody) as any;
     const { siblings, relatives, householdAssets, ...payload } = validated;
 
     const status = payload.status ?? 'draft';
@@ -96,7 +202,8 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const validated = getOrphanApplicationSchema.parse(body) as any;
+    const normalizedBody = normalizeConditionalPayload(body);
+    const validated = getOrphanApplicationSchema.parse(normalizedBody) as any;
     const application = await prisma.orphanApplication.findUnique({ where: { id } });
     if (!application) {
       return NextResponse.json({ message: 'Application not found' }, { status: 404 });
@@ -112,7 +219,9 @@ export async function PATCH(request: NextRequest) {
       status: validated.status ?? application.status,
     };
 
-    if (application.status !== 'submitted' && updateData.status === 'submitted' && !application.registrationNumber) {
+    const shouldGenerateRegistrationNumber = application.status !== 'submitted' && updateData.status === 'submitted' && !application.registrationNumber;
+    delete updateData.registrationNumber;
+    if (shouldGenerateRegistrationNumber) {
       updateData.registrationNumber = await generateRegistrationNumber();
     }
 

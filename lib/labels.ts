@@ -5,6 +5,9 @@ export type LabelPair = {
 
 export const labels: Record<string, LabelPair> = {
   collectorId: { ur: 'Collector ID', en: 'Collector ID' },
+  motherAlive: { ur: 'والدہ زندہ ہیں', en: 'Mother Alive' },
+  motherEmploymentStatus: { ur: 'والدہ کا روزگار', en: 'Mother Employment Status' },
+  motherIsGuardian: { ur: 'والدہ سرپرست ہیں', en: 'Mother Is Guardian' },
   registrationNumber: { ur: 'رجسٹریشن نمبر', en: 'Registration Number' },
   collectorName: { ur: 'جمع کرنے والے کا نام', en: 'Collector Name' },
   collectorProject: { ur: 'پراجیکٹ', en: 'Project' },
@@ -42,6 +45,9 @@ export const labels: Record<string, LabelPair> = {
   guardianContact: { ur: 'سرپرست کا رابطہ', en: 'Guardian Contact' },
   guardianZakatStatus: { ur: 'زکات کی حیثیت', en: 'Guardian Zakat Status' },
   guardianOccupation: { ur: 'سرپرست کا پیشہ', en: 'Guardian Occupation' },
+  guardianFamilyHolder: { ur: 'فیملی ہولڈر؟', en: 'Family Holder?' },
+  guardianFamilyHolderAmount: { ur: 'فیملی ہولڈر رقم', en: 'Family Holder Amount' },
+  guardianFamilyMembersCount: { ur: 'خاندان کے افراد کی تعداد', en: 'No. of Family Members' },
   guardianMonthlyIncome: { ur: 'سرپرست کی ماہانہ آمدنی', en: 'Guardian Monthly Income' },
   city: { ur: 'شہر', en: 'City' },
   district: { ur: 'ضلع', en: 'District' },

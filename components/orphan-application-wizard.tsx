@@ -60,6 +60,9 @@ export type FormData = {
   motherEducation: string;
   motherTongue: string;
   motherNativeArea: string;
+  motherAlive: string;
+  motherEmploymentStatus: string;
+  motherIsGuardian: string;
   motherContact: string;
   motherIsHousewife: boolean;
   motherOccupation: string;
@@ -76,6 +79,9 @@ export type FormData = {
   guardianContact: string;
   guardianZakatStatus: string;
   guardianOccupation: string;
+  guardianFamilyHolder: string;
+  guardianFamilyHolderAmount: string;
+  guardianFamilyMembersCount: string;
   guardianMonthlyIncome: string;
   paternalGrandfatherName: string;
   paternalGrandfatherAge: string;
@@ -179,6 +185,9 @@ const defaultData: FormData = {
   motherEducation: '',
   motherTongue: '',
   motherNativeArea: '',
+  motherAlive: '',
+  motherEmploymentStatus: '',
+  motherIsGuardian: '',
   motherContact: '',
   motherIsHousewife: false,
   motherOccupation: '',
@@ -195,6 +204,9 @@ const defaultData: FormData = {
   guardianContact: '',
   guardianZakatStatus: '',
   guardianOccupation: '',
+  guardianFamilyHolder: '',
+  guardianFamilyHolderAmount: '',
+  guardianFamilyMembersCount: '',
   guardianMonthlyIncome: '',
   paternalGrandfatherName: '',
   paternalGrandfatherAge: '',
@@ -286,8 +298,34 @@ interface OrphanApplicationWizardProps {
   initialApplicationId?: string;
 }
 
+function normalizeInitialData(data: FormData): FormData {
+  const next = { ...data };
+
+  if (!next.motherAlive) {
+    if (next.motherDeathDate || next.motherDeathCause) {
+      next.motherAlive = 'no';
+    } else if (next.motherContact || next.motherOccupation || next.motherMonthlyIncome || next.motherRemarried) {
+      next.motherAlive = 'yes';
+    }
+  }
+
+  if (!next.motherEmploymentStatus) {
+    if (next.motherIsHousewife) {
+      next.motherEmploymentStatus = 'housewife';
+    } else if (next.motherOccupation || next.motherMonthlyIncome) {
+      next.motherEmploymentStatus = 'working';
+    }
+  }
+
+  if (!next.motherIsGuardian && next.motherAlive === 'yes') {
+    next.motherIsGuardian = next.guardianName || next.guardianContact ? 'no' : 'yes';
+  }
+
+  return next;
+}
+
 export default function OrphanApplicationWizard({ initialData, initialDocuments, initialApplicationId }: OrphanApplicationWizardProps) {
-  const mergedData = useMemo(() => ({ ...defaultData, ...initialData }), [initialData]);
+  const mergedData = useMemo(() => normalizeInitialData({ ...defaultData, ...initialData }), [initialData]);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(mergedData);
   const [message, setMessage] = useState<string | null>(null);
@@ -297,6 +335,141 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   const updateField = (field: keyof FormData, value: string | boolean) => {
     setFormData((current) => ({ ...current, [field]: value }));
+  };
+
+  const clearFields = (fields: Array<keyof FormData>) => {
+    setFormData((current) => {
+      const next = { ...current };
+      fields.forEach((field) => {
+        (next as any)[field] = defaultData[field];
+      });
+      return next;
+    });
+  };
+
+  const updateFields = (values: Partial<FormData>) => {
+    setFormData((current) => ({ ...current, ...values }));
+  };
+
+  const handleMotherAliveChange = (value: string) => {
+    updateFields({
+      motherAlive: value,
+      ...(value === 'no'
+        ? {
+            motherContact: '',
+            motherIsHousewife: false,
+            motherEmploymentStatus: '',
+            motherOccupation: '',
+            motherMonthlyIncome: '',
+            motherRemarried: false,
+            motherIsGuardian: 'no',
+          }
+        : {
+            motherDeathDate: '',
+            motherDeathCause: '',
+          }),
+    });
+  };
+
+  const handleMotherEmploymentStatusChange = (value: string) => {
+    updateFields({
+      motherEmploymentStatus: value,
+      motherIsHousewife: value === 'housewife',
+      ...(value === 'working'
+        ? {}
+        : {
+            motherOccupation: '',
+            motherMonthlyIncome: '',
+          }),
+    });
+  };
+
+  const handleMotherIsGuardianChange = (value: string) => {
+    updateFields({
+      motherIsGuardian: value,
+      ...(value === 'yes'
+        ? {
+            guardianName: '',
+            guardianRelationship: '',
+            guardianCnic: '',
+            guardianEducation: '',
+            guardianMotherTongue: '',
+            guardianNativeArea: '',
+            guardianContact: '',
+            guardianZakatStatus: '',
+            guardianOccupation: '',
+            guardianFamilyHolder: '',
+            guardianFamilyHolderAmount: '',
+            guardianFamilyMembersCount: '',
+            guardianMonthlyIncome: '',
+            guardianSignatureFileKey: '',
+          }
+        : {}),
+    });
+  };
+
+  const handleGuardianFamilyHolderChange = (value: string) => {
+    updateFields({
+      guardianFamilyHolder: value,
+      guardianFamilyHolderAmount: '',
+      ...(value === 'yes' ? {} : { guardianFamilyMembersCount: '' }),
+    });
+  };
+
+  const handleHouseOwnershipStatusChange = (value: string) => {
+    updateFields({
+      houseOwnershipStatus: value,
+      ...(value === 'rented' ? {} : { monthlyRent: '', houseOwner: '' }),
+    });
+  };
+
+  const handleHealthStatusChange = (value: string) => {
+    updateFields({
+      healthStatus: value,
+      ...(value === 'healthy'
+        ? { disabilityDetails: '', treatmentPlace: '', monthlyMedicalExpenses: '' }
+        : value === 'sick'
+          ? { disabilityDetails: '' }
+          : value === 'disabled'
+            ? { treatmentPlace: '' }
+            : {}),
+    });
+  };
+
+  const handleCurrentlyStudyingChange = (value: boolean) => {
+    updateFields({
+      currentlyStudying: value,
+      ...(value
+        ? { notStudyingReason: '', educationStartCondition: '' }
+        : {
+            currentClass: '',
+            schoolName: '',
+            schoolAddress: '',
+            educationFeeStatus: '',
+            monthlySchoolFee: '',
+          }),
+    });
+  };
+
+  const handleEducationFeeStatusChange = (value: string) => {
+    updateFields({
+      educationFeeStatus: value,
+      ...(value === 'paid' ? {} : { monthlySchoolFee: '' }),
+    });
+  };
+
+  const handleMadrasaChange = (value: boolean) => {
+    updateFields({
+      enrolledInMadrasa: value,
+      ...(value ? {} : { madrasaName: '', madrasaEducationDetails: '' }),
+    });
+  };
+
+  const handleOtherAidChange = (value: boolean) => {
+    updateFields({
+      receivingOtherAid: value,
+      ...(value ? {} : { otherAidSource: '', monthlyAidAmount: '' }),
+    });
   };
 
   const updateArrayItem = <T extends object>(
@@ -377,12 +550,37 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     }
   };
 
-  const documentTypes = [
-    { type: 'child_photo', label: 'Child Photo' },
-    { type: 'child_b_form', label: 'Child B-Form' },
-    { type: 'father_cnic', label: 'Father CNIC' },
-    { type: 'mother_cnic', label: 'Mother CNIC' },
-  ];
+  const guardianDetailsNeeded = formData.motherAlive !== 'yes' || formData.motherIsGuardian !== 'yes';
+  const documentTypes = useMemo(() => {
+    const types = [
+      { type: 'child_photo', label: 'Child Photo' },
+      { type: 'child_b_form', label: 'Child B-Form' },
+      { type: 'father_cnic', label: 'Father CNIC' },
+    ];
+
+    if (formData.motherAlive !== 'no') {
+      types.push({ type: 'mother_cnic', label: 'Mother CNIC' });
+    }
+
+    if (formData.motherAlive === 'no') {
+      types.push({ type: 'mother_death_certificate', label: 'Mother Death Certificate' });
+    }
+
+    if (guardianDetailsNeeded) {
+      types.push({ type: 'guardian_cnic', label: 'Guardian CNIC' });
+    }
+
+    if (formData.currentlyStudying) {
+      types.push({ type: 'school_letter', label: 'School Letter' });
+      types.push({ type: 'principal_verification', label: 'Principal Verification' });
+    }
+
+    if (formData.healthStatus === 'sick' || formData.healthStatus === 'disabled') {
+      types.push({ type: 'medical_report', label: 'Medical Report' });
+    }
+
+    return types;
+  }, [formData.currentlyStudying, formData.healthStatus, formData.motherAlive, guardianDetailsNeeded]);
   const stepTitles = [
     'Collector / جمع کنندہ',
     'Father / والد',
@@ -422,6 +620,53 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     </label>
   );
 
+  const renderSelectField = (
+    field: keyof FormData,
+    options: Array<{ value: string; label: string }>,
+    onChange?: (value: string) => void,
+  ) => (
+    <label key={field} className="grid gap-2 text-sm text-slate-700">
+      <span>{fieldLabel(field)}</span>
+      <select
+        value={formData[field] as string}
+        onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
+        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+
+  const renderBooleanSelect = (
+    field: keyof FormData,
+    onChange?: (value: boolean) => void,
+    yesLabel = 'Yes',
+    noLabel = 'No',
+  ) => (
+    <label key={field} className="grid gap-2 text-sm text-slate-700">
+      <span>{fieldLabel(field)}</span>
+      <select
+        value={formData[field] ? 'yes' : 'no'}
+        onChange={(event) => {
+          const nextValue = event.target.value === 'yes';
+          if (onChange) {
+            onChange(nextValue);
+          } else {
+            updateField(field, nextValue);
+          }
+        }}
+        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+      >
+        <option value="no">{noLabel}</option>
+        <option value="yes">{yesLabel}</option>
+      </select>
+    </label>
+  );
+
   const renderCheckbox = (field: keyof FormData, labelText?: string) => (
     <label key={field} className="flex min-h-12 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
       <input
@@ -433,6 +678,40 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       <span>{labelText ?? fieldLabel(field)}</span>
     </label>
   );
+
+  const shouldShowField = (field: keyof FormData) => {
+    if (['motherDeathDate', 'motherDeathCause'].includes(field)) return formData.motherAlive === 'no';
+    if (['motherContact', 'motherEmploymentStatus', 'motherRemarried'].includes(field)) return formData.motherAlive === 'yes';
+    if (['motherOccupation', 'motherMonthlyIncome'].includes(field)) return formData.motherAlive === 'yes' && formData.motherEmploymentStatus === 'working';
+    if (['guardianName', 'guardianRelationship', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianOccupation', 'guardianFamilyHolder', 'guardianMonthlyIncome'].includes(field)) return guardianDetailsNeeded;
+    if (field === 'guardianFamilyMembersCount') return guardianDetailsNeeded && formData.guardianFamilyHolder === 'yes';
+    if (['monthlyRent', 'houseOwner'].includes(field)) return formData.houseOwnershipStatus === 'rented';
+    if (field === 'disabilityDetails') return formData.healthStatus === 'disabled';
+    if (field === 'treatmentPlace') return formData.healthStatus === 'sick';
+    if (field === 'monthlyMedicalExpenses') return formData.healthStatus === 'sick' || formData.healthStatus === 'disabled';
+    if (['currentClass', 'schoolName', 'schoolAddress', 'educationFeeStatus'].includes(field)) return formData.currentlyStudying;
+    if (['notStudyingReason', 'educationStartCondition'].includes(field)) return !formData.currentlyStudying;
+    if (field === 'monthlySchoolFee') return formData.currentlyStudying && formData.educationFeeStatus === 'paid';
+    if (['madrasaName', 'madrasaEducationDetails'].includes(field)) return formData.enrolledInMadrasa;
+    if (['otherAidSource', 'monthlyAidAmount'].includes(field)) return formData.receivingOtherAid;
+    return true;
+  };
+
+  const formatReviewValue = (field: keyof FormData) => {
+    const value = formData[field];
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (Array.isArray(value)) return value.length ? `${value.length} record(s)` : '-';
+    return value || '-';
+  };
+
+  const reviewSections: Array<{ title: string; fields: Array<keyof FormData> }> = [
+    { title: 'Collector', fields: lockedFormFillerFields },
+    { title: 'Mother', fields: ['motherName', 'motherAlive', 'motherContact', 'motherEmploymentStatus', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
+    { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
+    { title: 'Home', fields: ['city', 'district', 'tehsil', 'fullAddress', 'houseOwnershipStatus', 'monthlyRent', 'houseOwner', 'houseCondition'] },
+    { title: 'Health and Education', fields: ['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'currentClass', 'schoolName', 'educationFeeStatus', 'monthlySchoolFee', 'notStudyingReason', 'educationStartCondition', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails'] },
+    { title: 'Income and Aid', fields: ['careerGoal', 'childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'notAppliedElsewhereReason'] },
+  ];
 
   return (
     <div className="space-y-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:space-y-6 sm:p-8">
@@ -488,29 +767,44 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <h2 className="text-xl font-semibold text-slate-900">Mother Details</h2>
             <p className="mt-1 text-sm text-slate-600">Capture the mother's identity, income, and marital status.</p>
           </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            Changing mother status or employment may clear fields that are no longer relevant.
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {[
-              'motherName',
-              'motherDob',
-              'motherAge',
-              'motherCnic',
-              'motherEducation',
-              'motherTongue',
-              'motherNativeArea',
-              'motherContact',
-              'motherIsHousewife',
-              'motherOccupation',
-              'motherMonthlyIncome',
-              'motherRemarried',
-              'motherDeathDate',
-              'motherDeathCause',
-            ].map((field) =>
-              field === 'motherDob' || field === 'motherDeathDate'
+            {['motherName', 'motherDob', 'motherAge', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea'].map((field) =>
+              field === 'motherDob'
                 ? renderTextField(field as keyof FormData, 'date')
-                : field === 'motherIsHousewife' || field === 'motherRemarried'
-                  ? renderCheckbox(field as keyof FormData)
-                  : renderTextField(field as keyof FormData),
+                : renderTextField(field as keyof FormData),
             )}
+            {renderSelectField('motherAlive', [
+              { value: '', label: 'Select status' },
+              { value: 'yes', label: 'Alive / زندہ' },
+              { value: 'no', label: 'Deceased / وفات شدہ' },
+            ], handleMotherAliveChange)}
+            {formData.motherAlive === 'no' ? (
+              <>
+                {renderTextField('motherDeathDate', 'date')}
+                {renderTextField('motherDeathCause')}
+              </>
+            ) : null}
+            {formData.motherAlive === 'yes' ? (
+              <>
+                {renderTextField('motherContact')}
+                {renderSelectField('motherEmploymentStatus', [
+                  { value: '', label: 'Select employment status' },
+                  { value: 'housewife', label: 'Housewife / گھریلو' },
+                  { value: 'working', label: 'Working / کام کرتی ہیں' },
+                  { value: 'unemployed', label: 'Unemployed / بے روزگار' },
+                ], handleMotherEmploymentStatusChange)}
+                {formData.motherEmploymentStatus === 'working' ? (
+                  <>
+                    {renderTextField('motherOccupation')}
+                    {renderTextField('motherMonthlyIncome', 'number')}
+                  </>
+                ) : null}
+                {renderBooleanSelect('motherRemarried')}
+              </>
+            ) : null}
           </div>
         </div>
       )}
@@ -519,10 +813,38 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Guardian Details</h2>
-            <p className="mt-1 text-sm text-slate-600">Record the guardian's contact, occupation, and zakat status.</p>
+            <p className="mt-1 text-sm text-slate-600">Record the guardian's contact, occupation, family holder status, and income.</p>
           </div>
+          {formData.motherAlive === 'yes' ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {renderSelectField('motherIsGuardian', [
+                { value: '', label: 'Select guardian status' },
+                { value: 'yes', label: 'Mother is guardian / والدہ سرپرست ہیں' },
+                { value: 'no', label: 'Other guardian / دوسرا سرپرست' },
+              ], handleMotherIsGuardianChange)}
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                Changing guardian status may clear guardian fields that are no longer relevant.
+              </div>
+            </div>
+          ) : null}
+          {formData.motherAlive === 'yes' && formData.motherIsGuardian === 'yes' ? (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+              Guardian details are hidden because the mother is marked as the guardian.
+            </div>
+          ) : null}
           <div className="grid gap-4 sm:grid-cols-2">
-            {['guardianName', 'guardianRelationship', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianZakatStatus', 'guardianOccupation', 'guardianMonthlyIncome'].map((field) => renderTextField(field as keyof FormData))}
+            {guardianDetailsNeeded ? (
+              <>
+                {['guardianName', 'guardianRelationship', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianOccupation'].map((field) => renderTextField(field as keyof FormData))}
+                {renderSelectField('guardianFamilyHolder', [
+                  { value: '', label: 'Select family holder status' },
+                  { value: 'yes', label: 'Yes / ہاں' },
+                  { value: 'no', label: 'No / نہیں' },
+                ], handleGuardianFamilyHolderChange)}
+                {formData.guardianFamilyHolder === 'yes' ? renderTextField('guardianFamilyMembersCount', 'number') : null}
+                {renderTextField('guardianMonthlyIncome', 'number')}
+              </>
+            ) : null}
           </div>
         </div>
       )}
@@ -618,7 +940,20 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <p className="mt-1 text-sm text-slate-600">Capture the household address, property status, and coordinates.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {['city', 'district', 'tehsil', 'residentialArea', 'fullAddress', 'longitude', 'latitude', 'houseOwnershipStatus', 'monthlyRent', 'houseOwner', 'houseCondition', 'furnishingCondition'].map((field) => renderTextField(field as keyof FormData))}
+            {['city', 'district', 'tehsil', 'residentialArea', 'fullAddress', 'longitude', 'latitude'].map((field) => renderTextField(field as keyof FormData))}
+            {renderSelectField('houseOwnershipStatus', [
+              { value: '', label: 'Select ownership status' },
+              { value: 'owned', label: 'Owned / ذاتی' },
+              { value: 'rented', label: 'Rented / کرایہ' },
+              { value: 'other', label: 'Other / دیگر' },
+            ], handleHouseOwnershipStatusChange)}
+            {formData.houseOwnershipStatus === 'rented' ? (
+              <>
+                {renderTextField('monthlyRent', 'number')}
+                {renderTextField('houseOwner')}
+              </>
+            ) : null}
+            {['houseCondition', 'furnishingCondition'].map((field) => renderTextField(field as keyof FormData))}
           </div>
         </div>
       )}
@@ -750,14 +1085,54 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <h2 className="text-xl font-semibold text-slate-900">Education and Health Details</h2>
             <p className="mt-1 text-sm text-slate-600">Record attendance, health, and education support details.</p>
           </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            Changing health or education status may clear fields that are no longer relevant.
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'notStudyingReason', 'educationStartCondition', 'currentClass', 'schoolName', 'schoolAddress', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails', 'educationFeeStatus', 'monthlySchoolFee'].map((field) =>
-              field === 'currentlyStudying' || field === 'enrolledInMadrasa'
-                ? renderCheckbox(field as keyof FormData)
-                : field === 'monthlyMedicalExpenses' || field === 'monthlySchoolFee'
-                  ? renderTextField(field as keyof FormData, 'number')
-                  : renderTextField(field as keyof FormData),
+            {renderSelectField('healthStatus', [
+              { value: '', label: 'Select health status' },
+              { value: 'healthy', label: 'Healthy / صحت مند' },
+              { value: 'sick', label: 'Sick / بیمار' },
+              { value: 'disabled', label: 'Disabled / معذور' },
+            ], handleHealthStatusChange)}
+            {formData.healthStatus === 'sick' ? (
+              <>
+                {renderTextField('treatmentPlace')}
+                {renderTextField('monthlyMedicalExpenses', 'number')}
+              </>
+            ) : null}
+            {formData.healthStatus === 'disabled' ? (
+              <>
+                {renderTextField('disabilityDetails')}
+                {renderTextField('monthlyMedicalExpenses', 'number')}
+              </>
+            ) : null}
+            {renderBooleanSelect('currentlyStudying', handleCurrentlyStudyingChange)}
+            {formData.currentlyStudying ? (
+              <>
+                {renderTextField('currentClass')}
+                {renderTextField('schoolName')}
+                {renderTextField('schoolAddress')}
+                {renderSelectField('educationFeeStatus', [
+                  { value: '', label: 'Select fee status' },
+                  { value: 'free', label: 'Free / مفت' },
+                  { value: 'paid', label: 'Paid / ادا شدہ' },
+                ], handleEducationFeeStatusChange)}
+                {formData.educationFeeStatus === 'paid' ? renderTextField('monthlySchoolFee', 'number') : null}
+              </>
+            ) : (
+              <>
+                {renderTextField('notStudyingReason')}
+                {renderTextField('educationStartCondition')}
+              </>
             )}
+            {renderBooleanSelect('enrolledInMadrasa', handleMadrasaChange)}
+            {formData.enrolledInMadrasa ? (
+              <>
+                {renderTextField('madrasaName')}
+                {renderTextField('madrasaEducationDetails')}
+              </>
+            ) : null}
           </div>
         </div>
       )}
@@ -769,13 +1144,16 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <p className="mt-1 text-sm text-slate-600">Share other aid details and household income capacity.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {['careerGoal', 'technicalInterest', 'learningSkill', 'childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'notAppliedElsewhereReason'].map((field) =>
-              field === 'receivingOtherAid'
-                ? renderCheckbox(field as keyof FormData)
-                : field === 'childMonthlyIncome' || field === 'householdEarnersCount' || field === 'totalHouseholdIncome' || field === 'monthlyAidAmount'
-                  ? renderTextField(field as keyof FormData, 'number')
-                  : renderTextField(field as keyof FormData),
-            )}
+            {['careerGoal', 'technicalInterest', 'learningSkill'].map((field) => renderTextField(field as keyof FormData))}
+            {['childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome'].map((field) => renderTextField(field as keyof FormData, 'number'))}
+            {renderBooleanSelect('receivingOtherAid', handleOtherAidChange)}
+            {formData.receivingOtherAid ? (
+              <>
+                {renderTextField('otherAidSource')}
+                {renderTextField('monthlyAidAmount', 'number')}
+              </>
+            ) : null}
+            {renderTextField('notAppliedElsewhereReason')}
           </div>
         </div>
       )}
@@ -847,6 +1225,26 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <p className="mt-1 text-sm text-slate-600">Review the collected details and submit or save as draft.</p>
           </div>
           {renderCheckbox('termsAccepted')}
+          <div className="space-y-4">
+            {reviewSections.map((section) => {
+              const fields = section.fields.filter((field) => shouldShowField(field));
+              if (fields.length === 0) return null;
+
+              return (
+                <section key={section.title} className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <h3 className="text-sm font-semibold text-slate-900">{section.title}</h3>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {fields.map((field) => (
+                      <div key={field} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold text-slate-500">{fieldLabel(field)}</p>
+                        <p className="mt-1 break-words text-sm text-slate-900">{formatReviewValue(field)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
             <p className="font-semibold text-slate-900">Important</p>
             <p className="mt-2">A draft allows later editing. Submitting marks the form ready for review.</p>
