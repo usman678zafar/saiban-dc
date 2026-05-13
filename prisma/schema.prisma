@@ -71,6 +71,7 @@ model User {
 model OrphanApplication {
   id                         String             @id @default(uuid())
   registrationNumber         String?            @unique
+  collectorId                String?
   collectorName              String?
   collectorProject           String?
   collectorCnic              String?

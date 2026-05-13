@@ -59,6 +59,7 @@ export const assetSchema = z.object({
 
 export const orphanApplicationSchema = z.object({
   registrationNumber: optionalString,
+  collectorId: optionalString,
   collectorName: optionalString,
   collectorProject: optionalString,
   collectorCnic: z.string().transform((value) => value.replace(/\D/g, '')).refine((value) => value === '' || cnicRegex.test(value), {

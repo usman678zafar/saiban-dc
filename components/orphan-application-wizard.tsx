@@ -39,6 +39,7 @@ type DocumentInput = {
 
 export type FormData = {
   registrationNumber: string;
+  collectorId: string;
   collectorName: string;
   collectorProject: string;
   collectorCnic: string;
@@ -157,6 +158,7 @@ export type FormData = {
 
 const defaultData: FormData = {
   registrationNumber: '',
+  collectorId: '',
   collectorName: '',
   collectorProject: '',
   collectorCnic: '',
@@ -398,14 +400,24 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     'Review',
   ];
 
-  const renderTextField = (field: keyof FormData, type = 'text') => (
+  const lockedFormFillerFields: Array<keyof FormData> = [
+    'collectorId',
+    'collectorName',
+    'collectorProject',
+    'collectorCnic',
+    'collectorAddress',
+    'collectorContact',
+  ];
+
+  const renderTextField = (field: keyof FormData, type = 'text', locked = false) => (
     <label key={field} className="grid gap-2 text-sm text-slate-700">
       <span>{fieldLabel(field)}</span>
       <input
         value={formData[field] as string}
         onChange={(event) => updateField(field, event.target.value)}
         type={type}
-        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+        readOnly={locked}
+        className={`min-h-12 rounded-lg border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm ${locked ? 'cursor-not-allowed bg-slate-100 text-slate-600' : 'bg-slate-50 text-slate-900'}`}
       />
     </label>
   );
@@ -449,7 +461,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <p className="mt-1 text-sm text-slate-600">Capture the collector and application metadata.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {['registrationNumber', 'collectorName', 'collectorProject', 'collectorCnic', 'collectorAddress', 'collectorContact'].map((field) => renderTextField(field as keyof FormData))}
+            {lockedFormFillerFields.map((field) => renderTextField(field, 'text', true))}
           </div>
         </div>
       )}

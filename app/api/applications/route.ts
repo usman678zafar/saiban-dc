@@ -10,6 +10,38 @@ async function getUser(request: NextRequest) {
   return prisma.user.findUnique({ where: { email: session.user.email } });
 }
 
+function collectorPayload(user: NonNullable<Awaited<ReturnType<typeof getUser>>>) {
+  return {
+    collectorId: user.fieldWorkerId ?? user.id,
+    collectorName: user.name ?? '',
+    collectorProject: user.project ?? '',
+    collectorCnic: user.cnic ?? '',
+    collectorAddress: user.address ?? '',
+    collectorContact: user.phoneNumber ?? '',
+  };
+}
+
+function buildRegistrationNumber() {
+  const now = new Date();
+  const datePart = now.toISOString().slice(0, 10).replace(/-/g, '');
+  const timePart = `${now.getHours()}${now.getMinutes()}${now.getSeconds()}${now.getMilliseconds()}`.padStart(9, '0');
+  return `APP-${datePart}-${timePart}`;
+}
+
+async function generateRegistrationNumber() {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const registrationNumber = buildRegistrationNumber();
+    const existing = await prisma.orphanApplication.findUnique({
+      where: { registrationNumber },
+      select: { id: true },
+    });
+
+    if (!existing) return registrationNumber;
+  }
+
+  throw new Error('Unable to generate registration number');
+}
+
 export async function POST(request: NextRequest) {
   const user = await getUser(request);
   if (!user) {
@@ -22,11 +54,14 @@ export async function POST(request: NextRequest) {
     const validated = getOrphanApplicationSchema.parse(body) as any;
     const { siblings, relatives, householdAssets, ...payload } = validated;
 
+    const status = payload.status ?? 'draft';
     const application = await prisma.orphanApplication.create({
       data: {
         ...payload,
+        registrationNumber: status === 'submitted' ? await generateRegistrationNumber() : undefined,
+        ...collectorPayload(user),
         createdById: user.id,
-        status: payload.status ?? 'draft',
+        status,
         siblings: {
           create: siblings ?? [],
         },
@@ -76,6 +111,17 @@ export async function PATCH(request: NextRequest) {
       updatedById: user.id,
       status: validated.status ?? application.status,
     };
+
+    if (application.status !== 'submitted' && updateData.status === 'submitted' && !application.registrationNumber) {
+      updateData.registrationNumber = await generateRegistrationNumber();
+    }
+
+    delete updateData.collectorId;
+    delete updateData.collectorName;
+    delete updateData.collectorProject;
+    delete updateData.collectorCnic;
+    delete updateData.collectorAddress;
+    delete updateData.collectorContact;
 
     if (body.siblings !== undefined) {
       updateData.siblings = {

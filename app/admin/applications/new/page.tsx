@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { getApplicationCollectorPrefill } from '@/lib/application-prefill';
 import AdminShell from '@/components/admin-shell';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 
@@ -8,6 +9,7 @@ export default async function AdminNewApplicationPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications/new');
   if (session.user.role !== 'admin') redirect('/dashboard');
+  const collectorPrefill = await getApplicationCollectorPrefill(session);
 
   return (
     <AdminShell email={session.user.email}>
@@ -15,7 +17,7 @@ export default async function AdminNewApplicationPage() {
         <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Create Application</h1>
         <p className="mt-2 text-sm text-slate-600">Use the registration wizard without leaving the admin workspace.</p>
       </header>
-      <OrphanApplicationWizard />
+      <OrphanApplicationWizard initialData={collectorPrefill} />
     </AdminShell>
   );
 }

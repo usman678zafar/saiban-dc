@@ -4,6 +4,7 @@ export type LabelPair = {
 };
 
 export const labels: Record<string, LabelPair> = {
+  collectorId: { ur: 'Collector ID', en: 'Collector ID' },
   registrationNumber: { ur: 'رجسٹریشن نمبر', en: 'Registration Number' },
   collectorName: { ur: 'جمع کرنے والے کا نام', en: 'Collector Name' },
   collectorProject: { ur: 'پراجیکٹ', en: 'Project' },

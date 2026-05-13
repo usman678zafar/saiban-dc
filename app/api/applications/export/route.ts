@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
   const headers: Array<keyof ApplicationRow> = [
     'id',
     'registrationNumber',
+    'collectorId',
     'status',
     'migrationStatus',
     'mainSaibanId',
