@@ -58,8 +58,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
     <AdminShell email={session.user.email}>
       <header className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Application Review</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{application.registrationNumber ?? application.id}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{application.registrationNumber ?? application.id}</h1>
           <p className="mt-2 text-sm text-slate-600">Review status, migration metadata, and key registration details.</p>
         </div>
         <div className="flex flex-wrap gap-3">

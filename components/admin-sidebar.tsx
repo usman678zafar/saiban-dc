@@ -31,12 +31,13 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col overflow-y-auto border-r border-slate-200 bg-white lg:flex">
-        <div className="flex justify-center px-4 pb-4 pt-5">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col overflow-y-auto border-r border-[#2f3d52] bg-[#1f2b3d] text-white lg:flex">
+        <div className="border-b border-white/10 px-4 pb-5 pt-5 text-center">
           <Image src={logo} alt="Saiban" width={160} height={125} className="h-20 w-auto object-contain" priority />
+          <p className="mt-2 text-sm font-medium text-[#b7c6db]">Data Collection System</p>
         </div>
 
-        <nav className="grid gap-1 px-2.5">
+        <nav className="grid gap-1 px-2.5 py-5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActivePath(pathname, item.href, item.exact);
@@ -46,10 +47,10 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={clsx(
-                  'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition',
+                  'flex items-center gap-2.5 rounded-lg px-3 py-3 text-sm font-semibold transition',
                   active
-                    ? 'bg-blue-50 text-blue-700 shadow-[inset_3px_0_0_#2563eb]'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950',
+                    ? 'bg-[#3b82f6] text-white shadow-[0_12px_28px_rgba(59,130,246,0.28)]'
+                    : 'text-[#c9d4e2] hover:bg-white/10 hover:text-white',
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
@@ -59,19 +60,19 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
           })}
         </nav>
 
-        <div className="mt-auto border-t border-slate-200 p-3">
+        <div className="mt-auto border-t border-white/10 p-3">
           <div className="mb-4 min-w-0 px-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Admin Portal</p>
-            <p className="mt-1 truncate text-sm font-medium text-slate-700">{email ?? 'Signed in'}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#91a1b7]">Admin Portal</p>
+            <p className="mt-1 truncate text-sm font-medium text-white">{email ?? 'Signed in'}</p>
           </div>
-          <SignOutButton className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-100 px-3 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-200">
+          <SignOutButton className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15">
             <LogOut className="h-4 w-4" aria-hidden="true" />
             <span>Sign Out</span>
           </SignOutButton>
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#dbe4ef] bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
         <div className="mx-auto grid max-w-xl grid-cols-6 gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -84,7 +85,7 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
                 aria-label={item.label}
                 className={clsx(
                   'flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-semibold transition sm:text-xs',
-                  active ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-950',
+                  active ? 'bg-[#e8f1ff] text-[#2563eb]' : 'text-[#63758d] hover:bg-[#f4f7fb] hover:text-[#0f1f33]',
                 )}
               >
                 <Icon className="h-5 w-5" aria-hidden="true" />
@@ -93,7 +94,7 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
             );
           })}
 
-          <SignOutButton className="flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 sm:text-xs">
+          <SignOutButton className="flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-semibold text-[#63758d] transition hover:bg-[#f4f7fb] hover:text-[#0f1f33] sm:text-xs">
             <LogOut className="h-5 w-5" aria-hidden="true" />
             <span>Out</span>
           </SignOutButton>

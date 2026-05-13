@@ -44,9 +44,8 @@ export default async function AdminFieldWorkersPage() {
   return (
     <AdminShell email={session.user.email}>
       <header className="mb-6 flex flex-col gap-2">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Field Workers</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Manage Field Workers</h1>
-        <p className="max-w-3xl text-sm leading-6 text-slate-600">
+        <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Manage Field Workers</h1>
+        <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
           Filter workers, manage project assignments, and control who can access the mobile collection portal.
         </p>
       </header>

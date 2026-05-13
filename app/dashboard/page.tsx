@@ -72,19 +72,16 @@ export default async function DashboardPage() {
       </div>
       <section className="mt-6 grid gap-4 lg:grid-cols-3">
         <Link href="/applications/new" className="rounded-lg border border-blue-200 bg-blue-50 p-5 text-blue-950 hover:bg-blue-100">
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-700">Primary Action</p>
-          <p className="mt-2 text-xl font-semibold">Start New Application</p>
+          <p className="text-xl font-semibold">Start New Application</p>
           <p className="mt-2 text-sm text-blue-900">Open the registration wizard and capture a new case.</p>
         </Link>
         <Link href="/applications" className="rounded-lg border border-slate-200 bg-white p-5 text-slate-900 shadow-sm hover:bg-slate-50">
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Review</p>
-          <p className="mt-2 text-xl font-semibold">Recent Applications</p>
+          <p className="text-xl font-semibold">Recent Applications</p>
           <p className="mt-2 text-sm text-slate-600">Continue drafts or review submitted records.</p>
         </Link>
         {isAdmin ? (
           <Link href="/admin" className="rounded-lg border border-slate-200 bg-white p-5 text-slate-900 shadow-sm hover:bg-slate-50">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Admin</p>
-            <p className="mt-2 text-xl font-semibold">Manage Team</p>
+            <p className="text-xl font-semibold">Manage Team</p>
             <p className="mt-2 text-sm text-slate-600">Add field workers and handle exports.</p>
           </Link>
         ) : null}

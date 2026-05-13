@@ -12,8 +12,7 @@ export default async function AdminNewApplicationPage() {
   return (
     <AdminShell email={session.user.email}>
       <header className="mb-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">New Application</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Create Application</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Create Application</h1>
         <p className="mt-2 text-sm text-slate-600">Use the registration wizard without leaving the admin workspace.</p>
       </header>
       <OrphanApplicationWizard />
