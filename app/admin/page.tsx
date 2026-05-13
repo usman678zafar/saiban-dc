@@ -21,9 +21,12 @@ type RecentApplication = {
 
 type FieldWorker = {
   id: string;
+  fieldWorkerId: string | null;
   name: string | null;
   phoneNumber: string | null;
   cnic: string | null;
+  address: string | null;
+  project: string | null;
   createdAt: Date;
 };
 
@@ -51,9 +54,12 @@ async function getAdminPortalData() {
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
+        fieldWorkerId: true,
         name: true,
         phoneNumber: true,
         cnic: true,
+        address: true,
+        project: true,
         createdAt: true,
       },
     }) as Promise<FieldWorker[]>,
@@ -183,10 +189,15 @@ export default async function AdminPortalPage() {
                 ) : (
                   fieldWorkers.map((worker: FieldWorker) => (
                     <div key={worker.id} className="border-b border-slate-100 px-2 py-4 last:border-b-0">
-                      <p className="text-sm font-semibold text-slate-900">{worker.name ?? 'Unnamed worker'}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-semibold text-slate-900">{worker.name ?? 'Unnamed worker'}</p>
+                        <span className="rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">{worker.fieldWorkerId ?? worker.id}</span>
+                      </div>
                       <div className="mt-2 grid gap-1 text-sm text-slate-600">
+                        <p>Project: {worker.project ?? '-'}</p>
                         <p>Phone: {worker.phoneNumber ?? '-'}</p>
                         <p>CNIC: {worker.cnic ?? '-'}</p>
+                        <p>Address: {worker.address ?? '-'}</p>
                       </div>
                       <p className="mt-2 text-xs text-slate-500">Added {worker.createdAt.toLocaleDateString()}</p>
                     </div>

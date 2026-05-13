@@ -31,12 +31,12 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col overflow-y-auto border-r border-slate-200 bg-white lg:flex">
-        <div className="flex justify-center px-6 pb-5 pt-6">
-          <Image src={logo} alt="Saiban" width={192} height={150} className="h-24 w-auto object-contain" priority />
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col overflow-y-auto border-r border-slate-200 bg-white lg:flex">
+        <div className="flex justify-center px-4 pb-4 pt-5">
+          <Image src={logo} alt="Saiban" width={160} height={125} className="h-20 w-auto object-contain" priority />
         </div>
 
-        <nav className="grid gap-1 px-3">
+        <nav className="grid gap-1 px-2.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActivePath(pathname, item.href, item.exact);
@@ -46,7 +46,7 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={clsx(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition',
+                  'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition',
                   active
                     ? 'bg-blue-50 text-blue-700 shadow-[inset_3px_0_0_#2563eb]'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950',
@@ -59,12 +59,12 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
           })}
         </nav>
 
-        <div className="mt-auto border-t border-slate-200 p-4">
+        <div className="mt-auto border-t border-slate-200 p-3">
           <div className="mb-4 min-w-0 px-1">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Admin Portal</p>
             <p className="mt-1 truncate text-sm font-medium text-slate-700">{email ?? 'Signed in'}</p>
           </div>
-          <SignOutButton className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-200">
+          <SignOutButton className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-100 px-3 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-200">
             <LogOut className="h-4 w-4" aria-hidden="true" />
             <span>Sign Out</span>
           </SignOutButton>

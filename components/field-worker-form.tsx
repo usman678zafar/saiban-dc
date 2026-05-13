@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { fieldWorkerProjects } from '@/lib/field-workers';
 
 function digitsOnly(value: string) {
   return value.replace(/\D/g, '');
@@ -12,6 +13,8 @@ export default function FieldWorkerForm() {
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [cnic, setCnic] = useState('');
+  const [address, setAddress] = useState('');
+  const [project, setProject] = useState<string>(fieldWorkerProjects[0]);
   const [customPassword, setCustomPassword] = useState('');
   const [useCustomPassword, setUseCustomPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -31,7 +34,7 @@ export default function FieldWorkerForm() {
     const response = await fetch('/api/admin/field-workers', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phoneNumber, cnic, password }),
+      body: JSON.stringify({ name, phoneNumber, cnic, address, project, password }),
     });
 
     const result = await response.json();
@@ -45,9 +48,11 @@ export default function FieldWorkerForm() {
     setName('');
     setPhoneNumber('');
     setCnic('');
+    setAddress('');
+    setProject(fieldWorkerProjects[0]);
     setCustomPassword('');
     setUseCustomPassword(false);
-    setMessage('Field worker created successfully.');
+    setMessage(`Field worker created successfully. ID: ${result.fieldWorkerId}`);
     router.refresh();
   };
 
@@ -82,6 +87,35 @@ export default function FieldWorkerForm() {
           className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
       </label>
+      <label className="grid gap-2 text-sm text-slate-700">
+        <span>Address/پتہ</span>
+        <textarea
+          value={address}
+          onChange={(event) => setAddress(event.target.value)}
+          required
+          rows={3}
+          className="resize-none rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        />
+      </label>
+      <label className="grid gap-2 text-sm text-slate-700">
+        <span>Project/منصوبہ</span>
+        <select
+          value={project}
+          onChange={(event) => setProject(event.target.value)}
+          required
+          className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        >
+          {fieldWorkerProjects.map((projectOption) => (
+            <option key={projectOption} value={projectOption}>
+              {projectOption}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+        <span className="block font-semibold text-slate-900">Field Worker ID</span>
+        <span className="mt-1 block text-slate-600">The system will generate this automatically after saving.</span>
+      </div>
 
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
         <label className="flex items-start gap-3 text-sm text-slate-700">

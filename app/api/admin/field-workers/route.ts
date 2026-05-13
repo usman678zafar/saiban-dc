@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import bcrypt from 'bcryptjs';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
+import { fieldWorkerProjects } from '@/lib/field-workers';
 import { prisma } from '@/lib/prisma';
 
 const digitsOnly = (value: string) => value.replace(/\D/g, '');
@@ -15,8 +17,35 @@ const createFieldWorkerSchema = z.object({
   cnic: z.string().transform(digitsOnly).refine((value) => value.length === 13, {
     message: 'CNIC must contain 13 digits',
   }),
+  address: z.string().trim().min(1, 'Address is required'),
+  project: z.enum(fieldWorkerProjects, {
+    errorMap: () => ({ message: 'Project is required' }),
+  }),
   password: z.string().min(4, 'Password must be at least 4 characters'),
 });
+
+async function generateFieldWorkerId() {
+  const latestWorker = await prisma.user.findFirst({
+    where: {
+      role: 'field_worker',
+      fieldWorkerId: { startsWith: 'FW-' },
+    },
+    orderBy: { fieldWorkerId: 'desc' },
+    select: { fieldWorkerId: true },
+  });
+
+  const latestNumber = Number(latestWorker?.fieldWorkerId?.replace('FW-', '') ?? '0');
+  return `FW-${String(Number.isFinite(latestNumber) ? latestNumber + 1 : 1).padStart(6, '0')}`;
+}
+
+function isFieldWorkerIdCollision(error: unknown) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2002' &&
+    Array.isArray(error.meta?.target) &&
+    error.meta.target.includes('fieldWorkerId')
+  );
+}
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -46,23 +75,46 @@ export async function POST(request: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(input.password, 10);
-    const user = await prisma.user.create({
-      data: {
-        name: input.name,
-        email: `${input.cnic}@field.saiban.local`,
-        phoneNumber: input.phoneNumber,
-        cnic: input.cnic,
-        passwordHash,
-        role: 'field_worker',
-      },
-      select: {
-        id: true,
-        name: true,
-        phoneNumber: true,
-        cnic: true,
-        role: true,
-      },
-    });
+    let user = null;
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      try {
+        user = await prisma.user.create({
+          data: {
+            name: input.name,
+            email: `${input.cnic}@field.saiban.local`,
+            phoneNumber: input.phoneNumber,
+            cnic: input.cnic,
+            fieldWorkerId: await generateFieldWorkerId(),
+            address: input.address,
+            project: input.project,
+            passwordHash,
+            role: 'field_worker',
+          },
+          select: {
+            id: true,
+            fieldWorkerId: true,
+            name: true,
+            phoneNumber: true,
+            cnic: true,
+            address: true,
+            project: true,
+            role: true,
+          },
+        });
+        break;
+      } catch (error) {
+        if (isFieldWorkerIdCollision(error) && attempt < 4) {
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    if (!user) {
+      return NextResponse.json({ message: 'Unable to generate field worker ID. Please try again.' }, { status: 500 });
+    }
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
