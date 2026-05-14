@@ -308,7 +308,8 @@ const defaultData: FormData = {
 
 function fieldLabel(field: keyof FormData) {
   const label = labels[field];
-  return label ? `${label.en} / ${label.ur}` : field;
+  if (!label) return field;
+  return label.ur ? `${label.en} / ${label.ur}` : label.en;
 }
 
 interface OrphanApplicationWizardProps {

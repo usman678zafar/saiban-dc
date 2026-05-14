@@ -5,7 +5,7 @@ export type LabelPair = {
 
 export const labels: Record<string, LabelPair> = {
   collectorId: { ur: 'Collector ID', en: 'Collector ID' },
-  motherAlive: { ur: 'والدہ کی رہائشی حیثیت', en: "Mother's Living Status" },
+  motherAlive: { ur: '', en: "Mother's Living Status" },
   motherSeparationReason: { ur: 'والدہ اور بچے کی علیحدگی کی وجہ', en: 'Reason for Mother-Child Separation' },
   motherEmploymentStatus: { ur: 'والدہ کا روزگار', en: 'Mother Employment Status' },
   motherIsGuardian: { ur: 'والدہ سرپرست ہیں', en: 'Mother Is Guardian' },
@@ -30,8 +30,8 @@ export const labels: Record<string, LabelPair> = {
   motherAge: { ur: 'والدہ کی عمر', en: 'Mother Age' },
   motherCnic: { ur: 'والدہ کا CNIC', en: 'Mother CNIC' },
   motherEducation: { ur: 'والدہ کی تعلیم', en: 'Mother Education' },
-  motherTongue: { ur: 'ابتدائی زبان', en: 'Mother Tongue' },
-  motherNativeArea: { ur: 'مادر کا آبائی علاقہ', en: 'Mother Native Area' },
+  motherTongue: { ur: 'والدہ کی مادری زبان', en: 'Mother Tongue' },
+  motherNativeArea: { ur: 'والدہ کا آبائی علاقہ', en: 'Mother Native Area' },
   motherContact: { ur: 'والدہ کا رابطہ', en: 'Mother Contact' },
   motherIsHousewife: { ur: 'گھر والی ہیں', en: 'Mother is Housewife' },
   motherOccupation: { ur: 'والدہ کا پیشہ', en: 'Mother Occupation' },
