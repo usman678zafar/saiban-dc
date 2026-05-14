@@ -11,7 +11,7 @@ export default async function NewApplicationPage() {
   return (
     <AppShell
       title="New Orphan Application"
-      description="Follow the numbered steps from collector details through review and submission."
+      description="Follow the numbered steps through review and submission."
       maxWidth="max-w-5xl"
     >
       <OrphanApplicationWizard initialData={collectorPrefill} />

@@ -316,8 +316,86 @@ type PersistedWizardState = {
   documents?: DocumentInput[];
 };
 
+const TOTAL_STEPS = 13;
+
+const EDUCATION_OPTIONS = [
+  { value: '', label: 'Select education' },
+  { value: 'Illiterate / No Formal Education', label: 'Illiterate / No Formal Education' },
+  { value: 'Primary Pass', label: 'Primary Pass' },
+  { value: 'Middle Pass', label: 'Middle Pass' },
+  { value: 'Matric Pass', label: 'Matric Pass' },
+  { value: 'Intermediate Pass', label: 'Intermediate Pass' },
+  { value: 'Diploma / Technical Education', label: 'Diploma / Technical Education' },
+  { value: "Graduate (Bachelor's)", label: "Graduate (Bachelor's)" },
+  { value: "Postgraduate (Master's or Above)", label: "Postgraduate (Master's or Above)" },
+  { value: 'Dars-e-Nizami', label: 'Dars-e-Nizami' },
+  { value: "Hifz-e-Qur'an", label: "Hifz-e-Qur'an" },
+  { value: 'Other', label: 'Other' },
+];
+
+const DEATH_CAUSE_OPTIONS = [
+  { value: '', label: 'Select cause of death' },
+  { value: 'Natural Death (Old Age)', label: 'Natural Death (Old Age) / طبعی موت (بڑھاپا)' },
+  { value: 'Heart Attack', label: 'Heart Attack / دل کا دورہ' },
+  { value: 'Stroke / Brain Hemorrhage', label: 'Stroke / Brain Hemorrhage / فالج / دماغی شریان پھٹ جانا' },
+  { value: 'Kidney Failure', label: 'Kidney Failure / گردوں کا فیل ہو جانا' },
+  { value: 'Liver Disease', label: 'Liver Disease / جگر کی بیماری' },
+  { value: 'Cancer', label: 'Cancer / کینسر' },
+  { value: 'Diabetes Complications', label: 'Diabetes Complications / ذیابیطس کی پیچیدگیاں' },
+  { value: 'Respiratory Disease', label: 'Respiratory Disease / سانس کی بیماری' },
+  { value: 'Tuberculosis (TB)', label: 'Tuberculosis (TB) / تپ دق (ٹی بی)' },
+  { value: 'Accident (General)', label: 'Accident (General) / حادثہ (عام)' },
+  { value: 'Road Traffic Accident', label: 'Road Traffic Accident / سڑک حادثہ' },
+  { value: 'Workplace Accident', label: 'Workplace Accident / کام کی جگہ حادثہ' },
+  { value: 'Fall / Injury', label: 'Fall / Injury / گرنے یا چوٹ لگنے سے' },
+  { value: 'Fire Incident', label: 'Fire Incident / آگ لگنے کا حادثہ' },
+  { value: 'Drowning', label: 'Drowning / ڈوب کر' },
+  { value: 'Poisoning', label: 'Poisoning / زہر خورانی' },
+  { value: 'Suicide', label: 'Suicide / خودکشی' },
+  { value: 'Violence / Murder', label: 'Violence / Murder / تشدد / قتل' },
+  { value: 'War / Conflict', label: 'War / Conflict / جنگ / مسلح جھگڑا' },
+  { value: 'Infectious Disease', label: 'Infectious Disease / متعدی بیماری' },
+  { value: 'COVID-19', label: 'COVID-19 / کووڈ-19' },
+  { value: 'Surgery Complications', label: 'Surgery Complications / آپریشن کی پیچیدگیاں' },
+  { value: 'Pregnancy / Childbirth Complications', label: 'Pregnancy / Childbirth Complications / حمل یا زچگی کی پیچیدگیاں' },
+  { value: 'Unknown', label: 'Unknown / نامعلوم' },
+  { value: 'Other', label: 'Other / دیگر' },
+];
+
+const NATIVE_AREA_OPTIONS = [
+  { value: '', label: 'Select native area' },
+  { value: 'Karachi', label: 'Karachi / کراچی' },
+  { value: 'Lahore', label: 'Lahore / لاہور' },
+  { value: 'Faisalabad', label: 'Faisalabad / فیصل آباد' },
+  { value: 'Rawalpindi', label: 'Rawalpindi / راولپنڈی' },
+  { value: 'Islamabad', label: 'Islamabad / اسلام آباد' },
+  { value: 'Multan', label: 'Multan / ملتان' },
+  { value: 'Hyderabad', label: 'Hyderabad / حیدرآباد' },
+  { value: 'Peshawar', label: 'Peshawar / پشاور' },
+  { value: 'Quetta', label: 'Quetta / کوئٹہ' },
+  { value: 'Gujranwala', label: 'Gujranwala / گوجرانوالہ' },
+  { value: 'Sialkot', label: 'Sialkot / سیالکوٹ' },
+  { value: 'Sukkur', label: 'Sukkur / سکھر' },
+  { value: 'Bahawalpur', label: 'Bahawalpur / بہاولپور' },
+  { value: 'Abbottabad', label: 'Abbottabad / ایبٹ آباد' },
+  { value: 'Mardan', label: 'Mardan / مردان' },
+  { value: 'Larkana', label: 'Larkana / لاڑکانہ' },
+  { value: 'Other', label: 'Other / دیگر' },
+];
+
+function formatCnic(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 13);
+  if (digits.length <= 5) return digits;
+  if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+}
+
 function normalizeInitialData(data: FormData): FormData {
   const next = { ...data };
+  next.collectorCnic = formatCnic(next.collectorCnic);
+  next.fatherCnic = formatCnic(next.fatherCnic);
+  next.motherCnic = formatCnic(next.motherCnic);
+  next.guardianCnic = formatCnic(next.guardianCnic);
 
   if (!next.motherAlive) {
     if (next.motherDeathDate || next.motherDeathCause) {
@@ -401,7 +479,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         collectorAddress: mergedData.collectorAddress,
         collectorContact: mergedData.collectorContact,
       }));
-      setStep(Math.min(Math.max(Number(persisted.step) || 1, 1), 14));
+      setStep(Math.min(Math.max(Number(persisted.step) || 1, 1), TOTAL_STEPS));
       setApplicationId(persisted.applicationId ?? null);
       setDocuments(Array.isArray(persisted.documents) ? persisted.documents : []);
       setHasLoadedPersistedState(true);
@@ -426,7 +504,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   }, [applicationId, documents, formData, hasLoadedPersistedState, initialApplicationId, shouldPersistNewApplication, step, storageKey]);
 
   const updateField = (field: keyof FormData, value: string | boolean) => {
-    setFormData((current) => ({ ...current, [field]: value }));
+    const nextValue = typeof value === 'string' && field.toLowerCase().includes('cnic') ? formatCnic(value) : value;
+    setFormData((current) => ({ ...current, [field]: nextValue }));
   };
 
   const clearFields = (fields: Array<keyof FormData>) => {
@@ -628,7 +707,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     }
   };
 
-  const goNext = () => setStep((current) => Math.min(current + 1, 14));
+  const goNext = () => setStep((current) => Math.min(current + 1, TOTAL_STEPS));
   const goBack = () => setStep((current) => Math.max(current - 1, 1));
 
   const buildApplicationRequestBody = (saveStatus: 'draft' | 'submitted') => {
@@ -686,7 +765,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         setShouldPersistNewApplication(false);
       }
       if (!applicationId) {
-        setStep(14);
+        setStep(TOTAL_STEPS);
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Submission failed.');
@@ -722,7 +801,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     return types;
   }, [formData.healthStatus, formData.motherAlive, guardianDetailsNeeded]);
   const stepTitles = [
-    'Collector / جمع کنندہ',
     'Father / والد',
     'Mother / والدہ',
     'Guardian / سرپرست',
@@ -738,27 +816,25 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     'Review / جائزہ',
   ];
 
-  const lockedFormFillerFields: Array<keyof FormData> = [
-    'collectorId',
-    'collectorName',
-    'collectorProject',
-    'collectorCnic',
-    'collectorAddress',
-    'collectorContact',
-  ];
+  const renderTextField = (field: keyof FormData, type = 'text', locked = false) => {
+    const isCnicField = field.toLowerCase().includes('cnic');
 
-  const renderTextField = (field: keyof FormData, type = 'text', locked = false) => (
-    <label key={field} className="grid gap-2 text-sm text-slate-700">
-      <span>{fieldLabel(field)}</span>
-      <input
-        value={formData[field] as string}
-        onChange={(event) => updateField(field, event.target.value)}
-        type={type}
-        readOnly={locked}
-        className={`min-h-12 rounded-lg border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm ${locked ? 'cursor-not-allowed bg-slate-100 text-slate-600' : 'bg-slate-50 text-slate-900'}`}
-      />
-    </label>
-  );
+    return (
+      <label key={field} className="grid gap-2 text-sm text-slate-700">
+        <span>{fieldLabel(field)}</span>
+        <input
+          value={formData[field] as string}
+          onChange={(event) => updateField(field, event.target.value)}
+          type={type}
+          readOnly={locked}
+          inputMode={isCnicField ? 'numeric' : undefined}
+          maxLength={isCnicField ? 15 : undefined}
+          placeholder={isCnicField ? '11111-2222222-3' : undefined}
+          className={`min-h-12 rounded-lg border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm ${locked ? 'cursor-not-allowed bg-slate-100 text-slate-600' : 'bg-slate-50 text-slate-900'}`}
+        />
+      </label>
+    );
+  };
 
   const renderSelectField = (
     field: keyof FormData,
@@ -780,6 +856,46 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       </select>
     </label>
   );
+
+  const renderEducationSelect = (field: keyof FormData) => renderSelectField(field, EDUCATION_OPTIONS);
+
+  const renderDeathCauseSelect = (field: keyof FormData) => renderSelectField(field, DEATH_CAUSE_OPTIONS);
+
+  const renderMotherNativeAreaField = () => {
+    const predefinedValues = NATIVE_AREA_OPTIONS.map((option) => option.value);
+    const currentValue = formData.motherNativeArea;
+    const selectValue = currentValue && !predefinedValues.includes(currentValue) ? 'Other' : currentValue;
+
+    return (
+      <>
+        <label className="grid gap-2 text-sm text-slate-700">
+          <span>{fieldLabel('motherNativeArea')}</span>
+          <select
+            value={selectValue}
+            onChange={(event) => updateField('motherNativeArea', event.target.value)}
+            className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+          >
+            {NATIVE_AREA_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {selectValue === 'Other' ? (
+          <label className="grid gap-2 text-sm text-slate-700">
+            <span>Other Native Area / دیگر آبائی علاقہ</span>
+            <input
+              value={currentValue === 'Other' ? '' : currentValue}
+              onChange={(event) => updateField('motherNativeArea', event.target.value)}
+              type="text"
+              className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+            />
+          </label>
+        ) : null}
+      </>
+    );
+  };
 
   const renderBooleanSelect = (
     field: keyof FormData,
@@ -875,7 +991,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const reviewSections: Array<{ title: string; fields: Array<keyof FormData> }> = [
-    { title: 'Collector', fields: lockedFormFillerFields },
     { title: 'Mother', fields: ['motherName', 'motherAlive', 'motherContact', 'motherEmploymentStatus', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
     { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
     { title: 'Home', fields: ['city', 'district', 'tehsil', 'fullAddress', 'houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseOwner', 'houseCondition', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks'] },
@@ -888,7 +1003,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     <div className="space-y-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:space-y-6 sm:p-8">
       
       <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 sm:pb-0">
-        {Array.from({ length: 14 }, (_, index) => index + 1).map((item) => (
+        {Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1).map((item) => (
           <button
             key={item}
             type="button"
@@ -907,18 +1022,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 1 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Form Filler Details</h2>
-            <p className="mt-1 text-sm text-slate-600">Capture the collector and application metadata.</p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {lockedFormFillerFields.map((field) => renderTextField(field, 'text', true))}
-          </div>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className="space-y-6">
-          <div>
             <h2 className="text-xl font-semibold text-slate-900">Deceased Father Details</h2>
             <p className="mt-1 text-sm text-slate-600">Add the father's personal, educational, and death information.</p>
           </div>
@@ -926,13 +1029,17 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {['fatherName', 'fatherDob', 'fatherAge', 'fatherCnic', 'fatherEducation', 'fatherOccupation', 'fatherDateOfDeath', 'fatherCauseOfDeath'].map((field) =>
               field === 'fatherDob' || field === 'fatherDateOfDeath'
                 ? renderTextField(field as keyof FormData, 'date')
-                : renderTextField(field as keyof FormData),
+                : field === 'fatherEducation'
+                  ? renderEducationSelect(field as keyof FormData)
+                  : field === 'fatherCauseOfDeath'
+                    ? renderDeathCauseSelect(field as keyof FormData)
+                    : renderTextField(field as keyof FormData),
             )}
           </div>
         </div>
       )}
 
-      {step === 3 && (
+      {step === 2 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Mother Details</h2>
@@ -945,7 +1052,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {['motherName', 'motherDob', 'motherAge', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea'].map((field) =>
               field === 'motherDob'
                 ? renderTextField(field as keyof FormData, 'date')
-                : renderTextField(field as keyof FormData),
+                : field === 'motherEducation'
+                  ? renderEducationSelect(field as keyof FormData)
+                  : field === 'motherNativeArea'
+                    ? renderMotherNativeAreaField()
+                    : renderTextField(field as keyof FormData),
             )}
             {renderSelectField('motherAlive', [
               { value: '', label: 'Select status' },
@@ -955,7 +1066,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {formData.motherAlive === 'no' ? (
               <>
                 {renderTextField('motherDeathDate', 'date')}
-                {renderTextField('motherDeathCause')}
+                {renderDeathCauseSelect('motherDeathCause')}
               </>
             ) : null}
             {formData.motherAlive === 'yes' ? (
@@ -980,7 +1091,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 4 && (
+      {step === 3 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Guardian Details</h2>
@@ -1006,7 +1117,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           <div className="grid gap-4 sm:grid-cols-2">
             {guardianDetailsNeeded ? (
               <>
-                {['guardianName', 'guardianRelationship', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianOccupation'].map((field) => renderTextField(field as keyof FormData))}
+                {['guardianName', 'guardianRelationship', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianOccupation'].map((field) =>
+                  field === 'guardianEducation' ? renderEducationSelect(field as keyof FormData) : renderTextField(field as keyof FormData),
+                )}
                 {renderSelectField('guardianFamilyHolder', [
                   { value: '', label: 'Select family holder status' },
                   { value: 'yes', label: 'Yes / ہاں' },
@@ -1020,7 +1133,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 5 && (
+      {step === 4 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Close Relatives / قریبی رشتہ دار</h2>
@@ -1104,7 +1217,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 6 && (
+      {step === 5 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Home Details</h2>
@@ -1143,7 +1256,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 7 && (
+      {step === 6 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Household Assets</h2>
@@ -1225,7 +1338,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 8 && (
+      {step === 7 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Orphan Child Details</h2>
@@ -1291,7 +1404,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 9 && (
+      {step === 8 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Education and Health Details</h2>
@@ -1349,7 +1462,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 10 && (
+      {step === 9 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Other Aid / Household Income</h2>
@@ -1370,7 +1483,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 11 && (
+      {step === 10 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Educational Institution Verification</h2>
@@ -1380,7 +1493,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 12 && (
+      {step === 11 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Mosque Imam Verification</h2>
@@ -1390,7 +1503,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 13 && (
+      {step === 12 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Documents Upload</h2>
@@ -1422,7 +1535,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 14 && (
+      {step === 13 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Terms and Review</h2>
@@ -1466,7 +1579,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           >
             Back
           </button>
-          {step < 14 ? (
+          {step < TOTAL_STEPS ? (
             <button
               type="button"
               onClick={goNext}
@@ -1476,7 +1589,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             </button>
           ) : null}
         </div>
-        {step === 14 ? (
+        {step === TOTAL_STEPS ? (
           <div className="grid gap-3 sm:flex">
             <button
               type="button"
