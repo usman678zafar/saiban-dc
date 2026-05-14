@@ -39,7 +39,7 @@ export const labels: Record<string, LabelPair> = {
   motherDeathDate: { ur: 'والدہ کی وفات کی تاریخ', en: 'Mother Death Date' },
   motherDeathCause: { ur: 'والدہ کی وفات کا سبب', en: 'Mother Death Cause' },
   guardianName: { ur: 'سرپرست کا نام', en: 'Guardian Name' },
-  guardianRelationship: { ur: 'سرپرست کا رشتہ', en: 'Guardian Relationship' },
+  guardianRelationship: { ur: 'سرپرست کا یتیم سے تعلق', en: 'Guardian Relationship with Orphan' },
   guardianGender: { ur: 'سرپرست کی جنس', en: 'Guardian Gender' },
   guardianCnic: { ur: 'سرپرست کا CNIC', en: 'Guardian CNIC' },
   guardianEducation: { ur: 'سرپرست کی تعلیم', en: 'Guardian Education' },

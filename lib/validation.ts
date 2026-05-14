@@ -294,24 +294,6 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
     });
   }
 
-  if (data.motherAlive === 'yes' && data.motherEmploymentStatus === 'working') {
-    if (!data.motherOccupation) {
-      ctx.addIssue({
-        path: ['motherOccupation'],
-        code: z.ZodIssueCode.custom,
-        message: 'Mother occupation is required when mother is working',
-      });
-    }
-
-    if (data.motherMonthlyIncome === undefined) {
-      ctx.addIssue({
-        path: ['motherMonthlyIncome'],
-        code: z.ZodIssueCode.custom,
-        message: 'Mother monthly income is required when mother is working',
-      });
-    }
-  }
-
   const guardianDetailsNeeded = data.motherAlive !== 'yes' || data.motherIsGuardian !== 'yes';
   if (guardianDetailsNeeded) {
     if (!data.guardianName) {

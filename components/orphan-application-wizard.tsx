@@ -458,6 +458,29 @@ const MOTHER_TONGUE_OPTIONS = [
   { value: 'Other', label: 'Other / دیگر' },
 ];
 
+const GUARDIAN_RELATIONSHIP_OPTIONS = [
+  { value: '', label: 'Select relationship' },
+  { value: 'Paternal Grandfather', label: 'Paternal Grandfather / دادا' },
+  { value: 'Paternal Grandmother', label: 'Paternal Grandmother / دادی' },
+  { value: 'Maternal Grandfather', label: 'Maternal Grandfather / نانا' },
+  { value: 'Maternal Grandmother', label: 'Maternal Grandmother / نانی' },
+  { value: 'Uncle (Paternal)', label: 'Uncle (Paternal) / چچا' },
+  { value: 'Uncle (Maternal)', label: 'Uncle (Maternal) / ماموں' },
+  { value: 'Aunt (Paternal)', label: 'Aunt (Paternal) / پھوپھی' },
+  { value: 'Aunt (Maternal)', label: 'Aunt (Maternal) / خالہ' },
+  { value: 'Elder Brother', label: 'Elder Brother / بڑا بھائی' },
+  { value: 'Elder Sister', label: 'Elder Sister / بڑی بہن' },
+  { value: 'Cousin', label: 'Cousin / کزن' },
+  { value: 'Step-Parent', label: 'Step-Parent / سوتیلا والد/والدہ' },
+  { value: 'Legal Guardian (Court/Appointed)', label: 'Legal Guardian (Court/Appointed) / قانونی سرپرست' },
+  { value: 'Family Friend', label: 'Family Friend / خاندانی دوست' },
+  { value: 'Neighbour', label: 'Neighbour / پڑوسی' },
+  { value: 'Teacher / Madrasa Caretaker', label: 'Teacher / Madrasa Caretaker / استاد / مدرسہ نگران' },
+  { value: 'Other Relative', label: 'Other Relative / دیگر رشتہ دار' },
+  { value: 'Non-Relative Guardian', label: 'Non-Relative Guardian / غیر رشتہ دار سرپرست' },
+  { value: 'Other', label: 'Other / دیگر' },
+];
+
 function formatCnic(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 13);
   if (digits.length <= 5) return digits;
@@ -471,20 +494,14 @@ function normalizeInitialData(data: FormData): FormData {
   next.fatherCnic = formatCnic(next.fatherCnic);
   next.motherCnic = formatCnic(next.motherCnic);
   next.guardianCnic = formatCnic(next.guardianCnic);
+  next.motherEmploymentStatus = '';
+  next.motherIsHousewife = false;
 
   if (!next.motherAlive) {
     if (next.motherDeathDate || next.motherDeathCause) {
       next.motherAlive = 'no';
     } else if (next.motherContact || next.motherOccupation || next.motherMonthlyIncome || next.motherRemarried) {
       next.motherAlive = 'yes';
-    }
-  }
-
-  if (!next.motherEmploymentStatus) {
-    if (next.motherIsHousewife) {
-      next.motherEmploymentStatus = 'housewife';
-    } else if (next.motherOccupation || next.motherMonthlyIncome) {
-      next.motherEmploymentStatus = 'working';
     }
   }
 
@@ -613,19 +630,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         : {
             motherDeathDate: '',
             motherDeathCause: '',
-          }),
-    });
-  };
-
-  const handleMotherEmploymentStatusChange = (value: string) => {
-    updateFields({
-      motherEmploymentStatus: value,
-      motherIsHousewife: value === 'housewife',
-      ...(value === 'working'
-        ? {}
-        : {
-            motherOccupation: '',
-            motherMonthlyIncome: '',
           }),
     });
   };
@@ -993,6 +997,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const renderMotherTongueField = (field: keyof FormData) =>
     renderSelectWithOther(field, MOTHER_TONGUE_OPTIONS, 'Other Mother Tongue / دیگر مادری زبان');
 
+  const renderGuardianRelationshipField = () =>
+    renderSelectWithOther('guardianRelationship', GUARDIAN_RELATIONSHIP_OPTIONS, 'Other Guardian Relationship / دیگر سرپرست کا تعلق');
+
   const renderBooleanSelect = (
     field: keyof FormData,
     onChange?: (value: boolean) => void,
@@ -1050,8 +1057,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   const shouldShowField = (field: keyof FormData) => {
     if (['motherDeathDate', 'motherDeathCause'].includes(field)) return formData.motherAlive === 'no';
-    if (['motherContact', 'motherEmploymentStatus', 'motherRemarried'].includes(field)) return formData.motherAlive === 'yes';
-    if (['motherOccupation', 'motherMonthlyIncome'].includes(field)) return formData.motherAlive === 'yes' && formData.motherEmploymentStatus === 'working';
+    if (['motherContact', 'motherRemarried', 'motherOccupation', 'motherMonthlyIncome'].includes(field)) return formData.motherAlive === 'yes';
     if (field === 'guardianOccupation') return guardianDetailsNeeded && Boolean(formData.guardianGender);
     if (['guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianFamilyHolder', 'guardianMonthlyIncome'].includes(field)) return guardianDetailsNeeded;
     if (field === 'guardianFamilyMembersCount') return guardianDetailsNeeded && formData.guardianFamilyHolder === 'yes';
@@ -1088,7 +1094,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const reviewSections: Array<{ title: string; fields: Array<keyof FormData> }> = [
-    { title: 'Mother', fields: ['motherName', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherContact', 'motherEmploymentStatus', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
+    { title: 'Mother', fields: ['motherName', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherContact', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
     { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianGender', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
     { title: 'Home', fields: ['city', 'district', 'tehsil', 'fullAddress', 'houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseOwner', 'houseCondition', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks'] },
     { title: 'Household Assets', fields: ['householdAssetSelection'] },
@@ -1177,18 +1183,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {formData.motherAlive === 'yes' ? (
               <>
                 {renderTextField('motherContact')}
-                {renderSelectField('motherEmploymentStatus', [
-                  { value: '', label: 'Select employment status' },
-                  { value: 'housewife', label: 'Housewife / گھریلو' },
-                  { value: 'working', label: 'Working / کام کرتی ہیں' },
-                  { value: 'unemployed', label: 'Unemployed / بے روزگار' },
-                ], handleMotherEmploymentStatusChange)}
-                {formData.motherEmploymentStatus === 'working' ? (
-                  <>
-                    {renderOccupationSelect('motherOccupation', FEMALE_OCCUPATION_OPTIONS)}
-                    {renderTextField('motherMonthlyIncome', 'number')}
-                  </>
-                ) : null}
+                {renderOccupationSelect('motherOccupation', FEMALE_OCCUPATION_OPTIONS)}
+                {renderTextField('motherMonthlyIncome', 'number')}
                 {renderBooleanSelect('motherRemarried')}
               </>
             ) : null}
@@ -1209,9 +1205,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                 { value: 'yes', label: 'Mother is guardian / والدہ سرپرست ہیں' },
                 { value: 'no', label: 'Other guardian / دوسرا سرپرست' },
               ], handleMotherIsGuardianChange)}
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-                Changing guardian status may clear guardian fields that are no longer relevant.
-              </div>
+              
             </div>
           ) : null}
           {formData.motherAlive === 'yes' && formData.motherIsGuardian === 'yes' ? (
@@ -1222,9 +1216,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           <div className="grid gap-4 sm:grid-cols-2">
             {guardianDetailsNeeded ? (
               <>
-                {['guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact'].map((field) =>
+                {['guardianName', 'guardianGender', 'guardianRelationship', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact'].map((field) =>
                   field === 'guardianEducation'
                     ? renderEducationSelect(field as keyof FormData)
+                    : field === 'guardianRelationship'
+                      ? renderGuardianRelationshipField()
                     : field === 'guardianGender'
                       ? renderSelectField('guardianGender', [
                           { value: '', label: 'Select gender' },
