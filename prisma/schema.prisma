@@ -84,6 +84,8 @@ model OrphanApplication {
   fatherAge                  Int?
   fatherCnic                 String?
   fatherEducation            String?
+  fatherTongue               String?
+  fatherNativeArea           String?
   fatherOccupation           String?
   fatherDateOfDeath          DateTime?
   fatherCauseOfDeath         String?
@@ -106,6 +108,7 @@ model OrphanApplication {
   motherDeathCause           String?
   guardianName               String?
   guardianRelationship       String?
+  guardianGender             String?
   guardianCnic               String?
   guardianEducation          String?
   guardianMotherTongue       String?

@@ -64,6 +64,7 @@ function normalizeConditionalPayload(payload: any) {
     clearPayloadFields(next, [
       'guardianName',
       'guardianRelationship',
+      'guardianGender',
       'guardianCnic',
       'guardianEducation',
       'guardianMotherTongue',
@@ -77,6 +78,10 @@ function normalizeConditionalPayload(payload: any) {
       'guardianMonthlyIncome',
       'guardianSignatureFileKey',
     ]);
+  }
+
+  if (!next.guardianGender) {
+    clearPayloadFields(next, ['guardianOccupation']);
   }
 
   next.guardianZakatStatus = '';

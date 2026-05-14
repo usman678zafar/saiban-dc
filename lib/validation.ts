@@ -85,6 +85,8 @@ const baseOrphanApplicationSchema = z.object({
     message: 'Father CNIC must contain 13 digits',
   }).optional(),
   fatherEducation: optionalString,
+  fatherTongue: optionalString,
+  fatherNativeArea: optionalString,
   fatherOccupation: optionalString,
   fatherDateOfDeath: parseDate.optional().refine((date) => !date || date <= new Date(), {
     message: 'Death date cannot be in the future',
@@ -118,6 +120,7 @@ const baseOrphanApplicationSchema = z.object({
   motherDeathCause: optionalString,
   guardianName: optionalString,
   guardianRelationship: optionalString,
+  guardianGender: optionalEnum(['male', 'female']),
   guardianCnic: z.string().transform((value) => value.replace(/\D/g, '')).refine((value) => value === '' || cnicRegex.test(value), {
     message: 'Guardian CNIC must contain 13 digits',
   }).optional(),
