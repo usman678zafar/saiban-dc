@@ -501,6 +501,19 @@ const MOTHER_SEPARATION_REASON_OPTIONS = [
   { value: 'Other', label: 'Other / دیگر' },
 ];
 
+const MONTHLY_INCOME_OPTIONS = [
+  { value: '', label: 'Select monthly income' },
+  { value: '4999', label: 'Less than 5,000 PKR' },
+  { value: '8000', label: '5,000 - 8,000 PKR' },
+  { value: '12000', label: '8,001 - 12,000 PKR' },
+  { value: '18000', label: '12,001 - 18,000 PKR' },
+  { value: '25000', label: '18,001 - 25,000 PKR' },
+  { value: '35000', label: '25,001 - 35,000 PKR' },
+  { value: '45000', label: '35,001 - 45,000 PKR' },
+  { value: '60000', label: '45,001 - 60,000 PKR' },
+  { value: '60001', label: 'Above 60,000 PKR' },
+];
+
 function formatCnic(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 13);
   if (digits.length <= 5) return digits;
@@ -1253,7 +1266,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               <>
                 {renderTextField('motherContact')}
                 {renderSelectWithOther('motherOccupation', FEMALE_OCCUPATION_OPTIONS, 'Other Occupation / دیگر پیشہ', handleMotherOccupationChange)}
-                {formData.motherOccupation !== 'Housewife' ? renderTextField('motherMonthlyIncome', 'number') : null}
+                {formData.motherOccupation !== 'Housewife' ? renderSelectField('motherMonthlyIncome', MONTHLY_INCOME_OPTIONS) : null}
                 {renderBooleanSelect('motherRemarried')}
               </>
             ) : null}
