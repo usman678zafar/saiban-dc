@@ -5,7 +5,8 @@ export type LabelPair = {
 
 export const labels: Record<string, LabelPair> = {
   collectorId: { ur: 'Collector ID', en: 'Collector ID' },
-  motherAlive: { ur: 'والدہ زندہ ہیں', en: 'Mother Alive' },
+  motherAlive: { ur: 'والدہ کی رہائشی حیثیت', en: "Mother's Living Status" },
+  motherSeparationReason: { ur: 'والدہ اور بچے کی علیحدگی کی وجہ', en: 'Reason for Mother-Child Separation' },
   motherEmploymentStatus: { ur: 'والدہ کا روزگار', en: 'Mother Employment Status' },
   motherIsGuardian: { ur: 'والدہ سرپرست ہیں', en: 'Mother Is Guardian' },
   registrationNumber: { ur: 'رجسٹریشن نمبر', en: 'Registration Number' },

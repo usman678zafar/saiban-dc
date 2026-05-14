@@ -106,7 +106,8 @@ const baseOrphanApplicationSchema = z.object({
   motherEducation: optionalString,
   motherTongue: optionalString,
   motherNativeArea: optionalString,
-  motherAlive: optionalEnum(['yes', 'no']),
+  motherAlive: optionalEnum(['yes', 'separated', 'no']),
+  motherSeparationReason: optionalString,
   motherEmploymentStatus: optionalEnum(['housewife', 'working', 'unemployed']),
   motherIsGuardian: optionalEnum(['yes', 'no']),
   motherContact: optionalString,
@@ -286,7 +287,15 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
     }
   }
 
-  if (data.motherAlive === 'yes' && !data.motherContact) {
+  if (data.motherAlive === 'separated' && !data.motherSeparationReason) {
+    ctx.addIssue({
+      path: ['motherSeparationReason'],
+      code: z.ZodIssueCode.custom,
+      message: 'Mother-child separation reason is required when mother is alive but separated',
+    });
+  }
+
+  if ((data.motherAlive === 'yes' || data.motherAlive === 'separated') && !data.motherContact) {
     ctx.addIssue({
       path: ['motherContact'],
       code: z.ZodIssueCode.custom,

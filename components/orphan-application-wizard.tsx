@@ -68,6 +68,7 @@ export type FormData = {
   motherTongue: string;
   motherNativeArea: string;
   motherAlive: string;
+  motherSeparationReason: string;
   motherEmploymentStatus: string;
   motherIsGuardian: string;
   motherContact: string;
@@ -199,6 +200,7 @@ const defaultData: FormData = {
   motherTongue: '',
   motherNativeArea: '',
   motherAlive: '',
+  motherSeparationReason: '',
   motherEmploymentStatus: '',
   motherIsGuardian: '',
   motherContact: '',
@@ -481,11 +483,45 @@ const GUARDIAN_RELATIONSHIP_OPTIONS = [
   { value: 'Other', label: 'Other / دیگر' },
 ];
 
+const MOTHER_SEPARATION_REASON_OPTIONS = [
+  { value: '', label: 'Select separation reason' },
+  { value: 'Financial Hardship', label: 'Financial Hardship / مالی مشکلات' },
+  { value: 'Mother Working in Another City', label: 'Mother Working in Another City / والدہ کا دوسرے شہر میں روزگار' },
+  { value: 'Mother Working Abroad', label: 'Mother Working Abroad / والدہ کا بیرونِ ملک روزگار' },
+  { value: 'Children Living with Paternal Relatives', label: 'Children Living with Paternal Relatives / بچے دادا/دادی یا چچا کے ساتھ رہ رہے ہیں' },
+  { value: 'Children Living with Maternal Relatives', label: 'Children Living with Maternal Relatives / بچے نانا/نانی یا ماموں کے ساتھ رہ رہے ہیں' },
+  { value: 'Temporary Arrangement', label: 'Temporary Arrangement / عارضی انتظام' },
+  { value: 'Mother Illness', label: 'Mother Illness / والدہ کی بیماری' },
+  { value: 'Mother Remarried', label: 'Mother Remarried / والدہ کی دوسری شادی' },
+  { value: 'Legal Custody Decision', label: 'Legal Custody Decision / قانونی حضانت کا فیصلہ' },
+  { value: 'Family Dispute', label: 'Family Dispute / خاندانی اختلاف / جھگڑا' },
+  { value: 'Social Pressure / Cultural Reasons', label: 'Social Pressure / Cultural Reasons / سماجی یا ثقافتی وجوہات' },
+  { value: 'Mother Unable to Provide Care', label: 'Mother Unable to Provide Care / والدہ بچوں کی دیکھ بھال سے قاصر' },
+  { value: 'Unknown', label: 'Unknown / نامعلوم' },
+  { value: 'Other', label: 'Other / دیگر' },
+];
+
 function formatCnic(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 13);
   if (digits.length <= 5) return digits;
   if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+}
+
+function calculateAgeFromDate(dateValue: string) {
+  if (!dateValue) return '';
+
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime()) || date > new Date()) return '';
+
+  const today = new Date();
+  let age = today.getFullYear() - date.getFullYear();
+  const hasBirthdayPassed =
+    today.getMonth() > date.getMonth() ||
+    (today.getMonth() === date.getMonth() && today.getDate() >= date.getDate());
+
+  if (!hasBirthdayPassed) age -= 1;
+  return age >= 0 ? String(age) : '';
 }
 
 function normalizeInitialData(data: FormData): FormData {
@@ -507,6 +543,10 @@ function normalizeInitialData(data: FormData): FormData {
 
   if (!next.motherIsGuardian && next.motherAlive === 'yes') {
     next.motherIsGuardian = next.guardianName || next.guardianContact ? 'no' : 'yes';
+  }
+
+  if ((next.motherAlive === 'yes' || next.motherAlive === 'separated') && next.motherDob && !next.motherAge) {
+    next.motherAge = calculateAgeFromDate(next.motherDob);
   }
 
   next.householdAssetSelection = mergeHouseholdAssetSelection(next.householdAssetSelection);
@@ -617,9 +657,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const handleMotherAliveChange = (value: string) => {
     updateFields({
       motherAlive: value,
+      ...((value === 'yes' || value === 'separated') && formData.motherDob ? { motherAge: calculateAgeFromDate(formData.motherDob) } : {}),
       ...(value === 'no'
         ? {
             motherContact: '',
+            motherSeparationReason: '',
             motherIsHousewife: false,
             motherEmploymentStatus: '',
             motherOccupation: '',
@@ -630,7 +672,15 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         : {
             motherDeathDate: '',
             motherDeathCause: '',
+            ...(value === 'separated' ? { motherIsGuardian: 'no' } : { motherSeparationReason: '' }),
           }),
+    });
+  };
+
+  const handleMotherDobChange = (value: string) => {
+    updateFields({
+      motherDob: value,
+      ...(motherIsLiving ? { motherAge: calculateAgeFromDate(value) } : {}),
     });
   };
 
@@ -869,6 +919,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const guardianDetailsNeeded = formData.motherAlive !== 'yes' || formData.motherIsGuardian !== 'yes';
+  const motherIsLiving = formData.motherAlive === 'yes' || formData.motherAlive === 'separated';
   const documentTypes = useMemo(() => {
     const types = [
       { type: 'child_photo', label: 'Child Photo' },
@@ -910,7 +961,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     'Review / جائزہ',
   ];
 
-  const renderTextField = (field: keyof FormData, type = 'text', locked = false) => {
+  const renderTextField = (field: keyof FormData, type = 'text', locked = false, onChange?: (value: string) => void) => {
     const isCnicField = field.toLowerCase().includes('cnic');
 
     return (
@@ -918,7 +969,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         <span>{fieldLabel(field)}</span>
         <input
           value={formData[field] as string}
-          onChange={(event) => updateField(field, event.target.value)}
+          onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
           type={type}
           readOnly={locked}
           inputMode={isCnicField ? 'numeric' : undefined}
@@ -1008,6 +1059,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const renderGuardianRelationshipField = () =>
     renderSelectWithOther('guardianRelationship', GUARDIAN_RELATIONSHIP_OPTIONS, 'Other Guardian Relationship / دیگر سرپرست کا تعلق');
 
+  const renderMotherSeparationReasonField = () =>
+    renderSelectWithOther('motherSeparationReason', MOTHER_SEPARATION_REASON_OPTIONS, 'Other Separation Reason / علیحدگی کی دیگر وجہ');
+
   const renderBooleanSelect = (
     field: keyof FormData,
     onChange?: (value: boolean) => void,
@@ -1065,8 +1119,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   const shouldShowField = (field: keyof FormData) => {
     if (['motherDeathDate', 'motherDeathCause'].includes(field)) return formData.motherAlive === 'no';
-    if (['motherContact', 'motherRemarried', 'motherOccupation'].includes(field)) return formData.motherAlive === 'yes';
-    if (field === 'motherMonthlyIncome') return formData.motherAlive === 'yes' && formData.motherOccupation !== 'Housewife';
+    if (field === 'motherSeparationReason') return formData.motherAlive === 'separated';
+    if (['motherContact', 'motherRemarried', 'motherOccupation'].includes(field)) return motherIsLiving;
+    if (field === 'motherMonthlyIncome') return motherIsLiving && formData.motherOccupation !== 'Housewife';
     if (field === 'guardianOccupation') return guardianDetailsNeeded && Boolean(formData.guardianGender);
     if (['guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianFamilyHolder', 'guardianMonthlyIncome'].includes(field)) return guardianDetailsNeeded;
     if (field === 'guardianFamilyMembersCount') return guardianDetailsNeeded && formData.guardianFamilyHolder === 'yes';
@@ -1103,7 +1158,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const reviewSections: Array<{ title: string; fields: Array<keyof FormData> }> = [
-    { title: 'Mother', fields: ['motherName', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherContact', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
+    { title: 'Mother', fields: ['motherName', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherSeparationReason', 'motherContact', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
     { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianGender', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
     { title: 'Home', fields: ['city', 'district', 'tehsil', 'fullAddress', 'houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseOwner', 'houseCondition', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks'] },
     { title: 'Household Assets', fields: ['householdAssetSelection'] },
@@ -1167,9 +1222,18 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             Changing mother status or employment may clear fields that are no longer relevant.
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {['motherName', 'motherDob', 'motherAge', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea'].map((field) =>
+            {['motherName', 'motherDob', 'motherAlive', 'motherAge', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea'].map((field) =>
               field === 'motherDob'
-                ? renderTextField(field as keyof FormData, 'date')
+                ? renderTextField(field as keyof FormData, 'date', false, handleMotherDobChange)
+                : field === 'motherAlive'
+                  ? renderSelectField('motherAlive', [
+                      { value: '', label: 'Select living status' },
+                      { value: 'yes', label: 'Alive / زندہ' },
+                      { value: 'separated', label: 'Alive but separated / زندہ مگر علیحدہ' },
+                      { value: 'no', label: 'Deceased / وفات شدہ' },
+                    ], handleMotherAliveChange)
+                : field === 'motherAge' && motherIsLiving && formData.motherDob
+                  ? renderTextField(field as keyof FormData, 'number', true)
                 : field === 'motherEducation'
                   ? renderEducationSelect(field as keyof FormData)
                   : field === 'motherTongue'
@@ -1178,18 +1242,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     ? renderNativeAreaField(field as keyof FormData)
                     : renderTextField(field as keyof FormData),
             )}
-            {renderSelectField('motherAlive', [
-              { value: '', label: 'Select status' },
-              { value: 'yes', label: 'Alive / زندہ' },
-              { value: 'no', label: 'Deceased / وفات شدہ' },
-            ], handleMotherAliveChange)}
+            {formData.motherAlive === 'separated' ? renderMotherSeparationReasonField() : null}
             {formData.motherAlive === 'no' ? (
               <>
                 {renderTextField('motherDeathDate', 'date')}
                 {renderDeathCauseSelect('motherDeathCause')}
               </>
             ) : null}
-            {formData.motherAlive === 'yes' ? (
+            {motherIsLiving ? (
               <>
                 {renderTextField('motherContact')}
                 {renderSelectWithOther('motherOccupation', FEMALE_OCCUPATION_OPTIONS, 'Other Occupation / دیگر پیشہ', handleMotherOccupationChange)}

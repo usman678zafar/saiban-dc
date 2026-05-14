@@ -62,6 +62,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     motherName: app.motherName ?? '',
     motherAge: app.motherAge?.toString() ?? '',
     motherAlive: app.motherAlive ?? '',
+    motherSeparationReason: app.motherSeparationReason ?? '',
     motherEmploymentStatus: app.motherEmploymentStatus ?? '',
     motherIsGuardian: app.motherIsGuardian ?? '',
     motherContact: app.motherContact ?? '',

@@ -35,7 +35,7 @@ function normalizeConditionalPayload(payload: any) {
   const next = { ...payload };
 
   if (next.motherAlive === 'no') {
-    clearPayloadFields(next, ['motherContact', 'motherOccupation', 'motherMonthlyIncome']);
+    clearPayloadFields(next, ['motherContact', 'motherSeparationReason', 'motherOccupation', 'motherMonthlyIncome']);
     next.motherIsHousewife = false;
     next.motherRemarried = false;
     next.motherEmploymentStatus = '';
@@ -43,9 +43,16 @@ function normalizeConditionalPayload(payload: any) {
   }
 
   if (next.motherAlive === 'yes') {
+    clearPayloadFields(next, ['motherDeathDate', 'motherDeathCause', 'motherSeparationReason']);
+    next.motherEmploymentStatus = '';
+    next.motherIsHousewife = false;
+  }
+
+  if (next.motherAlive === 'separated') {
     clearPayloadFields(next, ['motherDeathDate', 'motherDeathCause']);
     next.motherEmploymentStatus = '';
     next.motherIsHousewife = false;
+    next.motherIsGuardian = 'no';
   }
 
   if (next.motherOccupation === 'Housewife') {

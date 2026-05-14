@@ -97,6 +97,7 @@ model OrphanApplication {
   motherTongue               String?
   motherNativeArea           String?
   motherAlive                String?
+  motherSeparationReason     String?
   motherEmploymentStatus     String?
   motherIsGuardian           String?
   motherContact              String?
