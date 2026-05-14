@@ -521,17 +521,17 @@ function formatCnic(value: string) {
   return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
 }
 
-function calculateAgeFromDate(dateValue: string) {
+function calculateAgeFromDate(dateValue: string, asOfValue?: string) {
   if (!dateValue) return '';
 
   const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime()) || date > new Date()) return '';
+  const asOfDate = asOfValue ? new Date(asOfValue) : new Date();
+  if (Number.isNaN(date.getTime()) || Number.isNaN(asOfDate.getTime()) || date > asOfDate) return '';
 
-  const today = new Date();
-  let age = today.getFullYear() - date.getFullYear();
+  let age = asOfDate.getFullYear() - date.getFullYear();
   const hasBirthdayPassed =
-    today.getMonth() > date.getMonth() ||
-    (today.getMonth() === date.getMonth() && today.getDate() >= date.getDate());
+    asOfDate.getMonth() > date.getMonth() ||
+    (asOfDate.getMonth() === date.getMonth() && asOfDate.getDate() >= date.getDate());
 
   if (!hasBirthdayPassed) age -= 1;
   return age >= 0 ? String(age) : '';
@@ -560,6 +560,10 @@ function normalizeInitialData(data: FormData): FormData {
 
   if ((next.motherAlive === 'yes' || next.motherAlive === 'separated') && next.motherDob && !next.motherAge) {
     next.motherAge = calculateAgeFromDate(next.motherDob);
+  }
+
+  if (next.motherAlive === 'no' && next.motherDob && next.motherDeathDate && !next.motherAge) {
+    next.motherAge = calculateAgeFromDate(next.motherDob, next.motherDeathDate);
   }
 
   next.householdAssetSelection = mergeHouseholdAssetSelection(next.householdAssetSelection);
@@ -670,7 +674,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const handleMotherAliveChange = (value: string) => {
     updateFields({
       motherAlive: value,
-      ...((value === 'yes' || value === 'separated') && formData.motherDob ? { motherAge: calculateAgeFromDate(formData.motherDob) } : {}),
+      ...(value === 'no' && formData.motherDob && formData.motherDeathDate
+        ? { motherAge: calculateAgeFromDate(formData.motherDob, formData.motherDeathDate) }
+        : (value === 'yes' || value === 'separated') && formData.motherDob
+          ? { motherAge: calculateAgeFromDate(formData.motherDob) }
+          : {}),
       ...(value === 'no'
         ? {
             motherContact: '',
@@ -693,7 +701,18 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const handleMotherDobChange = (value: string) => {
     updateFields({
       motherDob: value,
-      ...(motherIsLiving ? { motherAge: calculateAgeFromDate(value) } : {}),
+      ...(formData.motherAlive === 'no' && formData.motherDeathDate
+        ? { motherAge: calculateAgeFromDate(value, formData.motherDeathDate) }
+        : motherIsLiving
+          ? { motherAge: calculateAgeFromDate(value) }
+          : {}),
+    });
+  };
+
+  const handleMotherDeathDateChange = (value: string) => {
+    updateFields({
+      motherDeathDate: value,
+      ...(formData.motherDob ? { motherAge: calculateAgeFromDate(formData.motherDob, value) } : {}),
     });
   };
 
@@ -1239,13 +1258,18 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               field === 'motherDob'
                 ? renderTextField(field as keyof FormData, 'date', false, handleMotherDobChange)
                 : field === 'motherAlive'
-                  ? renderSelectField('motherAlive', [
-                      { value: '', label: 'Select living status' },
-                      { value: 'yes', label: 'Alive / زندہ' },
-                      { value: 'separated', label: 'Alive but separated / زندہ مگر علیحدہ' },
-                      { value: 'no', label: 'Deceased / وفات شدہ' },
-                    ], handleMotherAliveChange)
-                : field === 'motherAge' && motherIsLiving && formData.motherDob
+                  ? (
+                      <>
+                        {renderSelectField('motherAlive', [
+                          { value: '', label: 'Select living status' },
+                          { value: 'yes', label: 'Alive / زندہ' },
+                          { value: 'separated', label: 'Alive but separated / زندہ مگر علیحدہ' },
+                          { value: 'no', label: 'Deceased / وفات شدہ' },
+                        ], handleMotherAliveChange)}
+                        {formData.motherAlive === 'no' ? renderTextField('motherDeathDate', 'date', false, handleMotherDeathDateChange) : null}
+                      </>
+                    )
+                : field === 'motherAge' && formData.motherDob && (motherIsLiving || (formData.motherAlive === 'no' && formData.motherDeathDate))
                   ? renderTextField(field as keyof FormData, 'number', true)
                 : field === 'motherEducation'
                   ? renderEducationSelect(field as keyof FormData)
@@ -1258,7 +1282,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {formData.motherAlive === 'separated' ? renderMotherSeparationReasonField() : null}
             {formData.motherAlive === 'no' ? (
               <>
-                {renderTextField('motherDeathDate', 'date')}
                 {renderDeathCauseSelect('motherDeathCause')}
               </>
             ) : null}
