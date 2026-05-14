@@ -674,6 +674,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     });
   };
 
+  const handleMotherOccupationChange = (value: string) => {
+    updateFields({
+      motherOccupation: value,
+      ...(value === 'Housewife' ? { motherMonthlyIncome: '' } : {}),
+    });
+  };
+
   const handleHouseOwnershipStatusChange = (value: string) => {
     updateFields({
       houseOwnershipStatus: value,
@@ -948,6 +955,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     field: keyof FormData,
     options: Array<{ value: string; label: string }>,
     otherLabel: string,
+    onChange?: (value: string) => void,
   ) => {
     const predefinedValues = options.map((option) => option.value);
     const currentValue = formData[field] as string;
@@ -959,7 +967,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           <span>{fieldLabel(field)}</span>
           <select
             value={selectValue}
-            onChange={(event) => updateField(field, event.target.value)}
+            onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
             className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
           >
             {options.map((option) => (
@@ -974,7 +982,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <span>{otherLabel}</span>
             <input
               value={currentValue === 'Other' ? '' : currentValue}
-              onChange={(event) => updateField(field, event.target.value)}
+              onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
               type="text"
               className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
             />
@@ -1057,7 +1065,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   const shouldShowField = (field: keyof FormData) => {
     if (['motherDeathDate', 'motherDeathCause'].includes(field)) return formData.motherAlive === 'no';
-    if (['motherContact', 'motherRemarried', 'motherOccupation', 'motherMonthlyIncome'].includes(field)) return formData.motherAlive === 'yes';
+    if (['motherContact', 'motherRemarried', 'motherOccupation'].includes(field)) return formData.motherAlive === 'yes';
+    if (field === 'motherMonthlyIncome') return formData.motherAlive === 'yes' && formData.motherOccupation !== 'Housewife';
     if (field === 'guardianOccupation') return guardianDetailsNeeded && Boolean(formData.guardianGender);
     if (['guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianFamilyHolder', 'guardianMonthlyIncome'].includes(field)) return guardianDetailsNeeded;
     if (field === 'guardianFamilyMembersCount') return guardianDetailsNeeded && formData.guardianFamilyHolder === 'yes';
@@ -1183,8 +1192,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {formData.motherAlive === 'yes' ? (
               <>
                 {renderTextField('motherContact')}
-                {renderOccupationSelect('motherOccupation', FEMALE_OCCUPATION_OPTIONS)}
-                {renderTextField('motherMonthlyIncome', 'number')}
+                {renderSelectWithOther('motherOccupation', FEMALE_OCCUPATION_OPTIONS, 'Other Occupation / دیگر پیشہ', handleMotherOccupationChange)}
+                {formData.motherOccupation !== 'Housewife' ? renderTextField('motherMonthlyIncome', 'number') : null}
                 {renderBooleanSelect('motherRemarried')}
               </>
             ) : null}

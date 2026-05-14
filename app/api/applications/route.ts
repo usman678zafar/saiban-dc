@@ -48,6 +48,11 @@ function normalizeConditionalPayload(payload: any) {
     next.motherIsHousewife = false;
   }
 
+  if (next.motherOccupation === 'Housewife') {
+    clearPayloadFields(next, ['motherMonthlyIncome']);
+    next.motherIsHousewife = true;
+  }
+
   if (next.motherAlive === 'yes' && next.motherIsGuardian === 'yes') {
     clearPayloadFields(next, [
       'guardianName',
