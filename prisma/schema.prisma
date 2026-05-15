@@ -129,6 +129,7 @@ model OrphanApplication {
   maternalGrandfatherAge     Int?
   maternalGrandfatherOccupation String?
   maternalGrandfatherIncome  Float?
+  province                   String?
   city                       String?
   district                   String?
   tehsil                     String?

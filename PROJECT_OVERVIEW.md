@@ -179,13 +179,12 @@ Repeatable `relatives` entries include:
 
 Captures address, location, ownership, rent, and condition:
 
-- `city`
+- `province`
 - `district`
 - `tehsil`
+- `city`
 - `residentialArea`
 - `fullAddress`
-- `longitude`
-- `latitude`
 - `houseOwnershipStatus`
 - `monthlyRent`
 - `rentPaidBy`

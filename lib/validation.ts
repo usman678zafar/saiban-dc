@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import {
+  isValidDistrictForProvince,
+  isValidProvince,
+  isValidTehsilForDistrict,
+} from '@/lib/address-utils';
 
 const cnicRegex = /^\d{13}$/;
 const bFormRegex = /^(?:\d{13}|\d{15})$/;
@@ -156,6 +161,7 @@ const baseOrphanApplicationSchema = z.object({
   siblings: z.array(siblingSchema).optional(),
   relatives: z.array(relativeSchema).optional(),
   householdAssets: z.array(assetSchema).optional(),
+  province: optionalString,
   city: optionalString,
   district: optionalString,
   tehsil: optionalString,
@@ -343,6 +349,58 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
       path: ['monthlyRent'],
       code: z.ZodIssueCode.custom,
       message: 'Monthly rent is required for rented house',
+    });
+  }
+
+  if (!data.province) {
+    ctx.addIssue({
+      path: ['province'],
+      code: z.ZodIssueCode.custom,
+      message: 'Province is required',
+    });
+  } else if (!isValidProvince(data.province)) {
+    ctx.addIssue({
+      path: ['province'],
+      code: z.ZodIssueCode.custom,
+      message: 'Selected province is invalid',
+    });
+  }
+
+  if (!data.district) {
+    ctx.addIssue({
+      path: ['district'],
+      code: z.ZodIssueCode.custom,
+      message: 'District is required',
+    });
+  } else if (data.province && !isValidDistrictForProvince(data.province, data.district)) {
+    ctx.addIssue({
+      path: ['district'],
+      code: z.ZodIssueCode.custom,
+      message: 'Selected district does not belong to the selected province',
+    });
+  }
+
+  if (data.province && data.district && data.tehsil && !isValidTehsilForDistrict(data.province, data.district, data.tehsil)) {
+    ctx.addIssue({
+      path: ['tehsil'],
+      code: z.ZodIssueCode.custom,
+      message: 'Selected tehsil does not belong to the selected district',
+    });
+  }
+
+  if (!data.city) {
+    ctx.addIssue({
+      path: ['city'],
+      code: z.ZodIssueCode.custom,
+      message: 'City/Town is required',
+    });
+  }
+
+  if (!data.residentialArea && !data.fullAddress) {
+    ctx.addIssue({
+      path: ['fullAddress'],
+      code: z.ZodIssueCode.custom,
+      message: 'Residential area or full address is required',
     });
   }
 

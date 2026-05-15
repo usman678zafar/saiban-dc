@@ -1,7 +1,9 @@
 ﻿'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { labels } from '@/lib/labels';
+import { pakistanAddressData } from '@/lib/pakistan-address-data';
+import { getDistrictsByProvince, getTehsilsByDistrict } from '@/lib/address-utils';
 import {
   HOUSEHOLD_ASSET_KEYS,
   assetUsesGrams,
@@ -100,6 +102,7 @@ export type FormData = {
   maternalGrandfatherAge: string;
   maternalGrandfatherOccupation: string;
   maternalGrandfatherIncome: string;
+  province: string;
   city: string;
   district: string;
   tehsil: string;
@@ -232,6 +235,7 @@ const defaultData: FormData = {
   maternalGrandfatherAge: '',
   maternalGrandfatherOccupation: '',
   maternalGrandfatherIncome: '',
+  province: '',
   city: '',
   district: '',
   tehsil: '',
@@ -772,6 +776,21 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     });
   };
 
+  const handleProvinceChange = (value: string) => {
+    updateFields({
+      province: value,
+      district: '',
+      tehsil: '',
+    });
+  };
+
+  const handleDistrictChange = (value: string) => {
+    updateFields({
+      district: value,
+      tehsil: '',
+    });
+  };
+
   const handleHealthStatusChange = (value: string) => {
     updateFields({
       healthStatus: value,
@@ -995,7 +1014,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     'Review / جائزہ',
   ];
 
-  const renderTextField = (field: keyof FormData, type = 'text', locked = false, onChange?: (value: string) => void) => {
+  const renderTextField = (field: keyof FormData, type = 'text', locked = false, onChange?: (value: string) => void, maxLength?: number) => {
     const isCnicField = field.toLowerCase().includes('cnic');
 
     return (
@@ -1007,13 +1026,26 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           type={type}
           readOnly={locked}
           inputMode={isCnicField ? 'numeric' : undefined}
-          maxLength={isCnicField ? 15 : undefined}
+          maxLength={maxLength ?? (isCnicField ? 15 : undefined)}
           placeholder={isCnicField ? '11111-2222222-3' : undefined}
           className={`min-h-12 rounded-lg border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm ${locked ? 'cursor-not-allowed bg-slate-100 text-slate-600' : 'bg-slate-50 text-slate-900'}`}
         />
       </label>
     );
   };
+
+  const renderTextareaField = (field: keyof FormData, maxLength?: number) => (
+    <label key={field} className="grid gap-2 text-sm text-slate-700 sm:col-span-2">
+      <span>{fieldLabel(field)}</span>
+      <textarea
+        value={formData[field] as string}
+        onChange={(event) => updateField(field, event.target.value)}
+        maxLength={maxLength}
+        rows={4}
+        className="min-h-28 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+      />
+    </label>
+  );
 
   const renderSelectField = (
     field: keyof FormData,
@@ -1027,8 +1059,31 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
         className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
       >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
+        {options.map((option, index) => (
+          <option key={`${option.value}-${index}`} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+
+  const renderHomeSelectField = (
+    field: keyof FormData,
+    options: Array<{ value: string; label: string }>,
+    onChange: (value: string) => void,
+    disabled = false,
+  ) => (
+    <label key={field} className="grid gap-2 text-sm text-slate-700">
+      <span>{fieldLabel(field)}</span>
+      <select
+        value={formData[field] as string}
+        onChange={(event) => onChange(event.target.value)}
+        disabled={disabled}
+        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm"
+      >
+        {options.map((option, index) => (
+          <option key={`${option.value}-${index}`} value={option.value}>
             {option.label}
           </option>
         ))}
@@ -1047,7 +1102,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     const selectValue = currentValue && !predefinedValues.includes(currentValue) ? 'Other' : currentValue;
 
     return (
-      <>
+      <Fragment key={field}>
         <label className="grid gap-2 text-sm text-slate-700">
           <span>{fieldLabel(field)}</span>
           <select
@@ -1055,8 +1110,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
             className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
           >
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
+            {options.map((option, index) => (
+              <option key={`${option.value}-${index}`} value={option.value}>
                 {option.label}
               </option>
             ))}
@@ -1073,7 +1128,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             />
           </label>
         ) : null}
-      </>
+      </Fragment>
     );
   };
 
@@ -1186,6 +1241,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     }
 
     const value = formData[field];
+    if (field === 'tehsil' && (!value || value === 'unknown')) return 'Not Available / Unknown';
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
     if (Array.isArray(value)) return value.length ? `${value.length} record(s)` : '-';
     return typeof value === 'string' ? value || '-' : '-';
@@ -1194,7 +1250,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const reviewSections: Array<{ title: string; fields: Array<keyof FormData> }> = [
     { title: 'Mother', fields: ['motherName', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherSeparationReason', 'motherContact', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
     { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianGender', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
-    { title: 'Home', fields: ['city', 'district', 'tehsil', 'fullAddress', 'houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks'] },
+    { title: 'Address', fields: ['province', 'district', 'tehsil', 'city', 'residentialArea', 'fullAddress'] },
+    { title: 'Home', fields: ['houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks'] },
     { title: 'Household Assets', fields: ['householdAssetSelection'] },
     { title: 'Health and Education', fields: ['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'currentClass', 'schoolName', 'educationFeeStatus', 'monthlySchoolFee', 'notStudyingReason', 'educationStartCondition', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails'] },
     { title: 'Income and Aid', fields: ['careerGoal', 'childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'notAppliedElsewhereReason'] },
@@ -1439,10 +1496,49 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Home Details</h2>
-            <p className="mt-1 text-sm text-slate-600">Capture the household address, property status, and coordinates.</p>
+            <p className="mt-1 text-sm text-slate-600">Capture the household address and property status.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {['city', 'district', 'tehsil', 'residentialArea', 'fullAddress', 'longitude', 'latitude'].map((field) => renderTextField(field as keyof FormData))}
+            {renderHomeSelectField(
+              'province',
+              [
+                { value: '', label: 'Select province' },
+                ...pakistanAddressData.map((item) => ({ value: item.province, label: item.province })),
+              ],
+              handleProvinceChange,
+            )}
+            {renderHomeSelectField(
+              'district',
+              formData.province
+                ? [
+                    { value: '', label: 'Select district' },
+                    ...getDistrictsByProvince(formData.province).map((district) => ({
+                      value: district.name,
+                      label: district.name,
+                    })),
+                  ]
+                : [{ value: '', label: 'Select province first' }],
+              handleDistrictChange,
+              !formData.province,
+            )}
+            {renderHomeSelectField(
+              'tehsil',
+              formData.district
+                ? [
+                    { value: '', label: 'Select tehsil' },
+                    { value: 'unknown', label: 'Not Available / Unknown' },
+                    ...getTehsilsByDistrict(formData.province, formData.district).map((tehsil) => ({
+                      value: tehsil.name,
+                      label: tehsil.name,
+                    })),
+                  ]
+                : [{ value: '', label: 'Select district first' }],
+              (value) => updateField('tehsil', value),
+              !formData.district,
+            )}
+            {renderTextField('city')}
+            {renderTextField('residentialArea', 'text', false, (value) => updateField('residentialArea', value.slice(0, 150)), 150)}
+            {renderTextareaField('fullAddress')}
             {renderSelectField('houseOwnershipStatus', [
               { value: '', label: 'Select ownership status' },
               { value: 'owned', label: 'Owned / ذاتی' },
