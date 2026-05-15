@@ -2,186 +2,159 @@
 
 ## Purpose
 
-This repository is a temporary field data collection application for orphan registration. It captures detailed orphan, guardian, household, verification, document, and collector data for later migration into the main Saiban system.
+This repository is a temporary field data collection application for orphan registration. It captures orphan, parent, guardian, household, financial, education, verification, document, and collector metadata so records can later be reviewed and migrated into the main Saiban system.
 
 ## Tech Stack
 
 - Next.js 14 App Router
-- TypeScript
+- React 18 and TypeScript
 - Tailwind CSS
-- Prisma ORM v7
-- PostgreSQL
+- Prisma ORM 7 with PostgreSQL
 - NextAuth.js authentication
 - Zod validation
-- Cloudflare R2 upload support
+- Cloudflare R2/S3-compatible uploads
 
 ## Current State
 
 The app supports:
 
-- Role-based login for admins and field workers.
-- Admin dashboard with compact KPI cards, recent applications, and field worker summary.
-- Mobile-responsive admin layouts with card views on smaller screens.
-- Field worker management with add/edit/delete actions.
-- Auto-generated field worker IDs.
-- Locked, auto-filled form filler metadata in the application wizard.
-- Draft saving, document upload after draft creation, and final submission.
+- Role-based login for admins, field workers, and viewers.
+- Admin dashboard with KPI cards, recent applications, field worker summary, and quick links.
+- Mobile-responsive admin pages with card views on smaller screens and tables on desktop.
+- Field worker management with search, project filters, add/edit/delete modals, and generated IDs.
+- New application creation for field workers and admins.
+- Collector/form-filler metadata auto-filled from the signed-in user and protected by the API.
+- Draft saving, local browser persistence for in-progress new applications, document uploads after draft creation, and final submission.
+- Conditional form sections for mother status, guardian details, house rent, health, education, madrasa enrollment, other aid, and household assets.
 - Registration numbers generated only when an application is submitted.
-- CSV/JSON export for admin users.
+- Admin CSV/JSON export.
 
-## Recent Changes
+## Important Recent Behavior
 
-### Admin UI and responsiveness
+### Collector metadata
 
-- Admin shell was restyled with a dark navy sidebar and a clean white workspace.
-- Sidebar width was reduced and content offset was updated accordingly.
-- Small blue eyebrow headings were removed from admin pages.
-- Admin dashboard KPI cards were compacted.
-- `/admin` Recent Applications no longer uses a table, preventing horizontal overflow.
-- `/admin/applications` and `/admin/field-workers` use mobile card layouts and desktop tables.
-- Field worker filter chips are mobile-safe with horizontal scrolling.
+Collector data is not a user-editable wizard step. The application payload still contains these fields:
 
-### Field worker management
+- `collectorId`
+- `collectorName`
+- `collectorProject`
+- `collectorCnic`
+- `collectorAddress`
+- `collectorContact`
 
-`/admin/field-workers` now includes:
+The values are taken from the authenticated `User` record. The create API writes them from the session user, and the update API deletes these fields from the update payload so crafted requests cannot overwrite them.
 
-- Search and project filters.
-- `+ Add Field Worker` modal.
-- Edit modal.
-- Delete confirmation.
-- Row/card actions for edit and delete.
-- Project dropdown options:
-  - `Link Road/لنک روڈ`
-  - `Talagang/تلہ گنگ`
-  - `Schools/مکاتب`
-  - `Volunteer/رضاکار`
-- Stored field worker fields:
-  - `fieldWorkerId`
-  - `address`
-  - `project`
+### Registration numbers
 
-Field worker IDs are generated as `FW-000001`, `FW-000002`, etc.
+`registrationNumber` is nullable and unique. Drafts do not receive a registration number. A number is generated only when:
 
-### Application form filler behavior
+- a new application is created with `status: "submitted"`, or
+- an existing draft transitions to `submitted`.
 
-On `/applications/new` and `/admin/applications/new`, Form Filler Details are automatically filled from the signed-in user:
+The current format is `APP-YYYYMMDD-HHMMSSmmm`.
 
-- Collector ID
-- Collector Name
-- Project
-- CNIC
-- Address
-- Contact Number
+### Conditional normalization
 
-These fields are locked/read-only in the wizard. The API also protects them so they cannot be changed through crafted requests.
+`app/api/applications/route.ts` normalizes fields before validation:
 
-Registration Number is no longer shown in the form. It is generated only when an application is submitted. Drafts do not receive a registration number until submission.
+- Deceased mother clears living/separation/employment fields and forces guardian details to be required.
+- Living mother clears death fields.
+- Living-but-separated mother clears death fields and requires a separation reason.
+- Mother-as-guardian hides and clears separate guardian fields.
+- Housewife mother clears monthly income.
+- Non-rented homes clear rent fields.
+- Healthy child clears disability/treatment/medical-expense fields.
+- Education and madrasa fields are cleared when their controlling answers are false.
+- Other-aid amount/source are cleared when other aid is false.
+- Guardian zakat and family-holder amount are currently cleared by normalization.
 
-### Wizard steps
+## Application Wizard
 
-The application wizard in `components/orphan-application-wizard.tsx` has 14 bilingual step tabs:
+The main wizard lives in `components/orphan-application-wizard.tsx`. It is a 13-step client-side wizard backed by a `FormData` object. It supports repeatable relatives and siblings, and it stores household assets through a structured asset selection model.
 
-1. Collector / جمع کنندہ
-2. Father / والد
-3. Mother / والدہ
-4. Guardian / سرپرست
-5. Relatives / رشتہ دار
-6. Home / گھر
-7. Assets / اثاثے
-8. Child / بچہ
-9. Health / صحت
-10. Income / آمدنی
-11. School / سکول
-12. Imam / امام
-13. Documents / دستاویزات
-14. Review / جائزہ
+The current step tabs are:
 
-## Application Form Details
+1. Father / والد
+2. Mother / والدہ
+3. Guardian / سرپرست
+4. Relatives / رشتہ دار
+5. Home / گھر
+6. Assets / اثاثے
+7. Child / بچہ
+8. Health / صحت
+9. Income / آمدنی
+10. School / سکول
+11. Imam / امام
+12. Documents / دستاویزات
+13. Review / جائزہ
 
-The orphan application form is implemented in `components/orphan-application-wizard.tsx` as a 14-step client-side wizard. It stores form state in a `FormData` object, supports repeatable sections for relatives, household assets, and siblings, and sends data to `/api/applications` as either a draft or submitted application.
+### Step 1: Father Details
 
-### Step 1: Collector / Form Filler Details
-
-This section identifies the person filling the form. These fields are auto-filled from the authenticated user and rendered as read-only inputs:
-
-- `collectorId` - Field worker ID, such as `FW-000002`.
-- `collectorName` - Name of the signed-in field worker/admin user.
-- `collectorProject` - Project assigned to the field worker.
-- `collectorCnic` - Collector CNIC.
-- `collectorAddress` - Collector address.
-- `collectorContact` - Collector phone/contact number.
-
-Important behavior:
-
-- `registrationNumber` is not shown in the form.
-- `registrationNumber` is generated by the API only when the application is submitted.
-- Collector values are protected on the backend and cannot be overwritten through request payloads.
-
-### Step 2: Father / Deceased Father Details
-
-Captures deceased father information:
+Captures deceased father identity, education, origin, occupation, and death details:
 
 - `fatherName`
 - `fatherDob`
 - `fatherAge`
 - `fatherCnic`
 - `fatherEducation`
+- `fatherTongue`
+- `fatherNativeArea`
 - `fatherOccupation`
 - `fatherDateOfDeath`
 - `fatherCauseOfDeath`
 
-Date fields:
+### Step 2: Mother Details
 
-- `fatherDob`
-- `fatherDateOfDeath`
-
-### Step 3: Mother Details
-
-Captures mother identity, education, income, and marital/death information:
+Captures mother identity and status:
 
 - `motherName`
 - `motherDob`
+- `motherAlive`
 - `motherAge`
 - `motherCnic`
 - `motherEducation`
 - `motherTongue`
 - `motherNativeArea`
+- `motherSeparationReason`
 - `motherContact`
-- `motherIsHousewife`
 - `motherOccupation`
 - `motherMonthlyIncome`
 - `motherRemarried`
 - `motherDeathDate`
 - `motherDeathCause`
 
-Checkbox fields:
+Key conditions:
 
-- `motherIsHousewife`
-- `motherRemarried`
+- `motherAlive` supports living, living but separated, and deceased states.
+- Separation reason is required when the mother is alive but separated.
+- Contact is required when the mother is living or separated.
+- Death date and death cause are required when the mother is deceased.
+- Housewife occupation clears monthly income.
 
-Date fields:
+### Step 3: Guardian Details
 
-- `motherDob`
-- `motherDeathDate`
+Captures guardian information when a separate guardian is needed:
 
-### Step 4: Guardian Details
-
-Captures guardian identity, contact, education, zakat, occupation, and income:
-
+- `motherIsGuardian`
 - `guardianName`
 - `guardianRelationship`
+- `guardianGender`
 - `guardianCnic`
 - `guardianEducation`
 - `guardianMotherTongue`
 - `guardianNativeArea`
 - `guardianContact`
-- `guardianZakatStatus`
 - `guardianOccupation`
+- `guardianFamilyHolder`
+- `guardianFamilyMembersCount`
 - `guardianMonthlyIncome`
+- `guardianSignatureFileKey`
 
-### Step 5: Relatives / Close Relatives
+If the mother is living and marked as the guardian, separate guardian inputs are hidden and cleared. Otherwise, guardian name, relationship, and contact are required on submission.
 
-Captures grandparents and uncles for verification and migration context.
+### Step 4: Relatives
+
+Captures grandparents and repeatable uncle/relative entries.
 
 Grandparent fields:
 
@@ -194,24 +167,17 @@ Grandparent fields:
 - `maternalGrandfatherOccupation`
 - `maternalGrandfatherIncome`
 
-Repeatable uncle/relative entries are stored in `relatives`.
+Repeatable `relatives` entries include:
 
-Each relative entry includes:
-
-- `relativeType` - `paternal_uncle` or `maternal_uncle`.
+- `relativeType`
 - `name`
 - `age`
 - `occupation`
 - `monthlyIncome`
 
-UI actions:
+### Step 5: Home
 
-- Add Relative
-- Remove Relative
-
-### Step 6: Home Details
-
-Captures household address, location, ownership, rent, owner, condition, and furnishing information:
+Captures address, location, ownership, rent, and condition:
 
 - `city`
 - `district`
@@ -222,31 +188,46 @@ Captures household address, location, ownership, rent, owner, condition, and fur
 - `latitude`
 - `houseOwnershipStatus`
 - `monthlyRent`
-- `houseOwner`
+- `rentPaidBy`
 - `houseCondition`
+- `houseConditionRemarks`
 - `furnishingCondition`
+- `furnishingConditionRemarks`
 
-### Step 7: Household Assets
+Rent fields are shown and required only for rented homes.
 
-Captures repeatable household asset records in `householdAssets`.
+### Step 6: Household Assets
 
-Each asset entry includes:
+Household assets are defined in `lib/household-assets.ts` and submitted as `householdAssets`.
 
-- `assetType`
-- `quantity`
-- `value`
+Current asset keys:
 
-UI actions:
+- `fridge`
+- `sewing_machine`
+- `furniture`
+- `vehicle`
+- `livestock`
+- `property`
+- `smartphone`
+- `cash_savings`
+- `business_inventory`
+- `gold`
+- `silver`
+- `other`
 
-- Add Asset
-- Remove Asset
+Each selected asset records a value. Gold and silver also record grams through `quantity`.
 
-### Step 8: Child / Orphan Child Details
+### Step 7: Child Details
 
-Captures child household counts, siblings, and living situation:
+Captures child and sibling context:
 
+- `childName`
+- `gender`
 - `caste`
 - `sect`
+- `bFormNumber`
+- `dateOfBirth`
+- `age`
 - `totalBrothers`
 - `totalSisters`
 - `registeredBrothers`
@@ -255,27 +236,16 @@ Captures child household counts, siblings, and living situation:
 - `childLivesWithMother`
 - `livingSituationNotes`
 
-Checkbox fields:
-
-- `childLivesWithMother`
-
-Repeatable sibling entries are stored in `siblings`.
-
-Each sibling entry includes:
+Repeatable `siblings` entries include:
 
 - `name`
 - `age`
 - `occupation`
 - `monthlyIncomeOrFee`
 
-UI actions:
+### Step 8: Health and Education
 
-- Add Sibling
-- Remove Sibling
-
-### Step 9: Health and Education Details
-
-Captures health status, disability, treatment, medical expenses, school/madrasa attendance, and education fee information:
+Captures health, disability, study status, school, fee, and madrasa information:
 
 - `healthStatus`
 - `disabilityDetails`
@@ -287,25 +257,17 @@ Captures health status, disability, treatment, medical expenses, school/madrasa 
 - `currentClass`
 - `schoolName`
 - `schoolAddress`
+- `educationFeeStatus`
+- `monthlySchoolFee`
 - `enrolledInMadrasa`
 - `madrasaName`
 - `madrasaEducationDetails`
-- `educationFeeStatus`
-- `monthlySchoolFee`
 
-Checkbox fields:
+Medical expenses are required when health status is sick or disabled. School details are required when currently studying. Madrasa details are required when enrolled in madrasa.
 
-- `currentlyStudying`
-- `enrolledInMadrasa`
+### Step 9: Income and Aid
 
-Numeric fields:
-
-- `monthlyMedicalExpenses`
-- `monthlySchoolFee`
-
-### Step 10: Income / Other Aid and Household Income
-
-Captures career goals, skill interest, child income, household income, other aid, and reasons for not applying elsewhere:
+Captures career, skill, income, and aid details:
 
 - `careerGoal`
 - `technicalInterest`
@@ -318,103 +280,68 @@ Captures career goals, skill interest, child income, household income, other aid
 - `monthlyAidAmount`
 - `notAppliedElsewhereReason`
 
-Checkbox fields:
+Aid source and amount are required only when other aid is received.
 
-- `receivingOtherAid`
+### Step 10: Educational Institution Verification
 
-Numeric fields:
+Uploads the school verification letter image through `FileUpload` using:
 
-- `childMonthlyIncome`
-- `householdEarnersCount`
-- `totalHouseholdIncome`
-- `monthlyAidAmount`
+- document type: `principal_verification`
+- label: `School Verification Letter Image`
 
-### Step 11: School / Educational Institution Verification
+### Step 11: Mosque Imam Verification
 
-Captures principal or institution verification fields:
+Uploads the imam verification letter image through `FileUpload` using:
 
-- `principalName`
-- `institutionName`
-- `verifiedStudentName`
-- `verifiedFatherName`
-- `verifiedClass`
-- `verifiedMonthlyFee`
+- document type: `imam_verification`
+- label: `Imam Verification Letter Image`
 
-Numeric fields:
+### Step 12: Documents Upload
 
-- `verifiedMonthlyFee`
+Documents can be uploaded only after the application has been saved as a draft and has an `applicationId`.
 
-### Step 12: Imam / Mosque Imam Verification
-
-Captures mosque and imam verification details:
-
-- `imamName`
-- `mosqueName`
-- `neighborhoodCity`
-- `imamMobile`
-- `motherZakatStatus`
-
-### Step 13: Documents Upload
-
-Documents are uploaded only after the application has been saved as a draft and has an `applicationId`.
-
-If no draft exists yet, the wizard displays a message instructing the user to save a draft first.
-
-Current document upload types:
+Always requested:
 
 - `child_photo` - Child Photo
 - `child_b_form` - Child B-Form
 - `father_cnic` - Father CNIC
-- `mother_cnic` - Mother CNIC
 
-Document behavior:
+Conditionally requested:
 
-- Upload uses the `FileUpload` component.
-- Uploaded documents are tracked in `documents` state.
-- Existing documents can be removed through `/api/upload?documentId=...`.
-- Each document stores:
-  - `id`
-  - `documentType`
-  - `fileUrl`
-  - `mimeType`
-  - `size`
-  - `fileKey`
+- `mother_cnic` when mother is not deceased.
+- `mother_death_certificate` when mother is deceased.
+- `guardian_cnic` when a separate guardian is required.
+- `medical_report` when health status is sick or disabled.
 
-### Step 14: Review and Terms
+The upload component accepts `image/*,.pdf`. Existing documents can be removed through `/api/upload?documentId=...`.
 
-Final review and submission step:
+### Step 13: Terms and Review
+
+The final step captures:
 
 - `termsAccepted`
 
-Users can:
+Users can save as draft or submit the application. Drafts remain editable. Submitted applications are ready for admin review.
 
-- Save Draft
-- Submit Application
-
-Behavior:
-
-- Saving as draft keeps the application editable.
-- Submitting marks the form ready for admin review.
-- Registration number is generated only on submission.
-- If a draft is later submitted, the API generates the registration number during that transition.
-
-### Navigation and State
+## Navigation and Persistence
 
 The wizard uses:
 
-- `step` - Current step number.
-- `formData` - Main form state.
-- `message` - Success/error message.
-- `isSubmitting` - Submit/draft loading state.
-- `applicationId` - Created application ID, required before document upload.
-- `documents` - Uploaded document state.
+- `step` - current step number.
+- `formData` - main form state.
+- `message` - success/error message.
+- `isSubmitting` - draft/submission loading state.
+- `applicationId` - created application ID, required before document upload.
+- `documents` - uploaded document state.
+
+For new applications, local browser persistence uses a storage key based on the collector ID or collector CNIC. Persisted state is merged with the authenticated collector metadata so collector fields remain current.
 
 Navigation behavior:
 
 - Back is disabled on step 1.
-- Next is available through step 13.
-- Save Draft and Submit Application are shown on step 14.
-- Mobile navigation uses horizontally scrollable step tabs.
+- Next is available through step 12.
+- Save Draft and Submit Application are shown on step 13.
+- Step tabs are horizontally scrollable on mobile and grid-based on larger screens.
 
 ## Key Files
 
@@ -422,66 +349,72 @@ Navigation behavior:
 - `prisma.config.ts` - Prisma CLI configuration for Prisma 7.
 - `lib/prisma.ts` - Shared Prisma client.
 - `lib/auth.ts` - NextAuth configuration and role handling.
-- `lib/validation.ts` - Zod validation schemas for application data.
-- `lib/labels.ts` - Urdu/English field labels.
+- `lib/validation.ts` - Zod validation schemas and submission rules.
+- `lib/labels.ts` - English/Urdu field labels.
 - `lib/application-prefill.ts` - Collector prefill helper for new applications.
-- `components/orphan-application-wizard.tsx` - Main multi-step orphan application wizard.
-- `components/field-worker-manager.tsx` - Admin field worker list, filters, modal add/edit, and delete UI.
+- `lib/household-assets.ts` - Household asset definitions, labels, and API conversion helpers.
+- `lib/r2.ts` - Cloudflare R2/S3-compatible upload client.
+- `components/orphan-application-wizard.tsx` - Main multi-step application wizard.
+- `components/file-upload.tsx` - Document upload/remove UI.
+- `components/field-worker-manager.tsx` - Admin field worker list, filters, add/edit/delete UI.
+- `components/application-status-actions.tsx` - Admin status workflow controls.
+- `components/application-migration-fields.tsx` - Migration metadata UI.
 - `app/api/applications/route.ts` - Create/update application API.
+- `app/api/upload/route.ts` - Document upload/delete API.
 - `app/api/admin/field-workers/route.ts` - Create field worker API.
 - `app/api/admin/field-workers/[id]/route.ts` - Edit/delete field worker API.
 - `app/api/applications/export/route.ts` - Admin export endpoint.
 
 ## Database Notes
 
-Recent schema additions:
+Important models:
 
-- `User.fieldWorkerId`
-- `User.address`
-- `User.project`
-- `OrphanApplication.collectorId`
+- `User`
+- `OrphanApplication`
+- `Sibling`
+- `Relative`
+- `HouseholdAsset`
+- `ApplicationDocument`
+- `AuditLog`
 
-`OrphanApplication.registrationNumber` remains unique and nullable. It is generated on submission, not draft creation.
+Important enums:
 
-Prisma commands used during development:
+- `UserRole`: `admin`, `field_worker`, `viewer`
+- `ApplicationStatus`: `draft`, `submitted`, `needs_correction`, `validated`, `rejected`, `migrated`
+- `MigrationStatus`: `pending`, `validated`, `migrated`, `rejected`
+- `DocumentType`: includes child, parent, guardian, school, imam, health, house, and other document types.
 
-- `npx prisma generate`
-- `npx prisma db push`
-- `npx prisma db push --accept-data-loss` when Prisma warned about adding a unique nullable field.
+`OrphanApplication.registrationNumber` remains unique and nullable. `User.fieldWorkerId`, `User.address`, and `User.project` support collector prefill and field worker management.
 
-## Application API Behavior
+## API Behavior
 
-### Create application
-
-`POST /api/applications`
+### `POST /api/applications`
 
 - Requires authentication.
+- Normalizes conditional fields.
 - Validates input with `getOrphanApplicationSchema`.
-- Writes collector metadata from the authenticated user, not from user-editable form input.
-- Saves related siblings, relatives, and household assets.
-- Generates `registrationNumber` only when `status` is `submitted`.
+- Writes collector metadata from the authenticated user.
+- Creates related siblings, relatives, and household assets.
+- Generates `registrationNumber` only when creating a submitted application.
 
-### Update application
-
-`PATCH /api/applications`
+### `PATCH /api/applications`
 
 - Requires authentication.
-- Allows owners or admins to update.
-- Protects locked collector fields from being overwritten.
-- Generates `registrationNumber` when a draft transitions to `submitted`.
+- Allows the creator or an admin to update.
+- Normalizes conditional fields.
+- Validates input with `getOrphanApplicationSchema`.
+- Protects collector fields from being overwritten.
+- Replaces related siblings, relatives, and household assets when those arrays are included.
+- Generates `registrationNumber` when a draft transitions to submitted.
 
-## Document Handling
+### `/api/upload`
 
-- Documents are uploaded through the `FileUpload` component.
-- Draft must exist before document upload.
-- Upload and deletion are handled through `/api/upload`.
-- Current configured document types in the wizard:
-  - Child Photo
-  - Child B-Form
-  - Father CNIC
-  - Mother CNIC
+- Requires an existing application ID for uploads.
+- Stores document metadata in `ApplicationDocument`.
+- Supports deletion by document ID.
+- Uses Cloudflare R2/S3-compatible storage when configured.
 
-## Admin Dashboard
+## Admin Area
 
 The admin dashboard shows:
 
@@ -493,27 +426,42 @@ The admin dashboard shows:
 - Users
 - Admins
 
-It also includes:
+It also includes recent applications, field worker summary, and quick links to create and review applications.
 
-- Recent Applications list.
-- Field Workers summary.
-- Quick links to create and review applications.
+Field worker management supports:
+
+- Search.
+- Project filter chips.
+- Add field worker modal.
+- Edit modal.
+- Delete confirmation.
+- Generated field worker IDs in the `FW-000001` format.
 
 ## Project Structure
 
 - `app/` - Next.js pages and API routes.
 - `components/` - Shared UI components.
-- `lib/` - Shared utilities, auth, validation, labels, Prisma, prefill logic.
+- `lib/` - Shared utilities, auth, validation, labels, Prisma, R2, and form helpers.
 - `prisma/` - Prisma schema and seed script.
+- `scripts/` - Smoke tests and utility scripts.
 - `types/` - TypeScript module definitions.
-- `scripts/` - Smoke test and utility scripts.
+- `assests/` - Static project assets, including the logo.
+
+## Development Commands
+
+- `npm run dev` - start local development server.
+- `npm run build` - run Prisma generate and Next.js production build.
+- `npm run start` - start production server.
+- `npm run prisma` - run Prisma CLI commands.
+- `npm run test:submit` - run the submission smoke test script.
+- `npx prisma generate` - regenerate Prisma client.
+- `npx prisma db push` - push schema changes to the configured database.
 
 ## Verification
 
-Recent verification commands:
+Recent verification should include:
 
 - `npx prisma generate`
 - `npx prisma db push`
 - `npm run build`
-
-The production build passes.
+- `npm run test:submit` when validating application submission behavior.

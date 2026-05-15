@@ -767,7 +767,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const handleHouseOwnershipStatusChange = (value: string) => {
     updateFields({
       houseOwnershipStatus: value,
-      ...(value === 'rent' ? {} : { monthlyRent: '', rentPaidBy: '', houseOwner: '' }),
+      houseOwner: '',
+      ...(value === 'rent' ? {} : { monthlyRent: '', rentPaidBy: '' }),
     });
   };
 
@@ -891,7 +892,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     const { householdAssetSelection, ...formFields } = formData;
     const householdAssets = householdSelectionToApiRows(householdAssetSelection);
 
-    return { ...formFields, householdAssets, status: saveStatus, id: applicationId } as any;
+    return { ...formFields, houseOwner: '', householdAssets, status: saveStatus, id: applicationId } as any;
   };
 
   const ensureDraftForUpload = async () => {
@@ -1158,7 +1159,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     if (field === 'guardianOccupation') return guardianDetailsNeeded && Boolean(formData.guardianGender);
     if (['guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianFamilyHolder', 'guardianMonthlyIncome'].includes(field)) return guardianDetailsNeeded;
     if (field === 'guardianFamilyMembersCount') return guardianDetailsNeeded && formData.guardianFamilyHolder === 'yes';
-    if (['monthlyRent', 'rentPaidBy', 'houseOwner'].includes(field)) return formData.houseOwnershipStatus === 'rent';
+    if (['monthlyRent', 'rentPaidBy'].includes(field)) return formData.houseOwnershipStatus === 'rent';
     if (field === 'disabilityDetails') return formData.healthStatus === 'disabled';
     if (field === 'treatmentPlace') return formData.healthStatus === 'sick';
     if (field === 'monthlyMedicalExpenses') return formData.healthStatus === 'sick' || formData.healthStatus === 'disabled';
@@ -1193,7 +1194,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const reviewSections: Array<{ title: string; fields: Array<keyof FormData> }> = [
     { title: 'Mother', fields: ['motherName', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherSeparationReason', 'motherContact', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
     { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianGender', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
-    { title: 'Home', fields: ['city', 'district', 'tehsil', 'fullAddress', 'houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseOwner', 'houseCondition', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks'] },
+    { title: 'Home', fields: ['city', 'district', 'tehsil', 'fullAddress', 'houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks'] },
     { title: 'Household Assets', fields: ['householdAssetSelection'] },
     { title: 'Health and Education', fields: ['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'currentClass', 'schoolName', 'educationFeeStatus', 'monthlySchoolFee', 'notStudyingReason', 'educationStartCondition', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails'] },
     { title: 'Income and Aid', fields: ['careerGoal', 'childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'notAppliedElsewhereReason'] },
@@ -1452,7 +1453,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               <>
                 {renderTextField('monthlyRent', 'number')}
                 {renderTextField('rentPaidBy')}
-                {renderTextField('houseOwner')}
               </>
             ) : null}
             {renderSelectField('houseCondition', [

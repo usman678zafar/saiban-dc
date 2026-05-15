@@ -157,7 +157,6 @@ async function fillApplication(page) {
   await fillByLabel(page, /Latitude/i, '24.8607');
   await fillByLabel(page, /House Ownership Status/i, 'Rented');
   await fillByLabel(page, /Monthly Rent/i, '12000');
-  await fillByLabel(page, /House Owner\)/i, 'Landlord');
   await fillByLabel(page, /House Condition/i, 'Average');
   await fillByLabel(page, /Furnishing Condition/i, 'Basic');
 
