@@ -52,6 +52,11 @@ enum RelativeType {
   maternal_uncle
 }
 
+enum AddressOptionType {
+  district
+  tehsil
+}
+
 model User {
   id           String              @id @default(uuid())
   name         String?
@@ -66,6 +71,7 @@ model User {
   applications OrphanApplication[] @relation("CreatedApplications")
   updatedApps  OrphanApplication[] @relation("UpdatedApplications")
   auditLogs    AuditLog[]
+  addressOptions AddressOption[]
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
 }
@@ -274,4 +280,18 @@ model AuditLog {
   applicationId String
   details     Json?
   createdAt   DateTime @default(now())
+}
+
+model AddressOption {
+  id        String            @id @default(uuid())
+  type      AddressOptionType
+  province  String
+  district  String?
+  name      String
+  createdBy User?             @relation(fields: [createdById], references: [id])
+  createdById String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([type, province, district, name])
 }

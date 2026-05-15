@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getOrphanApplicationSchema } from '@/lib/validation';
+import { isValidDistrictForProvince, isValidTehsilForDistrict } from '@/lib/address-utils';
 
 async function getUser(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -156,6 +157,42 @@ async function generateRegistrationNumber() {
   throw new Error('Unable to generate registration number');
 }
 
+async function validateSubmittedAddress(payload: any) {
+  if (payload.status !== 'submitted') return;
+  if (!payload.province || !payload.district) return;
+
+  const districtIsInDataset = isValidDistrictForProvince(payload.province, payload.district);
+  const districtIsCustom = await prisma.addressOption.findFirst({
+    where: {
+      type: 'district',
+      province: payload.province,
+      name: payload.district,
+    },
+    select: { id: true },
+  });
+
+  if (!districtIsInDataset && !districtIsCustom) {
+    throw new Error('Selected district does not belong to the selected province');
+  }
+
+  if (!payload.tehsil || payload.tehsil === 'unknown') return;
+
+  const tehsilIsInDataset = isValidTehsilForDistrict(payload.province, payload.district, payload.tehsil);
+  const tehsilIsCustom = await prisma.addressOption.findFirst({
+    where: {
+      type: 'tehsil',
+      province: payload.province,
+      district: payload.district,
+      name: payload.tehsil,
+    },
+    select: { id: true },
+  });
+
+  if (!tehsilIsInDataset && !tehsilIsCustom) {
+    throw new Error('Selected tehsil does not belong to the selected district');
+  }
+}
+
 export async function POST(request: NextRequest) {
   const user = await getUser(request);
   if (!user) {
@@ -170,6 +207,7 @@ export async function POST(request: NextRequest) {
     const { siblings, relatives, householdAssets, ...payload } = validated;
 
     const status = payload.status ?? 'draft';
+    await validateSubmittedAddress({ ...payload, status });
     const application = await prisma.orphanApplication.create({
       data: {
         ...payload,
@@ -227,6 +265,7 @@ export async function PATCH(request: NextRequest) {
       updatedById: user.id,
       status: validated.status ?? application.status,
     };
+    await validateSubmittedAddress(updateData);
 
     const shouldGenerateRegistrationNumber = application.status !== 'submitted' && updateData.status === 'submitted' && !application.registrationNumber;
     delete updateData.registrationNumber;

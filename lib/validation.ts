@@ -1,8 +1,6 @@
 import { z } from 'zod';
 import {
-  isValidDistrictForProvince,
   isValidProvince,
-  isValidTehsilForDistrict,
 } from '@/lib/address-utils';
 
 const cnicRegex = /^\d{13}$/;
@@ -375,20 +373,6 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
       path: ['district'],
       code: z.ZodIssueCode.custom,
       message: 'District is required',
-    });
-  } else if (data.province && !isValidDistrictForProvince(data.province, data.district)) {
-    ctx.addIssue({
-      path: ['district'],
-      code: z.ZodIssueCode.custom,
-      message: 'Selected district does not belong to the selected province',
-    });
-  }
-
-  if (data.province && data.district && data.tehsil && !isValidTehsilForDistrict(data.province, data.district, data.tehsil)) {
-    ctx.addIssue({
-      path: ['tehsil'],
-      code: z.ZodIssueCode.custom,
-      message: 'Selected tehsil does not belong to the selected district',
     });
   }
 

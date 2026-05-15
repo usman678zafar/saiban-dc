@@ -199,6 +199,8 @@ Captures address, location, ownership, rent, and condition:
 
 Rent fields are shown and required only for rented homes.
 
+District and Tehsil are searchable fields. Field workers can type a missing District or Tehsil and press Enter or leave the field to save it as a shared option for other field workers.
+
 ### Step 6: Household Assets
 
 Household assets are defined in `lib/household-assets.ts` and submitted as `householdAssets`.
