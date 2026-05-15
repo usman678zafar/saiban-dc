@@ -69,6 +69,8 @@ export const labels: Record<string, LabelPair> = {
   fullAddress: { ur: 'مکمل پتہ', en: 'Full Address' },
   longitude: { ur: 'طول بلد', en: 'Longitude' },
   latitude: { ur: 'عرض بلد', en: 'Latitude' },
+  gpsAccuracyMeters: { ur: 'GPS درستگی میٹر میں', en: 'GPS Accuracy in meters' },
+  gpsCapturedAt: { ur: 'GPS حاصل کرنے کا وقت', en: 'GPS Captured Time' },
   houseOwnershipStatus: { ur: 'گھر کی ملکیت', en: 'House Ownership Status' },
   monthlyRent: { ur: 'کتنا کرایہ؟', en: 'How much Rent?' },
   rentPaidBy: { ur: 'کرایہ کون ادا کرتا ہے؟', en: 'Who pays rent?' },

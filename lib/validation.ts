@@ -168,13 +168,17 @@ const baseOrphanApplicationSchema = z.object({
   residentialArea: optionalString,
   fullAddress: optionalString,
   longitude: z.preprocess((value) => {
+    if (value === undefined || value === null || value === '') return undefined;
     if (typeof value === 'string') return Number(value);
     return value;
   }, z.number().gte(-180).lte(180).optional()),
   latitude: z.preprocess((value) => {
+    if (value === undefined || value === null || value === '') return undefined;
     if (typeof value === 'string') return Number(value);
     return value;
   }, z.number().gte(-90).lte(90).optional()),
+  gpsAccuracyMeters: nonNegativeNumber.optional(),
+  gpsCapturedAt: parseDate.optional(),
   houseOwnershipStatus: optionalString,
   monthlyRent: nonNegativeNumber.optional(),
   rentPaidBy: optionalString,

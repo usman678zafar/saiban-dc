@@ -137,6 +137,8 @@ model OrphanApplication {
   fullAddress                String?
   longitude                  Float?
   latitude                   Float?
+  gpsAccuracyMeters          Float?
+  gpsCapturedAt              DateTime?
   houseOwnershipStatus       String?
   monthlyRent                Float?
   rentPaidBy                 String?

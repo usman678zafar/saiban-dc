@@ -185,6 +185,10 @@ Captures address, location, ownership, rent, and condition:
 - `city`
 - `residentialArea`
 - `fullAddress`
+- `latitude`
+- `longitude`
+- `gpsAccuracyMeters`
+- `gpsCapturedAt`
 - `houseOwnershipStatus`
 - `monthlyRent`
 - `rentPaidBy`

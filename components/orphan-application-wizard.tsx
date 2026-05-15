@@ -110,6 +110,8 @@ export type FormData = {
   fullAddress: string;
   longitude: string;
   latitude: string;
+  gpsAccuracyMeters: string;
+  gpsCapturedAt: string;
   houseOwnershipStatus: string;
   monthlyRent: string;
   rentPaidBy: string;
@@ -243,6 +245,8 @@ const defaultData: FormData = {
   fullAddress: '',
   longitude: '',
   latitude: '',
+  gpsAccuracyMeters: '',
+  gpsCapturedAt: '',
   houseOwnershipStatus: '',
   monthlyRent: '',
   rentPaidBy: '',
@@ -585,6 +589,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(mergedData);
   const [message, setMessage] = useState<string | null>(null);
+  const [gpsMessage, setGpsMessage] = useState<string | null>(null);
+  const [gpsWarning, setGpsWarning] = useState<string | null>(null);
+  const [isCapturingGps, setIsCapturingGps] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(initialApplicationId ?? null);
   const [documents, setDocuments] = useState<DocumentInput[]>(initialDocuments ?? []);
@@ -789,6 +796,45 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       district: value,
       tehsil: '',
     });
+  };
+
+  const handleCaptureGps = () => {
+    setGpsMessage(null);
+    setGpsWarning(null);
+
+    if (!navigator.geolocation) {
+      setGpsWarning('GPS حاصل نہیں ہو سکا۔ براہ کرم پتہ دستی طور پر منتخب کریں۔ GPS not captured. Please select address manually.');
+      return;
+    }
+
+    setIsCapturingGps(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const latitude = String(position.coords.latitude);
+        const longitude = String(position.coords.longitude);
+        const gpsAccuracyMeters = Number.isFinite(position.coords.accuracy) ? String(position.coords.accuracy) : '';
+        const gpsCapturedAt = new Date().toISOString();
+
+        updateFields({
+          latitude,
+          longitude,
+          gpsAccuracyMeters,
+          gpsCapturedAt,
+        });
+        setGpsMessage('GPS location captured successfully.');
+        setIsCapturingGps(false);
+      },
+      () => {
+        setIsCapturingGps(false);
+        setGpsWarning('GPS حاصل نہیں ہو سکا۔ براہ کرم پتہ دستی طور پر منتخب کریں۔ GPS not captured. Please select address manually.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      },
+    );
   };
 
   const handleHealthStatusChange = (value: string) => {
@@ -1242,6 +1288,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
     const value = formData[field];
     if (field === 'tehsil' && (!value || value === 'unknown')) return 'Not Available / Unknown';
+    if (field === 'gpsAccuracyMeters' && value) return `${value} m`;
+    if (field === 'gpsCapturedAt' && value) {
+      const date = new Date(value as string);
+      return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
+    }
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
     if (Array.isArray(value)) return value.length ? `${value.length} record(s)` : '-';
     return typeof value === 'string' ? value || '-' : '-';
@@ -1251,6 +1302,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     { title: 'Mother', fields: ['motherName', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherSeparationReason', 'motherContact', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
     { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianGender', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
     { title: 'Address', fields: ['province', 'district', 'tehsil', 'city', 'residentialArea', 'fullAddress'] },
+    { title: 'GPS', fields: ['latitude', 'longitude', 'gpsAccuracyMeters', 'gpsCapturedAt'] },
     { title: 'Home', fields: ['houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks'] },
     { title: 'Household Assets', fields: ['householdAssetSelection'] },
     { title: 'Health and Education', fields: ['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'currentClass', 'schoolName', 'educationFeeStatus', 'monthlySchoolFee', 'notStudyingReason', 'educationStartCondition', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails'] },
@@ -1499,6 +1551,38 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <p className="mt-1 text-sm text-slate-600">Capture the household address and property status.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-base font-semibold text-slate-900">GPS Location / GPS مقام</h3>
+                  <p className="mt-1 text-sm text-slate-600">Capture latitude and longitude. Please enter the address fields manually.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCaptureGps}
+                  disabled={isCapturingGps}
+                  className="min-h-12 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isCapturingGps ? 'Capturing GPS...' : 'GPS مقام حاصل کریں / Capture GPS Location'}
+                </button>
+              </div>
+              {gpsMessage ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{gpsMessage}</div> : null}
+              {gpsWarning ? <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{gpsWarning}</div> : null}
+              <div className="grid gap-3 text-sm sm:grid-cols-3">
+                <div className="rounded-lg bg-white p-3">
+                  <p className="text-xs font-semibold uppercase text-slate-500">Latitude</p>
+                  <p className="mt-1 break-words text-slate-900">{formData.latitude || '-'}</p>
+                </div>
+                <div className="rounded-lg bg-white p-3">
+                  <p className="text-xs font-semibold uppercase text-slate-500">Longitude</p>
+                  <p className="mt-1 break-words text-slate-900">{formData.longitude || '-'}</p>
+                </div>
+                <div className="rounded-lg bg-white p-3">
+                  <p className="text-xs font-semibold uppercase text-slate-500">Accuracy</p>
+                  <p className="mt-1 break-words text-slate-900">{formData.gpsAccuracyMeters ? `${formData.gpsAccuracyMeters} m` : '-'}</p>
+                </div>
+              </div>
+            </div>
             {renderHomeSelectField(
               'province',
               [
@@ -1863,14 +1947,20 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               return (
                 <section key={section.title} className="rounded-2xl border border-slate-200 bg-white p-4">
                   <h3 className="text-sm font-semibold text-slate-900">{section.title}</h3>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    {fields.map((field) => (
-                      <div key={field} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                        <p className="text-xs font-semibold text-slate-500">{fieldLabel(field)}</p>
-                        <p className="mt-1 break-words text-sm text-slate-900">{formatReviewValue(field)}</p>
-                      </div>
-                    ))}
-                  </div>
+                  {section.title === 'GPS' && !formData.latitude && !formData.longitude ? (
+                    <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                      GPS was not captured. Address was entered manually.
+                    </p>
+                  ) : (
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      {fields.map((field) => (
+                        <div key={field} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                          <p className="text-xs font-semibold text-slate-500">{fieldLabel(field)}</p>
+                          <p className="mt-1 break-words text-sm text-slate-900">{formatReviewValue(field)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </section>
               );
             })}
