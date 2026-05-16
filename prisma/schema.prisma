@@ -39,6 +39,8 @@ enum DocumentType {
   guardian_cnic
   school_letter
   medical_report
+  imam_verification
+  principal_verification
   house_photo
   other
 }
@@ -226,6 +228,21 @@ model OrphanApplication {
   otherAidSource             String?
   monthlyAidAmount           Float?
   notAppliedElsewhereReason  String?
+  principalName              String?
+  institutionName            String?
+  verifiedStudentName        String?
+  verifiedFatherName         String?
+  verifiedClass              String?
+  verifiedMonthlyFee         Float?
+  principalSignatureFileKey  String?
+  institutionStampFileKey    String?
+  imamName                   String?
+  mosqueName                 String?
+  neighborhoodCity           String?
+  imamMobile                 String?
+  motherZakatStatus          String?
+  imamSignatureFileKey       String?
+  mosqueStampFileKey         String?
   guardianSignatureFileKey   String?
   termsAccepted              Boolean?           @default(false)
   termsAcceptedAt            DateTime?

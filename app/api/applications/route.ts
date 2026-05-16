@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { ZodError } from 'zod';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getOrphanApplicationSchema } from '@/lib/validation';
@@ -30,6 +31,16 @@ function clearPayloadFields(payload: any, fields: string[]) {
       payload[field] = '';
     }
   }
+}
+
+function validationErrorMessage(error: unknown) {
+  if (error instanceof ZodError) {
+    return error.issues
+      .map((issue) => `${issue.path.join('.') || 'form'}: ${issue.message}`)
+      .join('\n');
+  }
+
+  return error instanceof Error ? error.message : 'Validation failed';
 }
 
 function normalizeConditionalPayload(payload: any) {
@@ -254,7 +265,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(application);
   } catch (error) {
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Validation failed' },
+      {
+        message: validationErrorMessage(error),
+        issues: error instanceof ZodError ? error.issues : undefined,
+      },
       { status: 422 },
     );
   }
@@ -333,7 +347,10 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(updated);
   } catch (error) {
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Validation failed' },
+      {
+        message: validationErrorMessage(error),
+        issues: error instanceof ZodError ? error.issues : undefined,
+      },
       { status: 422 },
     );
   }

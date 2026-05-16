@@ -1437,7 +1437,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error?.message ?? 'Unable to save application');
+        const details = Array.isArray(error?.issues)
+          ? error.issues.map((issue: { path?: Array<string | number>; message?: string }) => `${issue.path?.join('.') || 'form'}: ${issue.message}`).join('\n')
+          : error?.message;
+        throw new Error(details ?? 'Unable to save application');
       }
 
       const application = await response.json();
@@ -1470,21 +1473,24 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   }, [formData.siblings]);
   const documentTypes = useMemo(() => {
     const types = [
-      { type: 'child_photo', label: 'Child Photo' },
-      { type: 'child_b_form', label: 'Child B-Form' },
-      { type: 'father_cnic', label: 'Father CNIC' },
+      { type: 'child_photo', label: "Orphan's Picture" },
+      { type: 'child_b_form', label: "Orphan's B form" },
+      { type: 'father_cnic', label: "Father's CNIC Copy" },
+      { type: 'father_death_certificate', label: "Father's Death Certificate Copy" },
     ];
 
     if (formData.motherAlive !== 'no') {
-      types.push({ type: 'mother_cnic', label: 'Mother CNIC' });
+      types.push({ type: 'mother_cnic', label: "Mother's CNIC Copy" });
     }
 
     if (formData.motherAlive === 'no') {
-      types.push({ type: 'mother_death_certificate', label: 'Mother Death Certificate' });
+      types.push({ type: 'mother_death_certificate', label: "Mother's Death Certificate Copy" });
     }
 
-    if (guardianDetailsNeeded) {
-      types.push({ type: 'guardian_cnic', label: 'Guardian CNIC' });
+    if (guardianDetailsNeeded && formData.motherAlive === 'no') {
+      types.push({ type: 'guardian_cnic', label: "Guardian's CNIC Copy" });
+    } else if (guardianDetailsNeeded && formData.motherAlive !== 'no') {
+      types.push({ type: 'guardian_cnic', label: "Guardian's CNIC Copy" });
     }
 
     if (formData.healthStatus === 'chronic_illness' || formData.healthStatus === 'disabled') {
@@ -1590,19 +1596,64 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   const isStepComplete = (stepNumber: number): boolean => {
     const requiredFields = getStepRequiredFields(stepNumber);
-    if (requiredFields.length === 0) {
-      if (stepNumber === 4) return formData.relativeInformationDisclosed !== '';
-      if (stepNumber === 6) return true;
-      if (stepNumber === 11) return documents.length > 0 || Boolean(applicationId);
-      return true;
-    }
-    return requiredFields.every((field) => {
+    const baseFieldsComplete = requiredFields.every((field) => {
       const value = formData[field];
-      if (typeof value === 'boolean') return true; // Booleans (true/false) are inherently filled
+      if (typeof value === 'boolean') return true;
       if (typeof value === 'string') return value.trim() !== '';
       if (Array.isArray(value)) return value.length > 0;
       return value !== undefined && value !== null;
     });
+
+    if (!baseFieldsComplete) return false;
+
+    // Special checks for steps with complex data or conditional logic
+    switch (stepNumber) {
+      case 4: // Relatives
+        if (formData.relativeInformationDisclosed === '') return false;
+        if (formData.relativeInformationDisclosed === 'no') return true;
+        return formData.relatives.length > 0 && formData.relatives.every(r => 
+          r.name.trim() !== '' && 
+          r.occupation !== '' && 
+          (r.occupation !== 'Other' || r.occupationOther.trim() !== '') &&
+          r.monthlyIncome !== '' && 
+          r.supportType !== '' &&
+          (r.supportType !== 'other' || r.supportTypeOther.trim() !== '')
+        );
+
+      case 6: // Household Assets
+        const selectedKeys = HOUSEHOLD_ASSET_KEYS.filter(k => k !== 'other' && formData.householdAssetSelection[k].has);
+        const assetsComplete = selectedKeys.every(k => {
+          const entry = formData.householdAssetSelection[k];
+          if (assetUsesGrams(k) && !entry.grams) return false;
+          return entry.value !== '';
+        });
+        const othersComplete = formData.otherHouseholdAssets.every(a => a.item.trim() !== '' && a.value !== '');
+        return assetsComplete && othersComplete;
+
+      case 7: // Child & Siblings
+        if (Number(formData.totalSiblings || 0) > 0) {
+          if (formData.siblings.length === 0) return false;
+          return formData.siblings.every(s => 
+            s.name.trim() !== '' && 
+            s.relation !== '' && 
+            s.dob !== '' && 
+            s.educationStatus !== '' && 
+            s.currentlyStudying !== '' && 
+            s.occupation !== '' && 
+            s.monthlyIncomeOrFee !== '' && 
+            s.maritalStatus !== ''
+          );
+        }
+        return true;
+
+      case 11: // Documents
+        const requiredTypes = documentTypes.map((d) => d.type);
+        const uploadedTypes = documents.map((d) => d.documentType);
+        return requiredTypes.every((type) => uploadedTypes.includes(type));
+
+      default:
+        return true;
+    }
   };
 
   const districtOptions = useMemo(() => {
@@ -1935,7 +1986,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       </div>
 
       {message ? (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">{message}</div>
+        <div className={`rounded-lg border p-4 text-sm ${message.toLowerCase().includes('success') ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
+          <div className="whitespace-pre-wrap font-medium">{message}</div>
+        </div>
       ) : null}
 
       {step === 1 && (

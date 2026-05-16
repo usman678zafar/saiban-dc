@@ -54,6 +54,7 @@ export const siblingSchema = z.object({
     message: 'Sibling DOB cannot be in the future',
   }).optional(),
   age: z.preprocess((value) => {
+    if (value === undefined || value === null || value === '') return undefined;
     if (typeof value === 'string') return Number(value);
     return value;
   }, z.number().int().positive().optional()),
@@ -71,6 +72,7 @@ export const relativeSchema = z.object({
   relativeType: z.enum(['paternal_grandfather', 'maternal_grandfather', 'paternal_uncle', 'maternal_uncle']),
   name: optionalString,
   age: z.preprocess((value) => {
+    if (value === undefined || value === null || value === '') return undefined;
     if (typeof value === 'string') return Number(value);
     return value;
   }, z.number().int().positive().optional()),
