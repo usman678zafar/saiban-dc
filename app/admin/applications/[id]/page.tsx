@@ -106,6 +106,11 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
               <DetailRow label="Mother" value={application.motherName ?? '-'} />
               <DetailRow label="Guardian" value={application.guardianName ?? '-'} />
               <DetailRow label="Guardian Contact" value={application.guardianContact ?? '-'} />
+              <DetailRow label="Residence Structure" value={application.residenceStructureType ?? '-'} />
+              <DetailRow label="Residence Category" value={application.residenceCategory ?? '-'} />
+              <DetailRow label="Electricity Available" value={application.electricityAvailable ? 'Yes' : 'No'} />
+              <DetailRow label="Gas Available" value={application.gasAvailable ? 'Yes' : 'No'} />
+              <DetailRow label="Water Available" value={application.waterAvailable ? 'Yes' : 'No'} />
             </div>
           </section>
 

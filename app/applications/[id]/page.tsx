@@ -177,6 +177,11 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
                 <DetailRow label="Gender" value={application.gender ?? '-'} />
                 <DetailRow label="B-Form" value={application.bFormNumber ?? '-'} />
                 <DetailRow label="City" value={application.city ?? '-'} />
+                <DetailRow label="Residence Structure" value={application.residenceStructureType ?? '-'} />
+                <DetailRow label="Residence Category" value={application.residenceCategory ?? '-'} />
+                <DetailRow label="Electricity Available" value={application.electricityAvailable ? 'Yes' : 'No'} />
+                <DetailRow label="Gas Available" value={application.gasAvailable ? 'Yes' : 'No'} />
+                <DetailRow label="Water Available" value={application.waterAvailable ? 'Yes' : 'No'} />
               </div>
             </section>
 

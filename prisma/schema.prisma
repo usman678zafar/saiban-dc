@@ -150,7 +150,12 @@ model OrphanApplication {
   rentPaidBy                 String?
   houseOwner                 String?
   houseCondition             String?
+  residenceStructureType     String?
+  residenceCategory          String?
   houseConditionRemarks      String?
+  electricityAvailable       Boolean?
+  gasAvailable               Boolean?
+  waterAvailable             Boolean?
   furnishingCondition        String?
   furnishingConditionRemarks String?
   childName                  String?

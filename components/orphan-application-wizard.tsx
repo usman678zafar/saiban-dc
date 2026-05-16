@@ -125,7 +125,12 @@ export type FormData = {
   rentPaidBy: string;
   houseOwner: string;
   houseCondition: string;
+  residenceStructureType: string;
+  residenceCategory: string;
   houseConditionRemarks: string;
+  electricityAvailable: boolean;
+  gasAvailable: boolean;
+  waterAvailable: boolean;
   furnishingCondition: string;
   furnishingConditionRemarks: string;
   childName: string;
@@ -260,7 +265,12 @@ const defaultData: FormData = {
   rentPaidBy: '',
   houseOwner: '',
   houseCondition: '',
+  residenceStructureType: '',
+  residenceCategory: '',
   houseConditionRemarks: '',
+  electricityAvailable: false,
+  gasAvailable: false,
+  waterAvailable: false,
   furnishingCondition: '',
   furnishingConditionRemarks: '',
   childName: '',
@@ -1440,7 +1450,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianGender', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
     { title: 'Address', fields: ['province', 'district', 'tehsil', 'city', 'residentialArea', 'fullAddress'] },
     { title: 'GPS', fields: ['latitude', 'longitude', 'gpsAccuracyMeters', 'gpsCapturedAt'] },
-    { title: 'Home', fields: ['houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks'] },
+    { title: 'Home', fields: ['houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'residenceStructureType', 'residenceCategory', 'houseConditionRemarks', 'electricityAvailable', 'gasAvailable', 'waterAvailable', 'furnishingCondition', 'furnishingConditionRemarks'] },
     { title: 'Household Assets', fields: ['householdAssetSelection'] },
     { title: 'Health and Education', fields: ['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'currentClass', 'schoolName', 'educationFeeStatus', 'monthlySchoolFee', 'notStudyingReason', 'educationStartCondition', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails'] },
     { title: 'Income and Aid', fields: ['careerGoal', 'childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'notAppliedElsewhereReason'] },
@@ -1763,7 +1773,29 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               { value: 'appropriate', label: 'Appropriate / مناسب' },
               { value: 'worst', label: 'Worst / خراب' },
             ])}
+            {renderSelectField('residenceStructureType', [
+              { value: '', label: 'Select residence structure type' },
+              { value: 'pakka', label: 'Pakka / پکا' },
+              { value: 'kacha', label: 'Kacha / کچا' },
+              { value: 'mixed', label: 'Mixed / مخلوط (پکا + کچا)' },
+            ])}
+            {renderSelectField('residenceCategory', [
+              { value: '', label: 'Select residence category' },
+              { value: 'house', label: 'House / مکان' },
+              { value: 'flat', label: 'Flat / فلیٹ / اپارٹمنٹ' },
+              { value: 'camp', label: 'Camp / کیمپ / عارضی رہائش' },
+              { value: 'hut', label: 'Hut / جھونپڑی' },
+              { value: 'shared_residence', label: 'Shared Residence / مشترکہ رہائش' },
+            ])}
             {renderTextField('houseConditionRemarks')}
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
+              <h3 className="text-base font-semibold text-slate-900">Basic Utility Facilities / بنیادی سہولیات</h3>
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                {renderBooleanSelect('electricityAvailable', undefined, 'Yes / ہاں', 'No / نہیں')}
+                {renderBooleanSelect('gasAvailable', undefined, 'Yes / ہاں', 'No / نہیں')}
+                {renderBooleanSelect('waterAvailable', undefined, 'Yes / ہاں', 'No / نہیں')}
+              </div>
+            </div>
             {renderSelectField('furnishingCondition', [
               { value: '', label: 'Select furnishing condition' },
               { value: 'better', label: 'Better / بہتر' },
