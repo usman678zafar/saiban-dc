@@ -2634,7 +2634,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {formData.currentSkillLearning === 'no' ? renderSelectField('technicalSkillInterest', [{ value: '', label: 'Interested in technical skill?' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }]) : null}
             {formData.currentSkillLearning === 'no' && formData.technicalSkillInterest === 'yes' ? renderSelectField('technicalSkill', SKILL_OPTIONS) : null}
             <div className="space-y-2 sm:col-span-2">
-              <p className="text-sm font-semibold text-slate-900">Child's Hobby / بچے کا مشغلہ</p>
+              <p className="text-sm font-semibold text-slate-900">{fieldLabel('childHobbies')}</p>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {HOBBY_OPTIONS.map((option) => (
                   <label key={option.value} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
