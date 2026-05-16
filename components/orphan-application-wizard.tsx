@@ -1767,13 +1767,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       />
                     </label>
                   </div>
-                  <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
                     <label className="grid gap-2 text-sm text-slate-700">
                       <span>Occupation / پیشہ *</span>
                       <select
                         value={relative.occupation}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { occupation: event.target.value })}
-                        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                        className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
                       >
                         {OCCUPATION_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>{option.label}</option>
@@ -1785,19 +1785,19 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       <select
                         value={relative.monthlyIncome}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { monthlyIncome: event.target.value })}
-                        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                        className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
                       >
                         {MONTHLY_INCOME_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>{option.label}</option>
                         ))}
                       </select>
                     </label>
-                    <label className="grid gap-2 text-sm text-slate-700">
+                    <label className="grid min-w-0 gap-2 text-sm text-slate-700 lg:col-span-2 xl:col-span-1">
                       <span>Nature of Support / یتیم بچے کی معاونت *</span>
                       <select
                         value={relative.supportType}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { supportType: event.target.value })}
-                        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                        className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
                       >
                         {RELATIVE_SUPPORT_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>{option.label}</option>
