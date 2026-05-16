@@ -135,6 +135,7 @@ model OrphanApplication {
   maternalGrandfatherAge     Int?
   maternalGrandfatherOccupation String?
   maternalGrandfatherIncome  Float?
+  relativeInformationDisclosed Boolean?
   province                   String?
   city                       String?
   district                   String?
@@ -251,6 +252,7 @@ model Relative {
   age           Int?
   occupation    String?
   monthlyIncome Float?
+  supportType   String?
 }
 
 model HouseholdAsset {

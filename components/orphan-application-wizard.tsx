@@ -29,11 +29,12 @@ type SiblingInput = {
 
 type RelativeInput = {
   id?: string;
-  relativeType: 'paternal_uncle' | 'maternal_uncle';
+  relativeType: 'paternal_grandfather' | 'maternal_grandfather' | 'paternal_uncle' | 'maternal_uncle';
   name: string;
   age: string;
   occupation: string;
   monthlyIncome: string;
+  supportType: string;
 };
 
 type DocumentInput = {
@@ -111,6 +112,7 @@ export type FormData = {
   maternalGrandfatherAge: string;
   maternalGrandfatherOccupation: string;
   maternalGrandfatherIncome: string;
+  relativeInformationDisclosed: string;
   province: string;
   city: string;
   district: string;
@@ -252,6 +254,7 @@ const defaultData: FormData = {
   maternalGrandfatherAge: '',
   maternalGrandfatherOccupation: '',
   maternalGrandfatherIncome: '',
+  relativeInformationDisclosed: '',
   province: '',
   city: '',
   district: '',
@@ -554,6 +557,26 @@ const MONTHLY_INCOME_OPTIONS = [
   { value: '45000', label: '35,001 - 45,000 PKR' },
   { value: '60000', label: '45,001 - 60,000 PKR' },
   { value: '60001', label: 'Above 60,000 PKR' },
+];
+
+const RELATIVE_SUPPORT_OPTIONS = [
+  { value: '', label: 'Select nature of support' },
+  { value: 'financial_support', label: 'Financial Support / مالی معاونت' },
+  { value: 'educational_support', label: 'Educational Support / تعلیمی معاونت' },
+  { value: 'residence_shelter', label: 'Residence / Shelter / رہائش فراہم کرنا' },
+  { value: 'food_support', label: 'Food Support / خوراک فراہم کرنا' },
+  { value: 'medical_support', label: 'Medical Support / طبی معاونت' },
+  { value: 'guardianship_caretaking', label: 'Guardianship / Caretaking / سرپرستی / دیکھ بھال' },
+  { value: 'occasional_support', label: 'Occasional Support / وقتی معاونت' },
+  { value: 'no_support', label: 'No Support / کوئی معاونت نہیں' },
+  { value: 'other', label: 'Other / دیگر' },
+];
+
+const RELATIVE_TYPE_OPTIONS = [
+  { value: 'paternal_grandfather', label: 'Paternal Grandfather / دادا' },
+  { value: 'maternal_grandfather', label: 'Maternal Grandfather / نانا' },
+  { value: 'paternal_uncle', label: 'Paternal Uncle / چچا' },
+  { value: 'maternal_uncle', label: 'Maternal Uncle / ماموں' },
 ];
 
 function formatCnic(value: string) {
@@ -879,6 +902,16 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     });
   };
 
+  const handleRelativeDisclosureChange = (value: string) => {
+    updateFields({
+      relativeInformationDisclosed: value,
+      ...(value === 'yes' ? {} : { relatives: [] }),
+    });
+    if (value === 'no') {
+      setStep(5);
+    }
+  };
+
   const handleMotherOccupationChange = (value: string) => {
     updateFields({
       motherOccupation: value,
@@ -1043,7 +1076,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     setFormData((current) => {
       const item = key === 'siblings'
         ? { name: '', age: '', occupation: '', monthlyIncomeOrFee: '' }
-        : { relativeType: 'paternal_uncle' as const, name: '', age: '', occupation: '', monthlyIncome: '' };
+        : { relativeType: 'paternal_grandfather' as const, name: '', age: '', occupation: '', monthlyIncome: '', supportType: '' };
       return { ...current, [key]: [...current[key], item] };
     });
   };
@@ -1074,6 +1107,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   const buildApplicationRequestBody = (saveStatus: 'draft' | 'submitted') => {
     const { householdAssetSelection, otherHouseholdAssets, ...formFields } = formData;
+    const relativeInformationDisclosed = formFields.relativeInformationDisclosed === 'yes';
     const householdAssets = [
       ...householdSelectionToApiRows(householdAssetSelection),
       ...otherHouseholdAssets
@@ -1084,7 +1118,15 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         })),
     ];
 
-    return { ...formFields, houseOwner: '', householdAssets, status: saveStatus, id: applicationId } as any;
+    return {
+      ...formFields,
+      relativeInformationDisclosed,
+      relatives: relativeInformationDisclosed ? formFields.relatives : [],
+      houseOwner: '',
+      householdAssets,
+      status: saveStatus,
+      id: applicationId,
+    } as any;
   };
 
   const ensureDraftForUpload = async () => {
@@ -1497,6 +1539,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     { title: 'Address', fields: ['province', 'district', 'tehsil', 'city', 'residentialArea', 'fullAddress'] },
     { title: 'GPS', fields: ['latitude', 'longitude', 'gpsAccuracyMeters', 'gpsCapturedAt'] },
     { title: 'Home', fields: ['houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'residenceStructureType', 'residenceCategory', 'houseConditionRemarks', 'electricityAvailable', 'gasAvailable', 'waterAvailable', 'furnishingCondition', 'furnishingConditionRemarks'] },
+    { title: 'Relatives', fields: ['relativeInformationDisclosed', 'relatives'] },
     { title: 'Household Assets', fields: ['householdAssetSelection'] },
     { title: 'Health and Education', fields: ['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'currentClass', 'schoolName', 'educationFeeStatus', 'monthlySchoolFee', 'notStudyingReason', 'educationStartCondition', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails'] },
     { title: 'Income and Aid', fields: ['careerGoal', 'childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'notAppliedElsewhereReason'] },
@@ -1657,19 +1700,46 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Close Relatives / قریبی رشتہ دار</h2>
-            <p className="mt-1 text-sm text-slate-600">Include grandparent and uncle details for migration and verification.</p>
+            <p className="mt-1 text-sm text-slate-600">Optionally collect close relative details for support assessment and emergency reference.</p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {['paternalGrandfatherName', 'paternalGrandfatherAge', 'paternalGrandfatherOccupation', 'paternalGrandfatherIncome', 'maternalGrandfatherName', 'maternalGrandfatherAge', 'maternalGrandfatherOccupation', 'maternalGrandfatherIncome'].map((field) => renderTextField(field as keyof FormData))}
-          </div>
-          <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900">Uncles / چچا اور ماموں</h3>
-                <p className="text-sm text-slate-600">Add paternal and maternal uncles / چچا اور ماموں شامل کریں۔</p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <fieldset className="space-y-3">
+              <legend className="text-sm font-semibold text-slate-900">
+                Do you want to provide close relatives' information? / قریبی رشتہ داروں کی معلومات فراہم کرنا چاہتے ہیں؟
+              </legend>
+              <div className="flex flex-wrap gap-3 text-sm text-slate-700">
+                <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2">
+                  <input
+                    type="radio"
+                    name="relativeInformationDisclosed"
+                    className="h-4 w-4 accent-blue-600"
+                    checked={formData.relativeInformationDisclosed === 'yes'}
+                    onChange={() => handleRelativeDisclosureChange('yes')}
+                  />
+                  <span>Yes / ہاں</span>
+                </label>
+                <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2">
+                  <input
+                    type="radio"
+                    name="relativeInformationDisclosed"
+                    className="h-4 w-4 accent-blue-600"
+                    checked={formData.relativeInformationDisclosed === 'no'}
+                    onChange={() => handleRelativeDisclosureChange('no')}
+                  />
+                  <span>No / Not Willing to Disclose / نہیں / معلومات فراہم نہیں کرنا چاہتے</span>
+                </label>
               </div>
-              <button type="button" onClick={() => addArrayItem('relatives')} className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
-                Add Relative / رشتہ دار شامل کریں
+            </fieldset>
+          </div>
+          {formData.relativeInformationDisclosed === 'yes' ? (
+            <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">Relative Entries / رشتہ داروں کی تفصیلات</h3>
+                <p className="text-sm text-slate-600">Add one card for each close relative willing to share information.</p>
+              </div>
+              <button type="button" onClick={() => addArrayItem('relatives')} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
+                Add Relative
               </button>
             </div>
             <div className="space-y-4">
@@ -1677,50 +1747,62 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                 <div key={index} className="rounded-2xl border border-slate-200 bg-white p-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="grid gap-2 text-sm text-slate-700">
-                      <span>Relative Type / رشتہ داری</span>
+                      <span>Relative Relationship / رشتہ داری *</span>
                       <select
                         value={relative.relativeType}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { relativeType: event.target.value as RelativeInput['relativeType'] })}
-                        className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+                        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
                       >
-                        <option value="paternal_uncle">Paternal Uncle / چچا</option>
-                        <option value="maternal_uncle">Maternal Uncle / ماموں</option>
+                        {RELATIVE_TYPE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
                       </select>
                     </label>
                     <label className="grid gap-2 text-sm text-slate-700">
-                      <span>Name / نام</span>
+                      <span>Relative Name / نام *</span>
                       <input
                         value={relative.name}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { name: event.target.value })}
-                        className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+                        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
                       />
                     </label>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-3">
                     <label className="grid gap-2 text-sm text-slate-700">
-                      <span>Age / عمر</span>
-                      <input
-                        value={relative.age}
-                        onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { age: event.target.value })}
-                        type="number"
-                        className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
-                      />
-                    </label>
-                    <label className="grid gap-2 text-sm text-slate-700">
-                      <span>Occupation / پیشہ</span>
-                      <input
+                      <span>Occupation / پیشہ *</span>
+                      <select
                         value={relative.occupation}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { occupation: event.target.value })}
-                        className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
-                      />
+                        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                      >
+                        {OCCUPATION_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
                     </label>
                     <label className="grid gap-2 text-sm text-slate-700">
-                      <span>Monthly Income / ماہانہ آمدنی</span>
-                      <input
+                      <span>Monthly Income / ماہانہ آمدنی *</span>
+                      <select
                         value={relative.monthlyIncome}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { monthlyIncome: event.target.value })}
-                        className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
-                      />
+                        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                      >
+                        {MONTHLY_INCOME_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="grid gap-2 text-sm text-slate-700">
+                      <span>Nature of Support / یتیم بچے کی معاونت *</span>
+                      <select
+                        value={relative.supportType}
+                        onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { supportType: event.target.value })}
+                        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                      >
+                        {RELATIVE_SUPPORT_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
                     </label>
                   </div>
                   <button
@@ -1728,12 +1810,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     onClick={() => removeArrayItem('relatives', index)}
                     className="mt-4 rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500"
                   >
-                    Remove Relative / رشتہ دار ہٹائیں
+                    Remove Relative
                   </button>
                 </div>
               ))}
             </div>
           </div>
+          ) : null}
         </div>
       )}
 

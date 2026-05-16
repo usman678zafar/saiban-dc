@@ -61,6 +61,7 @@ export const labels: Record<string, LabelPair> = {
   maternalGrandfatherAge: { ur: 'نانا کی عمر', en: 'Maternal Grandfather Age' },
   maternalGrandfatherOccupation: { ur: 'نانا کا پیشہ', en: 'Maternal Grandfather Occupation' },
   maternalGrandfatherIncome: { ur: 'نانا کی آمدنی', en: 'Maternal Grandfather Income' },
+  relativeInformationDisclosed: { ur: 'قریبی رشتہ داروں کی معلومات فراہم کرنا چاہتے ہیں؟', en: "Close Relatives' Information Disclosed" },
   province: { ur: 'صوبہ', en: 'Province' },
   city: { ur: 'شہر / قصبہ', en: 'City/Town' },
   district: { ur: 'ضلع', en: 'District' },

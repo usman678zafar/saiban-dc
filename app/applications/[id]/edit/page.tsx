@@ -83,6 +83,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     guardianFamilyHolderAmount: app.guardianFamilyHolderAmount?.toString() ?? '',
     guardianFamilyMembersCount: app.guardianFamilyMembersCount?.toString() ?? '',
     guardianMonthlyIncome: app.guardianMonthlyIncome?.toString() ?? '',
+    relativeInformationDisclosed: app.relativeInformationDisclosed === true ? 'yes' : app.relativeInformationDisclosed === false ? 'no' : '',
     province: app.province ?? '',
     district: app.district ?? '',
     tehsil: app.tehsil ?? '',
@@ -129,11 +130,12 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       monthlyIncomeOrFee: sibling.monthlyIncomeOrFee?.toString() ?? '',
     })),
     relatives: app.relatives.map((relative: (typeof app.relatives)[number]) => ({
-      relativeType: relative.relativeType ?? 'paternal_uncle',
+      relativeType: relative.relativeType ?? 'paternal_grandfather',
       name: relative.name ?? '',
       age: relative.age?.toString() ?? '',
       monthlyIncome: relative.monthlyIncome?.toString() ?? '',
       occupation: relative.occupation ?? '',
+      supportType: relative.supportType ?? '',
     })),
     householdAssetSelection: householdAssetRowsToSelection(
       app.householdAssets.map((asset: (typeof app.householdAssets)[number]) => ({

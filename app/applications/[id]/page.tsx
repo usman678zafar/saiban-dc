@@ -43,7 +43,9 @@ type RelativeRecord = {
   relativeType: string;
   name: string | null;
   age: number | null;
+  occupation: string | null;
   monthlyIncome: number | null;
+  supportType: string | null;
 };
 
 type HouseholdAssetRecord = {
@@ -103,7 +105,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
   }));
   const relativeItems: DataGridItem[] = application.relatives.map((relative: RelativeRecord) => ({
     label: `${relative.relativeType.replace('_', ' ')} - ${relative.name ?? '-'}`,
-    value: `${relative.age ?? '-'} years - ${relative.monthlyIncome ?? '-'} PKR`,
+    value: `${relative.occupation ?? 'No occupation'} - ${relative.monthlyIncome ?? '-'} PKR - ${relative.supportType ?? 'No support detail'}`,
   }));
   const householdAssetItems: DataGridItem[] = application.householdAssets.map((asset: HouseholdAssetRecord) => {
     const key = asset.assetType as HouseholdAssetKey;

@@ -66,6 +66,7 @@ export const relativeSchema = z.object({
   }, z.number().int().positive().optional()),
   occupation: optionalString,
   monthlyIncome: nonNegativeNumber.optional(),
+  supportType: optionalString,
 });
 
 export const assetSchema = z.object({
@@ -168,6 +169,7 @@ const baseOrphanApplicationSchema = z.object({
   }, z.number().int().nonnegative().optional()),
   maternalGrandfatherOccupation: optionalString,
   maternalGrandfatherIncome: nonNegativeNumber.optional(),
+  relativeInformationDisclosed: booleanString.optional(),
   siblings: z.array(siblingSchema).optional(),
   relatives: z.array(relativeSchema).optional(),
   householdAssets: z.array(assetSchema).optional(),
@@ -545,6 +547,50 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
             message: 'Grams are required for gold and silver',
           });
         }
+      }
+    });
+  }
+
+  if (data.relativeInformationDisclosed) {
+    data.relatives?.forEach((relative, index) => {
+      if (!relative.relativeType) {
+        ctx.addIssue({
+          path: ['relatives', index, 'relativeType'],
+          code: z.ZodIssueCode.custom,
+          message: 'Relative relationship is required',
+        });
+      }
+
+      if (!relative.name) {
+        ctx.addIssue({
+          path: ['relatives', index, 'name'],
+          code: z.ZodIssueCode.custom,
+          message: 'Relative name is required',
+        });
+      }
+
+      if (!relative.occupation) {
+        ctx.addIssue({
+          path: ['relatives', index, 'occupation'],
+          code: z.ZodIssueCode.custom,
+          message: 'Relative occupation is required',
+        });
+      }
+
+      if (relative.monthlyIncome === undefined) {
+        ctx.addIssue({
+          path: ['relatives', index, 'monthlyIncome'],
+          code: z.ZodIssueCode.custom,
+          message: 'Relative monthly income is required',
+        });
+      }
+
+      if (!relative.supportType) {
+        ctx.addIssue({
+          path: ['relatives', index, 'supportType'],
+          code: z.ZodIssueCode.custom,
+          message: 'Nature of support is required',
+        });
       }
     });
   }

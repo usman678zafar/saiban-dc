@@ -101,6 +101,10 @@ function normalizeConditionalPayload(payload: any) {
 
   next.guardianFamilyHolderAmount = '';
 
+  if (next.relativeInformationDisclosed === false || next.relativeInformationDisclosed === 'false') {
+    next.relatives = [];
+  }
+
   if (next.houseOwnershipStatus === 'rented') {
     next.houseOwnershipStatus = 'rent';
   }
