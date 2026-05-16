@@ -15,6 +15,7 @@ import {
   type HouseholdAssetKey,
   type HouseholdAssetEntry,
   type HouseholdAssetSelection,
+  type OtherHouseholdAssetInput,
 } from '@/lib/household-assets';
 import FileUpload from './file-upload';
 
@@ -189,6 +190,7 @@ export type FormData = {
   siblings: SiblingInput[];
   relatives: RelativeInput[];
   householdAssetSelection: HouseholdAssetSelection;
+  otherHouseholdAssets: OtherHouseholdAssetInput[];
   documents: DocumentInput[];
 };
 
@@ -329,6 +331,7 @@ const defaultData: FormData = {
   siblings: [],
   relatives: [],
   householdAssetSelection: createDefaultHouseholdAssetSelection(),
+  otherHouseholdAssets: [],
   documents: [],
 };
 
@@ -447,6 +450,18 @@ const FEMALE_OCCUPATION_OPTIONS = [
   { value: 'Retired', label: 'Retired / ریٹائرڈ' },
   { value: 'Other', label: 'Other / دیگر' },
 ];
+
+const MOTHER_OCCUPATIONS_WITHOUT_INCOME = [
+  'Housewife',
+  'Unemployed',
+  'Widow Support / Charity Dependent',
+  'Disabled / Unable to Work',
+  'Retired',
+];
+
+function motherOccupationNeedsIncome(occupation: string) {
+  return Boolean(occupation) && !MOTHER_OCCUPATIONS_WITHOUT_INCOME.some((value) => occupation === value || occupation.startsWith(value));
+}
 
 const NATIVE_AREA_OPTIONS = [
   { value: '', label: 'Select native area' },
@@ -711,7 +726,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     window.localStorage.setItem(storageKey, JSON.stringify(persisted));
   }, [applicationId, documents, formData, hasLoadedPersistedState, initialApplicationId, shouldPersistNewApplication, step, storageKey]);
 
-  const updateField = (field: keyof FormData, value: string | boolean) => {
+  const updateField = (field: keyof FormData, value: FormData[keyof FormData]) => {
     const nextValue = typeof value === 'string' && field.toLowerCase().includes('cnic') ? formatCnic(value) : value;
     setFormData((current) => ({ ...current, [field]: nextValue }));
   };
@@ -799,7 +814,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         : {
             motherDeathDate: '',
             motherDeathCause: '',
-            ...(value === 'separated' ? { motherIsGuardian: 'no' } : { motherSeparationReason: '' }),
+            ...(value === 'separated'
+              ? { motherIsGuardian: 'no', motherContact: '', motherOccupation: '', motherMonthlyIncome: '' }
+              : { motherSeparationReason: '' }),
           }),
     });
   };
@@ -865,8 +882,23 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const handleMotherOccupationChange = (value: string) => {
     updateFields({
       motherOccupation: value,
-      ...(value === 'Housewife' ? { motherMonthlyIncome: '' } : {}),
+      ...(motherOccupationNeedsIncome(value) ? {} : { motherMonthlyIncome: '' }),
     });
+  };
+
+  const addOtherHouseholdAsset = () => {
+    updateField('otherHouseholdAssets', [...formData.otherHouseholdAssets, { item: '', value: '' }]);
+  };
+
+  const updateOtherHouseholdAsset = (index: number, patch: Partial<OtherHouseholdAssetInput>) => {
+    updateField(
+      'otherHouseholdAssets',
+      formData.otherHouseholdAssets.map((asset, assetIndex) => (assetIndex === index ? { ...asset, ...patch } : asset)),
+    );
+  };
+
+  const removeOtherHouseholdAsset = (index: number) => {
+    updateField('otherHouseholdAssets', formData.otherHouseholdAssets.filter((_, assetIndex) => assetIndex !== index));
   };
 
   const handleHouseOwnershipStatusChange = (value: string) => {
@@ -1041,8 +1073,16 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const goBack = () => setStep((current) => Math.max(current - 1, 1));
 
   const buildApplicationRequestBody = (saveStatus: 'draft' | 'submitted') => {
-    const { householdAssetSelection, ...formFields } = formData;
-    const householdAssets = householdSelectionToApiRows(householdAssetSelection);
+    const { householdAssetSelection, otherHouseholdAssets, ...formFields } = formData;
+    const householdAssets = [
+      ...householdSelectionToApiRows(householdAssetSelection),
+      ...otherHouseholdAssets
+        .filter((asset) => asset.item.trim())
+        .map((asset) => ({
+          assetType: asset.item.trim() || 'Other',
+          value: asset.value.trim() === '' ? undefined : Number(asset.value),
+        })),
+    ];
 
     return { ...formFields, houseOwner: '', householdAssets, status: saveStatus, id: applicationId } as any;
   };
@@ -1165,12 +1205,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     return Array.from(new Set([...datasetOptions, ...customOptions])).sort((a, b) => a.localeCompare(b));
   }, [addressOptions, formData.district, formData.province]);
 
-  const renderTextField = (field: keyof FormData, type = 'text', locked = false, onChange?: (value: string) => void, maxLength?: number) => {
+  const renderRequiredMark = (required = false) => (required ? <span className="text-rose-600"> *</span> : null);
+
+  const renderTextField = (field: keyof FormData, type = 'text', locked = false, onChange?: (value: string) => void, maxLength?: number, required = false) => {
     const isCnicField = field.toLowerCase().includes('cnic');
 
     return (
       <label key={field} className="grid gap-2 text-sm text-slate-700">
-        <span>{fieldLabel(field)}</span>
+        <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
         <input
           value={formData[field] as string}
           onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
@@ -1202,9 +1244,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     field: keyof FormData,
     options: Array<{ value: string; label: string }>,
     onChange?: (value: string) => void,
+    required = false,
   ) => (
     <label key={field} className="grid gap-2 text-sm text-slate-700">
-      <span>{fieldLabel(field)}</span>
+      <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
       <select
         value={formData[field] as string}
         onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
@@ -1289,6 +1332,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     options: Array<{ value: string; label: string }>,
     otherLabel: string,
     onChange?: (value: string) => void,
+    required = false,
   ) => {
     const predefinedValues = options.map((option) => option.value);
     const currentValue = formData[field] as string;
@@ -1297,7 +1341,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     return (
       <Fragment key={field}>
         <label className="grid gap-2 text-sm text-slate-700">
-          <span>{fieldLabel(field)}</span>
+          <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
           <select
             value={selectValue}
             onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
@@ -1349,9 +1393,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     onChange?: (value: boolean) => void,
     yesLabel = 'Yes',
     noLabel = 'No',
+    required = false,
   ) => (
     <label key={field} className="grid gap-2 text-sm text-slate-700">
-      <span>{fieldLabel(field)}</span>
+      <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
       <select
         value={formData[field] ? 'yes' : 'no'}
         onChange={(event) => {
@@ -1402,8 +1447,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const shouldShowField = (field: keyof FormData) => {
     if (['motherDeathDate', 'motherDeathCause'].includes(field)) return formData.motherAlive === 'no';
     if (field === 'motherSeparationReason') return formData.motherAlive === 'separated';
-    if (['motherContact', 'motherRemarried', 'motherOccupation'].includes(field)) return motherIsLiving;
-    if (field === 'motherMonthlyIncome') return motherIsLiving && formData.motherOccupation !== 'Housewife';
+    if (['motherContact', 'motherOccupation'].includes(field)) return formData.motherAlive === 'yes';
+    if (field === 'motherRemarried') return motherIsLiving;
+    if (field === 'motherMonthlyIncome') return formData.motherAlive === 'yes' && motherOccupationNeedsIncome(formData.motherOccupation);
     if (field === 'guardianOccupation') return guardianDetailsNeeded && Boolean(formData.guardianGender);
     if (['guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianFamilyHolder', 'guardianMonthlyIncome'].includes(field)) return guardianDetailsNeeded;
     if (field === 'guardianFamilyMembersCount') return guardianDetailsNeeded && formData.guardianFamilyHolder === 'yes';
@@ -1514,7 +1560,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           <div className="grid gap-4 sm:grid-cols-2">
             {['motherName', 'motherDob', 'motherAlive', 'motherAge', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea'].map((field) =>
               field === 'motherDob'
-                ? renderTextField(field as keyof FormData, 'date', false, handleMotherDobChange)
+                ? renderTextField(field as keyof FormData, 'date', false, handleMotherDobChange, undefined, true)
                 : field === 'motherAlive'
                   ? (
                       <>
@@ -1523,32 +1569,32 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                           { value: 'yes', label: 'Alive / زندہ' },
                           { value: 'separated', label: 'Alive but separated / زندہ مگر علیحدہ' },
                           { value: 'no', label: 'Deceased / وفات شدہ' },
-                        ], handleMotherAliveChange)}
-                        {formData.motherAlive === 'no' ? renderTextField('motherDeathDate', 'date', false, handleMotherDeathDateChange) : null}
+                        ], handleMotherAliveChange, true)}
+                        {formData.motherAlive === 'no' ? renderTextField('motherDeathDate', 'date', false, handleMotherDeathDateChange, undefined, true) : null}
                       </>
                     )
                 : field === 'motherAge' && formData.motherDob && (motherIsLiving || (formData.motherAlive === 'no' && formData.motherDeathDate))
-                  ? renderTextField(field as keyof FormData, 'number', true)
+                  ? renderTextField(field as keyof FormData, 'number', true, undefined, undefined, true)
                 : field === 'motherEducation'
-                  ? renderEducationSelect(field as keyof FormData)
+                  ? renderSelectField(field as keyof FormData, EDUCATION_OPTIONS, undefined, true)
                   : field === 'motherTongue'
-                    ? renderMotherTongueField(field as keyof FormData)
+                    ? renderSelectWithOther(field as keyof FormData, MOTHER_TONGUE_OPTIONS, 'Other Mother Tongue / دیگر مادری زبان', undefined, true)
                   : field === 'motherNativeArea'
-                    ? renderNativeAreaField(field as keyof FormData)
-                    : renderTextField(field as keyof FormData),
+                    ? renderSelectWithOther(field as keyof FormData, NATIVE_AREA_OPTIONS, 'Other Native Area / دیگر آبائی علاقہ', undefined, true)
+                    : renderTextField(field as keyof FormData, 'text', false, undefined, undefined, true),
             )}
-            {formData.motherAlive === 'separated' ? renderMotherSeparationReasonField() : null}
+            {formData.motherAlive === 'separated' ? renderSelectWithOther('motherSeparationReason', MOTHER_SEPARATION_REASON_OPTIONS, 'Other Separation Reason / علیحدگی کی دیگر وجہ', undefined, true) : null}
             {formData.motherAlive === 'no' ? (
               <>
-                {renderDeathCauseSelect('motherDeathCause')}
+                {renderSelectField('motherDeathCause', DEATH_CAUSE_OPTIONS, undefined, true)}
               </>
             ) : null}
             {motherIsLiving ? (
               <>
-                {renderTextField('motherContact')}
-                {renderSelectWithOther('motherOccupation', FEMALE_OCCUPATION_OPTIONS, 'Other Occupation / دیگر پیشہ', handleMotherOccupationChange)}
-                {formData.motherOccupation !== 'Housewife' ? renderSelectField('motherMonthlyIncome', MONTHLY_INCOME_OPTIONS) : null}
-                {renderBooleanSelect('motherRemarried')}
+                {formData.motherAlive === 'yes' ? renderTextField('motherContact', 'text', false, undefined, undefined, true) : null}
+                {formData.motherAlive === 'yes' ? renderSelectWithOther('motherOccupation', FEMALE_OCCUPATION_OPTIONS, 'Other Occupation / دیگر پیشہ', handleMotherOccupationChange, true) : null}
+                {formData.motherAlive === 'yes' && motherOccupationNeedsIncome(formData.motherOccupation) ? renderSelectField('motherMonthlyIncome', MONTHLY_INCOME_OPTIONS, undefined, true) : null}
+                {renderBooleanSelect('motherRemarried', undefined, 'Yes', 'No', true)}
               </>
             ) : null}
           </div>
@@ -1815,6 +1861,59 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {HOUSEHOLD_ASSET_KEYS.map((key) => {
+              if (key === 'other') {
+                return (
+                  <div key={key} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:col-span-2">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                      <span className="text-base font-semibold text-slate-900">{householdAssetDisplayLabel(key)}</span>
+                      <button
+                        type="button"
+                        onClick={addOtherHouseholdAsset}
+                        className="min-h-10 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500"
+                      >
+                        + Add / شامل کریں
+                      </button>
+                    </div>
+                    <div className="mt-3 space-y-3">
+                      {formData.otherHouseholdAssets.length === 0 ? (
+                        <p className="text-sm text-slate-500">No other items added.</p>
+                      ) : (
+                        formData.otherHouseholdAssets.map((asset, index) => (
+                          <div key={index} className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_auto]">
+                            <label className="grid gap-1.5 text-sm text-slate-700">
+                              <span>Item / چیز</span>
+                              <input
+                                value={asset.item}
+                                onChange={(event) => updateOtherHouseholdAsset(index, { item: event.target.value })}
+                                className="min-h-12 rounded-lg border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+                              />
+                            </label>
+                            <label className="grid gap-1.5 text-sm text-slate-700">
+                              <span>Value (PKR) / قدر</span>
+                              <input
+                                value={asset.value}
+                                onChange={(event) => updateOtherHouseholdAsset(index, { value: event.target.value })}
+                                type="number"
+                                inputMode="decimal"
+                                min={0}
+                                step="any"
+                                className="min-h-12 rounded-lg border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => removeOtherHouseholdAsset(index)}
+                              className="self-end rounded-lg bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-500"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                );
+              }
               const entry = formData.householdAssetSelection[key];
               const showGrams = assetUsesGrams(key);
               return (
@@ -1897,7 +1996,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {['caste', 'sect', 'totalBrothers', 'totalSisters', 'registeredBrothers', 'registeredSisters', 'siblingsUnder12'].map((field) => renderTextField(field as keyof FormData))}
-            {renderCheckbox('childLivesWithMother')}
             {renderTextField('livingSituationNotes')}
           </div>
           <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-4">

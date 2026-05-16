@@ -35,6 +35,18 @@ const booleanString = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+const motherOccupationsWithoutIncome = [
+  'Housewife',
+  'Unemployed',
+  'Widow Support / Charity Dependent',
+  'Disabled / Unable to Work',
+  'Retired',
+];
+
+function motherOccupationNeedsIncome(occupation?: string) {
+  return Boolean(occupation) && !motherOccupationsWithoutIncome.some((value) => occupation === value || occupation?.startsWith(value));
+}
+
 export const siblingSchema = z.object({
   name: optionalString,
   age: z.preprocess((value) => {
@@ -308,12 +320,52 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
     });
   }
 
-  if ((data.motherAlive === 'yes' || data.motherAlive === 'separated') && !data.motherContact) {
+  if (data.motherAlive === 'yes' && !data.motherContact) {
     ctx.addIssue({
       path: ['motherContact'],
       code: z.ZodIssueCode.custom,
       message: 'Mother contact is required when mother is alive',
     });
+  }
+
+  if (!data.motherName) {
+    ctx.addIssue({ path: ['motherName'], code: z.ZodIssueCode.custom, message: 'Mother name is required' });
+  }
+
+  if (!data.motherDob) {
+    ctx.addIssue({ path: ['motherDob'], code: z.ZodIssueCode.custom, message: 'Mother DOB is required' });
+  }
+
+  if (data.motherAge === undefined) {
+    ctx.addIssue({ path: ['motherAge'], code: z.ZodIssueCode.custom, message: 'Mother age is required' });
+  }
+
+  if (!data.motherCnic) {
+    ctx.addIssue({ path: ['motherCnic'], code: z.ZodIssueCode.custom, message: 'Mother CNIC is required' });
+  }
+
+  if (!data.motherAlive) {
+    ctx.addIssue({ path: ['motherAlive'], code: z.ZodIssueCode.custom, message: 'Mother living status is required' });
+  }
+
+  if (!data.motherEducation) {
+    ctx.addIssue({ path: ['motherEducation'], code: z.ZodIssueCode.custom, message: 'Mother education is required' });
+  }
+
+  if (!data.motherTongue) {
+    ctx.addIssue({ path: ['motherTongue'], code: z.ZodIssueCode.custom, message: 'Mother tongue is required' });
+  }
+
+  if (!data.motherNativeArea) {
+    ctx.addIssue({ path: ['motherNativeArea'], code: z.ZodIssueCode.custom, message: 'Mother native area is required' });
+  }
+
+  if (data.motherAlive === 'yes' && !data.motherOccupation) {
+    ctx.addIssue({ path: ['motherOccupation'], code: z.ZodIssueCode.custom, message: 'Mother occupation is required' });
+  }
+
+  if (data.motherAlive === 'yes' && motherOccupationNeedsIncome(data.motherOccupation) && data.motherMonthlyIncome === undefined) {
+    ctx.addIssue({ path: ['motherMonthlyIncome'], code: z.ZodIssueCode.custom, message: 'Mother monthly income is required' });
   }
 
   const guardianDetailsNeeded = data.motherAlive !== 'yes' || data.motherIsGuardian !== 'yes';

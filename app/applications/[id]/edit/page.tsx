@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import type { FormData } from '@/components/orphan-application-wizard';
-import { householdAssetRowsToSelection } from '@/lib/household-assets';
+import { householdAssetRowsToOtherItems, householdAssetRowsToSelection } from '@/lib/household-assets';
 
 interface EditApplicationPageProps {
   params: {
@@ -136,6 +136,13 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       occupation: relative.occupation ?? '',
     })),
     householdAssetSelection: householdAssetRowsToSelection(
+      app.householdAssets.map((asset: (typeof app.householdAssets)[number]) => ({
+        assetType: asset.assetType ?? '',
+        quantity: asset.quantity,
+        value: asset.value,
+      })),
+    ),
+    otherHouseholdAssets: householdAssetRowsToOtherItems(
       app.householdAssets.map((asset: (typeof app.householdAssets)[number]) => ({
         assetType: asset.assetType ?? '',
         quantity: asset.quantity,

@@ -161,6 +161,21 @@ export type HouseholdAssetApiRow = {
   value?: number;
 };
 
+export type OtherHouseholdAssetInput = {
+  item: string;
+  value: string;
+};
+
+export function householdAssetRowsToOtherItems(rows: AssetRow[]): OtherHouseholdAssetInput[] {
+  return rows
+    .filter((row) => !resolveAssetKey(row.assetType))
+    .map((row) => ({
+      item: row.assetType.trim(),
+      value: row.value == null ? '' : String(row.value),
+    }))
+    .filter((row) => row.item || row.value);
+}
+
 export function mergeHouseholdAssetSelection(partial?: Partial<HouseholdAssetSelection>): HouseholdAssetSelection {
   const defaults = createDefaultHouseholdAssetSelection();
   if (!partial) return defaults;
@@ -182,6 +197,7 @@ export function householdSelectionToApiRows(selection: HouseholdAssetSelection):
   const rows: HouseholdAssetApiRow[] = [];
 
   for (const key of HOUSEHOLD_ASSET_KEYS) {
+    if (key === 'other') continue;
     const entry = selection[key];
     if (!entry.has) continue;
 
