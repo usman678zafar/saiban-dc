@@ -164,6 +164,7 @@ model OrphanApplication {
   caste                      String?
   sect                       String?
   religion                   String?
+  specifyReligion            String?
   syedStatus                 String?
   nationality                String?
   specifyNationality         String?
@@ -261,8 +262,10 @@ model Relative {
   name          String?
   age           Int?
   occupation    String?
+  occupationOther String?
   monthlyIncome Float?
   supportType   String?
+  supportTypeOther String?
 }
 
 model HouseholdAsset {

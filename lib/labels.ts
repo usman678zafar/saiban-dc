@@ -90,6 +90,7 @@ export const labels: Record<string, LabelPair> = {
   caste: { ur: 'ذات', en: 'Caste' },
   sect: { ur: 'مذہبی فرقہ', en: 'Sect' },
   religion: { ur: 'مذہب', en: 'Religion' },
+  specifyReligion: { ur: 'مذہب کی وضاحت کریں', en: 'Specify Religion' },
   syedStatus: { ur: 'سید حیثیت', en: 'Syed Status' },
   nationality: { ur: 'شہریت', en: 'Nationality' },
   specifyNationality: { ur: 'شہریت کی وضاحت کریں', en: 'Specify Nationality' },

@@ -75,8 +75,10 @@ export const relativeSchema = z.object({
     return value;
   }, z.number().int().positive().optional()),
   occupation: optionalString,
+  occupationOther: optionalString,
   monthlyIncome: nonNegativeNumber.optional(),
   supportType: optionalString,
+  supportTypeOther: optionalString,
 });
 
 export const assetSchema = z.object({
@@ -219,6 +221,7 @@ const baseOrphanApplicationSchema = z.object({
   caste: optionalString,
   sect: optionalString,
   religion: optionalString,
+  specifyReligion: optionalString,
   syedStatus: optionalString,
   nationality: optionalString,
   specifyNationality: optionalString,
@@ -485,6 +488,14 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
     });
   }
 
+  if (data.religion === 'Other' && !data.specifyReligion) {
+    ctx.addIssue({
+      path: ['specifyReligion'],
+      code: z.ZodIssueCode.custom,
+      message: 'Specify religion is required when religion is Other',
+    });
+  }
+
   if (data.totalSiblings !== undefined && (data.siblings?.length ?? 0) !== data.totalSiblings) {
     ctx.addIssue({
       path: ['siblings'],
@@ -641,6 +652,14 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
         });
       }
 
+      if (relative.occupation === 'Other' && !relative.occupationOther) {
+        ctx.addIssue({
+          path: ['relatives', index, 'occupationOther'],
+          code: z.ZodIssueCode.custom,
+          message: 'Specify occupation is required when occupation is Other',
+        });
+      }
+
       if (relative.monthlyIncome === undefined) {
         ctx.addIssue({
           path: ['relatives', index, 'monthlyIncome'],
@@ -654,6 +673,14 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
           path: ['relatives', index, 'supportType'],
           code: z.ZodIssueCode.custom,
           message: 'Nature of support is required',
+        });
+      }
+
+      if (relative.supportType === 'other' && !relative.supportTypeOther) {
+        ctx.addIssue({
+          path: ['relatives', index, 'supportTypeOther'],
+          code: z.ZodIssueCode.custom,
+          message: 'Specify support is required when nature of support is Other',
         });
       }
     });

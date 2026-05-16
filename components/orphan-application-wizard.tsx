@@ -38,8 +38,10 @@ type RelativeInput = {
   name: string;
   age: string;
   occupation: string;
+  occupationOther: string;
   monthlyIncome: string;
   supportType: string;
+  supportTypeOther: string;
 };
 
 type DocumentInput = {
@@ -146,6 +148,7 @@ export type FormData = {
   caste: string;
   sect: string;
   religion: string;
+  specifyReligion: string;
   syedStatus: string;
   nationality: string;
   specifyNationality: string;
@@ -293,6 +296,7 @@ const defaultData: FormData = {
   caste: '',
   sect: '',
   religion: '',
+  specifyReligion: '',
   syedStatus: '',
   nationality: 'Pakistani',
   specifyNationality: '',
@@ -644,6 +648,13 @@ function formatCnic(value: string) {
   return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
 }
 
+function formatBForm(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 15);
+  if (digits.length <= 5) return digits;
+  if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+}
+
 function calculateAgeFromDate(dateValue: string, asOfValue?: string) {
   if (!dateValue) return '';
 
@@ -675,6 +686,7 @@ function normalizeInitialData(data: FormData): FormData {
   next.fatherCnic = formatCnic(next.fatherCnic);
   next.motherCnic = formatCnic(next.motherCnic);
   next.guardianCnic = formatCnic(next.guardianCnic);
+  next.bFormNumber = formatBForm(next.bFormNumber);
   next.motherEmploymentStatus = '';
   next.motherIsHousewife = false;
 
@@ -808,7 +820,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   }, [applicationId, documents, formData, hasLoadedPersistedState, initialApplicationId, shouldPersistNewApplication, step, storageKey]);
 
   const updateField = (field: keyof FormData, value: FormData[keyof FormData]) => {
-    const nextValue = typeof value === 'string' && field.toLowerCase().includes('cnic') ? formatCnic(value) : value;
+    const nextValue =
+      typeof value === 'string' && field.toLowerCase().includes('cnic')
+        ? formatCnic(value)
+        : field === 'bFormNumber' && typeof value === 'string'
+          ? formatBForm(value)
+          : value;
     setFormData((current) => ({ ...current, [field]: nextValue }));
   };
 
@@ -1103,6 +1120,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     });
   };
 
+  const handleReligionChange = (value: string) => {
+    updateFields({
+      religion: value,
+      ...(value === 'Other' ? {} : { specifyReligion: '' }),
+    });
+  };
+
   const handleTotalSiblingsChange = (value: string) => {
     const digits = value.replace(/\D/g, '');
     const count = Math.max(0, Number(digits || 0));
@@ -1172,7 +1196,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     setFormData((current) => {
       const item = key === 'siblings'
         ? { name: '', relation: 'brother', dob: '', age: '', educationStatus: '', currentlyStudying: '', occupation: '', monthlyIncomeOrFee: '', maritalStatus: '' }
-        : { relativeType: 'paternal_grandfather' as const, name: '', age: '', occupation: '', monthlyIncome: '', supportType: '' };
+        : { relativeType: 'paternal_grandfather' as const, name: '', age: '', occupation: '', occupationOther: '', monthlyIncome: '', supportType: '', supportTypeOther: '' };
       const next = [...current[key], item];
       return { ...current, [key]: next, ...(key === 'siblings' ? { totalSiblings: String(next.length) } : {}) };
     });
@@ -1618,6 +1642,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     if (field === 'disabilityDetails') return formData.healthStatus === 'disabled';
     if (field === 'treatmentPlace') return formData.healthStatus === 'sick';
     if (field === 'specifyNationality') return formData.nationality === 'Other';
+    if (field === 'specifyReligion') return formData.religion === 'Other';
     if (field === 'monthlyMedicalExpenses') return formData.healthStatus === 'sick' || formData.healthStatus === 'disabled';
     if (['currentClass', 'schoolName', 'schoolAddress', 'educationFeeStatus'].includes(field)) return formData.currentlyStudying;
     if (['notStudyingReason', 'educationStartCondition'].includes(field)) return !formData.currentlyStudying;
@@ -1661,7 +1686,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     { title: 'Home', fields: ['houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'residenceStructureType', 'residenceCategory', 'houseConditionRemarks', 'electricityAvailable', 'gasAvailable', 'waterAvailable', 'furnishingCondition', 'furnishingConditionRemarks'] },
     { title: 'Relatives', fields: ['relativeInformationDisclosed', 'relatives'] },
     { title: 'Household Assets', fields: ['householdAssetSelection'] },
-    { title: 'Child', fields: ['childName', 'gender', 'religion', 'syedStatus', 'nationality', 'specifyNationality', 'bFormNumber', 'dateOfBirth', 'age', 'totalSiblings', 'siblings', 'livingSituationNotes'] },
+    { title: 'Child', fields: ['childName', 'gender', 'religion', 'specifyReligion', 'syedStatus', 'nationality', 'specifyNationality', 'bFormNumber', 'dateOfBirth', 'age', 'totalSiblings', 'siblings', 'livingSituationNotes'] },
     { title: 'Health and Education', fields: ['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'currentClass', 'schoolName', 'educationFeeStatus', 'monthlySchoolFee', 'notStudyingReason', 'educationStartCondition', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails'] },
     { title: 'Income and Aid', fields: ['careerGoal', 'childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'notAppliedElsewhereReason'] },
   ];
@@ -1893,7 +1918,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       <span>Occupation / پیشہ *</span>
                       <select
                         value={relative.occupation}
-                        onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { occupation: event.target.value })}
+                        onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, {
+                          occupation: event.target.value,
+                          ...(event.target.value === 'Other' ? {} : { occupationOther: '' }),
+                        })}
                         className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
                       >
                         {OCCUPATION_OPTIONS.map((option) => (
@@ -1901,6 +1929,16 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                         ))}
                       </select>
                     </label>
+                    {relative.occupation === 'Other' ? (
+                      <label className="grid gap-2 text-sm text-slate-700">
+                        <span>Specify Occupation / پیشے کی وضاحت کریں *</span>
+                        <input
+                          value={relative.occupationOther}
+                          onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { occupationOther: event.target.value })}
+                          className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                        />
+                      </label>
+                    ) : null}
                     <label className="grid gap-2 text-sm text-slate-700">
                       <span>Monthly Income / ماہانہ آمدنی *</span>
                       <select
@@ -1917,7 +1955,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       <span>Nature of Support / یتیم بچے کی معاونت *</span>
                       <select
                         value={relative.supportType}
-                        onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { supportType: event.target.value })}
+                        onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, {
+                          supportType: event.target.value,
+                          ...(event.target.value === 'other' ? {} : { supportTypeOther: '' }),
+                        })}
                         className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
                       >
                         {RELATIVE_SUPPORT_OPTIONS.map((option) => (
@@ -1925,6 +1966,16 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                         ))}
                       </select>
                     </label>
+                    {relative.supportType === 'other' ? (
+                      <label className="grid min-w-0 gap-2 text-sm text-slate-700 lg:col-span-2 xl:col-span-1">
+                        <span>Specify Support / معاونت کی وضاحت کریں *</span>
+                        <input
+                          value={relative.supportTypeOther}
+                          onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { supportTypeOther: event.target.value })}
+                          className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                        />
+                      </label>
+                    ) : null}
                   </div>
                   <button
                     type="button"
@@ -2201,7 +2252,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           <div className="grid gap-4 sm:grid-cols-2">
             {renderTextField('childName')}
             {renderSelectField('gender', GENDER_OPTIONS)}
-            {renderSelectField('religion', RELIGION_OPTIONS)}
+            {renderSelectField('religion', RELIGION_OPTIONS, handleReligionChange)}
+            {formData.religion === 'Other' ? renderTextField('specifyReligion') : null}
             {renderSelectField('syedStatus', SYED_STATUS_OPTIONS)}
             {renderSelectField('nationality', NATIONALITY_OPTIONS, handleNationalityChange)}
             {formData.nationality === 'Other' ? renderTextField('specifyNationality') : null}

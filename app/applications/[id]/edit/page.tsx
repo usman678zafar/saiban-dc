@@ -52,6 +52,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     childName: app.childName ?? '',
     gender: app.gender ?? '',
     religion: app.religion ?? '',
+    specifyReligion: app.specifyReligion ?? '',
     syedStatus: app.syedStatus ?? '',
     nationality: app.nationality ?? 'Pakistani',
     specifyNationality: app.specifyNationality ?? '',
@@ -145,7 +146,9 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       age: relative.age?.toString() ?? '',
       monthlyIncome: relative.monthlyIncome?.toString() ?? '',
       occupation: relative.occupation ?? '',
+      occupationOther: relative.occupationOther ?? '',
       supportType: relative.supportType ?? '',
+      supportTypeOther: relative.supportTypeOther ?? '',
     })),
     householdAssetSelection: householdAssetRowsToSelection(
       app.householdAssets.map((asset: (typeof app.householdAssets)[number]) => ({
