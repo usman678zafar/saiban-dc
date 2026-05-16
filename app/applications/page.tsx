@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
 import { authOptions } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 type ApplicationListRecord = {
   id: string;
   registrationNumber: string | null;

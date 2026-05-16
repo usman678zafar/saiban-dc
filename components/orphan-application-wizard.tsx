@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { labels } from '@/lib/labels';
 import { pakistanAddressData } from '@/lib/pakistan-address-data';
 import { getDistrictsByProvince, getTehsilsByDistrict } from '@/lib/address-utils';
@@ -818,6 +819,7 @@ function normalizeInitialData(data: FormData): FormData {
 }
 
 export default function OrphanApplicationWizard({ initialData, initialDocuments, initialApplicationId }: OrphanApplicationWizardProps) {
+  const router = useRouter();
   const mergedData = useMemo(() => normalizeInitialData({ ...defaultData, ...initialData }), [initialData]);
   const storageKey = useMemo(() => {
     const collectorKey = mergedData.collectorId || mergedData.collectorCnic || 'unknown';
@@ -1293,6 +1295,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     updateFields({ dateOfBirth: value, age: calculateAgeFromDate(value) });
   };
 
+  const orphanAge = formData.age === '' ? undefined : Number(formData.age);
+  const orphanAgeError =
+    orphanAge !== undefined && !Number.isNaN(orphanAge) && orphanAge >= 12
+      ? 'Orphan age must be less than 12 years. / یتیم بچے کی عمر 12 سال سے کم ہونی چاہیے۔'
+      : '';
+
   const toggleMultiSelectValue = (field: 'childHobbies', value: string) => {
     setFormData((current) => {
       const currentValues = current[field];
@@ -1414,6 +1422,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     setMessage(null);
 
     try {
+      if (orphanAgeError) {
+        setStep(7);
+        throw new Error(orphanAgeError);
+      }
+
       const method = applicationId ? 'PATCH' : 'POST';
       const body = buildApplicationRequestBody(saveStatus);
       const response = await fetch('/api/applications', {
@@ -1437,6 +1450,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       if (!applicationId) {
         setStep(TOTAL_STEPS);
       }
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Submission failed.');
     } finally {
@@ -1517,22 +1531,54 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       }
       case 4:
         return [];
-      case 5:
-        return ['province', 'district', 'city', 'houseOwnershipStatus', 'houseCondition', 'residenceStructureType', 'residenceCategory'];
+      case 5: {
+        const fields: Array<keyof FormData> = ['province', 'district', 'city', 'residentialArea', 'fullAddress', 'houseOwnershipStatus', 'houseCondition', 'residenceStructureType', 'residenceCategory', 'furnishingCondition'];
+        if (formData.houseOwnershipStatus === 'rent') fields.push('monthlyRent', 'rentPaidBy');
+        return fields;
+      }
       case 6:
         return [];
-      case 7:
-        return ['childName', 'gender', 'religion', 'nationality', 'bFormNumber', 'dateOfBirth', 'totalSiblings'];
+      case 7: {
+        const fields: Array<keyof FormData> = ['childName', 'gender', 'religion', 'syedStatus', 'nationality', 'bFormNumber', 'dateOfBirth', 'totalSiblings'];
+        if (formData.religion === 'Other') fields.push('specifyReligion');
+        if (formData.nationality === 'Other') fields.push('specifyNationality');
+        return fields;
+      }
       case 8: {
         const fields: Array<keyof FormData> = ['healthStatus'];
         if (formData.healthStatus === 'disabled') fields.push('disabilityType', 'disabilityCause');
         if (formData.healthStatus === 'chronic_illness') fields.push('chronicDisease', 'treatmentPlace', 'monthlyMedicalExpenses');
         return fields;
       }
-      case 9:
-        return ['currentlyStudying'];
-      case 10:
-        return ['totalFamilyMembers', 'householdHasMonthlyIncome'];
+      case 9: {
+        const fields: Array<keyof FormData> = ['currentlyStudying', 'enrolledInMadrasa', 'currentSkillLearning'];
+        if (formData.currentlyStudying) fields.push('currentClass', 'schoolName', 'schoolAddress', 'schoolDistanceKm', 'schoolTransportMode', 'schoolStudyingSince');
+        if (formData.enrolledInMadrasa) fields.push('madrasaName', 'madrasaEducationDetails', 'educationStartCondition');
+        if (formData.currentlyStudying || formData.enrolledInMadrasa) {
+          fields.push('educationFree');
+          if (formData.educationFree === 'no') fields.push('monthlySchoolFee');
+        }
+        if (formData.currentSkillLearning === 'yes') fields.push('currentSkill');
+        if (formData.currentSkillLearning === 'no') {
+          fields.push('technicalSkillInterest');
+          if (formData.technicalSkillInterest === 'yes') fields.push('technicalSkill');
+        }
+        return fields;
+      }
+      case 10: {
+        const fields: Array<keyof FormData> = ['totalFamilyMembers', 'householdHasMonthlyIncome', 'receivingOtherAid'];
+        if (formData.householdHasMonthlyIncome === 'yes') {
+          fields.push('householdEarnersCount', 'totalHouseholdIncome', 'childEarnsIncome');
+          if (formData.childEarnsIncome === 'yes') fields.push('childWorkNature', 'childMonthlyIncome');
+        }
+        if (formData.receivingOtherAid) {
+          fields.push('otherAidSource', 'monthlyAidAmount');
+        } else {
+          fields.push('assistanceApplied');
+          if (formData.assistanceApplied === 'yes') fields.push('assistanceAppliedWhere');
+        }
+        return fields;
+      }
       case 11:
         return [];
       case 12:
@@ -1545,7 +1591,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const isStepComplete = (stepNumber: number): boolean => {
     const requiredFields = getStepRequiredFields(stepNumber);
     if (requiredFields.length === 0) {
-      // Steps with no required fields: check if they've been "visited" (at least step was reached)
       if (stepNumber === 4) return formData.relativeInformationDisclosed !== '';
       if (stepNumber === 6) return true;
       if (stepNumber === 11) return documents.length > 0 || Boolean(applicationId);
@@ -1553,7 +1598,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     }
     return requiredFields.every((field) => {
       const value = formData[field];
-      if (typeof value === 'boolean') return value;
+      if (typeof value === 'boolean') return true; // Booleans (true/false) are inherently filled
       if (typeof value === 'string') return value.trim() !== '';
       if (Array.isArray(value)) return value.length > 0;
       return value !== undefined && value !== null;
@@ -2442,6 +2487,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {renderTextField('bFormNumber')}
             {renderTextField('dateOfBirth', 'date', false, handleChildDobChange)}
             {renderTextField('age', 'number', true)}
+            {orphanAgeError ? (
+              <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-700 sm:col-span-2">
+                {orphanAgeError}
+              </div>
+            ) : null}
             {renderTextField('totalSiblings', 'number', false, handleTotalSiblingsChange)}
             {renderTextField('livingSituationNotes')}
           </div>
