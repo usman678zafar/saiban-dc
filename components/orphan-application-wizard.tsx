@@ -165,6 +165,14 @@ export type FormData = {
   livingSituationNotes: string;
   healthStatus: string;
   disabilityDetails: string;
+  disabilityType: string;
+  disabilityCause: string;
+  disabilityCauseDetails: string;
+  disabilitySince: string;
+  treatmentOngoing: string;
+  chronicDisease: string;
+  specifyDisease: string;
+  illnessSince: string;
   treatmentPlace: string;
   monthlyMedicalExpenses: string;
   currentlyStudying: boolean;
@@ -178,6 +186,22 @@ export type FormData = {
   madrasaEducationDetails: string;
   educationFeeStatus: string;
   monthlySchoolFee: string;
+  schoolDistanceKm: string;
+  schoolTransportMode: string;
+  schoolStudyingSince: string;
+  educationUndertakingAccepted: boolean;
+  educationFree: string;
+  currentSkillLearning: string;
+  currentSkill: string;
+  childHobbies: string[];
+  technicalSkillInterest: string;
+  technicalSkill: string;
+  totalFamilyMembers: string;
+  householdHasMonthlyIncome: string;
+  childEarnsIncome: string;
+  childWorkNature: string;
+  assistanceApplied: string;
+  assistanceAppliedWhere: string;
   careerGoal: string;
   technicalInterest: string;
   learningSkill: string;
@@ -313,6 +337,14 @@ const defaultData: FormData = {
   livingSituationNotes: '',
   healthStatus: '',
   disabilityDetails: '',
+  disabilityType: '',
+  disabilityCause: '',
+  disabilityCauseDetails: '',
+  disabilitySince: '',
+  treatmentOngoing: '',
+  chronicDisease: '',
+  specifyDisease: '',
+  illnessSince: '',
   treatmentPlace: '',
   monthlyMedicalExpenses: '',
   currentlyStudying: false,
@@ -326,6 +358,22 @@ const defaultData: FormData = {
   madrasaEducationDetails: '',
   educationFeeStatus: '',
   monthlySchoolFee: '',
+  schoolDistanceKm: '',
+  schoolTransportMode: '',
+  schoolStudyingSince: '',
+  educationUndertakingAccepted: false,
+  educationFree: '',
+  currentSkillLearning: '',
+  currentSkill: '',
+  childHobbies: [],
+  technicalSkillInterest: '',
+  technicalSkill: '',
+  totalFamilyMembers: '',
+  householdHasMonthlyIncome: '',
+  childEarnsIncome: '',
+  childWorkNature: '',
+  assistanceApplied: '',
+  assistanceAppliedWhere: '',
   careerGoal: '',
   technicalInterest: '',
   learningSkill: '',
@@ -376,7 +424,7 @@ type PersistedWizardState = {
   documents?: DocumentInput[];
 };
 
-const TOTAL_STEPS = 13;
+const TOTAL_STEPS = 14;
 
 const EDUCATION_OPTIONS = [
   { value: '', label: 'Select education' },
@@ -639,6 +687,78 @@ const MARITAL_STATUS_OPTIONS = [
   { value: 'unmarried', label: 'Unmarried / غیر شادی شدہ' },
   { value: 'widowed', label: 'Widowed / بیوہ' },
   { value: 'divorced', label: 'Divorced / طلاق یافتہ' },
+];
+
+const HEALTH_STATUS_OPTIONS = [
+  { value: '', label: 'Select health status' },
+  { value: 'healthy', label: 'Healthy / صحتمند' },
+  { value: 'chronic_illness', label: 'Chronic illness / موذی بیماری' },
+  { value: 'disabled', label: 'Disabled / معذور' },
+];
+const DISABILITY_TYPE_OPTIONS = [
+  { value: '', label: 'Select disability type' },
+  { value: 'physical', label: 'Physical Disability / جسمانی معذوری' },
+  { value: 'visual', label: 'Visual Impairment / بینائی سے محرومی' },
+  { value: 'hearing', label: 'Hearing Impairment / سماعت سے محرومی' },
+  { value: 'speech', label: 'Speech Impairment / گویائی کی معذوری' },
+  { value: 'intellectual', label: 'Intellectual Disability / ذہنی معذوری' },
+  { value: 'multiple', label: 'Multiple Disabilities / ایک سے زائد معذوریاں' },
+  { value: 'other', label: 'Other / دیگر' },
+];
+const DISABILITY_CAUSE_OPTIONS = [
+  { value: '', label: 'Select cause' },
+  { value: 'birth', label: 'By Birth / پیدائشی' },
+  { value: 'accident', label: 'Due to Accident / حادثے کی وجہ سے' },
+  { value: 'illness', label: 'Due to Illness / بیماری کی وجہ سے' },
+  { value: 'unknown', label: 'Unknown / نامعلوم' },
+  { value: 'other', label: 'Other / دیگر' },
+];
+const DISEASE_OPTIONS = [
+  { value: '', label: 'Select disease / condition' },
+  { value: 'frequent_fever', label: 'Fever / Frequent Fever / بخار / بار بار بخار' },
+  { value: 'asthma', label: 'Asthma / دمہ' },
+  { value: 'heart_disease', label: 'Heart Disease / دل کی بیماری' },
+  { value: 'diabetes', label: 'Diabetes / ذیابیطس' },
+  { value: 'kidney_disease', label: 'Kidney Disease / گردے کی بیماری' },
+  { value: 'liver_disease', label: 'Liver Disease / جگر کی بیماری' },
+  { value: 'hepatitis', label: 'Hepatitis / ہیپاٹائٹس' },
+  { value: 'tb', label: 'Tuberculosis (TB) / تپ دق (ٹی بی)' },
+  { value: 'cancer', label: 'Cancer / کینسر' },
+  { value: 'epilepsy', label: 'Epilepsy / Seizures / مرگی' },
+  { value: 'blood_disorder', label: 'Blood Disorder / خون کی بیماری' },
+  { value: 'thalassemia', label: 'Thalassemia / تھیلیسیمیا' },
+  { value: 'polio', label: 'Polio / پولیو' },
+  { value: 'malnutrition', label: 'Physical Weakness / Malnutrition / کمزوری / غذائی قلت' },
+  { value: 'mental_illness', label: 'Mental Illness / ذہنی بیماری' },
+  { value: 'depression', label: 'Depression / Psychological Issue / ذہنی دباؤ / نفسیاتی مسئلہ' },
+  { value: 'vision_problem', label: 'Vision Problem / بینائی کا مسئلہ' },
+  { value: 'hearing_problem', label: 'Hearing Problem / سماعت کا مسئلہ' },
+  { value: 'skin_disease', label: 'Skin Disease / جلد کی بیماری' },
+  { value: 'disability_related', label: 'Disability Related Illness / معذوری سے متعلق بیماری' },
+  { value: 'chronic_illness', label: 'Chronic Illness / دائمی بیماری' },
+  { value: 'other', label: 'Other / دیگر' },
+];
+const CLASS_OPTIONS = [
+  { value: '', label: 'Select class' }, 'Preschool','Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8','Class 9 / O level I','Class 10 / O level II','Intermediate / A level',
+].map((item) => typeof item === 'string' ? { value: item, label: item } : item);
+const TRANSPORT_OPTIONS = [
+  { value: '', label: 'Select transport' },
+  { value: 'walking', label: 'Walking / پیدل' }, { value: 'bicycle', label: 'Bicycle / سائیکل' }, { value: 'motorcycle', label: 'Motorcycle / موٹر سائیکل' }, { value: 'van_bus', label: 'School Van / Bus / اسکول وین / بس' }, { value: 'public_transport', label: 'Public Transport / پبلک ٹرانسپورٹ' }, { value: 'rickshaw', label: 'Rickshaw / رکشہ' }, { value: 'other', label: 'Other / دیگر' },
+];
+const ISLAMIC_STUDIES_OPTIONS = [
+  { value: '', label: 'Select level' }, { value: 'nazra', label: 'Nazra Quran / ناظرہ قرآن' }, { value: 'hifz', label: 'Hifz Quran / حفظ قرآن' }, { value: 'tajweed', label: 'Tajweed / تجوید' }, { value: 'basic', label: 'Basic Islamic Studies / بنیادی دینی تعلیم' }, { value: 'dars_e_nizami', label: 'Dars-e-Nizami / درس نظامی' }, { value: 'other', label: 'Other / دیگر' },
+];
+const SKILL_OPTIONS = [
+  { value: '', label: 'Select skill' }, { value: 'tailoring', label: 'Tailoring / سلائی' }, { value: 'mobile_repair', label: 'Mobile Repairing / موبائل ریپئرنگ' }, { value: 'computer', label: 'Computer Skills / کمپیوٹر مہارت' }, { value: 'graphic_design', label: 'Graphic Designing / گرافک ڈیزائننگ' }, { value: 'electric', label: 'Electric Work / الیکٹریشن کا کام' }, { value: 'mechanical', label: 'Mechanical Work / مکینک کا کام' }, { value: 'carpentry', label: 'Carpentry / بڑھئی کا کام' }, { value: 'cooking', label: 'Cooking / کھانا پکانا' }, { value: 'driving', label: 'Driving / ڈرائیونگ' }, { value: 'beautician', label: 'Beautician Work / بیوٹیشن کا کام' }, { value: 'handicrafts', label: 'Handicrafts / دستکاری' }, { value: 'quran_teaching', label: 'Quran Teaching / قرآن پڑھانا' }, { value: 'other', label: 'Other / دیگر' },
+];
+const HOBBY_OPTIONS = [
+  { value: 'football', label: 'Football / فٹبال' }, { value: 'cricket', label: 'Cricket / کرکٹ' }, { value: 'reading', label: 'Reading / مطالعہ' }, { value: 'drawing', label: 'Drawing / ڈرائنگ' }, { value: 'writing', label: 'Writing / لکھنا' }, { value: 'recitation_naat', label: 'Recitation / Naat / تلاوت / نعت' }, { value: 'sports', label: 'Sports / کھیل کود' }, { value: 'technology', label: 'Computer / Technology / کمپیوٹر / ٹیکنالوجی' }, { value: 'arts_crafts', label: 'Arts & Crafts / آرٹ اور دستکاری' }, { value: 'gardening', label: 'Gardening / باغبانی' }, { value: 'cooking', label: 'Cooking / کھانا پکانا' }, { value: 'sewing', label: 'Sewing / Stitching / سلائی' }, { value: 'public_speaking', label: 'Public Speaking / تقریر' }, { value: 'islamic_studies', label: 'Islamic Studies / دینی تعلیم' }, { value: 'other', label: 'Other / دیگر' },
+];
+const CHILD_WORK_OPTIONS = [
+  { value: '', label: 'Select work' }, { value: 'shop', label: 'Shop Work / دکان کا کام' }, { value: 'labor', label: 'Labor Work / مزدوری' }, { value: 'workshop', label: 'Workshop / Mechanical Work / ورکشاپ / مکینک کا کام' }, { value: 'domestic', label: 'Domestic Work / گھریلو کام' }, { value: 'vending', label: 'Street Vending / ٹھیلا / خوانچہ فروشی' }, { value: 'agriculture', label: 'Agriculture Work / زرعی کام' }, { value: 'tailoring', label: 'Tailoring / سلائی' }, { value: 'quran', label: 'Teaching Quran / قرآن پڑھانا' }, { value: 'online', label: 'Online Work / آن لائن کام' }, { value: 'part_time', label: 'Part-Time Work / جز وقتی کام' }, { value: 'other', label: 'Other / دیگر' },
+];
+const ASSISTANCE_SOURCE_OPTIONS = [
+  { value: '', label: 'Select source' }, { value: 'relative', label: 'Relative Support / رشتہ داروں کی امداد' }, { value: 'ngo', label: 'NGO / Welfare Organization / فلاحی ادارہ' }, { value: 'government', label: 'Government Support / سرکاری امداد' }, { value: 'mosque_madrasa', label: 'Mosque / Madrasa Support / مسجد / مدرسہ امداد' }, { value: 'zakat', label: 'Zakat / زکوٰۃ' }, { value: 'sponsorship', label: 'Sponsorship Program / کفالت پروگرام' }, { value: 'community', label: 'Neighbours / Community / پڑوسی / محلہ' }, { value: 'other', label: 'Other / دیگر' },
 ];
 
 function formatCnic(value: string) {
@@ -1067,13 +1187,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const handleHealthStatusChange = (value: string) => {
     updateFields({
       healthStatus: value,
-      ...(value === 'healthy'
-        ? { disabilityDetails: '', treatmentPlace: '', monthlyMedicalExpenses: '' }
-        : value === 'sick'
-          ? { disabilityDetails: '' }
-          : value === 'disabled'
-            ? { treatmentPlace: '' }
-            : {}),
+      ...(value === 'healthy' ? {
+        disabilityDetails: '', disabilityType: '', disabilityCause: '', disabilityCauseDetails: '', disabilitySince: '', treatmentOngoing: '', chronicDisease: '', specifyDisease: '', illnessSince: '', treatmentPlace: '', monthlyMedicalExpenses: '',
+      } : value === 'chronic_illness' ? {
+        disabilityDetails: '', disabilityType: '', disabilityCause: '', disabilityCauseDetails: '', disabilitySince: '', treatmentOngoing: '',
+      } : value === 'disabled' ? {
+        chronicDisease: '', specifyDisease: '', illnessSince: '',
+      } : {}),
     });
   };
 
@@ -1090,6 +1210,35 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             monthlySchoolFee: '',
           }),
     });
+  };
+
+  const handleTreatmentOngoingChange = (value: string) => {
+    updateFields({
+      treatmentOngoing: value,
+      ...(value === 'yes' ? {} : { treatmentPlace: '', monthlyMedicalExpenses: '' }),
+    });
+  };
+
+  const handleSchoolEnrollmentChange = (value: boolean) => {
+    updateFields({
+      currentlyStudying: value,
+      ...(value ? {} : { currentClass: '', schoolName: '', schoolAddress: '', schoolDistanceKm: '', schoolTransportMode: '', schoolStudyingSince: '' }),
+    });
+  };
+
+  const handleEducationFreeChange = (value: string) => {
+    updateFields({ educationFree: value, ...(value === 'yes' ? { monthlySchoolFee: '' } : {}) });
+  };
+
+  const handleHouseholdIncomeChange = (value: string) => {
+    updateFields({
+      householdHasMonthlyIncome: value,
+      ...(value === 'yes' ? {} : { householdEarnersCount: '', totalHouseholdIncome: '', childEarnsIncome: '', childWorkNature: '', childMonthlyIncome: '' }),
+    });
+  };
+
+  const handleChildEarnsIncomeChange = (value: string) => {
+    updateFields({ childEarnsIncome: value, ...(value === 'yes' ? {} : { childWorkNature: '', childMonthlyIncome: '' }) });
   };
 
   const handleEducationFeeStatusChange = (value: string) => {
@@ -1155,6 +1304,20 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     updateArrayItem<SiblingInput>('siblings', index, {
       dob: value,
       age: calculateAgeFromDate(value),
+    });
+  };
+
+  const handleChildDobChange = (value: string) => {
+    updateFields({ dateOfBirth: value, age: calculateAgeFromDate(value) });
+  };
+
+  const toggleMultiSelectValue = (field: 'childHobbies', value: string) => {
+    setFormData((current) => {
+      const currentValues = current[field];
+      const nextValues = currentValues.includes(value)
+        ? currentValues.filter((item) => item !== value)
+        : [...currentValues, value];
+      return { ...current, [field]: nextValues };
     });
   };
 
@@ -1365,6 +1528,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     'Assets / اثاثے',
     'Child / بچہ',
     'Health / صحت',
+    'Education & Skills / تعلیم',
     'Income / آمدنی',
     'School / سکول',
     'Imam / امام',
@@ -1687,8 +1851,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     { title: 'Relatives', fields: ['relativeInformationDisclosed', 'relatives'] },
     { title: 'Household Assets', fields: ['householdAssetSelection'] },
     { title: 'Child', fields: ['childName', 'gender', 'religion', 'specifyReligion', 'syedStatus', 'nationality', 'specifyNationality', 'bFormNumber', 'dateOfBirth', 'age', 'totalSiblings', 'siblings', 'livingSituationNotes'] },
-    { title: 'Health and Education', fields: ['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'currentClass', 'schoolName', 'educationFeeStatus', 'monthlySchoolFee', 'notStudyingReason', 'educationStartCondition', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails'] },
-    { title: 'Income and Aid', fields: ['careerGoal', 'childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'notAppliedElsewhereReason'] },
+    { title: 'Health', fields: ['healthStatus', 'disabilityType', 'disabilityCause', 'disabilityDetails', 'disabilityCauseDetails', 'disabilitySince', 'treatmentOngoing', 'chronicDisease', 'specifyDisease', 'illnessSince', 'treatmentPlace', 'monthlyMedicalExpenses'] as Array<keyof FormData> },
+    { title: 'Education and Skills', fields: ['currentlyStudying', 'currentClass', 'schoolName', 'schoolAddress', 'schoolDistanceKm', 'schoolTransportMode', 'schoolStudyingSince', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails', 'educationUndertakingAccepted', 'educationFree', 'monthlySchoolFee', 'currentSkillLearning', 'currentSkill', 'childHobbies', 'technicalSkillInterest', 'technicalSkill'] as Array<keyof FormData> },
+    { title: 'Income and Aid', fields: ['totalFamilyMembers', 'householdHasMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'childEarnsIncome', 'childWorkNature', 'childMonthlyIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'assistanceApplied', 'assistanceAppliedWhere'] as Array<keyof FormData> },
   ];
 
   return (
@@ -2258,8 +2423,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {renderSelectField('nationality', NATIONALITY_OPTIONS, handleNationalityChange)}
             {formData.nationality === 'Other' ? renderTextField('specifyNationality') : null}
             {renderTextField('bFormNumber')}
-            {renderTextField('dateOfBirth', 'date')}
-            {renderTextField('age', 'number')}
+            {renderTextField('dateOfBirth', 'date', false, handleChildDobChange)}
+            {renderTextField('age', 'number', true)}
             {renderTextField('totalSiblings', 'number', false, handleTotalSiblingsChange)}
             {renderTextField('livingSituationNotes')}
           </div>
@@ -2398,55 +2563,28 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 8 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Education and Health Details</h2>
-            <p className="mt-1 text-sm text-slate-600">Record attendance, health, and education support details.</p>
-          </div>
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-            Changing health or education status may clear fields that are no longer relevant.
+            <h2 className="text-xl font-semibold text-slate-900">Orphan Health Information / صحت کی معلومات</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {renderSelectField('healthStatus', [
-              { value: '', label: 'Select health status' },
-              { value: 'healthy', label: 'Healthy / صحت مند' },
-              { value: 'sick', label: 'Sick / بیمار' },
-              { value: 'disabled', label: 'Disabled / معذور' },
-            ], handleHealthStatusChange)}
-            {formData.healthStatus === 'sick' ? (
-              <>
-                {renderTextField('treatmentPlace')}
-                {renderTextField('monthlyMedicalExpenses', 'number')}
-              </>
-            ) : null}
+            {renderSelectField('healthStatus', HEALTH_STATUS_OPTIONS, handleHealthStatusChange)}
             {formData.healthStatus === 'disabled' ? (
               <>
-                {renderTextField('disabilityDetails')}
-                {renderTextField('monthlyMedicalExpenses', 'number')}
+                {renderSelectField('disabilityType', DISABILITY_TYPE_OPTIONS)}
+                {renderSelectField('disabilityCause', DISABILITY_CAUSE_OPTIONS)}
+                {['accident', 'illness'].includes(formData.disabilityCause) ? renderTextareaField('disabilityCauseDetails') : null}
+                {['accident', 'illness'].includes(formData.disabilityCause) ? renderTextField('disabilitySince', 'date') : null}
+                {renderBooleanSelect('treatmentOngoing', (value) => handleTreatmentOngoingChange(value ? 'yes' : 'no'), 'Yes / ہاں', 'No / نہیں')}
+                {formData.treatmentOngoing === 'yes' ? renderTextField('treatmentPlace') : null}
+                {formData.treatmentOngoing === 'yes' ? renderTextField('monthlyMedicalExpenses', 'number') : null}
               </>
             ) : null}
-            {renderBooleanSelect('currentlyStudying', handleCurrentlyStudyingChange)}
-            {formData.currentlyStudying ? (
+            {formData.healthStatus === 'chronic_illness' ? (
               <>
-                {renderTextField('currentClass')}
-                {renderTextField('schoolName')}
-                {renderTextField('schoolAddress')}
-                {renderSelectField('educationFeeStatus', [
-                  { value: '', label: 'Select fee status' },
-                  { value: 'free', label: 'Free / مفت' },
-                  { value: 'paid', label: 'Paid / ادا شدہ' },
-                ], handleEducationFeeStatusChange)}
-                {formData.educationFeeStatus === 'paid' ? renderTextField('monthlySchoolFee', 'number') : null}
-              </>
-            ) : (
-              <>
-                {renderTextField('notStudyingReason')}
-                {renderTextField('educationStartCondition')}
-              </>
-            )}
-            {renderBooleanSelect('enrolledInMadrasa', handleMadrasaChange)}
-            {formData.enrolledInMadrasa ? (
-              <>
-                {renderTextField('madrasaName')}
-                {renderTextField('madrasaEducationDetails')}
+                {renderSelectField('chronicDisease', DISEASE_OPTIONS)}
+                {formData.chronicDisease === 'other' ? renderTextField('specifyDisease') : null}
+                {renderTextField('illnessSince', 'date')}
+                {renderTextField('treatmentPlace')}
+                {renderTextField('monthlyMedicalExpenses', 'number')}
               </>
             ) : null}
           </div>
@@ -2456,25 +2594,90 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 9 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Other Aid / Household Income</h2>
-            <p className="mt-1 text-sm text-slate-600">Share other aid details and household income capacity.</p>
+            <h2 className="text-xl font-semibold text-slate-900">Education & Skills / تعلیم اور ہنر</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {['careerGoal', 'technicalInterest', 'learningSkill'].map((field) => renderTextField(field as keyof FormData))}
-            {['childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome'].map((field) => renderTextField(field as keyof FormData, 'number'))}
-            {renderBooleanSelect('receivingOtherAid', handleOtherAidChange)}
-            {formData.receivingOtherAid ? (
+            {renderBooleanSelect('currentlyStudying', handleSchoolEnrollmentChange, 'Yes / ہاں', 'No / نہیں')}
+            {renderBooleanSelect('enrolledInMadrasa', handleMadrasaChange, 'Yes / ہاں', 'No / نہیں')}
+            {(!formData.currentlyStudying || !formData.enrolledInMadrasa) ? (
+              <label className="flex min-h-12 items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900 sm:col-span-2">
+                <input type="checkbox" checked={formData.educationUndertakingAccepted} onChange={(e) => updateField('educationUndertakingAccepted', e.target.checked)} className="mt-1 h-5 w-5" />
+                <span>Education Undertaking / تعلیمی اقرار نامہ: guardian agrees to start missing school or madrasa education if registered in sponsorship program.</span>
+              </label>
+            ) : null}
+            {formData.currentlyStudying ? (
               <>
-                {renderTextField('otherAidSource')}
-                {renderTextField('monthlyAidAmount', 'number')}
+                {renderSelectField('currentClass', CLASS_OPTIONS)}
+                {renderTextField('schoolName')}
+                {renderTextField('schoolAddress')}
+                {renderTextField('schoolDistanceKm', 'number')}
+                {renderSelectField('schoolTransportMode', TRANSPORT_OPTIONS)}
+                {renderTextField('schoolStudyingSince', 'date')}
               </>
             ) : null}
-            {renderTextField('notAppliedElsewhereReason')}
+            {formData.enrolledInMadrasa ? (
+              <>
+                {renderTextField('madrasaName')}
+                {renderTextField('madrasaEducationDetails')}
+                {renderSelectField('educationStartCondition', ISLAMIC_STUDIES_OPTIONS)}
+              </>
+            ) : null}
+            {(formData.currentlyStudying || formData.enrolledInMadrasa) ? (
+              <>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 sm:col-span-2">Mention fee only with valid fee voucher/proof. اگر واؤچر / ثبوت موجود نہ ہو تو فیس درج نہ کی جائے۔</div>
+                {renderSelectField('educationFree', [{ value: '', label: 'Select fee status' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }], handleEducationFreeChange)}
+                {formData.educationFree === 'no' ? renderTextField('monthlySchoolFee', 'number') : null}
+              </>
+            ) : null}
+            {renderSelectField('currentSkillLearning', [{ value: '', label: 'Select skill learning status' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }])}
+            {formData.currentSkillLearning === 'yes' ? renderSelectField('currentSkill', SKILL_OPTIONS) : null}
+            {formData.currentSkillLearning === 'no' ? renderSelectField('technicalSkillInterest', [{ value: '', label: 'Interested in technical skill?' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }]) : null}
+            {formData.currentSkillLearning === 'no' && formData.technicalSkillInterest === 'yes' ? renderSelectField('technicalSkill', SKILL_OPTIONS) : null}
+            <div className="space-y-2 sm:col-span-2">
+              <p className="text-sm font-semibold text-slate-900">Child's Hobby / بچے کا مشغلہ</p>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {HOBBY_OPTIONS.map((option) => (
+                  <label key={option.value} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+                    <input type="checkbox" checked={formData.childHobbies.includes(option.value)} onChange={() => toggleMultiSelectValue('childHobbies', option.value)} />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {step === 10 && (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">Household Income & External Assistance</h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {renderTextField('totalFamilyMembers', 'number')}
+            {renderSelectField('householdHasMonthlyIncome', [{ value: '', label: 'Select income status' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }], handleHouseholdIncomeChange)}
+            {formData.householdHasMonthlyIncome === 'yes' ? renderTextField('householdEarnersCount', 'number') : null}
+            {formData.householdHasMonthlyIncome === 'yes' ? renderSelectField('totalHouseholdIncome', MONTHLY_INCOME_OPTIONS) : null}
+            {formData.householdHasMonthlyIncome === 'yes' ? renderSelectField('childEarnsIncome', [{ value: '', label: 'Does child earn?' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }], handleChildEarnsIncomeChange) : null}
+            {formData.childEarnsIncome === 'yes' ? renderSelectField('childWorkNature', CHILD_WORK_OPTIONS) : null}
+            {formData.childEarnsIncome === 'yes' ? renderSelectField('childMonthlyIncome', MONTHLY_INCOME_OPTIONS) : null}
+            {renderBooleanSelect('receivingOtherAid', handleOtherAidChange)}
+            {formData.receivingOtherAid ? (
+              <>
+                {renderSelectField('otherAidSource', ASSISTANCE_SOURCE_OPTIONS)}
+                {renderSelectField('monthlyAidAmount', MONTHLY_INCOME_OPTIONS)}
+              </>
+            ) : (
+              <>
+                {renderSelectField('assistanceApplied', [{ value: '', label: 'Applied anywhere?' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }])}
+                {formData.assistanceApplied === 'yes' ? renderTextField('assistanceAppliedWhere') : null}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {step === 12 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Educational Institution Verification</h2>
@@ -2494,7 +2697,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 12 && (
+      {step === 13 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Documents Upload</h2>
@@ -2526,7 +2729,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 13 && (
+      {step === 14 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Terms and Review</h2>

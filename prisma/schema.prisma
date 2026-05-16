@@ -181,6 +181,14 @@ model OrphanApplication {
   livingSituationNotes       String?
   healthStatus               String?
   disabilityDetails           String?
+  disabilityType             String?
+  disabilityCause            String?
+  disabilityCauseDetails     String?
+  disabilitySince            String?
+  treatmentOngoing           String?
+  chronicDisease             String?
+  specifyDisease             String?
+  illnessSince               DateTime?
   treatmentPlace             String?
   monthlyMedicalExpenses     Float?
   currentlyStudying          Boolean?
@@ -194,6 +202,22 @@ model OrphanApplication {
   madrasaEducationDetails    String?
   educationFeeStatus         String?
   monthlySchoolFee           Float?
+  schoolDistanceKm           Float?
+  schoolTransportMode        String?
+  schoolStudyingSince        DateTime?
+  educationUndertakingAccepted Boolean?
+  educationFree              String?
+  currentSkillLearning       String?
+  currentSkill               String?
+  childHobbies               String?
+  technicalSkillInterest     String?
+  technicalSkill             String?
+  totalFamilyMembers         Int?
+  householdHasMonthlyIncome  String?
+  childEarnsIncome           String?
+  childWorkNature            String?
+  assistanceApplied          String?
+  assistanceAppliedWhere     String?
   careerGoal                 String?
   technicalInterest          String?
   learningSkill              String?
