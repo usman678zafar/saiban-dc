@@ -196,22 +196,7 @@ async function fillApplication(page) {
   await fillByLabel(page, /Monthly Aid Amount/i, '0');
   await fillByLabel(page, /Not Applied Elsewhere Reason/i, 'No other program.');
 
-  await goToStep(page, 11);
-  await fillByLabel(page, /Principal Name/i, 'Smoke Principal');
-  await fillByLabel(page, /Institution Name/i, 'Smoke Institution');
-  await fillByLabel(page, /Verified Student Name/i, 'Smoke Student');
-  await fillByLabel(page, /Verified Father Name/i, 'Smoke Father');
-  await fillByLabel(page, /Verified Class/i, '3');
-  await fillByLabel(page, /Verified Monthly Fee/i, '1500');
-
   await goToStep(page, 12);
-  await fillByLabel(page, /Imam Name/i, 'Smoke Imam');
-  await fillByLabel(page, /Mosque Name/i, 'Smoke Mosque');
-  await fillByLabel(page, /Neighborhood\/City/i, 'Karachi');
-  await fillByLabel(page, /Imam Mobile/i, '03001234570');
-  await fillByLabel(page, /Mother Zakat Status/i, 'Eligible');
-
-  await goToStep(page, 14);
   const terms = page.getByLabel(/Terms Accepted/i);
   if (!(await terms.isChecked())) await terms.check();
 

@@ -313,21 +313,6 @@ const baseOrphanApplicationSchema = z.object({
   otherAidSource: optionalString,
   monthlyAidAmount: nonNegativeNumber.optional(),
   notAppliedElsewhereReason: optionalString,
-  principalName: optionalString,
-  institutionName: optionalString,
-  verifiedStudentName: optionalString,
-  verifiedFatherName: optionalString,
-  verifiedClass: optionalString,
-  verifiedMonthlyFee: nonNegativeNumber.optional(),
-  principalSignatureFileKey: optionalString,
-  institutionStampFileKey: optionalString,
-  imamName: optionalString,
-  mosqueName: optionalString,
-  neighborhoodCity: optionalString,
-  imamMobile: optionalString,
-  motherZakatStatus: optionalString,
-  imamSignatureFileKey: optionalString,
-  mosqueStampFileKey: optionalString,
   guardianSignatureFileKey: optionalString,
   termsAccepted: booleanString.optional(),
   termsAcceptedAt: parseDate.optional(),
@@ -558,19 +543,19 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
     }
   });
 
-  if (data.healthStatus === 'sick' && !data.treatmentPlace) {
+  if (data.healthStatus === 'chronic_illness' && !data.treatmentPlace) {
     ctx.addIssue({
       path: ['treatmentPlace'],
       code: z.ZodIssueCode.custom,
-      message: 'Treatment place is required when child is sick',
+      message: 'Treatment place is required when child has a chronic illness',
     });
   }
 
-  if ((data.healthStatus === 'sick' || data.healthStatus === 'disabled') && data.monthlyMedicalExpenses === undefined) {
+  if ((data.healthStatus === 'chronic_illness' || data.healthStatus === 'disabled') && data.monthlyMedicalExpenses === undefined) {
     ctx.addIssue({
       path: ['monthlyMedicalExpenses'],
       code: z.ZodIssueCode.custom,
-      message: 'Monthly medical expenses are required when child is sick or disabled',
+      message: 'Monthly medical expenses are required when child has a chronic illness or is disabled',
     });
   }
 

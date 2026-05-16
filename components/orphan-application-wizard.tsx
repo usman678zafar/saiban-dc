@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { labels } from '@/lib/labels';
@@ -212,17 +212,6 @@ export type FormData = {
   otherAidSource: string;
   monthlyAidAmount: string;
   notAppliedElsewhereReason: string;
-  principalName: string;
-  institutionName: string;
-  verifiedStudentName: string;
-  verifiedFatherName: string;
-  verifiedClass: string;
-  verifiedMonthlyFee: string;
-  imamName: string;
-  mosqueName: string;
-  neighborhoodCity: string;
-  imamMobile: string;
-  motherZakatStatus: string;
   guardianSignatureFileKey: string;
   termsAccepted: boolean;
   status: 'draft' | 'submitted';
@@ -384,17 +373,6 @@ const defaultData: FormData = {
   otherAidSource: '',
   monthlyAidAmount: '',
   notAppliedElsewhereReason: '',
-  principalName: '',
-  institutionName: '',
-  verifiedStudentName: '',
-  verifiedFatherName: '',
-  verifiedClass: '',
-  verifiedMonthlyFee: '',
-  imamName: '',
-  mosqueName: '',
-  neighborhoodCity: '',
-  imamMobile: '',
-  motherZakatStatus: '',
   guardianSignatureFileKey: '',
   termsAccepted: false,
   status: 'draft',
@@ -424,7 +402,7 @@ type PersistedWizardState = {
   documents?: DocumentInput[];
 };
 
-const TOTAL_STEPS = 14;
+const TOTAL_STEPS = 12;
 
 const EDUCATION_OPTIONS = [
   { value: '', label: 'Select education' },
@@ -802,6 +780,10 @@ function hasOption(options: string[], value: string) {
 
 function normalizeInitialData(data: FormData): FormData {
   const next = { ...data };
+  // Normalize legacy 'sick' healthStatus from old drafts to 'chronic_illness'
+  if (next.healthStatus === 'sick') {
+    next.healthStatus = 'chronic_illness';
+  }
   next.collectorCnic = formatCnic(next.collectorCnic);
   next.fatherCnic = formatCnic(next.fatherCnic);
   next.motherCnic = formatCnic(next.motherCnic);
@@ -1427,28 +1409,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     } as any;
   };
 
-  const ensureDraftForUpload = async () => {
-    if (applicationId) return applicationId;
-
-    setMessage(null);
-    const response = await fetch('/api/applications', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(buildApplicationRequestBody('draft')),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error?.message ?? 'Unable to save draft before upload');
-    }
-
-    const application = await response.json();
-    setApplicationId(application.id);
-    setMessage('Draft saved. Uploading verification image...');
-
-    return application.id as string;
-  };
-
   const submit = async (saveStatus: 'draft' | 'submitted') => {
     setIsSubmitting(true);
     setMessage(null);
@@ -1513,7 +1473,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       types.push({ type: 'guardian_cnic', label: 'Guardian CNIC' });
     }
 
-    if (formData.healthStatus === 'sick' || formData.healthStatus === 'disabled') {
+    if (formData.healthStatus === 'chronic_illness' || formData.healthStatus === 'disabled') {
       types.push({ type: 'medical_report', label: 'Medical Report' });
     }
 
@@ -1530,8 +1490,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     'Health / صحت',
     'Education & Skills / تعلیم',
     'Income / آمدنی',
-    'School / سکول',
-    'Imam / امام',
     'Documents / دستاویزات',
     'Review / جائزہ',
   ];
@@ -1776,23 +1734,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     </label>
   );
 
-  const renderVerificationUpload = (documentType: string, label: string) => {
-    const existingDocument = documents.find((doc) => doc.documentType === documentType);
-
-    return (
-      <FileUpload
-        documentType={documentType}
-        applicationId={applicationId}
-        ensureApplicationId={ensureDraftForUpload}
-        onUpload={handleDocumentUpload}
-        onRemove={handleDocumentRemove}
-        existingDocument={existingDocument}
-        label={label}
-        accept="image/*"
-      />
-    );
-  };
-
   const shouldShowField = (field: keyof FormData) => {
     if (['motherDeathDate', 'motherDeathCause'].includes(field)) return formData.motherAlive === 'no';
     if (field === 'motherSeparationReason') return formData.motherAlive === 'separated';
@@ -1804,10 +1745,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     if (field === 'guardianFamilyMembersCount') return guardianDetailsNeeded && formData.guardianFamilyHolder === 'yes';
     if (['monthlyRent', 'rentPaidBy'].includes(field)) return formData.houseOwnershipStatus === 'rent';
     if (field === 'disabilityDetails') return formData.healthStatus === 'disabled';
-    if (field === 'treatmentPlace') return formData.healthStatus === 'sick';
+    if (field === 'treatmentPlace') return formData.healthStatus === 'chronic_illness';
     if (field === 'specifyNationality') return formData.nationality === 'Other';
     if (field === 'specifyReligion') return formData.religion === 'Other';
-    if (field === 'monthlyMedicalExpenses') return formData.healthStatus === 'sick' || formData.healthStatus === 'disabled';
+    if (field === 'monthlyMedicalExpenses') return formData.healthStatus === 'chronic_illness' || formData.healthStatus === 'disabled';
     if (['currentClass', 'schoolName', 'schoolAddress', 'educationFeeStatus'].includes(field)) return formData.currentlyStudying;
     if (['notStudyingReason', 'educationStartCondition'].includes(field)) return !formData.currentlyStudying;
     if (field === 'monthlySchoolFee') return formData.currentlyStudying && formData.educationFeeStatus === 'paid';
@@ -2677,27 +2618,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 12 && (
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-900">Educational Institution Verification</h2>
-            <p className="mt-1 text-sm text-slate-600">Upload the school verification letter image.</p>
-          </div>
-          {renderVerificationUpload('principal_verification', 'School Verification Letter Image')}
-        </div>
-      )}
-
       {step === 11 && (
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-900">Mosque Imam Verification</h2>
-            <p className="mt-1 text-sm text-slate-600">Upload the mosque imam verification letter image.</p>
-          </div>
-          {renderVerificationUpload('imam_verification', 'Imam Verification Letter Image')}
-        </div>
-      )}
-
-      {step === 13 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Documents Upload</h2>
@@ -2729,7 +2650,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       )}
 
-      {step === 14 && (
+      {step === 12 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Terms and Review</h2>

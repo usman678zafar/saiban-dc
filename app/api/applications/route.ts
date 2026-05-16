@@ -113,16 +113,28 @@ function normalizeConditionalPayload(payload: any) {
     clearPayloadFields(next, ['monthlyRent', 'rentPaidBy', 'houseOwner']);
   }
 
-  if (next.healthStatus === 'healthy') {
-    clearPayloadFields(next, ['disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses']);
+  // Normalize legacy 'sick' value to 'chronic_illness' for backward compatibility
+  if (next.healthStatus === 'sick') {
+    next.healthStatus = 'chronic_illness';
   }
 
-  if (next.healthStatus === 'sick') {
-    clearPayloadFields(next, ['disabilityDetails']);
+  if (next.healthStatus === 'healthy') {
+    clearPayloadFields(next, [
+      'disabilityDetails', 'disabilityType', 'disabilityCause', 'disabilityCauseDetails',
+      'disabilitySince', 'treatmentOngoing', 'chronicDisease', 'specifyDisease',
+      'illnessSince', 'treatmentPlace', 'monthlyMedicalExpenses',
+    ]);
+  }
+
+  if (next.healthStatus === 'chronic_illness') {
+    clearPayloadFields(next, [
+      'disabilityDetails', 'disabilityType', 'disabilityCause', 'disabilityCauseDetails',
+      'disabilitySince', 'treatmentOngoing',
+    ]);
   }
 
   if (next.healthStatus === 'disabled') {
-    clearPayloadFields(next, ['treatmentPlace']);
+    clearPayloadFields(next, ['chronicDisease', 'specifyDisease', 'illnessSince']);
   }
 
   if (next.currentlyStudying === false || next.currentlyStudying === 'false') {
