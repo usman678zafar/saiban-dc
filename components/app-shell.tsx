@@ -21,12 +21,14 @@ export default async function AppShell({ title, description, actions, maxWidth =
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className={`mx-auto flex ${maxWidth} items-center justify-between px-3 py-2 sm:px-6 sm:py-3`}>
-          <div className="flex min-w-0 items-center gap-2">
-            <Image src={logo} alt="Saiban" width={112} height={88} className="h-8 w-auto shrink-0 object-contain sm:h-11" priority />
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-slate-500 sm:text-sm">Saiban Orphan Support</p>
-              <p className="truncate text-xs text-slate-500">{session?.user?.name ?? session?.user?.email ?? 'Signed in'}</p>
+        <div className={`mx-auto flex flex-col gap-3 ${maxWidth} px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6`}>
+          <div className="flex items-center justify-between sm:justify-start gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <Image src={logo} alt="Saiban" width={112} height={88} className="h-8 w-auto shrink-0 object-contain sm:h-11" priority />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-slate-500 sm:text-sm">Saiban Orphan Support</p>
+                <p className="truncate text-xs text-slate-500">{session?.user?.name ?? session?.user?.email ?? 'Signed in'}</p>
+              </div>
             </div>
           </div>
 

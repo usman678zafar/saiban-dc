@@ -1494,6 +1494,72 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     'Review / جائزہ',
   ];
 
+  const getStepRequiredFields = (stepNumber: number): Array<keyof FormData> => {
+    switch (stepNumber) {
+      case 1:
+        return ['fatherName', 'fatherDob', 'fatherCnic', 'fatherEducation', 'fatherTongue', 'fatherNativeArea', 'fatherOccupation', 'fatherDateOfDeath', 'fatherCauseOfDeath'];
+      case 2: {
+        const fields: Array<keyof FormData> = ['motherName', 'motherDob', 'motherAlive', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea'];
+        if (formData.motherAlive === 'no') fields.push('motherDeathDate', 'motherDeathCause');
+        if (formData.motherAlive === 'separated') fields.push('motherSeparationReason');
+        if (formData.motherAlive === 'yes') {
+          fields.push('motherContact', 'motherOccupation');
+          if (motherOccupationNeedsIncome(formData.motherOccupation)) fields.push('motherMonthlyIncome');
+        }
+        return fields;
+      }
+      case 3: {
+        if (formData.motherAlive === 'yes' && formData.motherIsGuardian === 'yes') return [];
+        if (!guardianDetailsNeeded) return [];
+        const fields: Array<keyof FormData> = ['guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianContact', 'guardianMonthlyIncome'];
+        if (formData.guardianFamilyHolder === 'yes') fields.push('guardianFamilyMembersCount');
+        return fields;
+      }
+      case 4:
+        return [];
+      case 5:
+        return ['province', 'district', 'city', 'houseOwnershipStatus', 'houseCondition', 'residenceStructureType', 'residenceCategory'];
+      case 6:
+        return [];
+      case 7:
+        return ['childName', 'gender', 'religion', 'nationality', 'bFormNumber', 'dateOfBirth', 'totalSiblings'];
+      case 8: {
+        const fields: Array<keyof FormData> = ['healthStatus'];
+        if (formData.healthStatus === 'disabled') fields.push('disabilityType', 'disabilityCause');
+        if (formData.healthStatus === 'chronic_illness') fields.push('chronicDisease', 'treatmentPlace', 'monthlyMedicalExpenses');
+        return fields;
+      }
+      case 9:
+        return ['currentlyStudying'];
+      case 10:
+        return ['totalFamilyMembers', 'householdHasMonthlyIncome'];
+      case 11:
+        return [];
+      case 12:
+        return ['termsAccepted'];
+      default:
+        return [];
+    }
+  };
+
+  const isStepComplete = (stepNumber: number): boolean => {
+    const requiredFields = getStepRequiredFields(stepNumber);
+    if (requiredFields.length === 0) {
+      // Steps with no required fields: check if they've been "visited" (at least step was reached)
+      if (stepNumber === 4) return formData.relativeInformationDisclosed !== '';
+      if (stepNumber === 6) return true;
+      if (stepNumber === 11) return documents.length > 0 || Boolean(applicationId);
+      return true;
+    }
+    return requiredFields.every((field) => {
+      const value = formData[field];
+      if (typeof value === 'boolean') return value;
+      if (typeof value === 'string') return value.trim() !== '';
+      if (Array.isArray(value)) return value.length > 0;
+      return value !== undefined && value !== null;
+    });
+  };
+
   const districtOptions = useMemo(() => {
     if (!formData.province) return [];
     const datasetOptions = getDistrictsByProvince(formData.province).map((district) => district.name);
@@ -1512,9 +1578,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     return Array.from(new Set([...datasetOptions, ...customOptions])).sort((a, b) => a.localeCompare(b));
   }, [addressOptions, formData.district, formData.province]);
 
-  const renderRequiredMark = (required = false) => (required ? <span className="text-rose-600"> *</span> : null);
+  const renderRequiredMark = (required = true) => (required ? <span className="text-rose-600"> *</span> : null);
 
-  const renderTextField = (field: keyof FormData, type = 'text', locked = false, onChange?: (value: string) => void, maxLength?: number, required = false) => {
+  const renderTextField = (field: keyof FormData, type = 'text', locked = false, onChange?: (value: string) => void, maxLength?: number, required = true) => {
     const isCnicField = field.toLowerCase().includes('cnic');
 
     return (
@@ -1534,9 +1600,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     );
   };
 
-  const renderTextareaField = (field: keyof FormData, maxLength?: number) => (
+  const renderTextareaField = (field: keyof FormData, maxLength?: number, required = true) => (
     <label key={field} className="grid gap-2 text-sm text-slate-700 sm:col-span-2">
-      <span>{fieldLabel(field)}</span>
+      <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
       <textarea
         value={formData[field] as string}
         onChange={(event) => updateField(field, event.target.value)}
@@ -1551,7 +1617,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     field: keyof FormData,
     options: Array<{ value: string; label: string }>,
     onChange?: (value: string) => void,
-    required = false,
+    required = true,
   ) => (
     <label key={field} className="grid gap-2 text-sm text-slate-700">
       <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
@@ -1576,7 +1642,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     disabled = false,
   ) => (
     <label key={field} className="grid gap-2 text-sm text-slate-700">
-      <span>{fieldLabel(field)}</span>
+      <span>{fieldLabel(field)}{renderRequiredMark()}</span>
       <select
         value={formData[field] as string}
         onChange={(event) => onChange(event.target.value)}
@@ -1603,7 +1669,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
     return (
       <label key={field} className="grid gap-2 text-sm text-slate-700">
-        <span>{fieldLabel(field)}</span>
+        <span>{fieldLabel(field)}{renderRequiredMark()}</span>
         <input
           value={formData[field]}
           list={listId}
@@ -1639,7 +1705,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     options: Array<{ value: string; label: string }>,
     otherLabel: string,
     onChange?: (value: string) => void,
-    required = false,
+    required = true,
   ) => {
     const predefinedValues = options.map((option) => option.value);
     const currentValue = formData[field] as string;
@@ -1700,7 +1766,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     onChange?: (value: boolean) => void,
     yesLabel = 'Yes',
     noLabel = 'No',
-    required = false,
+    required = true,
   ) => (
     <label key={field} className="grid gap-2 text-sm text-slate-700">
       <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
@@ -1801,16 +1867,26 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     <div className="space-y-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:space-y-6 sm:p-8">
       
       <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 sm:pb-0">
-        {Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1).map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => setStep(item)}
-            className={`min-w-[168px] snap-start rounded-lg border px-3 py-3 text-sm font-semibold leading-5 transition sm:min-w-0 ${item === step ? 'border-blue-600 bg-blue-50 text-blue-900' : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100'}`}
-          >
-            {item}. {stepTitles[item - 1]}
-          </button>
-        ))}
+        {Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1).map((item) => {
+          const complete = isStepComplete(item);
+          return (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setStep(item)}
+              className={`relative min-w-[168px] snap-start rounded-lg border px-3 py-3 text-sm font-semibold leading-5 transition sm:min-w-0 ${item === step ? 'border-blue-600 bg-blue-50 text-blue-900' : complete ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-100' : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100'}`}
+            >
+              <span className="flex items-center justify-center gap-1.5">
+                {complete ? (
+                  <svg className="h-4 w-4 shrink-0 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                ) : null}
+                {item}. {stepTitles[item - 1]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {message ? (
