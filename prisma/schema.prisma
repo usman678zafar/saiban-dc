@@ -163,9 +163,14 @@ model OrphanApplication {
   gender                     String?
   caste                      String?
   sect                       String?
+  religion                   String?
+  syedStatus                 String?
+  nationality                String?
+  specifyNationality         String?
   bFormNumber                String?
   dateOfBirth                DateTime?
   age                        Int?
+  totalSiblings              Int?
   totalBrothers              Int?
   totalSisters               Int?
   registeredBrothers         Int?
@@ -238,9 +243,14 @@ model Sibling {
   application          OrphanApplication  @relation(fields: [applicationId], references: [id])
   applicationId        String
   name                 String?
+  relation             String?
+  dob                  DateTime?
   age                  Int?
+  educationStatus      String?
+  currentlyStudying    Boolean?
   occupation           String?
   monthlyIncomeOrFee   Float?
+  maritalStatus        String?
 }
 
 model Relative {

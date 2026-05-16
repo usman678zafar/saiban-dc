@@ -22,9 +22,14 @@ import FileUpload from './file-upload';
 type SiblingInput = {
   id?: string;
   name: string;
+  relation: string;
+  dob: string;
   age: string;
+  educationStatus: string;
+  currentlyStudying: string;
   occupation: string;
   monthlyIncomeOrFee: string;
+  maritalStatus: string;
 };
 
 type RelativeInput = {
@@ -140,9 +145,14 @@ export type FormData = {
   gender: string;
   caste: string;
   sect: string;
+  religion: string;
+  syedStatus: string;
+  nationality: string;
+  specifyNationality: string;
   bFormNumber: string;
   dateOfBirth: string;
   age: string;
+  totalSiblings: string;
   totalBrothers: string;
   totalSisters: string;
   registeredBrothers: string;
@@ -282,9 +292,14 @@ const defaultData: FormData = {
   gender: '',
   caste: '',
   sect: '',
+  religion: '',
+  syedStatus: '',
+  nationality: 'Pakistani',
+  specifyNationality: '',
   bFormNumber: '',
   dateOfBirth: '',
   age: '',
+  totalSiblings: '',
   totalBrothers: '',
   totalSisters: '',
   registeredBrothers: '',
@@ -577,6 +592,49 @@ const RELATIVE_TYPE_OPTIONS = [
   { value: 'maternal_grandfather', label: 'Maternal Grandfather / نانا' },
   { value: 'paternal_uncle', label: 'Paternal Uncle / چچا' },
   { value: 'maternal_uncle', label: 'Maternal Uncle / ماموں' },
+];
+
+const GENDER_OPTIONS = [
+  { value: '', label: 'Select gender' },
+  { value: 'male', label: 'Male / لڑکا' },
+  { value: 'female', label: 'Female / لڑکی' },
+];
+
+const RELIGION_OPTIONS = [
+  { value: '', label: 'Select religion' },
+  { value: 'Islam', label: 'Islam / اسلام' },
+  { value: 'Christianity', label: 'Christianity / عیسائیت' },
+  { value: 'Hinduism', label: 'Hinduism / ہندومت' },
+  { value: 'Other', label: 'Other / دیگر' },
+];
+
+const SYED_STATUS_OPTIONS = [
+  { value: '', label: 'Select Syed status' },
+  { value: 'Syed', label: 'Syed / سید' },
+  { value: 'Non-Syed', label: 'Non-Syed / غیر سید' },
+];
+
+const NATIONALITY_OPTIONS = [
+  { value: 'Pakistani', label: 'Pakistani / پاکستانی' },
+  { value: 'Afghan', label: 'Afghan / افغانی' },
+  { value: 'Bangladeshi', label: 'Bangladeshi / بنگلہ دیشی' },
+  { value: 'Indian', label: 'Indian / بھارتی' },
+  { value: 'Stateless', label: 'Stateless / بے وطن' },
+  { value: 'Refugee', label: 'Refugee / مہاجر / پناہ گزین' },
+  { value: 'Other', label: 'Other / دیگر' },
+];
+
+const SIBLING_RELATION_OPTIONS = [
+  { value: 'brother', label: 'Brother / بھائی' },
+  { value: 'sister', label: 'Sister / بہن' },
+];
+
+const MARITAL_STATUS_OPTIONS = [
+  { value: '', label: 'Select marital status' },
+  { value: 'married', label: 'Married / شادی شدہ' },
+  { value: 'unmarried', label: 'Unmarried / غیر شادی شدہ' },
+  { value: 'widowed', label: 'Widowed / بیوہ' },
+  { value: 'divorced', label: 'Divorced / طلاق یافتہ' },
 ];
 
 function formatCnic(value: string) {
@@ -1038,6 +1096,44 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     });
   };
 
+  const handleNationalityChange = (value: string) => {
+    updateFields({
+      nationality: value,
+      ...(value === 'Other' ? {} : { specifyNationality: '' }),
+    });
+  };
+
+  const handleTotalSiblingsChange = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    const count = Math.max(0, Number(digits || 0));
+    setFormData((current) => {
+      const siblings = Array.from({ length: count }, (_, index) => current.siblings[index] ?? {
+        name: '',
+        relation: 'brother',
+        dob: '',
+        age: '',
+        educationStatus: '',
+        currentlyStudying: '',
+        occupation: '',
+        monthlyIncomeOrFee: '',
+        maritalStatus: '',
+      });
+
+      return {
+        ...current,
+        totalSiblings: digits,
+        siblings,
+      };
+    });
+  };
+
+  const handleSiblingDobChange = (index: number, value: string) => {
+    updateArrayItem<SiblingInput>('siblings', index, {
+      dob: value,
+      age: calculateAgeFromDate(value),
+    });
+  };
+
   const handleHouseholdAssetHasChange = (key: HouseholdAssetKey, has: boolean) => {
     setFormData((current) => ({
       ...current,
@@ -1075,17 +1171,22 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const addArrayItem = (key: 'siblings' | 'relatives') => {
     setFormData((current) => {
       const item = key === 'siblings'
-        ? { name: '', age: '', occupation: '', monthlyIncomeOrFee: '' }
+        ? { name: '', relation: 'brother', dob: '', age: '', educationStatus: '', currentlyStudying: '', occupation: '', monthlyIncomeOrFee: '', maritalStatus: '' }
         : { relativeType: 'paternal_grandfather' as const, name: '', age: '', occupation: '', monthlyIncome: '', supportType: '' };
-      return { ...current, [key]: [...current[key], item] };
+      const next = [...current[key], item];
+      return { ...current, [key]: next, ...(key === 'siblings' ? { totalSiblings: String(next.length) } : {}) };
     });
   };
 
   const removeArrayItem = (key: 'siblings' | 'relatives', index: number) => {
-    setFormData((current) => ({
-      ...current,
-      [key]: current[key].filter((_, idx) => idx !== index),
-    }));
+    setFormData((current) => {
+      const next = current[key].filter((_, idx) => idx !== index);
+      return {
+        ...current,
+        [key]: next,
+        ...(key === 'siblings' ? { totalSiblings: String(next.length) } : {}),
+      };
+    });
   };
 
   const handleDocumentUpload = (document: DocumentInput) => {
@@ -1108,6 +1209,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const buildApplicationRequestBody = (saveStatus: 'draft' | 'submitted') => {
     const { householdAssetSelection, otherHouseholdAssets, ...formFields } = formData;
     const relativeInformationDisclosed = formFields.relativeInformationDisclosed === 'yes';
+    const totalBrothers = formFields.siblings.filter((sibling) => sibling.relation === 'brother').length;
+    const totalSisters = formFields.siblings.filter((sibling) => sibling.relation === 'sister').length;
+    const siblingsUnder12 = formFields.siblings.filter((sibling) => Number(sibling.age) < 12).length;
+    const registeredBrothers = formFields.siblings.filter((sibling) => sibling.relation === 'brother' && sibling.currentlyStudying === 'yes').length;
+    const registeredSisters = formFields.siblings.filter((sibling) => sibling.relation === 'sister' && sibling.currentlyStudying === 'yes').length;
     const householdAssets = [
       ...householdSelectionToApiRows(householdAssetSelection),
       ...otherHouseholdAssets
@@ -1121,6 +1227,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     return {
       ...formFields,
       relativeInformationDisclosed,
+      totalBrothers,
+      totalSisters,
+      registeredBrothers,
+      registeredSisters,
+      siblingsUnder12,
       relatives: relativeInformationDisclosed ? formFields.relatives : [],
       houseOwner: '',
       householdAssets,
@@ -1188,6 +1299,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   const guardianDetailsNeeded = formData.motherAlive !== 'yes' || formData.motherIsGuardian !== 'yes';
   const motherIsLiving = formData.motherAlive === 'yes' || formData.motherAlive === 'separated';
+  const siblingSummary = useMemo(() => {
+    const totalBrothers = formData.siblings.filter((sibling) => sibling.relation === 'brother').length;
+    const totalSisters = formData.siblings.filter((sibling) => sibling.relation === 'sister').length;
+    const marriedSiblings = formData.siblings.filter((sibling) => sibling.maritalStatus === 'married').length;
+    const siblingsUnder12 = formData.siblings.filter((sibling) => Number(sibling.age) < 12).length;
+
+    return { totalBrothers, totalSisters, marriedSiblings, siblingsUnder12 };
+  }, [formData.siblings]);
   const documentTypes = useMemo(() => {
     const types = [
       { type: 'child_photo', label: 'Child Photo' },
@@ -1498,6 +1617,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     if (['monthlyRent', 'rentPaidBy'].includes(field)) return formData.houseOwnershipStatus === 'rent';
     if (field === 'disabilityDetails') return formData.healthStatus === 'disabled';
     if (field === 'treatmentPlace') return formData.healthStatus === 'sick';
+    if (field === 'specifyNationality') return formData.nationality === 'Other';
     if (field === 'monthlyMedicalExpenses') return formData.healthStatus === 'sick' || formData.healthStatus === 'disabled';
     if (['currentClass', 'schoolName', 'schoolAddress', 'educationFeeStatus'].includes(field)) return formData.currentlyStudying;
     if (['notStudyingReason', 'educationStartCondition'].includes(field)) return !formData.currentlyStudying;
@@ -1541,6 +1661,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     { title: 'Home', fields: ['houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'residenceStructureType', 'residenceCategory', 'houseConditionRemarks', 'electricityAvailable', 'gasAvailable', 'waterAvailable', 'furnishingCondition', 'furnishingConditionRemarks'] },
     { title: 'Relatives', fields: ['relativeInformationDisclosed', 'relatives'] },
     { title: 'Household Assets', fields: ['householdAssetSelection'] },
+    { title: 'Child', fields: ['childName', 'gender', 'religion', 'syedStatus', 'nationality', 'specifyNationality', 'bFormNumber', 'dateOfBirth', 'age', 'totalSiblings', 'siblings', 'livingSituationNotes'] },
     { title: 'Health and Education', fields: ['healthStatus', 'disabilityDetails', 'treatmentPlace', 'monthlyMedicalExpenses', 'currentlyStudying', 'currentClass', 'schoolName', 'educationFeeStatus', 'monthlySchoolFee', 'notStudyingReason', 'educationStartCondition', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails'] },
     { title: 'Income and Aid', fields: ['careerGoal', 'childMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'notAppliedElsewhereReason'] },
   ];
@@ -2075,59 +2196,145 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Orphan Child Details</h2>
-            <p className="mt-1 text-sm text-slate-600">Add child family counts, siblings, and living situation.</p>
+            <p className="mt-1 text-sm text-slate-600">Add structured child details and sibling information.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {['caste', 'sect', 'totalBrothers', 'totalSisters', 'registeredBrothers', 'registeredSisters', 'siblingsUnder12'].map((field) => renderTextField(field as keyof FormData))}
+            {renderTextField('childName')}
+            {renderSelectField('gender', GENDER_OPTIONS)}
+            {renderSelectField('religion', RELIGION_OPTIONS)}
+            {renderSelectField('syedStatus', SYED_STATUS_OPTIONS)}
+            {renderSelectField('nationality', NATIONALITY_OPTIONS, handleNationalityChange)}
+            {formData.nationality === 'Other' ? renderTextField('specifyNationality') : null}
+            {renderTextField('bFormNumber')}
+            {renderTextField('dateOfBirth', 'date')}
+            {renderTextField('age', 'number')}
+            {renderTextField('totalSiblings', 'number', false, handleTotalSiblingsChange)}
             {renderTextField('livingSituationNotes')}
           </div>
-          <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-700">Add siblings information.</p>
-              <button type="button" onClick={() => addArrayItem('siblings')} className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
-                Add Sibling
-              </button>
+          <div className="grid gap-3 sm:grid-cols-4">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-semibold uppercase text-slate-500">Brothers</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{siblingSummary.totalBrothers}</p>
             </div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-semibold uppercase text-slate-500">Sisters</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{siblingSummary.totalSisters}</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-semibold uppercase text-slate-500">Married</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{siblingSummary.marriedSiblings}</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-semibold uppercase text-slate-500">Under 12</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{siblingSummary.siblingsUnder12}</p>
+            </div>
+          </div>
+          <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-sm font-semibold text-slate-900">Sibling Information / بہن بھائیوں کی معلومات</p>
             {formData.siblings.map((sibling, index) => (
-              <div key={index} className="rounded-2xl border border-slate-200 bg-white p-4">
-                <div className="grid gap-4 sm:grid-cols-2">
+              <div key={index} className="rounded-lg border border-slate-200 bg-white p-4">
+                <h3 className="mb-4 text-sm font-semibold text-slate-900">Sibling {index + 1}</h3>
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   <label className="grid gap-2 text-sm text-slate-700">
-                    <span>Name</span>
+                    <span>Sibling Name / نام *</span>
                     <input
                       value={sibling.name}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { name: event.target.value })}
-                      className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
                     />
                   </label>
                   <label className="grid gap-2 text-sm text-slate-700">
-                    <span>Age</span>
+                    <span>Relation / رشتہ *</span>
+                    <select
+                      value={sibling.relation}
+                      onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { relation: event.target.value })}
+                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                    >
+                      {SIBLING_RELATION_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="grid gap-2 text-sm text-slate-700">
+                    <span>DOB / تاریخ پیدائش *</span>
+                    <input
+                      value={sibling.dob}
+                      onChange={(event) => handleSiblingDobChange(index, event.target.value)}
+                      type="date"
+                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm text-slate-700">
+                    <span>Age / عمر</span>
                     <input
                       value={sibling.age}
-                      onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { age: event.target.value })}
+                      readOnly
                       type="number"
-                      className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+                      className="min-h-12 cursor-not-allowed rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 text-base text-slate-600 outline-none sm:text-sm"
                     />
                   </label>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
                   <label className="grid gap-2 text-sm text-slate-700">
-                    <span>Occupation</span>
-                    <input
+                    <span>Education Status / تعلیمی حیثیت *</span>
+                    <select
+                      value={sibling.educationStatus}
+                      onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { educationStatus: event.target.value })}
+                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                    >
+                      {EDUCATION_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="grid gap-2 text-sm text-slate-700">
+                    <span>Currently Studying / زیرِ تعلیم *</span>
+                    <select
+                      value={sibling.currentlyStudying}
+                      onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { currentlyStudying: event.target.value })}
+                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                    >
+                      <option value="">Select status</option>
+                      <option value="yes">Yes / ہاں</option>
+                      <option value="no">No / نہیں</option>
+                    </select>
+                  </label>
+                  <label className="grid gap-2 text-sm text-slate-700">
+                    <span>Occupation / پیشہ *</span>
+                    <select
                       value={sibling.occupation}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { occupation: event.target.value })}
-                      className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
-                    />
+                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                    >
+                      {OCCUPATION_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
                   </label>
                   <label className="grid gap-2 text-sm text-slate-700">
-                    <span>Monthly Income or Fee</span>
-                    <input
+                    <span>Monthly Income / ماہانہ آمدن *</span>
+                    <select
                       value={sibling.monthlyIncomeOrFee}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { monthlyIncomeOrFee: event.target.value })}
-                      className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
-                    />
+                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                    >
+                      {MONTHLY_INCOME_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="grid gap-2 text-sm text-slate-700">
+                    <span>Marital Status / ازدواجی حیثیت *</span>
+                    <select
+                      value={sibling.maritalStatus}
+                      onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { maritalStatus: event.target.value })}
+                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                    >
+                      {MARITAL_STATUS_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
                   </label>
                 </div>
-                <button type="button" onClick={() => removeArrayItem('siblings', index)} className="mt-4 rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500">
+                <button type="button" onClick={() => removeArrayItem('siblings', index)} className="mt-4 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500">
                   Remove Sibling
                 </button>
               </div>

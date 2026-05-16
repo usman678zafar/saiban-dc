@@ -49,12 +49,22 @@ function motherOccupationNeedsIncome(occupation?: string) {
 
 export const siblingSchema = z.object({
   name: optionalString,
+  relation: optionalEnum(['brother', 'sister']),
+  dob: parseDate.optional().refine((date) => !date || date <= new Date(), {
+    message: 'Sibling DOB cannot be in the future',
+  }).optional(),
   age: z.preprocess((value) => {
     if (typeof value === 'string') return Number(value);
     return value;
   }, z.number().int().positive().optional()),
+  educationStatus: optionalString,
+  currentlyStudying: optionalEnum(['yes', 'no']).transform((value) => {
+    if (value === undefined) return undefined;
+    return value === 'yes';
+  }).optional(),
   occupation: optionalString,
   monthlyIncomeOrFee: nonNegativeNumber.optional(),
+  maritalStatus: optionalEnum(['married', 'unmarried', 'widowed', 'divorced']),
 });
 
 export const relativeSchema = z.object({
@@ -208,6 +218,10 @@ const baseOrphanApplicationSchema = z.object({
   gender: optionalString,
   caste: optionalString,
   sect: optionalString,
+  religion: optionalString,
+  syedStatus: optionalString,
+  nationality: optionalString,
+  specifyNationality: optionalString,
   bFormNumber: z.string().transform((value) => value.replace(/\D/g, '')).refine((value) => value === '' || bFormRegex.test(value), {
     message: 'B-Form must contain 13 or 15 digits',
   }).optional(),
@@ -218,6 +232,10 @@ const baseOrphanApplicationSchema = z.object({
     if (typeof value === 'string') return Number(value);
     return value;
   }, z.number().int().gte(0).lte(12).optional()),
+  totalSiblings: z.preprocess((value) => {
+    if (typeof value === 'string') return Number(value);
+    return value;
+  }, z.number().int().min(0).optional()),
   totalBrothers: z.preprocess((value) => {
     if (typeof value === 'string') return Number(value);
     return value;
@@ -458,6 +476,52 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
       message: 'Disability details are required',
     });
   }
+
+  if (data.nationality === 'Other' && !data.specifyNationality) {
+    ctx.addIssue({
+      path: ['specifyNationality'],
+      code: z.ZodIssueCode.custom,
+      message: 'Specify nationality is required when nationality is Other',
+    });
+  }
+
+  if (data.totalSiblings !== undefined && (data.siblings?.length ?? 0) !== data.totalSiblings) {
+    ctx.addIssue({
+      path: ['siblings'],
+      code: z.ZodIssueCode.custom,
+      message: 'Sibling entries must match total number of siblings',
+    });
+  }
+
+  data.siblings?.forEach((sibling, index) => {
+    if (!sibling.name) {
+      ctx.addIssue({ path: ['siblings', index, 'name'], code: z.ZodIssueCode.custom, message: 'Sibling name is required' });
+    }
+    if (!sibling.relation) {
+      ctx.addIssue({ path: ['siblings', index, 'relation'], code: z.ZodIssueCode.custom, message: 'Sibling relation is required' });
+    }
+    if (!sibling.dob) {
+      ctx.addIssue({ path: ['siblings', index, 'dob'], code: z.ZodIssueCode.custom, message: 'Sibling DOB is required' });
+    }
+    if (sibling.age === undefined) {
+      ctx.addIssue({ path: ['siblings', index, 'age'], code: z.ZodIssueCode.custom, message: 'Sibling age is required' });
+    }
+    if (!sibling.educationStatus) {
+      ctx.addIssue({ path: ['siblings', index, 'educationStatus'], code: z.ZodIssueCode.custom, message: 'Sibling education status is required' });
+    }
+    if (sibling.currentlyStudying === undefined) {
+      ctx.addIssue({ path: ['siblings', index, 'currentlyStudying'], code: z.ZodIssueCode.custom, message: 'Sibling studying status is required' });
+    }
+    if (!sibling.occupation) {
+      ctx.addIssue({ path: ['siblings', index, 'occupation'], code: z.ZodIssueCode.custom, message: 'Sibling occupation is required' });
+    }
+    if (sibling.monthlyIncomeOrFee === undefined) {
+      ctx.addIssue({ path: ['siblings', index, 'monthlyIncomeOrFee'], code: z.ZodIssueCode.custom, message: 'Sibling monthly income is required' });
+    }
+    if (!sibling.maritalStatus) {
+      ctx.addIssue({ path: ['siblings', index, 'maritalStatus'], code: z.ZodIssueCode.custom, message: 'Sibling marital status is required' });
+    }
+  });
 
   if (data.healthStatus === 'sick' && !data.treatmentPlace) {
     ctx.addIssue({
