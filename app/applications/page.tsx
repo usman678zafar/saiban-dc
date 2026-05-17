@@ -31,12 +31,20 @@ export default async function ApplicationsPage({
 }) {
   const session = await getServerSession(authOptions);
   const isAdmin = session?.user?.role === 'admin';
+  const user = session?.user?.email
+    ? await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    })
+    : null;
+  const where = isAdmin ? undefined : { createdById: user?.id ?? '' };
 
   const page = Math.max(1, Number(searchParams.page) || 1);
   const skip = (page - 1) * PAGE_SIZE;
 
   const [records, total] = await Promise.all([
     prisma.orphanApplication.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       skip,
       take: PAGE_SIZE,
@@ -48,7 +56,7 @@ export default async function ApplicationsPage({
         updatedAt: true,
       },
     }) as Promise<ApplicationListRecord[]>,
-    prisma.orphanApplication.count(),
+    prisma.orphanApplication.count({ where }),
   ]);
 
   const applications: ApplicationListItem[] = records.map((application) => ({
