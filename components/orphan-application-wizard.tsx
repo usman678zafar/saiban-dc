@@ -855,6 +855,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const [gpsWarning, setGpsWarning] = useState<string | null>(null);
   const [isCapturingGps, setIsCapturingGps] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSubmissionSuccessModal, setShowSubmissionSuccessModal] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(initialApplicationId ?? null);
   const [documents, setDocuments] = useState<DocumentInput[]>(initialDocuments ?? []);
   const [addressOptions, setAddressOptions] = useState<AddressOptionInput[]>([]);
@@ -1486,6 +1487,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const submit = async (saveStatus: 'draft' | 'submitted') => {
     setIsSubmitting(true);
     setMessage(null);
+    if (saveStatus === 'submitted') {
+      setShowSubmissionSuccessModal(false);
+    }
 
     try {
       if (orphanAgeError) {
@@ -1511,7 +1515,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
       const application = await response.json();
       setApplicationId(application.id);
-      setMessage(saveStatus === 'submitted' ? 'Application submitted successfully.' : 'Draft saved successfully.');
+      if (saveStatus === 'submitted') {
+        setShowSubmissionSuccessModal(true);
+      } else {
+        setMessage('Draft saved successfully.');
+      }
       if (saveStatus === 'submitted' && !initialApplicationId) {
         window.localStorage.removeItem(storageKey);
         setShouldPersistNewApplication(false);
@@ -2034,6 +2042,35 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   return (
     <div className="space-y-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:space-y-6 sm:p-8">
+      {showSubmissionSuccessModal ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="submission-success-title"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-emerald-100 bg-white p-6 text-center shadow-2xl">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <svg className="h-9 w-9" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <h2 id="submission-success-title" className="mt-5 text-xl font-semibold text-slate-950">
+              Form Successfully Submitted
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              The application has been submitted successfully and is ready for review.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowSubmissionSuccessModal(false)}
+              className="mt-6 min-h-12 w-full rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      ) : null}
       
       <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 sm:pb-0">
         {Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1).map((item) => {

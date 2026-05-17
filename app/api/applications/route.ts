@@ -43,6 +43,155 @@ function validationErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Validation failed';
 }
 
+const draftStringFields = [
+  'registrationNumber', 'collectorId', 'collectorName', 'collectorProject', 'collectorAddress', 'collectorContact',
+  'fatherName', 'fatherCnic', 'fatherEducation', 'fatherTongue', 'fatherNativeArea', 'fatherOccupation', 'fatherCauseOfDeath',
+  'motherName', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherSeparationReason',
+  'motherEmploymentStatus', 'motherIsGuardian', 'motherContact', 'motherOccupation', 'motherDeathCause',
+  'guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue',
+  'guardianNativeArea', 'guardianContact', 'guardianZakatStatus', 'guardianOccupation', 'guardianFamilyHolder',
+  'paternalGrandfatherName', 'paternalGrandfatherOccupation', 'maternalGrandfatherName', 'maternalGrandfatherOccupation',
+  'province', 'city', 'district', 'tehsil', 'residentialArea', 'fullAddress', 'rentPaidBy', 'houseOwner', 'houseCondition',
+  'residenceStructureType', 'residenceCategory', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks',
+  'childName', 'gender', 'caste', 'sect', 'religion', 'specifyReligion', 'syedStatus', 'nationality', 'specifyNationality',
+  'bFormNumber', 'livingSituationNotes', 'healthStatus', 'disabilityDetails', 'disabilityType', 'disabilityCause',
+  'disabilityCauseDetails', 'disabilitySince', 'treatmentOngoing', 'chronicDisease', 'specifyDisease', 'treatmentPlace',
+  'notStudyingReason', 'educationStartCondition', 'currentClass', 'schoolName', 'schoolAddress', 'madrasaName',
+  'madrasaEducationDetails', 'educationFeeStatus', 'schoolTransportMode', 'educationFree', 'currentSkillLearning',
+  'currentSkill', 'technicalSkillInterest', 'technicalSkill', 'householdHasMonthlyIncome', 'childEarnsIncome',
+  'childWorkNature', 'assistanceApplied', 'assistanceAppliedWhere', 'careerGoal', 'technicalInterest', 'learningSkill',
+  'otherAidSource', 'notAppliedElsewhereReason', 'guardianSignatureFileKey', 'mainSaibanId', 'migrationErrors',
+] as const;
+
+const draftIntFields = [
+  'fatherAge', 'motherAge', 'guardianFamilyMembersCount', 'paternalGrandfatherAge', 'maternalGrandfatherAge',
+  'age', 'totalSiblings', 'totalBrothers', 'totalSisters', 'registeredBrothers', 'registeredSisters',
+  'siblingsUnder12', 'totalFamilyMembers', 'householdEarnersCount',
+] as const;
+
+const draftFloatFields = [
+  'motherMonthlyIncome', 'guardianFamilyHolderAmount', 'guardianMonthlyIncome', 'paternalGrandfatherIncome',
+  'maternalGrandfatherIncome', 'longitude', 'latitude', 'gpsAccuracyMeters', 'monthlyRent', 'monthlyMedicalExpenses',
+  'monthlySchoolFee', 'schoolDistanceKm', 'childMonthlyIncome', 'totalHouseholdIncome', 'monthlyAidAmount',
+] as const;
+
+const draftBooleanFields = [
+  'motherIsHousewife', 'motherRemarried', 'relativeInformationDisclosed', 'electricityAvailable', 'gasAvailable',
+  'waterAvailable', 'childLivesWithMother', 'currentlyStudying', 'enrolledInMadrasa', 'educationUndertakingAccepted',
+  'receivingOtherAid', 'termsAccepted',
+] as const;
+
+const draftDateFields = [
+  'fatherDob', 'fatherDateOfDeath', 'motherDob', 'motherDeathDate', 'gpsCapturedAt', 'dateOfBirth',
+  'illnessSince', 'schoolStudyingSince', 'termsAcceptedAt',
+] as const;
+
+const applicationStatuses = ['draft', 'submitted', 'needs_correction', 'validated', 'rejected', 'migrated'];
+const migrationStatuses = ['pending', 'validated', 'migrated', 'rejected'];
+const relativeTypes = ['paternal_grandfather', 'maternal_grandfather', 'paternal_uncle', 'maternal_uncle'];
+
+function cleanString(value: unknown) {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
+function cleanNumber(value: unknown, integer = false) {
+  if (value === undefined || value === null || value === '') return undefined;
+  const parsed = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(parsed)) return undefined;
+  return integer ? Math.trunc(parsed) : parsed;
+}
+
+function cleanBoolean(value: unknown) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    if (['true', '1', 'yes'].includes(value.toLowerCase())) return true;
+    if (['false', '0', 'no'].includes(value.toLowerCase())) return false;
+  }
+  return undefined;
+}
+
+function cleanDate(value: unknown) {
+  if (!value) return undefined;
+  const date = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function sanitizeDraftApplication(input: any) {
+  const draft: any = {};
+
+  for (const field of draftStringFields) {
+    const value = cleanString(input[field]);
+    if (value !== undefined) draft[field] = value;
+  }
+
+  for (const field of draftIntFields) {
+    const value = cleanNumber(input[field], true);
+    if (value !== undefined) draft[field] = value;
+  }
+
+  for (const field of draftFloatFields) {
+    const value = cleanNumber(input[field]);
+    if (value !== undefined) draft[field] = value;
+  }
+
+  for (const field of draftBooleanFields) {
+    const value = cleanBoolean(input[field]);
+    if (value !== undefined) draft[field] = value;
+  }
+
+  for (const field of draftDateFields) {
+    const value = cleanDate(input[field]);
+    if (value !== undefined) draft[field] = value;
+  }
+
+  draft.status = applicationStatuses.includes(input.status) ? input.status : 'draft';
+  if (draft.status !== 'submitted') draft.status = 'draft';
+  if (migrationStatuses.includes(input.migrationStatus)) draft.migrationStatus = input.migrationStatus;
+  if (Array.isArray(input.childHobbies)) draft.childHobbies = input.childHobbies.filter((value: unknown) => typeof value === 'string' && value.trim()).join(',');
+
+  draft.siblings = Array.isArray(input.siblings)
+    ? input.siblings.map((sibling: any) => ({
+      name: cleanString(sibling.name),
+      relation: cleanString(sibling.relation),
+      dob: cleanDate(sibling.dob),
+      age: cleanNumber(sibling.age, true),
+      educationStatus: cleanString(sibling.educationStatus),
+      currentlyStudying: cleanBoolean(sibling.currentlyStudying),
+      occupation: cleanString(sibling.occupation),
+      monthlyIncomeOrFee: cleanNumber(sibling.monthlyIncomeOrFee),
+      maritalStatus: cleanString(sibling.maritalStatus),
+    }))
+    : undefined;
+
+  draft.relatives = Array.isArray(input.relatives)
+    ? input.relatives
+      .map((relative: any) => ({
+        relativeType: relativeTypes.includes(relative.relativeType) ? relative.relativeType : 'paternal_grandfather',
+        name: cleanString(relative.name),
+        age: cleanNumber(relative.age, true),
+        occupation: cleanString(relative.occupation),
+        occupationOther: cleanString(relative.occupationOther),
+        monthlyIncome: cleanNumber(relative.monthlyIncome),
+        supportType: cleanString(relative.supportType),
+        supportTypeOther: cleanString(relative.supportTypeOther),
+      }))
+    : undefined;
+
+  draft.householdAssets = Array.isArray(input.householdAssets)
+    ? input.householdAssets
+      .map((asset: any) => ({
+        assetType: cleanString(asset.assetType),
+        quantity: cleanNumber(asset.quantity),
+        value: cleanNumber(asset.value),
+      }))
+      .filter((asset: { assetType?: string }) => Boolean(asset.assetType))
+    : undefined;
+
+  return draft;
+}
+
 function normalizeConditionalPayload(payload: any) {
   const next = { ...payload };
 
@@ -238,7 +387,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const normalizedBody = normalizeConditionalPayload(body);
-    const validated = getOrphanApplicationSchema.parse(normalizedBody) as any;
+    const requestedStatus = normalizedBody.status === 'submitted' ? 'submitted' : 'draft';
+    const validated = requestedStatus === 'submitted'
+      ? getOrphanApplicationSchema.parse({ ...normalizedBody, status: 'submitted' }) as any
+      : sanitizeDraftApplication({ ...normalizedBody, status: 'draft' });
     const { siblings, relatives, householdAssets, ...payload } = validated;
 
     const status = payload.status ?? 'draft';
@@ -288,7 +440,10 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const normalizedBody = normalizeConditionalPayload(body);
-    const validated = getOrphanApplicationSchema.parse(normalizedBody) as any;
+    const requestedStatus = normalizedBody.status === 'submitted' ? 'submitted' : 'draft';
+    const validated = requestedStatus === 'submitted'
+      ? getOrphanApplicationSchema.parse({ ...normalizedBody, status: 'submitted' }) as any
+      : sanitizeDraftApplication({ ...normalizedBody, status: 'draft' });
     const application = await prisma.orphanApplication.findUnique({ where: { id } });
     if (!application) {
       return NextResponse.json({ message: 'Application not found' }, { status: 404 });
