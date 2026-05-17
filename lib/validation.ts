@@ -236,7 +236,7 @@ const baseOrphanApplicationSchema = z.object({
   age: z.preprocess((value) => {
     if (typeof value === 'string') return Number(value);
     return value;
-  }, z.number().int().gte(0).lte(12).optional()),
+  }, z.number().int().gte(0).lte(11).optional()),
   totalSiblings: z.preprocess((value) => {
     if (typeof value === 'string') return Number(value);
     return value;

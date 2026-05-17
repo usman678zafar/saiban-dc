@@ -15,14 +15,20 @@ export async function GET(request: NextRequest) {
   const format = new URL(request.url).searchParams.get('format') || 'csv';
   const applications = await prisma.orphanApplication.findMany({
     orderBy: { createdAt: 'desc' },
+    include: {
+      siblings: true,
+      relatives: true,
+      householdAssets: true,
+    },
   });
-  type ApplicationRow = (typeof applications)[number];
 
   if (format === 'json') {
     return NextResponse.json(applications);
   }
 
-  const headers: Array<keyof ApplicationRow> = [
+  type ApplicationRow = (typeof applications)[number];
+
+  const scalarHeaders: Array<keyof ApplicationRow> = [
     'id',
     'registrationNumber',
     'collectorId',
@@ -55,19 +61,24 @@ export async function GET(request: NextRequest) {
     'updatedAt',
   ];
 
-  const csvRows = [headers.join(',')];
+  const nestedHeaders = ['siblings', 'relatives', 'householdAssets'] as const;
+  const allHeaders = [...scalarHeaders, ...nestedHeaders];
+
+  const csvRows = [allHeaders.join(',')];
   const csvBody = applications
-    .map((application: ApplicationRow) =>
-      headers
-        .map((header: keyof ApplicationRow) => {
-          const value = application[header];
-          if (typeof value === 'string') return JSON.stringify(value);
-          if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-          if (value instanceof Date) return JSON.stringify(value.toISOString());
-          return '';
-        })
-        .join(',')
-    )
+    .map((application: ApplicationRow) => {
+      const scalarValues = scalarHeaders.map((header) => {
+        const value = application[header];
+        if (typeof value === 'string') return JSON.stringify(value);
+        if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+        if (value instanceof Date) return JSON.stringify(value.toISOString());
+        return '';
+      });
+      const nestedValues = nestedHeaders.map((header) =>
+        JSON.stringify(JSON.stringify(application[header]))
+      );
+      return [...scalarValues, ...nestedValues].join(',');
+    })
     .join('\n');
 
   return new Response(csvRows.concat(csvBody ? [csvBody] : []).join('\n'), {

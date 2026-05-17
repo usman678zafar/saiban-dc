@@ -1205,21 +1205,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     });
   };
 
-  const handleCurrentlyStudyingChange = (value: boolean) => {
-    updateFields({
-      currentlyStudying: value,
-      ...(value
-        ? { notStudyingReason: '', educationStartCondition: '' }
-        : {
-            currentClass: '',
-            schoolName: '',
-            schoolAddress: '',
-            educationFeeStatus: '',
-            monthlySchoolFee: '',
-          }),
-    });
-  };
-
   const handleTreatmentOngoingChange = (value: string) => {
     updateFields({
       treatmentOngoing: value,
@@ -1415,7 +1400,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     const relativeInformationDisclosed = formFields.relativeInformationDisclosed === 'yes';
     const totalBrothers = formFields.siblings.filter((sibling) => sibling.relation === 'brother').length;
     const totalSisters = formFields.siblings.filter((sibling) => sibling.relation === 'sister').length;
-    const siblingsUnder12 = formFields.siblings.filter((sibling) => Number(sibling.age) < 12).length;
+    const siblingsUnder12 = formFields.siblings.filter((sibling) => sibling.age !== '' && Number(sibling.age) < 12).length;
     const registeredBrothers = formFields.siblings.filter((sibling) => sibling.relation === 'brother' && sibling.currentlyStudying === 'yes').length;
     const registeredSisters = formFields.siblings.filter((sibling) => sibling.relation === 'sister' && sibling.currentlyStudying === 'yes').length;
     const householdAssets = [
@@ -1561,9 +1546,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       types.push({ type: 'mother_death_certificate', label: "Mother's Death Certificate Copy" });
     }
 
-    if (guardianDetailsNeeded && formData.motherAlive === 'no') {
-      types.push({ type: 'guardian_cnic', label: "Guardian's CNIC Copy" });
-    } else if (guardianDetailsNeeded && formData.motherAlive !== 'no') {
+    if (guardianDetailsNeeded) {
       types.push({ type: 'guardian_cnic', label: "Guardian's CNIC Copy" });
     }
 
