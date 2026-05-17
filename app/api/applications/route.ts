@@ -104,13 +104,9 @@ function normalizeConditionalPayload(payload: any) {
     clearPayloadFields(next, ['guardianOccupation']);
   }
 
-  next.guardianZakatStatus = '';
-
   if (next.guardianFamilyHolder !== 'yes') {
     clearPayloadFields(next, ['guardianFamilyHolderAmount', 'guardianFamilyMembersCount']);
   }
-
-  next.guardianFamilyHolderAmount = '';
 
   if (next.relativeInformationDisclosed === false || next.relativeInformationDisclosed === 'false') {
     next.relatives = [];
@@ -174,8 +170,11 @@ function normalizeConditionalPayload(payload: any) {
 function buildRegistrationNumber() {
   const now = new Date();
   const datePart = now.toISOString().slice(0, 10).replace(/-/g, '');
-  const timePart = `${now.getHours()}${now.getMinutes()}${now.getSeconds()}${now.getMilliseconds()}`.padStart(9, '0');
-  return `APP-${datePart}-${timePart}`;
+  const HH = String(now.getHours()).padStart(2, '0');
+  const MM = String(now.getMinutes()).padStart(2, '0');
+  const SS = String(now.getSeconds()).padStart(2, '0');
+  const ms = String(now.getMilliseconds()).padStart(3, '0');
+  return `APP-${datePart}-${HH}${MM}${SS}${ms}`;
 }
 
 async function generateRegistrationNumber() {
@@ -281,7 +280,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { id, siblings, relatives, householdAssets, ...payload } = body;
+  const { id } = body;
   if (!id || typeof id !== 'string') {
     return NextResponse.json({ message: 'Missing application id' }, { status: 400 });
   }

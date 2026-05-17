@@ -5,6 +5,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 
+const PAGE_SIZE = 50;
+
 type ApplicationListItem = {
   id: string;
   registrationNumber: string | null;
@@ -14,23 +16,38 @@ type ApplicationListItem = {
   updatedAt: Date;
 };
 
-export default async function AdminApplicationsPage() {
+export default async function AdminApplicationsPage({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications');
   if (session.user.role !== 'admin') redirect('/dashboard');
 
-  const applications = await prisma.orphanApplication.findMany({
-    orderBy: { updatedAt: 'desc' },
-    take: 25,
-    select: {
-      id: true,
-      registrationNumber: true,
-      childName: true,
-      status: true,
-      migrationStatus: true,
-      updatedAt: true,
-    },
-  }) as ApplicationListItem[];
+  const page = Math.max(1, Number(searchParams.page) || 1);
+  const skip = (page - 1) * PAGE_SIZE;
+
+  const [applications, total] = await Promise.all([
+    prisma.orphanApplication.findMany({
+      orderBy: { updatedAt: 'desc' },
+      skip,
+      take: PAGE_SIZE,
+      select: {
+        id: true,
+        registrationNumber: true,
+        childName: true,
+        status: true,
+        migrationStatus: true,
+        updatedAt: true,
+      },
+    }) as Promise<ApplicationListItem[]>,
+    prisma.orphanApplication.count(),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const hasPrev = page > 1;
+  const hasNext = page < totalPages;
 
   return (
     <AdminShell email={session.user.email}>
@@ -64,41 +81,61 @@ export default async function AdminApplicationsPage() {
         </div>
 
         <div className="hidden overflow-x-auto md:block">
-        <table className="min-w-full text-left text-sm text-[#506784]">
-          <thead className="bg-[#f6f9fd] text-xs uppercase tracking-[0.12em] text-[#7d8fa6]">
-            <tr>
-              <th className="px-4 py-3">Application</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Migration</th>
-              <th className="px-4 py-3">Updated</th>
-              <th className="px-4 py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {applications.length === 0 ? (
+          <table className="min-w-full text-left text-sm text-[#506784]">
+            <thead className="bg-[#f6f9fd] text-xs uppercase tracking-[0.12em] text-[#7d8fa6]">
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
+                <th className="px-4 py-3">Application</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Migration</th>
+                <th className="px-4 py-3">Updated</th>
+                <th className="px-4 py-3">Action</th>
               </tr>
-            ) : (
-              applications.map((application: ApplicationListItem) => (
-                <tr key={application.id} className="border-t border-[#edf2f7] hover:bg-[#f8fbff]">
-                  <td className="px-4 py-4">
-                    <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
-                    <div className="text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
-                  </td>
-                  <td className="px-4 py-4 capitalize">{application.status}</td>
-                  <td className="px-4 py-4 capitalize">{application.migrationStatus}</td>
-                  <td className="px-4 py-4 text-[#8a9bb3]">{application.updatedAt.toLocaleDateString()}</td>
-                  <td className="px-4 py-4">
-                    <Link href={`/admin/applications/${application.id}`} className="rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff]">
-                      Review
-                    </Link>
-                  </td>
+            </thead>
+            <tbody>
+              {applications.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
                 </tr>
-              ))
+              ) : (
+                applications.map((application: ApplicationListItem) => (
+                  <tr key={application.id} className="border-t border-[#edf2f7] hover:bg-[#f8fbff]">
+                    <td className="px-4 py-4">
+                      <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
+                      <div className="text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
+                    </td>
+                    <td className="px-4 py-4 capitalize">{application.status}</td>
+                    <td className="px-4 py-4 capitalize">{application.migrationStatus}</td>
+                    <td className="px-4 py-4 text-[#8a9bb3]">{application.updatedAt.toLocaleDateString()}</td>
+                    <td className="px-4 py-4">
+                      <Link href={`/admin/applications/${application.id}`} className="rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff]">
+                        Review
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-[#edf2f7] px-4 py-3 text-sm text-[#5f718a]">
+          <span>{total === 0 ? 'No records' : `Showing ${skip + 1}–${Math.min(skip + PAGE_SIZE, total)} of ${total}`}</span>
+          <div className="flex gap-2">
+            {hasPrev ? (
+              <Link href={`/admin/applications?page=${page - 1}`} className="rounded-lg border border-[#dbe4ef] px-3 py-1.5 text-xs font-semibold hover:bg-[#f6f9fd]">
+                Previous
+              </Link>
+            ) : (
+              <span className="rounded-lg border border-[#edf2f7] px-3 py-1.5 text-xs font-semibold text-[#c2d0e0]">Previous</span>
             )}
-          </tbody>
-        </table>
+            {hasNext ? (
+              <Link href={`/admin/applications?page=${page + 1}`} className="rounded-lg border border-[#dbe4ef] px-3 py-1.5 text-xs font-semibold hover:bg-[#f6f9fd]">
+                Next
+              </Link>
+            ) : (
+              <span className="rounded-lg border border-[#edf2f7] px-3 py-1.5 text-xs font-semibold text-[#c2d0e0]">Next</span>
+            )}
+          </div>
         </div>
       </div>
     </AdminShell>
