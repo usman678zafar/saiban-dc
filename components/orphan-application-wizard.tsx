@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { labels } from '@/lib/labels';
 import { pakistanAddressData } from '@/lib/pakistan-address-data';
@@ -843,6 +843,7 @@ function normalizeInitialData(data: FormData): FormData {
 
 export default function OrphanApplicationWizard({ initialData, initialDocuments, initialApplicationId }: OrphanApplicationWizardProps) {
   const router = useRouter();
+  const wizardRef = useRef<HTMLDivElement>(null);
   const mergedData = useMemo(() => normalizeInitialData({ ...defaultData, ...initialData }), [initialData]);
   const storageKey = useMemo(() => {
     const collectorKey = mergedData.collectorId || mergedData.collectorCnic || 'unknown';
@@ -1392,8 +1393,15 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     }
   };
 
-  const goNext = () => setStep((current) => Math.min(current + 1, TOTAL_STEPS));
-  const goBack = () => setStep((current) => Math.max(current - 1, 1));
+  const goToStep = (nextStep: number) => {
+    setStep(Math.min(Math.max(nextStep, 1), TOTAL_STEPS));
+    window.requestAnimationFrame(() => {
+      wizardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const goNext = () => goToStep(step + 1);
+  const goBack = () => goToStep(step - 1);
 
   const buildApplicationRequestBody = (saveStatus: 'draft' | 'submitted') => {
     const { householdAssetSelection, otherHouseholdAssets, ...formFields } = formData;
@@ -1732,9 +1740,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   }, [addressOptions, formData.district, formData.province]);
 
   const renderRequiredMark = (required = true) => (required ? <span className="text-rose-600"> *</span> : null);
-  const fieldWrapperClass = 'grid content-start gap-2 text-sm text-slate-700 [&>span:first-child]:flex [&>span:first-child]:min-h-12 [&>span:first-child]:items-start [&>span:first-child]:leading-6';
-  const fieldLabelClass = 'flex min-h-12 items-start leading-6';
-  const fieldControlClass = 'h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm';
+  const fieldWrapperClass = 'grid min-w-0 content-start gap-2 text-sm leading-6 text-slate-700 [&>span:first-child]:block [&>span:first-child]:min-w-0 [&>span:first-child]:break-words [&>span:first-child]:font-medium';
+  const fieldLabelClass = 'block min-w-0 break-words font-medium leading-6';
+  const fieldControlClass = 'min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-3 text-base leading-6 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-sm';
   const disabledFieldControlClass = 'disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500';
   const renderFieldLabel = (field: keyof FormData, required = true) => (
     <span className={fieldLabelClass}>{fieldLabel(field)}{renderRequiredMark(required)}</span>
@@ -1768,7 +1776,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         onChange={(event) => updateField(field, event.target.value)}
         maxLength={maxLength}
         rows={4}
-        className="min-h-28 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+        className="min-h-28 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-3 text-base leading-6 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-sm"
       />
     </label>
   );
@@ -1949,14 +1957,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   );
 
   const renderCheckbox = (field: keyof FormData, labelText?: string) => (
-    <label key={field} className="flex min-h-12 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
+    <label key={field} className="flex min-h-12 items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-4 text-sm leading-6 text-slate-700 sm:items-center sm:px-4">
       <input
         type="checkbox"
         checked={formData[field] as boolean}
         onChange={(event) => updateField(field, event.target.checked)}
-        className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+        className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500 sm:mt-0"
       />
-      <span>{labelText ?? fieldLabel(field)}</span>
+      <span className="min-w-0 break-words">{labelText ?? fieldLabel(field)}</span>
     </label>
   );
 
@@ -2023,8 +2031,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     { title: 'Income and Aid', fields: ['totalFamilyMembers', 'householdHasMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'childEarnsIncome', 'childWorkNature', 'childMonthlyIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'assistanceApplied', 'assistanceAppliedWhere'] as Array<keyof FormData> },
   ];
 
+  const steps = Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1);
+  const currentStepTitle = stepTitles[step - 1] ?? '';
+  const progressPercentage = Math.round((step / TOTAL_STEPS) * 100);
+
   return (
-    <div className="space-y-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:space-y-6 sm:p-8">
+    <div ref={wizardRef} className="min-w-0 scroll-mt-24 space-y-5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm [&_h2]:text-lg [&_h2]:leading-7 [&_h3]:break-words sm:space-y-6 sm:p-8 sm:[&_h2]:text-xl">
       {showSubmissionSuccessModal ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-6"
@@ -2055,27 +2067,63 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       ) : null}
       
-      <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 sm:pb-0">
-        {Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1).map((item) => {
-          const complete = isStepComplete(item);
-          return (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setStep(item)}
-              className={`relative min-w-[168px] snap-start rounded-lg border px-3 py-3 text-sm font-semibold leading-5 transition sm:min-w-0 ${item === step ? 'border-blue-600 bg-blue-50 text-blue-900' : complete ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-100' : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100'}`}
-            >
-              <span className="flex items-center justify-center gap-1.5">
-                {complete ? (
-                  <svg className="h-4 w-4 shrink-0 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+      <div className="space-y-3">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 sm:hidden">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Step {step} of {TOTAL_STEPS}</p>
+              <p className="mt-1 break-words text-base font-semibold leading-6 text-slate-950">{currentStepTitle}</p>
+            </div>
+            <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm">{progressPercentage}%</span>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200" aria-hidden="true">
+            <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${progressPercentage}%` }} />
+          </div>
+        </div>
+
+        <div className="-mx-3 flex snap-x gap-2 overflow-x-auto px-3 pb-1 sm:hidden">
+          {steps.map((item) => {
+            const complete = isStepComplete(item);
+            return (
+              <button
+                key={item}
+                type="button"
+                onClick={() => goToStep(item)}
+                aria-label={`Go to step ${item}: ${stepTitles[item - 1]}`}
+                className={`flex h-10 min-w-10 snap-start items-center justify-center rounded-lg border text-sm font-semibold transition ${item === step ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : complete ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-600'}`}
+              >
+                {complete && item !== step ? (
+                  <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                ) : null}
-                {item}. {stepTitles[item - 1]}
-              </span>
-            </button>
-          );
-        })}
+                ) : item}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="hidden gap-2 sm:grid sm:grid-cols-4">
+          {steps.map((item) => {
+            const complete = isStepComplete(item);
+            return (
+              <button
+                key={item}
+                type="button"
+                onClick={() => goToStep(item)}
+                className={`relative min-w-0 rounded-lg border px-3 py-3 text-sm font-semibold leading-5 transition ${item === step ? 'border-blue-600 bg-blue-50 text-blue-900' : complete ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-100' : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100'}`}
+              >
+                <span className="flex min-w-0 items-center justify-center gap-1.5">
+                  {complete ? (
+                    <svg className="h-4 w-4 shrink-0 text-emerald-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  ) : null}
+                  <span className="min-w-0 truncate">{item}. {stepTitles[item - 1]}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {message ? (
@@ -2219,13 +2267,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <h2 className="text-xl font-semibold text-slate-900">Close Relatives / قریبی رشتہ دار</h2>
             <p className="mt-1 text-sm text-slate-600">Optionally collect close relative details for support assessment and emergency reference.</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
             <fieldset className="space-y-3">
-              <legend className="text-sm font-semibold text-slate-900">
+              <legend className="text-sm font-semibold leading-6 text-slate-900">
                 Do you want to provide close relatives' information? / قریبی رشتہ داروں کی معلومات فراہم کرنا چاہتے ہیں؟
               </legend>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-700">
-                <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2">
+              <div className="grid gap-3 text-sm text-slate-700 sm:flex sm:flex-wrap">
+                <label className="flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 sm:w-auto">
                   <input
                     type="radio"
                     name="relativeInformationDisclosed"
@@ -2235,33 +2283,33 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   />
                   <span>Yes / ہاں</span>
                 </label>
-                <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2">
+                <label className="flex min-h-11 w-full cursor-pointer items-start gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 sm:w-auto sm:items-center">
                   <input
                     type="radio"
                     name="relativeInformationDisclosed"
-                    className="h-4 w-4 accent-blue-600"
+                    className="mt-1 h-4 w-4 accent-blue-600 sm:mt-0"
                     checked={formData.relativeInformationDisclosed === 'no'}
                     onChange={() => handleRelativeDisclosureChange('no')}
                   />
-                  <span>No / Not Willing to Disclose / نہیں / معلومات فراہم نہیں کرنا چاہتے</span>
+                  <span className="break-words">No / Not Willing to Disclose / نہیں / معلومات فراہم نہیں کرنا چاہتے</span>
                 </label>
               </div>
             </fieldset>
           </div>
           {formData.relativeInformationDisclosed === 'yes' ? (
-            <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-center justify-between">
+            <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">Relative Entries / رشتہ داروں کی تفصیلات</h3>
                 <p className="text-sm text-slate-600">Add one card for each close relative willing to share information.</p>
               </div>
-              <button type="button" onClick={() => addArrayItem('relatives')} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
+              <button type="button" onClick={() => addArrayItem('relatives')} className="min-h-11 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 sm:w-auto">
                 Add Relative
               </button>
             </div>
             <div className="space-y-4">
               {formData.relatives.map((relative, index) => (
-                <div key={index} className="rounded-2xl border border-slate-200 bg-white p-4">
+                <div key={index} className="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className={fieldWrapperClass}>
                       <span>Relative Relationship / رشتہ داری *</span>
@@ -2284,7 +2332,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       />
                     </label>
                   </div>
-                  <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                  <div className="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
                     <label className={fieldWrapperClass}>
                       <span>Occupation / پیشہ *</span>
                       <select
@@ -2351,7 +2399,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   <button
                     type="button"
                     onClick={() => removeArrayItem('relatives', index)}
-                    className="mt-4 rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500"
+                    className="mt-4 min-h-11 w-full rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500 sm:w-auto"
                   >
                     Remove Relative
                   </button>
@@ -2380,7 +2428,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   type="button"
                   onClick={handleCaptureGps}
                   disabled={isCapturingGps}
-                  className="min-h-12 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="min-h-12 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 >
                   {isCapturingGps ? 'Capturing GPS...' : 'GPS مقام حاصل کریں / Capture GPS Location'}
                 </button>
@@ -2489,13 +2537,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {HOUSEHOLD_ASSET_KEYS.map((key) => {
               if (key === 'other') {
                 return (
-                  <div key={key} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:col-span-2">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                  <div key={key} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:col-span-2 sm:p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3 sm:items-center">
                       <span className="text-base font-semibold text-slate-900">{householdAssetDisplayLabel(key)}</span>
                       <button
                         type="button"
                         onClick={addOtherHouseholdAsset}
-                        className="min-h-10 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500"
+                        className="min-h-11 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 sm:w-auto"
                       >
                         + Add / شامل کریں
                       </button>
@@ -2506,15 +2554,15 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       ) : (
                         formData.otherHouseholdAssets.map((asset, index) => (
                           <div key={index} className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_auto]">
-                            <label className="grid gap-1.5 text-sm text-slate-700">
+                            <label className="grid min-w-0 gap-1.5 text-sm text-slate-700">
                               <span>Item / چیز</span>
                               <input
                                 value={asset.item}
                                 onChange={(event) => updateOtherHouseholdAsset(index, { item: event.target.value })}
-                                className="min-h-12 rounded-lg border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+                                className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-sm"
                               />
                             </label>
-                            <label className="grid gap-1.5 text-sm text-slate-700">
+                            <label className="grid min-w-0 gap-1.5 text-sm text-slate-700">
                               <span>Value (PKR) / قدر</span>
                               <input
                                 value={asset.value}
@@ -2523,13 +2571,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                                 inputMode="decimal"
                                 min={0}
                                 step="any"
-                                className="min-h-12 rounded-lg border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+                                className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-sm"
                               />
                             </label>
                             <button
                               type="button"
                               onClick={() => removeOtherHouseholdAsset(index)}
-                              className="self-end rounded-lg bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-500"
+                              className="min-h-12 w-full self-end rounded-lg bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-500 sm:w-auto"
                             >
                               Remove
                             </button>
@@ -2543,12 +2591,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               const entry = formData.householdAssetSelection[key];
               const showGrams = assetUsesGrams(key);
               return (
-                <div key={key} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                    <span className="text-base font-semibold text-slate-900">
+                <div key={key} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3 sm:items-center">
+                    <span className="text-base font-semibold leading-6 text-slate-900">
                       {householdAssetDisplayLabel(key)}
                     </span>
-                    <div className="flex shrink-0 items-center gap-3 text-sm text-slate-700" role="group" aria-label={`${householdAssetDisplayLabel(key)} موجود ہے؟`}>
+                    <div className="flex w-full items-center justify-between gap-3 text-sm text-slate-700 sm:w-auto sm:justify-start" role="group" aria-label={`${householdAssetDisplayLabel(key)} موجود ہے؟`}>
                       <label className="flex cursor-pointer items-center gap-1.5">
                         <input
                           type="radio"
@@ -2574,7 +2622,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   {entry.has ? (
                     <div className={`mt-3 grid gap-3 ${showGrams ? 'sm:grid-cols-2' : ''}`}>
                       {showGrams ? (
-                        <label className="grid gap-1.5 text-sm text-slate-700">
+                        <label className="grid min-w-0 gap-1.5 text-sm text-slate-700">
                           <span>
                             گرام <span className="text-slate-500">(Grams)</span>
                           </span>
@@ -2585,12 +2633,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                             inputMode="decimal"
                             min={0}
                             step="any"
-                            className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+                            className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-sm"
                             placeholder="0"
                           />
                         </label>
                       ) : null}
-                      <label className={`grid gap-1.5 text-sm text-slate-700 ${showGrams ? '' : 'sm:col-span-2'}`}>
+                      <label className={`grid min-w-0 gap-1.5 text-sm text-slate-700 ${showGrams ? '' : 'sm:col-span-2'}`}>
                         <span>
                           قدر (روپے) <span className="text-slate-500">/ Value (PKR)</span>
                         </span>
@@ -2601,7 +2649,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                           inputMode="decimal"
                           min={0}
                           step="any"
-                          className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+                          className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-sm"
                           placeholder="0"
                         />
                       </label>
@@ -2638,7 +2686,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             ) : null}
             {renderTextField('totalSiblings', 'number', false, handleTotalSiblingsChange)}
           </div>
-          <div className="grid gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
               <p className="text-xs font-semibold uppercase text-slate-500">Brothers</p>
               <p className="mt-1 text-lg font-semibold text-slate-900">{siblingSummary.totalBrothers}</p>
@@ -2656,10 +2704,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               <p className="mt-1 text-lg font-semibold text-slate-900">{siblingSummary.siblingsUnder12}</p>
             </div>
           </div>
-          <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
             <p className="text-sm font-semibold text-slate-900">Sibling Information / بہن بھائیوں کی معلومات</p>
             {formData.siblings.map((sibling, index) => (
-              <div key={index} className="rounded-lg border border-slate-200 bg-white p-4">
+              <div key={index} className="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
                 <h3 className="mb-4 text-sm font-semibold text-slate-900">Sibling {index + 1}</h3>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   <label className={fieldWrapperClass}>
@@ -2761,7 +2809,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     </select>
                   </label>
                 </div>
-                <button type="button" onClick={() => removeArrayItem('siblings', index)} className="mt-4 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500">
+                <button type="button" onClick={() => removeArrayItem('siblings', index)} className="mt-4 min-h-11 w-full rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500 sm:w-auto">
                   Remove Sibling
                 </button>
               </div>
@@ -2810,9 +2858,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {renderBooleanSelect('currentlyStudying', handleSchoolEnrollmentChange, 'Yes / ہاں', 'No / نہیں')}
             {renderBooleanSelect('enrolledInMadrasa', handleMadrasaChange, 'Yes / ہاں', 'No / نہیں')}
             {(!formData.currentlyStudying || !formData.enrolledInMadrasa) ? (
-              <label className="flex min-h-12 items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900 sm:col-span-2">
-                <input type="checkbox" checked={formData.educationUndertakingAccepted} onChange={(e) => updateField('educationUndertakingAccepted', e.target.checked)} className="mt-1 h-5 w-5" />
-                <span>تعلیمی اقرار نامہ: سرپرست اس بات سے اتفاق کرتا ہے کہ اگر بچہ کفالت پروگرام میں رجسٹر ہو گیا تو اس کی چھوٹی ہوئی اسکول یا مدرسہ تعلیم شروع کروائی جائے گی۔</span>
+              <label className="flex min-h-12 items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-4 text-sm leading-6 text-amber-900 sm:col-span-2 sm:px-4">
+                <input type="checkbox" checked={formData.educationUndertakingAccepted} onChange={(e) => updateField('educationUndertakingAccepted', e.target.checked)} className="mt-1 h-5 w-5 shrink-0" />
+                <span className="min-w-0 break-words">تعلیمی اقرار نامہ: سرپرست اس بات سے اتفاق کرتا ہے کہ اگر بچہ کفالت پروگرام میں رجسٹر ہو گیا تو اس کی چھوٹی ہوئی اسکول یا مدرسہ تعلیم شروع کروائی جائے گی۔</span>
               </label>
             ) : null}
             {formData.currentlyStudying ? (
@@ -2861,9 +2909,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               <p className="text-sm font-semibold text-slate-900">{fieldLabel('childHobbies')}</p>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {HOBBY_OPTIONS.map((option) => (
-                  <label key={option.value} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
-                    <input type="checkbox" checked={formData.childHobbies.includes(option.value)} onChange={() => toggleMultiSelectValue('childHobbies', option.value)} />
-                    <span>{option.label}</span>
+                  <label key={option.value} className="flex min-h-11 items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-5 sm:items-center">
+                    <input type="checkbox" checked={formData.childHobbies.includes(option.value)} onChange={() => toggleMultiSelectValue('childHobbies', option.value)} className="mt-0.5 shrink-0 sm:mt-0" />
+                    <span className="min-w-0 break-words">{option.label}</span>
                   </label>
                 ))}
               </div>
@@ -2908,7 +2956,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <p className="mt-1 text-sm text-slate-600">Choose the required documents. The draft is saved automatically before the first upload.</p>
           </div>
           {!applicationId ? (
-            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm leading-6 text-blue-900 sm:p-4">
               Selecting a file will save this application as a draft first, then upload the document.
             </div>
           ) : null}
@@ -2946,7 +2994,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               if (fields.length === 0) return null;
 
               return (
-                <section key={section.title} className="rounded-2xl border border-slate-200 bg-white p-4">
+                <section key={section.title} className="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
                   <h3 className="text-sm font-semibold text-slate-900">{section.title}</h3>
                   {section.title === 'GPS' && !formData.latitude && !formData.longitude ? (
                     <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
@@ -2966,20 +3014,20 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               );
             })}
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-700 sm:p-4">
             <p className="font-semibold text-slate-900">Important</p>
             <p className="mt-2">A draft allows later editing. Submitting marks the form ready for review.</p>
           </div>
         </div>
       )}
 
-      <div className="sticky bottom-0 z-20 -mx-4 flex flex-col gap-3 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur sm:static sm:mx-0 sm:flex-row sm:justify-between sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none">
-        <div className="grid grid-cols-2 gap-3 sm:flex">
+      <div className="sticky bottom-[var(--mobile-nav-offset)] z-20 -mx-3 border-t border-slate-200 bg-white/95 px-3 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:static lg:mx-0 lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none">
+        <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:justify-end sm:gap-3">
           <button
             type="button"
             onClick={goBack}
             disabled={step === 1}
-            className="min-h-12 rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-12 min-w-0 rounded-lg border border-slate-300 bg-white px-2 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5"
           >
             Back
           </button>
@@ -2987,18 +3035,16 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <button
               type="button"
               onClick={goNext}
-              className="min-h-12 rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="min-h-12 min-w-0 rounded-lg bg-slate-900 px-2 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 sm:px-5"
             >
               Next
             </button>
           ) : null}
-        </div>
-        <div className="grid gap-3 sm:flex">
           <button
             type="button"
             onClick={() => submit('draft')}
             disabled={isSubmitting}
-            className="min-h-12 rounded-lg bg-slate-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-12 min-w-0 rounded-lg bg-slate-600 px-2 py-3 text-sm font-semibold text-white transition hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5"
           >
             {isSubmitting ? 'Saving…' : 'Save Draft'}
           </button>
@@ -3007,9 +3053,16 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               type="button"
               onClick={() => submit('submitted')}
               disabled={isSubmitting}
-              className="min-h-12 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="min-h-12 min-w-0 rounded-lg bg-blue-600 px-2 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5"
             >
-              {isSubmitting ? 'Submitting…' : 'Submit Application'}
+              {isSubmitting ? (
+                'Submitting…'
+              ) : (
+                <>
+                  <span className="sm:hidden">Submit</span>
+                  <span className="hidden sm:inline">Submit Application</span>
+                </>
+              )}
             </button>
           ) : null}
         </div>

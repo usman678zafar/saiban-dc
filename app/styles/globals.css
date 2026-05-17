@@ -4,6 +4,7 @@
 
 :root {
   color-scheme: light;
+  --mobile-nav-offset: 0px;
 }
 
 html {

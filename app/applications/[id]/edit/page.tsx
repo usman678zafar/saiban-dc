@@ -246,11 +246,11 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
   }));
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-8">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="text-3xl font-semibold text-slate-900">Edit Orphan Application</h1>
-          <p className="mt-2 text-slate-600">Update draft information and save changes for application {application.registrationNumber ?? application.id}.</p>
+    <main className="min-h-screen bg-slate-50 px-3 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+      <div className="mx-auto max-w-6xl space-y-5 sm:space-y-6">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-8">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Edit Orphan Application</h1>
+          <p className="mt-2 break-words text-sm leading-6 text-slate-600 sm:text-base">Update draft information and save changes for application {application.registrationNumber ?? application.id}.</p>
         </div>
 
         <OrphanApplicationWizard

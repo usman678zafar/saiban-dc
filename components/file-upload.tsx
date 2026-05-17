@@ -76,21 +76,22 @@ export default function FileUpload({
   };
 
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-slate-700">{label}</label>
+    <div className="min-w-0 space-y-2">
+      <label className="block min-w-0 break-words text-sm font-medium leading-6 text-slate-700">{label}</label>
 
       {existingDocument ? (
-        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-slate-900">{existingDocument.documentType}</p>
-            <p className="text-xs text-slate-500">
+        <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
+          <div className="min-w-0 flex-1">
+            <p className="break-words text-sm font-medium text-slate-900">{existingDocument.documentType}</p>
+            <p className="mt-0.5 break-words text-xs leading-5 text-slate-500">
               {(existingDocument.size / 1024).toFixed(1)} KB • {existingDocument.mimeType}
             </p>
           </div>
           <button
             type="button"
             onClick={handleRemove}
-            className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+            aria-label="Remove uploaded file"
           >
             <X className="h-4 w-4" />
           </button>
@@ -109,7 +110,7 @@ export default function FileUpload({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-sm text-slate-600 transition hover:border-slate-400 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0 sm:flex-row sm:gap-3 sm:py-8"
           >
             <Upload className="h-5 w-5" />
             {isUploading ? 'Uploading...' : 'Choose file'}
