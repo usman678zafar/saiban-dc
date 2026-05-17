@@ -1367,7 +1367,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const handleDocumentUpload = (document: DocumentInput) => {
-    setDocuments((current) => [...current, document]);
+    setDocuments((current) => [
+      ...current.filter((item) => item.documentType !== document.documentType),
+      document,
+    ]);
   };
 
   const handleDocumentRemove = async (documentId: string) => {
@@ -1415,6 +1418,46 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       status: saveStatus,
       id: applicationId,
     } as any;
+  };
+
+  const ensureDraftApplication = async () => {
+    if (applicationId) return applicationId;
+
+    setIsSubmitting(true);
+    setMessage(null);
+
+    try {
+      if (orphanAgeError) {
+        setStep(7);
+        throw new Error(orphanAgeError);
+      }
+
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildApplicationRequestBody('draft')),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        const details = Array.isArray(error?.issues)
+          ? error.issues.map((issue: { path?: Array<string | number>; message?: string }) => `${issue.path?.join('.') || 'form'}: ${issue.message}`).join('\n')
+          : error?.message;
+        throw new Error(details ?? 'Unable to save draft before upload');
+      }
+
+      const application = await response.json();
+      setApplicationId(application.id);
+      setMessage('Draft saved. Uploading document...');
+      router.refresh();
+      return application.id as string;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to save draft before upload.';
+      setMessage(message);
+      throw new Error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const submit = async (saveStatus: 'draft' | 'submitted') => {
@@ -2801,31 +2844,31 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Documents Upload</h2>
-            <p className="mt-1 text-sm text-slate-600">Upload the required documents after saving the draft.</p>
+            <p className="mt-1 text-sm text-slate-600">Choose the required documents. The draft is saved automatically before the first upload.</p>
           </div>
           {!applicationId ? (
-            <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-              Save a draft first to upload documents. Once the application exists, you can upload files and remove them as needed.
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+              Selecting a file will save this application as a draft first, then upload the document.
             </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {documentTypes.map((documentType) => {
-                const existingDocument = documents.find((doc) => doc.documentType === documentType.type);
-                return (
-                  <FileUpload
-                    key={documentType.type}
-                    documentType={documentType.type}
-                    applicationId={applicationId}
-                    onUpload={handleDocumentUpload}
-                    onRemove={handleDocumentRemove}
-                    existingDocument={existingDocument}
-                    label={documentType.label}
-                    accept="image/*,.pdf"
-                  />
-                );
-              })}
-            </div>
-          )}
+          ) : null}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {documentTypes.map((documentType) => {
+              const existingDocument = documents.find((doc) => doc.documentType === documentType.type);
+              return (
+                <FileUpload
+                  key={documentType.type}
+                  documentType={documentType.type}
+                  applicationId={applicationId}
+                  ensureApplicationId={ensureDraftApplication}
+                  onUpload={handleDocumentUpload}
+                  onRemove={handleDocumentRemove}
+                  existingDocument={existingDocument}
+                  label={documentType.label}
+                  accept="image/*,.pdf"
+                />
+              );
+            })}
+          </div>
         </div>
       )}
 
