@@ -2060,7 +2060,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 1 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Deceased Father Details</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Deceased Father Details / مرحوم والد کی تفصیلات</h2>
             <p className="mt-1 text-sm text-slate-600">Add the father's personal, educational, and death information.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -2086,7 +2086,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 2 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Mother Details</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Mother Details / والدہ کی تفصیلات</h2>
             <p className="mt-1 text-sm text-slate-600">Capture the mother's identity, income, and marital status.</p>
           </div>
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
@@ -2139,7 +2139,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 3 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Guardian Details</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Guardian Details / سرپرست کی تفصیلات</h2>
             <p className="mt-1 text-sm text-slate-600">Record the guardian's contact, occupation, family holder status, and income.</p>
           </div>
           {formData.motherAlive === 'yes' ? (
@@ -2341,7 +2341,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 5 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Home Details</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Home Details / گھر کی تفصیلات</h2>
             <p className="mt-1 text-sm text-slate-600">Capture the household address and property status.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -2457,7 +2457,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 6 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Household Assets</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Household Assets / گھریلو اثاثے</h2>
             
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -2592,7 +2592,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 7 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Orphan Child Details</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Orphan Child Details / یتیم بچے کی تفصیلات</h2>
             <p className="mt-1 text-sm text-slate-600">Add structured child details and sibling information.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -2836,7 +2836,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 10 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Household Income & External Assistance</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Household Income & External Assistance / گھریلو آمدنی اور بیرونی امداد</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {renderTextField('totalFamilyMembers', 'number')}
@@ -2865,7 +2865,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 11 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Documents Upload</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Documents Upload / دستاویزات اپ لوڈ</h2>
             <p className="mt-1 text-sm text-slate-600">Choose the required documents. The draft is saved automatically before the first upload.</p>
           </div>
           {!applicationId ? (
@@ -2897,7 +2897,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 12 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Terms and Review</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Terms and Review / شرائط اور جائزہ</h2>
             <p className="mt-1 text-sm text-slate-600">Review the collected details and submit or save as draft.</p>
           </div>
           {renderCheckbox('termsAccepted')}
