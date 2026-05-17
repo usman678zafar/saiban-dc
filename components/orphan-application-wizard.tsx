@@ -1741,13 +1741,20 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   }, [addressOptions, formData.district, formData.province]);
 
   const renderRequiredMark = (required = true) => (required ? <span className="text-rose-600"> *</span> : null);
+  const fieldWrapperClass = 'grid content-start gap-2 text-sm text-slate-700 [&>span:first-child]:flex [&>span:first-child]:min-h-12 [&>span:first-child]:items-start [&>span:first-child]:leading-6';
+  const fieldLabelClass = 'flex min-h-12 items-start leading-6';
+  const fieldControlClass = 'h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm';
+  const disabledFieldControlClass = 'disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500';
+  const renderFieldLabel = (field: keyof FormData, required = true) => (
+    <span className={fieldLabelClass}>{fieldLabel(field)}{renderRequiredMark(required)}</span>
+  );
 
   const renderTextField = (field: keyof FormData, type = 'text', locked = false, onChange?: (value: string) => void, maxLength?: number, required = true) => {
     const isCnicField = field.toLowerCase().includes('cnic');
 
     return (
-      <label key={field} className="grid gap-2 text-sm text-slate-700">
-        <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
+      <label key={field} className={fieldWrapperClass}>
+        {renderFieldLabel(field, required)}
         <input
           value={formData[field] as string}
           onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
@@ -1756,15 +1763,15 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           inputMode={isCnicField ? 'numeric' : undefined}
           maxLength={maxLength ?? (isCnicField ? 15 : undefined)}
           placeholder={isCnicField ? '11111-2222222-3' : undefined}
-          className={`min-h-12 rounded-lg border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm ${locked ? 'cursor-not-allowed bg-slate-100 text-slate-600' : 'bg-slate-50 text-slate-900'}`}
+          className={`${fieldControlClass} ${locked ? 'cursor-not-allowed bg-slate-100 text-slate-600' : ''}`}
         />
       </label>
     );
   };
 
   const renderTextareaField = (field: keyof FormData, maxLength?: number, required = true) => (
-    <label key={field} className="grid gap-2 text-sm text-slate-700 sm:col-span-2">
-      <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
+    <label key={field} className={`${fieldWrapperClass} sm:col-span-2`}>
+      {renderFieldLabel(field, required)}
       <textarea
         value={formData[field] as string}
         onChange={(event) => updateField(field, event.target.value)}
@@ -1781,12 +1788,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     onChange?: (value: string) => void,
     required = true,
   ) => (
-    <label key={field} className="grid gap-2 text-sm text-slate-700">
-      <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
+    <label key={field} className={fieldWrapperClass}>
+      {renderFieldLabel(field, required)}
       <select
         value={formData[field] as string}
         onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
-        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+        className={fieldControlClass}
       >
         {options.map((option, index) => (
           <option key={`${option.value}-${index}`} value={option.value}>
@@ -1803,13 +1810,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     onChange: (value: string) => void,
     disabled = false,
   ) => (
-    <label key={field} className="grid gap-2 text-sm text-slate-700">
-      <span>{fieldLabel(field)}{renderRequiredMark()}</span>
+    <label key={field} className={fieldWrapperClass}>
+      {renderFieldLabel(field)}
       <select
         value={formData[field] as string}
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
-        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm"
+        className={`${fieldControlClass} ${disabledFieldControlClass}`}
       >
         {options.map((option, index) => (
           <option key={`${option.value}-${index}`} value={option.value}>
@@ -1830,8 +1837,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     const listId = `${field}-options`;
 
     return (
-      <label key={field} className="grid gap-2 text-sm text-slate-700">
-        <span>{fieldLabel(field)}{renderRequiredMark()}</span>
+      <label key={field} className={fieldWrapperClass}>
+        {renderFieldLabel(field)}
         <input
           value={formData[field]}
           list={listId}
@@ -1848,7 +1855,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             const value = normalizeAddressOption(event.currentTarget.value);
             if (value) onCommit(value);
           }}
-          className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm"
+          className={`${fieldControlClass} ${disabledFieldControlClass}`}
         />
         <datalist id={listId}>
           {options.map((option, index) => (
@@ -1875,12 +1882,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
     return (
       <Fragment key={field}>
-        <label className="grid gap-2 text-sm text-slate-700">
-          <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
+        <label className={fieldWrapperClass}>
+          {renderFieldLabel(field, required)}
           <select
             value={selectValue}
             onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
-            className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+            className={fieldControlClass}
           >
             {options.map((option, index) => (
               <option key={`${option.value}-${index}`} value={option.value}>
@@ -1890,13 +1897,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           </select>
         </label>
         {selectValue === 'Other' ? (
-          <label className="grid gap-2 text-sm text-slate-700">
-            <span>{otherLabel}</span>
+          <label className={fieldWrapperClass}>
+            <span className={fieldLabelClass}>{otherLabel}</span>
             <input
               value={currentValue === 'Other' ? '' : currentValue}
               onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
               type="text"
-              className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+              className={fieldControlClass}
             />
           </label>
         ) : null}
@@ -1930,8 +1937,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     noLabel = 'No',
     required = true,
   ) => (
-    <label key={field} className="grid gap-2 text-sm text-slate-700">
-      <span>{fieldLabel(field)}{renderRequiredMark(required)}</span>
+    <label key={field} className={fieldWrapperClass}>
+      {renderFieldLabel(field, required)}
       <select
         value={formData[field] ? 'yes' : 'no'}
         onChange={(event) => {
@@ -1942,7 +1949,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             updateField(field, nextValue);
           }
         }}
-        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-sm"
+        className={fieldControlClass}
       >
         <option value="no">{noLabel}</option>
         <option value="yes">{yesLabel}</option>
@@ -2236,29 +2243,29 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               {formData.relatives.map((relative, index) => (
                 <div key={index} className="rounded-2xl border border-slate-200 bg-white p-4">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="grid gap-2 text-sm text-slate-700">
+                    <label className={fieldWrapperClass}>
                       <span>Relative Relationship / رشتہ داری *</span>
                       <select
                         value={relative.relativeType}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { relativeType: event.target.value as RelativeInput['relativeType'] })}
-                        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                        className={fieldControlClass}
                       >
                         {RELATIVE_TYPE_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>{option.label}</option>
                         ))}
                       </select>
                     </label>
-                    <label className="grid gap-2 text-sm text-slate-700">
+                    <label className={fieldWrapperClass}>
                       <span>Relative Name / نام *</span>
                       <input
                         value={relative.name}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { name: event.target.value })}
-                        className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                        className={fieldControlClass}
                       />
                     </label>
                   </div>
                   <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                    <label className="grid gap-2 text-sm text-slate-700">
+                    <label className={fieldWrapperClass}>
                       <span>Occupation / پیشہ *</span>
                       <select
                         value={relative.occupation}
@@ -2266,7 +2273,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                           occupation: event.target.value,
                           ...(event.target.value === 'Other' ? {} : { occupationOther: '' }),
                         })}
-                        className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                        className={`${fieldControlClass} w-full min-w-0`}
                       >
                         {OCCUPATION_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>{option.label}</option>
@@ -2274,28 +2281,28 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       </select>
                     </label>
                     {relative.occupation === 'Other' ? (
-                      <label className="grid gap-2 text-sm text-slate-700">
+                      <label className={fieldWrapperClass}>
                         <span>Specify Occupation / پیشے کی وضاحت کریں *</span>
                         <input
                           value={relative.occupationOther}
                           onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { occupationOther: event.target.value })}
-                          className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                          className={`${fieldControlClass} w-full min-w-0`}
                         />
                       </label>
                     ) : null}
-                    <label className="grid gap-2 text-sm text-slate-700">
+                    <label className={fieldWrapperClass}>
                       <span>Monthly Income / ماہانہ آمدنی *</span>
                       <select
                         value={relative.monthlyIncome}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { monthlyIncome: event.target.value })}
-                        className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                        className={`${fieldControlClass} w-full min-w-0`}
                       >
                         {MONTHLY_INCOME_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>{option.label}</option>
                         ))}
                       </select>
                     </label>
-                    <label className="grid min-w-0 gap-2 text-sm text-slate-700 lg:col-span-2 xl:col-span-1">
+                    <label className={`${fieldWrapperClass} min-w-0 lg:col-span-2 xl:col-span-1`}>
                       <span>Nature of Support / یتیم بچے کی معاونت *</span>
                       <select
                         value={relative.supportType}
@@ -2303,7 +2310,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                           supportType: event.target.value,
                           ...(event.target.value === 'other' ? {} : { supportTypeOther: '' }),
                         })}
-                        className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                        className={`${fieldControlClass} w-full min-w-0`}
                       >
                         {RELATIVE_SUPPORT_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>{option.label}</option>
@@ -2311,12 +2318,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       </select>
                     </label>
                     {relative.supportType === 'other' ? (
-                      <label className="grid min-w-0 gap-2 text-sm text-slate-700 lg:col-span-2 xl:col-span-1">
+                      <label className={`${fieldWrapperClass} min-w-0 lg:col-span-2 xl:col-span-1`}>
                         <span>Specify Support / معاونت کی وضاحت کریں *</span>
                         <input
                           value={relative.supportTypeOther}
                           onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { supportTypeOther: event.target.value })}
-                          className="min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                          className={`${fieldControlClass} w-full min-w-0`}
                         />
                       </label>
                     ) : null}
@@ -2635,98 +2642,98 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               <div key={index} className="rounded-lg border border-slate-200 bg-white p-4">
                 <h3 className="mb-4 text-sm font-semibold text-slate-900">Sibling {index + 1}</h3>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  <label className="grid gap-2 text-sm text-slate-700">
+                  <label className={fieldWrapperClass}>
                     <span>Sibling Name / نام *</span>
                     <input
                       value={sibling.name}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { name: event.target.value })}
-                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                      className={fieldControlClass}
                     />
                   </label>
-                  <label className="grid gap-2 text-sm text-slate-700">
+                  <label className={fieldWrapperClass}>
                     <span>Relation / رشتہ *</span>
                     <select
                       value={sibling.relation}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { relation: event.target.value })}
-                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                      className={fieldControlClass}
                     >
                       {SIBLING_RELATION_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>{option.label}</option>
                       ))}
                     </select>
                   </label>
-                  <label className="grid gap-2 text-sm text-slate-700">
+                  <label className={fieldWrapperClass}>
                     <span>DOB / تاریخ پیدائش *</span>
                     <input
                       value={sibling.dob}
                       onChange={(event) => handleSiblingDobChange(index, event.target.value)}
                       type="date"
-                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                      className={fieldControlClass}
                     />
                   </label>
-                  <label className="grid gap-2 text-sm text-slate-700">
+                  <label className={fieldWrapperClass}>
                     <span>Age / عمر</span>
                     <input
                       value={sibling.age}
                       readOnly
                       type="number"
-                      className="min-h-12 cursor-not-allowed rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 text-base text-slate-600 outline-none sm:text-sm"
+                      className={`${fieldControlClass} cursor-not-allowed bg-slate-100 text-slate-600`}
                     />
                   </label>
-                  <label className="grid gap-2 text-sm text-slate-700">
+                  <label className={fieldWrapperClass}>
                     <span>Education Status / تعلیمی حیثیت *</span>
                     <select
                       value={sibling.educationStatus}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { educationStatus: event.target.value })}
-                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                      className={fieldControlClass}
                     >
                       {EDUCATION_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>{option.label}</option>
                       ))}
                     </select>
                   </label>
-                  <label className="grid gap-2 text-sm text-slate-700">
+                  <label className={fieldWrapperClass}>
                     <span>Currently Studying / زیرِ تعلیم *</span>
                     <select
                       value={sibling.currentlyStudying}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { currentlyStudying: event.target.value })}
-                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                      className={fieldControlClass}
                     >
                       <option value="">Select status</option>
                       <option value="yes">Yes / ہاں</option>
                       <option value="no">No / نہیں</option>
                     </select>
                   </label>
-                  <label className="grid gap-2 text-sm text-slate-700">
+                  <label className={fieldWrapperClass}>
                     <span>Occupation / پیشہ *</span>
                     <select
                       value={sibling.occupation}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { occupation: event.target.value })}
-                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                      className={fieldControlClass}
                     >
                       {OCCUPATION_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>{option.label}</option>
                       ))}
                     </select>
                   </label>
-                  <label className="grid gap-2 text-sm text-slate-700">
+                  <label className={fieldWrapperClass}>
                     <span>Monthly Income / ماہانہ آمدن *</span>
                     <select
                       value={sibling.monthlyIncomeOrFee}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { monthlyIncomeOrFee: event.target.value })}
-                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                      className={fieldControlClass}
                     >
                       {MONTHLY_INCOME_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>{option.label}</option>
                       ))}
                     </select>
                   </label>
-                  <label className="grid gap-2 text-sm text-slate-700">
+                  <label className={fieldWrapperClass}>
                     <span>Marital Status / ازدواجی حیثیت *</span>
                     <select
                       value={sibling.maritalStatus}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { maritalStatus: event.target.value })}
-                      className="min-h-12 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none sm:text-sm"
+                      className={fieldControlClass}
                     >
                       {MARITAL_STATUS_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>{option.label}</option>
@@ -2810,6 +2817,20 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 sm:col-span-2">Mention fee only with valid fee voucher/proof. اگر واؤچر / ثبوت موجود نہ ہو تو فیس درج نہ کی جائے۔</div>
                 {renderSelectField('educationFree', [{ value: '', label: 'Select fee status' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }], handleEducationFreeChange)}
                 {formData.educationFree === 'no' ? renderTextField('monthlySchoolFee', 'number') : null}
+                {formData.educationFree === 'no' ? (
+                  <div className="sm:col-span-2">
+                    <FileUpload
+                      documentType="fee_voucher"
+                      applicationId={applicationId}
+                      ensureApplicationId={ensureDraftApplication}
+                      onUpload={handleDocumentUpload}
+                      onRemove={handleDocumentRemove}
+                      existingDocument={documents.find((doc) => doc.documentType === 'fee_voucher')}
+                      label="Fee Voucher / فیس واؤچر (Optional)"
+                      accept="image/*,.pdf"
+                    />
+                  </div>
+                ) : null}
               </>
             ) : null}
             {renderSelectField('currentSkillLearning', [{ value: '', label: 'Select skill learning status' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }])}

@@ -38,6 +38,7 @@ enum DocumentType {
   mother_death_certificate
   guardian_cnic
   school_letter
+  fee_voucher
   medical_report
   imam_verification
   principal_verification
