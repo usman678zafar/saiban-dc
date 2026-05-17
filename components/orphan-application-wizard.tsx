@@ -2932,16 +2932,16 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             </button>
           ) : null}
         </div>
-        {step === TOTAL_STEPS ? (
-          <div className="grid gap-3 sm:flex">
-            <button
-              type="button"
-              onClick={() => submit('draft')}
-              disabled={isSubmitting}
-              className="min-h-12 rounded-lg bg-slate-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSubmitting ? 'Saving…' : 'Save Draft'}
-            </button>
+        <div className="grid gap-3 sm:flex">
+          <button
+            type="button"
+            onClick={() => submit('draft')}
+            disabled={isSubmitting}
+            className="min-h-12 rounded-lg bg-slate-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSubmitting ? 'Saving…' : 'Save Draft'}
+          </button>
+          {step === TOTAL_STEPS ? (
             <button
               type="button"
               onClick={() => submit('submitted')}
@@ -2950,8 +2950,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             >
               {isSubmitting ? 'Submitting…' : 'Submit Application'}
             </button>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
     </div>
   );
