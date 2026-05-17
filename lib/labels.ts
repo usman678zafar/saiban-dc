@@ -123,7 +123,7 @@ export const labels: Record<string, LabelPair> = {
   currentClass: { ur: 'موجودہ جماعت', en: 'Current Grade / Class' },
   schoolName: { ur: 'اسکول کا نام', en: 'School Name' },
   schoolAddress: { ur: 'اسکول کا پتہ', en: 'School Address' },
-  schoolDistanceKm: { ur: 'گھر سے اسکول کا فاصلہ', en: 'Distance from Home' },
+  schoolDistanceKm: { ur: 'گھر سے اسکول کا فاصلہ (کلومیٹر)', en: 'Distance from Home (km)' },
   schoolTransportMode: { ur: 'اسکول کیسے جاتا ہے؟', en: 'Mode of Transportation' },
   schoolStudyingSince: { ur: 'اسکول کب سے جا رہا ہے؟', en: 'Studying Since' },
   enrolledInMadrasa: { ur: 'کیا بچہ مدرسہ / مکتب میں زیرِ تعلیم ہے؟', en: 'Madrasa / Maktab Enrollment' },

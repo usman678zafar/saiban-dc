@@ -2764,7 +2764,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {(!formData.currentlyStudying || !formData.enrolledInMadrasa) ? (
               <label className="flex min-h-12 items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900 sm:col-span-2">
                 <input type="checkbox" checked={formData.educationUndertakingAccepted} onChange={(e) => updateField('educationUndertakingAccepted', e.target.checked)} className="mt-1 h-5 w-5" />
-                <span>Education Undertaking / تعلیمی اقرار نامہ: guardian agrees to start missing school or madrasa education if registered in sponsorship program.</span>
+                <span>تعلیمی اقرار نامہ: سرپرست اس بات سے اتفاق کرتا ہے کہ اگر بچہ کفالت پروگرام میں رجسٹر ہو گیا تو اس کی چھوٹی ہوئی اسکول یا مدرسہ تعلیم شروع کروائی جائے گی۔</span>
               </label>
             ) : null}
             {formData.currentlyStudying ? (
