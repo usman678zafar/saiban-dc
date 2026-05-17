@@ -48,13 +48,17 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
   const availableActions = actionButtons.filter((action) => action.from === currentStatus);
 
   if (availableActions.length === 0) {
-    return <p className="text-sm text-slate-600">No status transitions available for this application.</p>;
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600 shadow-sm">
+        No status transitions available for this application.
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-3 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-slate-900">Admin Actions</h3>
-      <p className="text-sm text-slate-600">Change the workflow state for this application.</p>
+    <div className="min-w-0 space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <h3 className="text-lg font-semibold leading-7 text-slate-900">Admin Actions</h3>
+      <p className="text-sm leading-6 text-slate-600">Change the workflow state for this application.</p>
       <div className="flex flex-col gap-3 sm:flex-row">
         {availableActions.map((action) => {
           const Icon = action.icon;
@@ -64,15 +68,15 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
               type="button"
               onClick={() => handleTransition(action.to)}
               disabled={loading}
-              className={`${action.color} inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60`}
+              className={`${action.color} inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto`}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4 shrink-0" />
               {action.label}
             </button>
           );
         })}
       </div>
-      {message ? <p className="text-sm text-slate-700">{message}</p> : null}
+      {message ? <p className="break-words text-sm leading-6 text-slate-700 [overflow-wrap:anywhere]">{message}</p> : null}
     </div>
   );
 }

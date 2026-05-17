@@ -55,15 +55,15 @@ export default function ApplicationMigrationFields({ applicationId, initialMigra
   };
 
   return (
-    <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-slate-900">Migration Fields</h3>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <label className="grid gap-2 text-sm text-slate-700">
+    <div className="min-w-0 space-y-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <h3 className="text-lg font-semibold leading-7 text-slate-900">Migration Fields</h3>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+        <label className="grid min-w-0 gap-2 text-sm text-slate-700">
           <span>Status</span>
           <select
             value={migrationStatus}
             onChange={(event) => setMigrationStatus(event.target.value)}
-            className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+            className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
           >
             {migrationOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -72,32 +72,32 @@ export default function ApplicationMigrationFields({ applicationId, initialMigra
             ))}
           </select>
         </label>
-        <label className="grid gap-2 text-sm text-slate-700">
+        <label className="grid min-w-0 gap-2 text-sm text-slate-700">
           <span>Main Saiban ID</span>
           <input
             value={mainSaibanId}
             onChange={(event) => setMainSaibanId(event.target.value)}
-            className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+            className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
           />
         </label>
       </div>
-      <label className="grid gap-2 text-sm text-slate-700">
+      <label className="grid min-w-0 gap-2 text-sm text-slate-700">
         <span>Migration Errors</span>
         <textarea
           value={migrationErrors}
           onChange={(event) => setMigrationErrors(event.target.value)}
-          className="min-h-[120px] rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+          className="min-h-[120px] w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
         />
       </label>
       <button
         type="button"
         onClick={saveMigrationFields}
         disabled={isSaving}
-        className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="min-h-11 w-full rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
       >
         {isSaving ? 'Saving…' : 'Save Migration Data'}
       </button>
-      {message ? <p className="text-sm text-slate-700">{message}</p> : null}
+      {message ? <p className="break-words text-sm leading-6 text-slate-700 [overflow-wrap:anywhere]">{message}</p> : null}
     </div>
   );
 }

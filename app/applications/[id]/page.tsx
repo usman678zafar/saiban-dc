@@ -66,8 +66,6 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       relatives: true,
       householdAssets: true,
       documents: true,
-      createdBy: true,
-      updatedBy: true,
     },
   });
 
@@ -128,20 +126,20 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       maxWidth="max-w-7xl"
       actions={
         <>
-          <Link href="/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+          <Link href="/applications" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto">
             Back to List
           </Link>
           {canEdit ? (
-            <Link href={`/applications/${application.id}/edit`} className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+            <Link href={`/applications/${application.id}/edit`} className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500 sm:w-auto">
               {application.status === 'draft' ? 'Edit Draft' : 'Edit'}
             </Link>
           ) : null}
         </>
       }
     >
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-5">
-          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className={`grid min-w-0 gap-5 ${isAdmin ? 'xl:grid-cols-[minmax(0,1fr)_360px]' : ''}`}>
+        <div className="min-w-0 space-y-5">
+          <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <SummaryTile label="Registration" value={application.registrationNumber ?? application.id} />
               <StatusTile label="Status" value={application.status} />
@@ -160,27 +158,17 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
           <DocumentSection documents={application.documents} />
         </div>
 
-        <aside className="space-y-5">
-          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <h2 className="text-base font-semibold text-slate-900">Record Info</h2>
-            <div className="mt-4 grid gap-3">
-              <SummaryTile label="Created By" value={application.createdBy?.email ?? 'Unknown'} />
-              <SummaryTile label="Updated By" value={application.updatedBy?.email ?? '-'} />
-              <SummaryTile label="Created At" value={application.createdAt.toLocaleString()} />
-              <SummaryTile label="Application ID" value={application.id} />
-            </div>
-          </section>
-
-          {isAdmin ? <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} /> : null}
-          {isAdmin ? (
+        {isAdmin ? (
+          <aside className="min-w-0 space-y-5">
+            <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} />
             <ApplicationMigrationFields
               applicationId={application.id}
               initialMigrationStatus={application.migrationStatus}
               initialMainSaibanId={application.mainSaibanId ?? ''}
               initialMigrationErrors={application.migrationErrors ?? ''}
             />
-          ) : null}
-        </aside>
+          </aside>
+        ) : null}
       </div>
     </AppShell>
   );
@@ -190,14 +178,14 @@ function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-3">
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 break-words text-sm font-semibold text-slate-900">{value}</p>
+      <p className="mt-1 break-words text-sm font-semibold leading-6 text-slate-900 [overflow-wrap:anywhere]">{value}</p>
     </div>
   );
 }
 
 function StatusTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-3">
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
       <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${badgeClass(value)}`}>
         {value}
@@ -208,8 +196,8 @@ function StatusTile({ label, value }: { label: string; value: string }) {
 
 function DetailSection({ title, items }: { title: string; items: Array<{ label: string; value: string }> }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+    <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+      <h2 className="text-lg font-semibold leading-7 text-slate-900">{title}</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
           <SummaryTile key={item.label} label={item.label} value={item.value} />
@@ -278,16 +266,16 @@ function AssetSection({ assets }: { assets: any[] }) {
 
 function DocumentSection({ documents }: { documents: any[] }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Documents</h2>
+    <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+      <h2 className="text-lg font-semibold leading-7 text-slate-900">Documents</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {documents.length === 0 ? (
           <p className="text-sm text-slate-500">No uploaded documents.</p>
         ) : (
           documents.map((document) => (
-            <a key={document.id} href={document.fileUrl ?? '#'} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm hover:bg-slate-100">
-              <p className="font-semibold capitalize text-slate-900">{String(document.documentType).replace(/_/g, ' ')}</p>
-              <p className="mt-1 text-xs text-slate-500">{document.mimeType} - {(document.size / 1024).toFixed(1)} KB</p>
+            <a key={document.id} href={document.fileUrl ?? '#'} target="_blank" rel="noreferrer" className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm hover:bg-slate-100">
+              <p className="break-words font-semibold capitalize text-slate-900 [overflow-wrap:anywhere]">{String(document.documentType).replace(/_/g, ' ')}</p>
+              <p className="mt-1 break-words text-xs leading-5 text-slate-500 [overflow-wrap:anywhere]">{document.mimeType} - {(document.size / 1024).toFixed(1)} KB</p>
             </a>
           ))
         )}
@@ -298,14 +286,30 @@ function DocumentSection({ documents }: { documents: any[] }) {
 
 function TableSection({ title, emptyText, headers, rows }: { title: string; emptyText: string; headers: string[]; rows: string[][] }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-4 py-3">
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+    <section className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-200 px-3 py-3 sm:px-4">
+        <h2 className="text-lg font-semibold leading-7 text-slate-900">{title}</h2>
       </div>
       {rows.length === 0 ? (
         <p className="p-4 text-sm text-slate-500">{emptyText}</p>
       ) : (
-        <div className="overflow-x-auto">
+        <>
+          <div className="grid gap-3 p-3 md:hidden">
+            {rows.map((row, rowIndex) => (
+              <div key={rowIndex} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">{title.slice(0, -1)} {rowIndex + 1}</p>
+                <dl className="grid gap-3">
+                  {row.map((cell, cellIndex) => (
+                    <div key={`${rowIndex}-${cellIndex}`} className="min-w-0">
+                      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{headers[cellIndex]}</dt>
+                      <dd className="mt-1 break-words text-sm font-medium leading-6 text-slate-900 [overflow-wrap:anywhere]">{cell}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto md:block">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
@@ -318,13 +322,14 @@ function TableSection({ title, emptyText, headers, rows }: { title: string; empt
               {rows.map((row, rowIndex) => (
                 <tr key={rowIndex} className="hover:bg-slate-50">
                   {row.map((cell, cellIndex) => (
-                    <td key={`${rowIndex}-${cellIndex}`} className="whitespace-nowrap px-3 py-2 text-slate-700">{cell}</td>
+                    <td key={`${rowIndex}-${cellIndex}`} className="max-w-[280px] break-words px-3 py-2 align-top text-slate-700 [overflow-wrap:anywhere]">{cell}</td>
                   ))}
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </section>
   );
