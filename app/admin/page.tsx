@@ -116,38 +116,38 @@ export default async function AdminPortalPage() {
 
   return (
     <AdminShell email={session.user.email}>
-          <header className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <header className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-[#0f1f33] sm:text-4xl">Admin Overview</h1>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a] sm:text-base">
+              <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Admin Overview</h1>
+              <p className="mt-1 max-w-3xl text-xs leading-5 text-[#5f718a] sm:text-sm">
                 Review application movement, manage field access, and open records that need attention.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
-              <Link href="/admin/applications/new" className="rounded-xl bg-[#3b82f6] px-4 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_26px_rgba(59,130,246,0.22)] hover:bg-[#2563eb]">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              <Link href="/admin/applications/new" className="rounded-lg bg-[#3b82f6] px-3 py-2 text-center text-xs font-semibold text-white shadow-[0_10px_20px_rgba(59,130,246,0.18)] hover:bg-[#2563eb]">
                 New Application
               </Link>
-              <Link href="/admin/applications" className="rounded-xl border border-[#dbe4ef] bg-white px-4 py-3 text-center text-sm font-semibold text-[#0f1f33] hover:bg-[#f6f9fd]">
+              <Link href="/admin/applications" className="rounded-lg border border-[#dbe4ef] bg-white px-3 py-2 text-center text-xs font-semibold text-[#0f1f33] hover:bg-[#f6f9fd]">
                 View All
               </Link>
             </div>
           </header>
 
-          <section className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
+          <section className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
             {metrics.map((metric: AdminMetric) => {
               const style = metricStyles[metric.tone];
               const Icon = style.icon;
 
               return (
-              <div key={metric.label} className="rounded-xl border border-[#dbe4ef] bg-white p-3 sm:p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl sm:size-11 ${style.tile}`}>
-                    <Icon size={20} strokeWidth={2.2} />
+              <div key={metric.label} className="rounded-lg border border-[#dbe4ef] bg-white p-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${style.tile}`}>
+                    <Icon size={17} strokeWidth={2.2} />
                   </div>
                   <div className="min-w-0">
-                    <p className={`text-2xl font-semibold leading-none sm:text-3xl ${style.value}`}>{metric.value}</p>
-                    <p className="mt-2 truncate text-sm font-medium text-[#506784]">{metric.label}</p>
-                    <p className="mt-1 truncate text-xs text-[#8a9bb3]">{metric.detail}</p>
+                    <p className={`text-xl font-semibold leading-none ${style.value}`}>{metric.value}</p>
+                    <p className="mt-1.5 truncate text-xs font-medium text-[#506784]">{metric.label}</p>
+                    <p className="mt-0.5 truncate text-[11px] text-[#8a9bb3]">{metric.detail}</p>
                   </div>
                 </div>
               </div>
@@ -155,14 +155,14 @@ export default async function AdminPortalPage() {
             })}
           </section>
 
-          <div className="mt-6 grid gap-5 xl:grid-cols-[1fr_420px]">
-            <section className="overflow-hidden rounded-2xl border border-[#dbe4ef] bg-white">
-              <div className="flex flex-col gap-3 border-b border-[#edf2f7] px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_430px]">
+            <section className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
+              <div className="flex flex-col gap-2 border-b border-[#edf2f7] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-[#0f1f33]">Recent Applications</h2>
-                  <p className="mt-1 text-sm text-[#8a9bb3]">Latest records sorted by update time.</p>
+                  <h2 className="text-base font-semibold text-[#0f1f33]">Recent Applications</h2>
+                  <p className="mt-0.5 text-xs text-[#8a9bb3]">Latest records sorted by update time.</p>
                 </div>
-                <Link href="/admin/applications" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm font-semibold text-[#0f1f33] hover:bg-[#eef4fb] sm:w-auto">
+                <Link href="/admin/applications" className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 py-2 text-xs font-semibold text-[#0f1f33] hover:bg-[#eef4fb] sm:w-auto">
                   View All
                   <ArrowRight size={16} />
                 </Link>
@@ -172,7 +172,7 @@ export default async function AdminPortalPage() {
                   <p className="px-4 py-10 text-center text-sm text-[#8a9bb3] sm:px-6">No applications found.</p>
                 ) : (
                   recentApplications.map((application: RecentApplication) => (
-                    <div key={application.id} className="grid gap-3 px-4 py-4 hover:bg-[#f8fbff] sm:grid-cols-[minmax(0,1.4fr)_auto] sm:items-center sm:px-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(90px,0.55fr)_minmax(90px,0.55fr)_minmax(92px,0.55fr)_auto]">
+                    <div key={application.id} className="grid gap-2 px-4 py-3 hover:bg-[#f8fbff] sm:grid-cols-[minmax(0,1.4fr)_auto] sm:items-center lg:grid-cols-[minmax(0,1.35fr)_minmax(90px,0.55fr)_minmax(90px,0.55fr)_minmax(92px,0.55fr)_auto]">
                       <div className="min-w-0">
                         <p className="break-words text-base font-semibold leading-6 text-[#0f1f33] sm:text-sm">{application.registrationNumber ?? application.id}</p>
                         <p className="mt-1 truncate text-sm text-[#8a9bb3] sm:text-xs">{application.childName ?? 'No child name'}</p>
@@ -191,30 +191,41 @@ export default async function AdminPortalPage() {
               </div>
             </section>
 
-            <div className="rounded-2xl border border-[#dbe4ef] bg-white">
-              <div className="border-b border-[#edf2f7] px-4 py-5 sm:px-6">
-                <h2 className="text-xl font-semibold text-[#0f1f33]">Field Workers</h2>
-                <p className="mt-1 text-sm text-[#8a9bb3]">People with access to the field worker portal.</p>
+            <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
+              <div className="border-b border-[#edf2f7] px-4 py-3">
+                <h2 className="text-base font-semibold text-[#0f1f33]">Field Workers</h2>
+                <p className="mt-0.5 text-xs text-[#8a9bb3]">People with access to the field worker portal.</p>
               </div>
-              <div className="max-h-[520px] overflow-y-auto p-4">
+              <div className="max-h-[480px] overflow-auto">
                 {fieldWorkers.length === 0 ? (
                   <p className="p-4 text-sm text-[#8a9bb3]">No field workers yet.</p>
                 ) : (
-                  fieldWorkers.map((worker: FieldWorker) => (
-                    <div key={worker.id} className="border-b border-[#edf2f7] px-2 py-4 last:border-b-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-semibold text-[#0f1f33]">{worker.name ?? 'Unnamed worker'}</p>
-                        <span className="rounded-lg bg-[#edf4ff] px-2 py-1 text-xs font-semibold text-[#2563eb]">{worker.fieldWorkerId ?? worker.id}</span>
-                      </div>
-                      <div className="mt-2 grid gap-1 text-sm text-[#5f718a]">
-                        <p>Project: {worker.project ?? '-'}</p>
-                        <p>Phone: {worker.phoneNumber ?? '-'}</p>
-                        <p>CNIC: {worker.cnic ?? '-'}</p>
-                        <p>Address: {worker.address ?? '-'}</p>
-                      </div>
-                      <p className="mt-2 text-xs text-[#8a9bb3]">Added {worker.createdAt.toLocaleDateString()}</p>
-                    </div>
-                  ))
+                  <table className="min-w-full text-left text-xs text-[#506784]">
+                    <thead className="sticky top-0 bg-[#f6f9fd] text-[11px] uppercase tracking-wide text-[#64748b]">
+                      <tr>
+                        <th className="px-3 py-2 font-semibold">Worker</th>
+                        <th className="px-3 py-2 font-semibold">Project</th>
+                        <th className="px-3 py-2 font-semibold">Phone</th>
+                        <th className="px-3 py-2 font-semibold">Added</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#edf2f7]">
+                      {fieldWorkers.map((worker: FieldWorker) => (
+                        <tr key={worker.id} className="hover:bg-[#f8fbff]">
+                          <td className="px-3 py-2 align-top">
+                            <p className="max-w-[150px] truncate font-semibold text-[#0f1f33]">{worker.name ?? 'Unnamed worker'}</p>
+                            <p className="mt-0.5 font-mono text-[11px] text-[#2563eb]">{worker.fieldWorkerId ?? worker.id}</p>
+                          </td>
+                          <td className="max-w-[110px] truncate px-3 py-2 align-top">{worker.project ?? '-'}</td>
+                          <td className="px-3 py-2 align-top">
+                            <p className="whitespace-nowrap">{worker.phoneNumber ?? '-'}</p>
+                            <p className="mt-0.5 whitespace-nowrap text-[11px] text-[#8a9bb3]">{worker.cnic ?? '-'}</p>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2 align-top text-[#8a9bb3]">{worker.createdAt.toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 )}
               </div>
             </div>

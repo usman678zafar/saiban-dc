@@ -31,13 +31,13 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col overflow-y-auto border-r border-[#2f3d52] bg-[#1f2b3d] text-white lg:flex">
-        <div className="border-b border-white/10 px-4 pb-5 pt-5 text-center">
-          <Image src={logo} alt="Saiban" width={160} height={125} className="h-20 w-auto object-contain" priority />
-          <p className="mt-2 text-sm font-medium text-[#b7c6db]">Data Collection System</p>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-48 flex-col overflow-y-auto border-r border-[#2f3d52] bg-[#1f2b3d] text-white lg:flex">
+        <div className="border-b border-white/10 px-3 pb-4 pt-4 text-center">
+          <Image src={logo} alt="Saiban" width={140} height={110} className="mx-auto h-16 w-auto object-contain" priority />
+          <p className="mt-1.5 text-xs font-medium text-[#b7c6db]">Data Collection System</p>
         </div>
 
-        <nav className="grid gap-1 px-2.5 py-5">
+        <nav className="grid gap-1 px-2 py-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActivePath(pathname, item.href, item.exact);
@@ -47,25 +47,25 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={clsx(
-                  'flex items-center gap-2.5 rounded-lg px-3 py-3 text-sm font-semibold transition',
+                  'flex items-center gap-2 rounded-lg px-2.5 py-2.5 text-xs font-semibold transition',
                   active
                     ? 'bg-[#3b82f6] text-white shadow-[0_12px_28px_rgba(59,130,246,0.28)]'
                     : 'text-[#c9d4e2] hover:bg-white/10 hover:text-white',
                 )}
               >
-                <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span className="truncate">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="mt-auto border-t border-white/10 p-3">
-          <div className="mb-4 min-w-0 px-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#91a1b7]">Admin Portal</p>
-            <p className="mt-1 truncate text-sm font-medium text-white">{email ?? 'Signed in'}</p>
+        <div className="mt-auto border-t border-white/10 p-2.5">
+          <div className="mb-3 min-w-0 px-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#91a1b7]">Admin Portal</p>
+            <p className="mt-1 truncate text-xs font-medium text-white">{email ?? 'Signed in'}</p>
           </div>
-          <SignOutButton className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15">
+          <SignOutButton className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/15">
             <LogOut className="h-4 w-4" aria-hidden="true" />
             <span>Sign Out</span>
           </SignOutButton>

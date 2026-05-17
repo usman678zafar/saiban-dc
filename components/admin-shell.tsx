@@ -10,8 +10,8 @@ export default function AdminShell({ email, children }: AdminShellProps) {
   return (
     <main className="min-h-dvh bg-white text-[#0f1f33]">
       <AdminSidebar email={email} />
-      <div className="min-h-dvh lg:pl-60">
-        <section className="mx-auto min-w-0 max-w-[1600px] px-3 py-4 pb-28 sm:px-6 sm:py-8 lg:px-8 lg:pb-8 xl:px-10">
+      <div className="min-h-dvh lg:pl-48">
+        <section className="mx-auto min-w-0 max-w-[1500px] px-3 py-3 pb-24 sm:px-4 sm:py-5 lg:px-5 lg:pb-5 xl:px-6">
           {children}
         </section>
       </div>
