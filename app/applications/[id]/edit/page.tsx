@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import AppShell from '@/components/app-shell';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import type { FormData } from '@/components/orphan-application-wizard';
 import { householdAssetRowsToOtherItems, householdAssetRowsToSelection } from '@/lib/household-assets';
@@ -246,19 +247,16 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
   }));
 
   return (
-    <main className="min-h-screen bg-slate-50 px-3 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-      <div className="mx-auto max-w-6xl space-y-5 sm:space-y-6">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Edit Orphan Application</h1>
-          <p className="mt-2 break-words text-sm leading-6 text-slate-600 sm:text-base">Update draft information and save changes for application {application.registrationNumber ?? application.id}.</p>
-        </div>
-
-        <OrphanApplicationWizard
-          initialData={initialData}
-          initialDocuments={initialDocuments}
-          initialApplicationId={application.id}
-        />
-      </div>
-    </main>
+    <AppShell
+      title="Edit Orphan Application"
+      description={`Update draft information and save changes for application ${application.registrationNumber ?? application.id}.`}
+      maxWidth="max-w-6xl"
+    >
+      <OrphanApplicationWizard
+        initialData={initialData}
+        initialDocuments={initialDocuments}
+        initialApplicationId={application.id}
+      />
+    </AppShell>
   );
 }

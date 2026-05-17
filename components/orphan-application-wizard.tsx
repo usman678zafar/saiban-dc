@@ -855,13 +855,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const [gpsMessage, setGpsMessage] = useState<string | null>(null);
   const [gpsWarning, setGpsWarning] = useState<string | null>(null);
   const [isCapturingGps, setIsCapturingGps] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState<'draft' | 'submitted' | null>(null);
   const [showSubmissionSuccessModal, setShowSubmissionSuccessModal] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(initialApplicationId ?? null);
   const [documents, setDocuments] = useState<DocumentInput[]>(initialDocuments ?? []);
   const [addressOptions, setAddressOptions] = useState<AddressOptionInput[]>([]);
   const [hasLoadedPersistedState, setHasLoadedPersistedState] = useState(Boolean(initialApplicationId));
   const [shouldPersistNewApplication, setShouldPersistNewApplication] = useState(!initialApplicationId);
+  const isSubmitting = submittingAction !== null;
 
   useEffect(() => {
     if (initialApplicationId) return;
@@ -1440,7 +1441,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const ensureDraftApplication = async () => {
     if (applicationId) return applicationId;
 
-    setIsSubmitting(true);
+    setSubmittingAction('draft');
     setMessage(null);
 
     try {
@@ -1473,12 +1474,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       setMessage(message);
       throw new Error(message);
     } finally {
-      setIsSubmitting(false);
+      setSubmittingAction(null);
     }
   };
 
   const submit = async (saveStatus: 'draft' | 'submitted') => {
-    setIsSubmitting(true);
+    setSubmittingAction(saveStatus);
     setMessage(null);
     if (saveStatus === 'submitted') {
       setShowSubmissionSuccessModal(false);
@@ -1524,8 +1525,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Submission failed.');
     } finally {
-      setIsSubmitting(false);
+      setSubmittingAction(null);
     }
+  };
+
+  const handleSubmissionDone = () => {
+    setShowSubmissionSuccessModal(false);
+    router.push('/applications');
+    router.refresh();
   };
 
   const guardianDetailsNeeded = formData.motherAlive !== 'yes' || formData.motherIsGuardian !== 'yes';
@@ -2058,7 +2065,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             </p>
             <button
               type="button"
-              onClick={() => setShowSubmissionSuccessModal(false)}
+              onClick={handleSubmissionDone}
               className="mt-6 min-h-12 w-full rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
             >
               Done
@@ -3046,7 +3053,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             disabled={isSubmitting}
             className="min-h-12 min-w-0 rounded-lg bg-slate-600 px-2 py-3 text-sm font-semibold text-white transition hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5"
           >
-            {isSubmitting ? 'Saving…' : 'Save Draft'}
+            {submittingAction === 'draft' ? 'Saving…' : 'Save Draft'}
           </button>
           {step === TOTAL_STEPS ? (
             <button
@@ -3055,7 +3062,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               disabled={isSubmitting}
               className="min-h-12 min-w-0 rounded-lg bg-blue-600 px-2 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5"
             >
-              {isSubmitting ? (
+              {submittingAction === 'submitted' ? (
                 'Submitting…'
               ) : (
                 <>
