@@ -14,6 +14,9 @@ export async function GET(request: NextRequest) {
 
   const format = new URL(request.url).searchParams.get('format') || 'csv';
   const applications = await prisma.orphanApplication.findMany({
+    where: {
+      status: { not: 'draft' },
+    },
     orderBy: { createdAt: 'desc' },
     include: {
       siblings: true,

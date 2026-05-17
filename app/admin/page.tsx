@@ -33,6 +33,12 @@ type FieldWorker = {
   createdAt: Date;
 };
 
+const adminVisibleApplicationWhere = {
+  status: {
+    not: 'draft' as const,
+  },
+};
+
 async function getAdminPortalData() {
   const [
     totalApplications,
@@ -45,7 +51,7 @@ async function getAdminPortalData() {
     fieldWorkers,
     recentApplications,
   ] = await Promise.all([
-    prisma.orphanApplication.count(),
+    prisma.orphanApplication.count({ where: adminVisibleApplicationWhere }),
     prisma.orphanApplication.count({ where: { status: 'submitted' } }),
     prisma.orphanApplication.count({ where: { status: 'validated' } }),
     prisma.orphanApplication.count({ where: { status: 'migrated' } }),
@@ -67,6 +73,7 @@ async function getAdminPortalData() {
       },
     }) as Promise<FieldWorker[]>,
     prisma.orphanApplication.findMany({
+      where: adminVisibleApplicationWhere,
       orderBy: { updatedAt: 'desc' },
       take: 8,
       select: {

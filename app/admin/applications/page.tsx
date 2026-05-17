@@ -6,6 +6,11 @@ import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 
 const PAGE_SIZE = 50;
+const adminVisibleApplicationWhere = {
+  status: {
+    not: 'draft' as const,
+  },
+};
 
 type ApplicationListItem = {
   id: string;
@@ -30,6 +35,7 @@ export default async function AdminApplicationsPage({
 
   const [applications, total] = await Promise.all([
     prisma.orphanApplication.findMany({
+      where: adminVisibleApplicationWhere,
       orderBy: { updatedAt: 'desc' },
       skip,
       take: PAGE_SIZE,
@@ -42,7 +48,7 @@ export default async function AdminApplicationsPage({
         updatedAt: true,
       },
     }) as Promise<ApplicationListItem[]>,
-    prisma.orphanApplication.count(),
+    prisma.orphanApplication.count({ where: adminVisibleApplicationWhere }),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));

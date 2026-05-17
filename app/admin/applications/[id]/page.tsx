@@ -44,8 +44,11 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   if (!session?.user?.email) redirect(`/signin?callbackUrl=/admin/applications/${params.id}`);
   if (session.user.role !== 'admin') redirect('/dashboard');
 
-  const application = await prisma.orphanApplication.findUnique({
-    where: { id: params.id },
+  const application = await prisma.orphanApplication.findFirst({
+    where: {
+      id: params.id,
+      status: { not: 'draft' },
+    },
     include: {
       documents: true,
       createdBy: true,
