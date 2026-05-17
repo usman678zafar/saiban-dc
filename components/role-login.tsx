@@ -64,6 +64,15 @@ export default function RoleLogin() {
           loginRole={selectedOption.role}
           compact
         />
+
+        {selectedRole === 'field_worker' ? (
+          <p className="mt-4 text-center text-xs text-slate-500">
+            Want to volunteer?{' '}
+            <a href="/signup" className="font-semibold text-blue-600 hover:underline">
+              Register here
+            </a>
+          </p>
+        ) : null}
       </div>
     </div>
   );

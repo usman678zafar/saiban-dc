@@ -13,10 +13,12 @@ export type FieldWorkerListItem = {
   cnic: string | null;
   address: string | null;
   project: string | null;
+  selfRegistered: boolean;
   createdAt: string;
 };
 
 type ModalMode = 'add' | 'edit';
+type SourceFilter = 'all' | 'admin' | 'self';
 
 type FormState = {
   name: string;
@@ -52,6 +54,7 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [projectFilter, setProjectFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [selectedWorker, setSelectedWorker] = useState<FieldWorkerListItem | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -61,11 +64,17 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
   const [deleteTarget, setDeleteTarget] = useState<FieldWorkerListItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const isEditingSelfRegistered = modalMode === 'edit' && selectedWorker?.selfRegistered === true;
+
   const filteredWorkers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return initialWorkers.filter((worker) => {
       const matchesProject = projectFilter === 'all' || worker.project === projectFilter;
+      const matchesSource =
+        sourceFilter === 'all' ||
+        (sourceFilter === 'self' && worker.selfRegistered) ||
+        (sourceFilter === 'admin' && !worker.selfRegistered);
       const searchableText = [
         worker.fieldWorkerId,
         worker.name,
@@ -75,9 +84,9 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
         worker.project,
       ].filter(Boolean).join(' ').toLowerCase();
 
-      return matchesProject && (!normalizedSearch || searchableText.includes(normalizedSearch));
+      return matchesProject && matchesSource && (!normalizedSearch || searchableText.includes(normalizedSearch));
     });
-  }, [initialWorkers, projectFilter, searchTerm]);
+  }, [initialWorkers, projectFilter, sourceFilter, searchTerm]);
 
   const projectCounts = useMemo(() => {
     return fieldWorkerProjects.map((project) => ({
@@ -85,6 +94,11 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
       count: initialWorkers.filter((worker) => worker.project === project).length,
     }));
   }, [initialWorkers]);
+
+  const sourceCounts = useMemo(() => ({
+    admin: initialWorkers.filter((w) => !w.selfRegistered).length,
+    self: initialWorkers.filter((w) => w.selfRegistered).length,
+  }), [initialWorkers]);
 
   const defaultPassword = useMemo(() => {
     const phoneDigits = digitsOnly(form.phoneNumber);
@@ -130,14 +144,17 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
     setIsSubmitting(true);
     setMessage(null);
 
-    const payload = {
+    const payload: Record<string, string> = {
       name: form.name,
       phoneNumber: form.phoneNumber,
       cnic: form.cnic,
       address: form.address,
-      project: form.project,
       password: modalMode === 'add' ? form.password || defaultPassword : form.password,
     };
+
+    if (!isEditingSelfRegistered) {
+      payload.project = form.project;
+    }
 
     const response = await fetch(modalMode === 'add' ? '/api/admin/field-workers' : `/api/admin/field-workers/${selectedWorker?.id}`, {
       method: modalMode === 'add' ? 'POST' : 'PATCH',
@@ -227,11 +244,26 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
           <button
             type="button"
-            onClick={() => setProjectFilter('all')}
-            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${projectFilter === 'all' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
+            onClick={() => setSourceFilter('all')}
+            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${sourceFilter === 'all' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
           >
             All {initialWorkers.length}
           </button>
+          <button
+            type="button"
+            onClick={() => setSourceFilter('admin')}
+            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${sourceFilter === 'admin' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
+          >
+            Admin Added {sourceCounts.admin}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSourceFilter('self')}
+            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${sourceFilter === 'self' ? 'border-purple-200 bg-purple-50 text-purple-700' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
+          >
+            Self Registered {sourceCounts.self}
+          </button>
+          <span className="mx-1 my-auto h-4 w-px bg-[#dbe4ef]" />
           {projectCounts.map(({ project, count }) => (
             <button
               key={project}
@@ -258,6 +290,9 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-[#0f1f33]">{worker.name ?? 'Unnamed worker'}</p>
                     <p className="mt-1 truncate text-xs font-semibold text-[#8a9bb3]">{worker.fieldWorkerId ?? worker.id}</p>
+                    <span className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${worker.selfRegistered ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                      {worker.selfRegistered ? 'Self Registered' : 'Admin Added'}
+                    </span>
                   </div>
                   <div className="flex shrink-0 gap-2">
                     <button
@@ -313,6 +348,9 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
                     <td className="px-4 py-4">
                       <p className="font-semibold text-[#0f1f33]">{worker.name ?? 'Unnamed worker'}</p>
                       <p className="mt-1 text-xs font-semibold text-[#8a9bb3]">{worker.fieldWorkerId ?? worker.id}</p>
+                      <span className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${worker.selfRegistered ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                        {worker.selfRegistered ? 'Self Registered' : 'Admin Added'}
+                      </span>
                     </td>
                     <td className="px-4 py-4 text-[#506784]">{worker.project ?? '-'}</td>
                     <td className="px-4 py-4">
@@ -396,38 +434,46 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm text-slate-700">
-                  <span>CNIC</span>
+                  <span>
+                    CNIC
+                    {isEditingSelfRegistered ? <span className="ml-1 text-xs text-slate-400">(optional)</span> : null}
+                  </span>
                   <input
                     value={form.cnic}
                     onChange={(event) => updateForm('cnic', event.target.value)}
-                    required
+                    required={!isEditingSelfRegistered}
                     inputMode="numeric"
                     className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </label>
-                <label className="grid gap-2 text-sm text-slate-700">
-                  <span>Project/منصوبہ</span>
-                  <select
-                    value={form.project}
-                    onChange={(event) => updateForm('project', event.target.value)}
-                    required
-                    className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    {fieldWorkerProjects.map((project) => (
-                      <option key={project} value={project}>
-                        {project}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {!isEditingSelfRegistered ? (
+                  <label className="grid gap-2 text-sm text-slate-700">
+                    <span>Project/منصوبہ</span>
+                    <select
+                      value={form.project}
+                      onChange={(event) => updateForm('project', event.target.value)}
+                      required
+                      className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    >
+                      {fieldWorkerProjects.map((project) => (
+                        <option key={project} value={project}>
+                          {project}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
               </div>
 
               <label className="grid gap-2 text-sm text-slate-700">
-                <span>Address/پتہ</span>
+                <span>
+                  Address/پتہ
+                  {isEditingSelfRegistered ? <span className="ml-1 text-xs text-slate-400">(optional)</span> : null}
+                </span>
                 <textarea
                   value={form.address}
                   onChange={(event) => updateForm('address', event.target.value)}
-                  required
+                  required={!isEditingSelfRegistered}
                   rows={3}
                   className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />

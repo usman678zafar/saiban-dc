@@ -13,6 +13,7 @@ type FieldWorker = {
   cnic: string | null;
   address: string | null;
   project: string | null;
+  selfRegistered: boolean;
   createdAt: Date;
 };
 
@@ -32,6 +33,7 @@ export default async function AdminFieldWorkersPage() {
       cnic: true,
       address: true,
       project: true,
+      selfRegistered: true,
       createdAt: true,
     },
   }) as FieldWorker[];

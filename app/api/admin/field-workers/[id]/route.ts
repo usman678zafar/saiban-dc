@@ -9,21 +9,44 @@ import { prisma } from '@/lib/prisma';
 
 const digitsOnly = (value: string) => value.replace(/\D/g, '');
 
-const updateFieldWorkerSchema = z.object({
+const updateAdminWorkerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  phoneNumber: z.string().transform(digitsOnly).refine((value) => value.length >= 10, {
-    message: 'Phone number must contain at least 10 digits',
-  }),
-  cnic: z.string().transform(digitsOnly).refine((value) => value.length === 13, {
-    message: 'CNIC must contain 13 digits',
-  }),
+  phoneNumber: z
+    .string()
+    .transform(digitsOnly)
+    .refine((v) => v.length >= 10, { message: 'Phone number must contain at least 10 digits' }),
+  cnic: z
+    .string()
+    .transform(digitsOnly)
+    .refine((v) => v.length === 13, { message: 'CNIC must contain 13 digits' }),
   address: z.string().trim().min(1, 'Address is required'),
   project: z.enum(fieldWorkerProjects, {
     errorMap: () => ({ message: 'Project is required' }),
   }),
-  password: z.string().optional().transform((value) => value?.trim() ?? '').refine((value) => value.length === 0 || value.length >= 4, {
-    message: 'Password must be at least 4 characters',
-  }),
+  password: z
+    .string()
+    .optional()
+    .transform((v) => v?.trim() ?? '')
+    .refine((v) => v.length === 0 || v.length >= 4, { message: 'Password must be at least 4 characters' }),
+});
+
+const updateSelfWorkerSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required'),
+  phoneNumber: z
+    .string()
+    .transform(digitsOnly)
+    .refine((v) => v.length >= 10, { message: 'Phone number must contain at least 10 digits' }),
+  cnic: z
+    .string()
+    .optional()
+    .transform((v) => (v ? digitsOnly(v) : ''))
+    .refine((v) => v.length === 0 || v.length === 13, { message: 'CNIC must contain 13 digits' }),
+  address: z.string().trim().optional().default(''),
+  password: z
+    .string()
+    .optional()
+    .transform((v) => v?.trim() ?? '')
+    .refine((v) => v.length === 0 || v.length >= 4, { message: 'Password must be at least 4 characters' }),
 });
 
 async function requireAdmin() {
@@ -52,16 +75,58 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
 
   try {
     const body = await request.json();
-    const input = updateFieldWorkerSchema.parse(body);
 
     const worker = await prisma.user.findFirst({
       where: { id: params.id, role: 'field_worker' },
-      select: { id: true },
+      select: { id: true, selfRegistered: true },
     });
 
     if (!worker) {
       return NextResponse.json({ message: 'Field worker not found.' }, { status: 404 });
     }
+
+    if (worker.selfRegistered) {
+      const input = updateSelfWorkerSchema.parse(body);
+
+      const orConditions: Prisma.UserWhereInput[] = [{ phoneNumber: input.phoneNumber }];
+      if (input.cnic) orConditions.push({ cnic: input.cnic });
+
+      const existingUser = await prisma.user.findFirst({
+        where: { id: { not: params.id }, OR: orConditions },
+        select: { id: true },
+      });
+
+      if (existingUser) {
+        return NextResponse.json({ message: 'A field worker with this phone number already exists.' }, { status: 409 });
+      }
+
+      const passwordHash = input.password ? await bcrypt.hash(input.password, 10) : undefined;
+      const updatedWorker = await prisma.user.update({
+        where: { id: params.id },
+        data: {
+          name: input.name,
+          email: `${input.phoneNumber}@public.saiban.local`,
+          phoneNumber: input.phoneNumber,
+          cnic: input.cnic || null,
+          address: input.address,
+          ...(passwordHash ? { passwordHash } : {}),
+        },
+        select: {
+          id: true,
+          fieldWorkerId: true,
+          name: true,
+          phoneNumber: true,
+          cnic: true,
+          address: true,
+          project: true,
+          createdAt: true,
+        },
+      });
+
+      return NextResponse.json(updatedWorker);
+    }
+
+    const input = updateAdminWorkerSchema.parse(body);
 
     const existingUser = await prisma.user.findFirst({
       where: {

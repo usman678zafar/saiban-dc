@@ -69,6 +69,7 @@ model User {
   project      String?
   passwordHash String
   role         UserRole            @default(field_worker)
+  selfRegistered Boolean           @default(false)
   applications OrphanApplication[] @relation("CreatedApplications")
   updatedApps  OrphanApplication[] @relation("UpdatedApplications")
   auditLogs    AuditLog[]
