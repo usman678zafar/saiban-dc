@@ -1,12 +1,21 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { labels } from '@/lib/labels';
+import AppShell from '@/components/app-shell';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
-import AppShell from '@/components/app-shell';
 import { assetUsesGrams, householdAssetDisplayLabel, type HouseholdAssetKey } from '@/lib/household-assets';
+
+interface ApplicationDetailPageProps {
+  params: {
+    id: string;
+  };
+}
+
+type FieldKey = keyof typeof labels;
 
 function badgeClass(status: string) {
   switch (status) {
@@ -27,59 +36,28 @@ function badgeClass(status: string) {
   }
 }
 
-interface ApplicationDetailPageProps {
-  params: {
-    id: string;
-  };
+function labelFor(field: string) {
+  return labels[field]?.en ?? field.replace(/([A-Z])/g, ' $1').replace(/^./, (value) => value.toUpperCase());
 }
 
-type SiblingRecord = {
-  name: string | null;
-  age: number | null;
-  occupation: string | null;
-};
+function formatValue(value: unknown) {
+  if (value === null || value === undefined || value === '') return '-';
+  if (value instanceof Date) return value.toLocaleDateString();
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'number') return Number.isInteger(value) ? String(value) : value.toLocaleString();
+  return String(value);
+}
 
-type RelativeRecord = {
-  relativeType: string;
-  name: string | null;
-  age: number | null;
-  occupation: string | null;
-  monthlyIncome: number | null;
-  supportType: string | null;
-};
-
-type HouseholdAssetRecord = {
-  assetType: string;
-  quantity: number | null;
-  value: number | null;
-};
-
-type ApplicationDocumentRecord = {
-  id: string;
-  documentType: string;
-  fileUrl: string | null;
-  mimeType: string;
-  size: number;
-};
-
-type DataGridItem = {
-  label: string;
-  value: string;
-};
-
-type DocumentItem = {
-  id: string;
-  documentType: string;
-  fileUrl: string;
-  mimeType: string;
-  sizeInKb: string;
-};
+function fieldItems(application: Record<string, unknown>, fields: string[]) {
+  return fields.map((field) => ({
+    label: labelFor(field),
+    value: formatValue(application[field]),
+  }));
+}
 
 export default async function ApplicationDetailPage({ params }: ApplicationDetailPageProps) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    notFound();
-  }
+  if (!session?.user?.email) notFound();
 
   const application = await prisma.orphanApplication.findUnique({
     where: { id: params.id },
@@ -93,43 +71,61 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
     },
   });
 
-  if (!application) {
-    notFound();
-  }
+  if (!application) notFound();
 
   const isAdmin = session.user.role === 'admin';
-  const canEdit = application.status === 'draft' || isAdmin;
-  const siblingItems: DataGridItem[] = application.siblings.map((sibling: SiblingRecord) => ({
-    label: sibling.name ?? 'Unnamed',
-    value: `${sibling.age ?? '-'} years - ${sibling.occupation ?? 'No occupation'}`,
-  }));
-  const relativeItems: DataGridItem[] = application.relatives.map((relative: RelativeRecord) => ({
-    label: `${relative.relativeType.replace('_', ' ')} - ${relative.name ?? '-'}`,
-    value: `${relative.occupation ?? 'No occupation'} - ${relative.monthlyIncome ?? '-'} PKR - ${relative.supportType ?? 'No support detail'}`,
-  }));
-  const householdAssetItems: DataGridItem[] = application.householdAssets.map((asset: HouseholdAssetRecord) => {
-    const key = asset.assetType as HouseholdAssetKey;
-    const label = householdAssetDisplayLabel(key) ?? asset.assetType;
-    const quantity = assetUsesGrams(key) ? `${asset.quantity ?? '-'} grams` : 'Selected';
+  if (!isAdmin && application.createdById !== session.user.id) notFound();
 
-    return {
-      label,
-      value: `${quantity} - ${asset.value ?? '-'} PKR`,
-    };
-  });
-  const documentItems: DocumentItem[] = application.documents.map((document: ApplicationDocumentRecord) => ({
-    id: document.id,
-    documentType: document.documentType,
-    fileUrl: document.fileUrl ?? '#',
-    mimeType: document.mimeType,
-    sizeInKb: (document.size / 1024).toFixed(1),
-  }));
+  const app = application as unknown as Record<string, unknown>;
+  const canEdit = application.status === 'draft' || isAdmin;
+  const sections = [
+    {
+      title: 'Collector',
+      fields: ['collectorId', 'collectorName', 'collectorProject', 'collectorCnic', 'collectorAddress', 'collectorContact'],
+    },
+    {
+      title: 'Father',
+      fields: ['fatherName', 'fatherDob', 'fatherAge', 'fatherCnic', 'fatherEducation', 'fatherTongue', 'fatherNativeArea', 'fatherOccupation', 'fatherDateOfDeath', 'fatherCauseOfDeath'],
+    },
+    {
+      title: 'Mother',
+      fields: ['motherName', 'motherDob', 'motherAge', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherSeparationReason', 'motherContact', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'],
+    },
+    {
+      title: 'Guardian',
+      fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'],
+    },
+    {
+      title: 'Address and GPS',
+      fields: ['province', 'district', 'tehsil', 'city', 'residentialArea', 'fullAddress', 'latitude', 'longitude', 'gpsAccuracyMeters', 'gpsCapturedAt'],
+    },
+    {
+      title: 'Home',
+      fields: ['houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'residenceStructureType', 'residenceCategory', 'houseConditionRemarks', 'electricityAvailable', 'gasAvailable', 'waterAvailable', 'furnishingCondition', 'furnishingConditionRemarks'],
+    },
+    {
+      title: 'Child',
+      fields: ['childName', 'gender', 'religion', 'specifyReligion', 'syedStatus', 'nationality', 'specifyNationality', 'bFormNumber', 'dateOfBirth', 'age', 'totalSiblings', 'totalBrothers', 'totalSisters', 'registeredBrothers', 'registeredSisters', 'siblingsUnder12'],
+    },
+    {
+      title: 'Health',
+      fields: ['healthStatus', 'disabilityType', 'disabilityCause', 'disabilityCauseDetails', 'disabilitySince', 'treatmentOngoing', 'chronicDisease', 'specifyDisease', 'illnessSince', 'treatmentPlace', 'monthlyMedicalExpenses'],
+    },
+    {
+      title: 'Education and Skills',
+      fields: ['currentlyStudying', 'currentClass', 'schoolName', 'schoolAddress', 'schoolDistanceKm', 'schoolTransportMode', 'schoolStudyingSince', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails', 'educationStartCondition', 'educationUndertakingAccepted', 'educationFree', 'monthlySchoolFee', 'currentSkillLearning', 'currentSkill', 'childHobbies', 'technicalSkillInterest', 'technicalSkill'],
+    },
+    {
+      title: 'Income and Assistance',
+      fields: ['totalFamilyMembers', 'householdHasMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'childEarnsIncome', 'childWorkNature', 'childMonthlyIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'assistanceApplied', 'assistanceAppliedWhere'],
+    },
+  ];
 
   return (
     <AppShell
       title="Application Details"
-      description="Review application status, migration metadata, and supporting documents."
-      maxWidth="max-w-6xl"
+      description="View draft or submitted application details, uploaded documents, and related records."
+      maxWidth="max-w-7xl"
       actions={
         <>
           <Link href="/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
@@ -137,123 +133,199 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
           </Link>
           {canEdit ? (
             <Link href={`/applications/${application.id}/edit`} className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
-              Edit Draft
+              {application.status === 'draft' ? 'Edit Draft' : 'Edit'}
             </Link>
           ) : null}
         </>
       }
     >
-        <div className="grid gap-6 lg:grid-cols-[1.5fr_0.9fr]">
-          <div className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-              <h2 className="text-xl font-semibold text-slate-900">Application Summary</h2>
-              <div className="mt-4 space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <DetailRow label="Registration" value={application.registrationNumber ?? application.id} />
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Status</p>
-                    <div className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${badgeClass(application.status)}`}>
-                      {application.status}
-                    </div>
-                  </div>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Migration</p>
-                    <div className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${badgeClass(application.migrationStatus)}`}>
-                      {application.migrationStatus}
-                    </div>
-                  </div>
-                  <DetailRow label="Created By" value={application.createdBy?.email ?? 'Unknown'} />
-                  <DetailRow label="Updated At" value={new Date(application.updatedAt).toLocaleString()} />
-                </div>
-              </div>
-            </section>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-5">
+          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <SummaryTile label="Registration" value={application.registrationNumber ?? application.id} />
+              <StatusTile label="Status" value={application.status} />
+              <StatusTile label="Migration" value={application.migrationStatus} />
+              <SummaryTile label="Updated" value={application.updatedAt.toLocaleString()} />
+            </div>
+          </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-              <h2 className="text-xl font-semibold text-slate-900">Application Details</h2>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <DetailRow label="Collector" value={application.collectorName ?? '-'} />
-                <DetailRow label="Project" value={application.collectorProject ?? '-'} />
-                <DetailRow label="Child" value={application.childName ?? '-'} />
-                <DetailRow label="Gender" value={application.gender ?? '-'} />
-                <DetailRow label="B-Form" value={application.bFormNumber ?? '-'} />
-                <DetailRow label="City" value={application.city ?? '-'} />
-                <DetailRow label="Residence Structure" value={application.residenceStructureType ?? '-'} />
-                <DetailRow label="Residence Category" value={application.residenceCategory ?? '-'} />
-                <DetailRow label="Electricity Available" value={application.electricityAvailable ? 'Yes' : 'No'} />
-                <DetailRow label="Gas Available" value={application.gasAvailable ? 'Yes' : 'No'} />
-                <DetailRow label="Water Available" value={application.waterAvailable ? 'Yes' : 'No'} />
-              </div>
-            </section>
+          {sections.map((section) => (
+            <DetailSection key={section.title} title={section.title} items={fieldItems(app, section.fields)} />
+          ))}
 
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-              <h2 className="text-xl font-semibold text-slate-900">Related Records</h2>
-              <div className="mt-4 space-y-6">
-                <DataGrid title="Siblings" items={siblingItems} />
-                <DataGrid title="Relatives" items={relativeItems} />
-                <DataGrid title="Household Assets" items={householdAssetItems} />
-              </div>
-            </section>
-
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-              <h2 className="text-xl font-semibold text-slate-900">Documents</h2>
-              <div className="mt-4 grid gap-3">
-                {application.documents.length === 0 ? (
-                  <p className="text-sm text-slate-500">No uploaded documents.</p>
-                ) : (
-                  documentItems.map((doc: DocumentItem) => (
-                    <a key={doc.id} href={doc.fileUrl} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 hover:bg-slate-100">
-                      <div className="font-semibold text-slate-900">{doc.documentType}</div>
-                      <div className="text-xs text-slate-500">{doc.mimeType} - {doc.sizeInKb} KB</div>
-                    </a>
-                  ))
-                )}
-              </div>
-            </section>
-          </div>
-
-          <div className="space-y-6">
-            {isAdmin ? <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} /> : null}
-            {isAdmin ? (
-              <ApplicationMigrationFields
-                applicationId={application.id}
-                initialMigrationStatus={application.migrationStatus}
-                initialMainSaibanId={application.mainSaibanId ?? ''}
-                initialMigrationErrors={application.migrationErrors ?? ''}
-              />
-            ) : null}
-          </div>
+          <SiblingSection siblings={application.siblings} />
+          <RelativeSection relatives={application.relatives} />
+          <AssetSection assets={application.householdAssets} />
+          <DocumentSection documents={application.documents} />
         </div>
+
+        <aside className="space-y-5">
+          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 className="text-base font-semibold text-slate-900">Record Info</h2>
+            <div className="mt-4 grid gap-3">
+              <SummaryTile label="Created By" value={application.createdBy?.email ?? 'Unknown'} />
+              <SummaryTile label="Updated By" value={application.updatedBy?.email ?? '-'} />
+              <SummaryTile label="Created At" value={application.createdAt.toLocaleString()} />
+              <SummaryTile label="Application ID" value={application.id} />
+            </div>
+          </section>
+
+          {isAdmin ? <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} /> : null}
+          {isAdmin ? (
+            <ApplicationMigrationFields
+              applicationId={application.id}
+              initialMigrationStatus={application.migrationStatus}
+              initialMainSaibanId={application.mainSaibanId ?? ''}
+              initialMigrationErrors={application.migrationErrors ?? ''}
+            />
+          ) : null}
+        </aside>
+      </div>
     </AppShell>
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-slate-900">{value}</p>
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 break-words text-sm font-semibold text-slate-900">{value}</p>
     </div>
   );
 }
 
-function DataGrid({ title, items }: { title: string; items: DataGridItem[] }) {
+function StatusTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-      <div className="mt-3 space-y-3">
-        {items.length === 0 ? (
-          <p className="text-sm text-slate-500">None</p>
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+      <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${badgeClass(value)}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function DetailSection({ title, items }: { title: string; items: Array<{ label: string; value: string }> }) {
+  return (
+    <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((item) => (
+          <SummaryTile key={item.label} label={item.label} value={item.value} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SiblingSection({ siblings }: { siblings: any[] }) {
+  return (
+    <TableSection
+      title="Siblings"
+      emptyText="No sibling records."
+      headers={['Name', 'Relation', 'DOB', 'Age', 'Education', 'Studying', 'Occupation', 'Income/Fee', 'Marital']}
+      rows={siblings.map((sibling) => [
+        formatValue(sibling.name),
+        formatValue(sibling.relation),
+        formatValue(sibling.dob),
+        formatValue(sibling.age),
+        formatValue(sibling.educationStatus),
+        formatValue(sibling.currentlyStudying),
+        formatValue(sibling.occupation),
+        formatValue(sibling.monthlyIncomeOrFee),
+        formatValue(sibling.maritalStatus),
+      ])}
+    />
+  );
+}
+
+function RelativeSection({ relatives }: { relatives: any[] }) {
+  return (
+    <TableSection
+      title="Relatives"
+      emptyText="No relative records."
+      headers={['Relationship', 'Name', 'Age', 'Occupation', 'Monthly Income', 'Support']}
+      rows={relatives.map((relative) => [
+        formatValue(relative.relativeType),
+        formatValue(relative.name),
+        formatValue(relative.age),
+        formatValue(relative.occupationOther || relative.occupation),
+        formatValue(relative.monthlyIncome),
+        formatValue(relative.supportTypeOther || relative.supportType),
+      ])}
+    />
+  );
+}
+
+function AssetSection({ assets }: { assets: any[] }) {
+  return (
+    <TableSection
+      title="Household Assets"
+      emptyText="No household assets."
+      headers={['Asset', 'Quantity', 'Value']}
+      rows={assets.map((asset) => {
+        const key = asset.assetType as HouseholdAssetKey;
+        return [
+          householdAssetDisplayLabel(key) ?? formatValue(asset.assetType),
+          assetUsesGrams(key) ? `${formatValue(asset.quantity)} grams` : '-',
+          formatValue(asset.value),
+        ];
+      })}
+    />
+  );
+}
+
+function DocumentSection({ documents }: { documents: any[] }) {
+  return (
+    <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <h2 className="text-lg font-semibold text-slate-900">Documents</h2>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {documents.length === 0 ? (
+          <p className="text-sm text-slate-500">No uploaded documents.</p>
         ) : (
-          items.map((item: DataGridItem, index: number) => (
-            <div key={index} className="rounded-lg border border-slate-200 bg-white p-3">
-              <p className="text-sm font-semibold text-slate-900">{item.label}</p>
-              <p className="text-sm text-slate-600">{item.value}</p>
-            </div>
+          documents.map((document) => (
+            <a key={document.id} href={document.fileUrl ?? '#'} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm hover:bg-slate-100">
+              <p className="font-semibold capitalize text-slate-900">{String(document.documentType).replace(/_/g, ' ')}</p>
+              <p className="mt-1 text-xs text-slate-500">{document.mimeType} - {(document.size / 1024).toFixed(1)} KB</p>
+            </a>
           ))
         )}
       </div>
-    </div>
+    </section>
+  );
+}
+
+function TableSection({ title, emptyText, headers, rows }: { title: string; emptyText: string; headers: string[]; rows: string[][] }) {
+  return (
+    <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-200 px-4 py-3">
+        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+      </div>
+      {rows.length === 0 ? (
+        <p className="p-4 text-sm text-slate-500">{emptyText}</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-sm">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                {headers.map((header) => (
+                  <th key={header} className="whitespace-nowrap px-3 py-2 font-semibold">{header}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {rows.map((row, rowIndex) => (
+                <tr key={rowIndex} className="hover:bg-slate-50">
+                  {row.map((cell, cellIndex) => (
+                    <td key={`${rowIndex}-${cellIndex}`} className="whitespace-nowrap px-3 py-2 text-slate-700">{cell}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }
