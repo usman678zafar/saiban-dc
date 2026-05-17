@@ -390,6 +390,22 @@ function fieldLabel(field: keyof FormData) {
   return label.ur ? `${label.en} / ${label.ur}` : label.en;
 }
 
+function issuePathLabel(path?: Array<string | number>) {
+  if (!path?.length) return 'Form';
+
+  const field = [...path].reverse().find((part): part is keyof FormData => typeof part === 'string' && part in labels);
+  const label = field ? fieldLabel(field) : String(path[path.length - 1]);
+  const index = path.find((part): part is number => typeof part === 'number');
+
+  return index === undefined ? label : `${label} #${index + 1}`;
+}
+
+function validationIssuesMessage(issues: Array<{ path?: Array<string | number>; message?: string }>) {
+  return issues
+    .map((issue) => `${issuePathLabel(issue.path)}: ${issue.message ?? 'Invalid value'}`)
+    .join('\n');
+}
+
 interface OrphanApplicationWizardProps {
   initialData?: Partial<FormData>;
   initialDocuments?: DocumentInput[];
@@ -720,6 +736,13 @@ const DISEASE_OPTIONS = [
 const CLASS_OPTIONS = [
   { value: '', label: 'Select class' }, 'Preschool','Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8','Class 9 / O level I','Class 10 / O level II','Intermediate / A level',
 ].map((item) => typeof item === 'string' ? { value: item, label: item } : item);
+const STUDYING_SINCE_YEAR_OPTIONS = [
+  { value: '', label: 'Select year' },
+  ...Array.from({ length: 31 }, (_, index) => {
+    const year = new Date().getFullYear() - index;
+    return { value: `${year}-01-01`, label: String(year) };
+  }),
+];
 const TRANSPORT_OPTIONS = [
   { value: '', label: 'Select transport' },
   { value: 'walking', label: 'Walking / پیدل' }, { value: 'bicycle', label: 'Bicycle / سائیکل' }, { value: 'motorcycle', label: 'Motorcycle / موٹر سائیکل' }, { value: 'van_bus', label: 'School Van / Bus / اسکول وین / بس' }, { value: 'public_transport', label: 'Public Transport / پبلک ٹرانسپورٹ' }, { value: 'rickshaw', label: 'Rickshaw / رکشہ' }, { value: 'other', label: 'Other / دیگر' },
@@ -1441,7 +1464,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       if (!response.ok) {
         const error = await response.json();
         const details = Array.isArray(error?.issues)
-          ? error.issues.map((issue: { path?: Array<string | number>; message?: string }) => `${issue.path?.join('.') || 'form'}: ${issue.message}`).join('\n')
+          ? validationIssuesMessage(error.issues)
           : error?.message;
         throw new Error(details ?? 'Unable to save draft before upload');
       }
@@ -1481,7 +1504,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       if (!response.ok) {
         const error = await response.json();
         const details = Array.isArray(error?.issues)
-          ? error.issues.map((issue: { path?: Array<string | number>; message?: string }) => `${issue.path?.join('.') || 'form'}: ${issue.message}`).join('\n')
+          ? validationIssuesMessage(error.issues)
           : error?.message;
         throw new Error(details ?? 'Unable to save application');
       }
@@ -2774,7 +2797,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                 {renderTextField('schoolAddress')}
                 {renderTextField('schoolDistanceKm', 'number')}
                 {renderSelectField('schoolTransportMode', TRANSPORT_OPTIONS)}
-                {renderTextField('schoolStudyingSince', 'date')}
+                {renderSelectField('schoolStudyingSince', STUDYING_SINCE_YEAR_OPTIONS)}
               </>
             ) : null}
             {formData.enrolledInMadrasa ? (
@@ -2827,7 +2850,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {formData.receivingOtherAid ? (
               <>
                 {renderSelectField('otherAidSource', ASSISTANCE_SOURCE_OPTIONS)}
-                {renderSelectField('monthlyAidAmount', MONTHLY_INCOME_OPTIONS)}
+                {renderTextField('monthlyAidAmount', 'number')}
               </>
             ) : (
               <>
