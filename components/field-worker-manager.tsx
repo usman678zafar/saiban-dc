@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Edit2, Plus, Search, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fieldWorkerProjects } from '@/lib/field-workers';
@@ -31,6 +32,23 @@ type FormState = {
 
 interface FieldWorkerManagerProps {
   initialWorkers: FieldWorkerListItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+  filters: {
+    search: string;
+    project: string;
+    source: SourceFilter;
+  };
+  counts: {
+    totalAll: number;
+    admin: number;
+    self: number;
+    projects: Array<{ project: string; count: number }>;
+  };
 }
 
 const emptyForm: FormState = {
@@ -50,11 +68,9 @@ function formatDate(value: string) {
   return new Date(value).toLocaleDateString();
 }
 
-export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManagerProps) {
+export default function FieldWorkerManager({ initialWorkers, pagination, filters, counts }: FieldWorkerManagerProps) {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [projectFilter, setProjectFilter] = useState('all');
-  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [searchTerm, setSearchTerm] = useState(filters.search);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [selectedWorker, setSelectedWorker] = useState<FieldWorkerListItem | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -66,39 +82,26 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
 
   const isEditingSelfRegistered = modalMode === 'edit' && selectedWorker?.selfRegistered === true;
 
-  const filteredWorkers = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
+  const buildHref = (updates: Partial<{ page: number; q: string; project: string; source: SourceFilter }>) => {
+    const params = new URLSearchParams();
+    const nextQ = updates.q ?? filters.search;
+    const nextProject = updates.project ?? filters.project;
+    const nextSource = updates.source ?? filters.source;
+    const nextPage = updates.page ?? pagination.page;
 
-    return initialWorkers.filter((worker) => {
-      const matchesProject = projectFilter === 'all' || worker.project === projectFilter;
-      const matchesSource =
-        sourceFilter === 'all' ||
-        (sourceFilter === 'self' && worker.selfRegistered) ||
-        (sourceFilter === 'admin' && !worker.selfRegistered);
-      const searchableText = [
-        worker.fieldWorkerId,
-        worker.name,
-        worker.phoneNumber,
-        worker.cnic,
-        worker.address,
-        worker.project,
-      ].filter(Boolean).join(' ').toLowerCase();
+    if (nextQ.trim()) params.set('q', nextQ.trim());
+    if (nextProject && nextProject !== 'all') params.set('project', nextProject);
+    if (nextSource && nextSource !== 'all') params.set('source', nextSource);
+    if (nextPage > 1) params.set('page', String(nextPage));
 
-      return matchesProject && matchesSource && (!normalizedSearch || searchableText.includes(normalizedSearch));
-    });
-  }, [initialWorkers, projectFilter, sourceFilter, searchTerm]);
+    const query = params.toString();
+    return query ? `/admin/field-workers?${query}` : '/admin/field-workers';
+  };
 
-  const projectCounts = useMemo(() => {
-    return fieldWorkerProjects.map((project) => ({
-      project,
-      count: initialWorkers.filter((worker) => worker.project === project).length,
-    }));
-  }, [initialWorkers]);
-
-  const sourceCounts = useMemo(() => ({
-    admin: initialWorkers.filter((w) => !w.selfRegistered).length,
-    self: initialWorkers.filter((w) => w.selfRegistered).length,
-  }), [initialWorkers]);
+  const applySearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    router.push(buildHref({ q: searchTerm, page: 1 }));
+  };
 
   const defaultPassword = useMemo(() => {
     const phoneDigits = digitsOnly(form.phoneNumber);
@@ -205,7 +208,11 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-[#0f1f33]">Field Workers Listed</h2>
-            <p className="mt-1 text-sm text-[#5f718a]">{filteredWorkers.length} of {initialWorkers.length} workers shown</p>
+            <p className="mt-1 text-sm text-[#5f718a]">
+              {pagination.total === 0
+                ? 'No workers found'
+                : `Showing ${(pagination.page - 1) * pagination.pageSize + 1}-${Math.min(pagination.page * pagination.pageSize, pagination.total)} of ${pagination.total} workers`}
+            </p>
           </div>
           <button
             type="button"
@@ -217,8 +224,8 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
           </button>
         </div>
 
-        <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_260px]">
-          <label className="relative block">
+        <form onSubmit={applySearch} className="mt-5 grid gap-3 lg:grid-cols-[1fr_auto_260px]">
+          <label className="relative block min-w-0">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8a9bb3]" size={18} />
             <input
               value={searchTerm}
@@ -227,9 +234,15 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
               className="w-full rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] py-3 pl-10 pr-4 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
             />
           </label>
+          <button
+            type="submit"
+            className="rounded-xl bg-[#0f1f33] px-4 py-3 text-sm font-semibold text-white hover:bg-[#1f2f46]"
+          >
+            Search
+          </button>
           <select
-            value={projectFilter}
-            onChange={(event) => setProjectFilter(event.target.value)}
+            value={filters.project}
+            onChange={(event) => router.push(buildHref({ project: event.target.value, page: 1 }))}
             className="rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
           >
             <option value="all">All projects</option>
@@ -239,37 +252,37 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
               </option>
             ))}
           </select>
-        </div>
+        </form>
 
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
           <button
             type="button"
-            onClick={() => setSourceFilter('all')}
-            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${sourceFilter === 'all' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
+            onClick={() => router.push(buildHref({ source: 'all', page: 1 }))}
+            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.source === 'all' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
           >
-            All {initialWorkers.length}
+            All {counts.totalAll}
           </button>
           <button
             type="button"
-            onClick={() => setSourceFilter('admin')}
-            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${sourceFilter === 'admin' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
+            onClick={() => router.push(buildHref({ source: 'admin', page: 1 }))}
+            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.source === 'admin' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
           >
-            Admin Added {sourceCounts.admin}
+            Admin Added {counts.admin}
           </button>
           <button
             type="button"
-            onClick={() => setSourceFilter('self')}
-            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${sourceFilter === 'self' ? 'border-purple-200 bg-purple-50 text-purple-700' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
+            onClick={() => router.push(buildHref({ source: 'self', page: 1 }))}
+            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.source === 'self' ? 'border-purple-200 bg-purple-50 text-purple-700' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
           >
-            Self Registered {sourceCounts.self}
+            Self Registered {counts.self}
           </button>
           <span className="mx-1 my-auto h-4 w-px bg-[#dbe4ef]" />
-          {projectCounts.map(({ project, count }) => (
+          {counts.projects.map(({ project, count }) => (
             <button
               key={project}
               type="button"
-              onClick={() => setProjectFilter(project)}
-              className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${projectFilter === project ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
+              onClick={() => router.push(buildHref({ project, page: 1 }))}
+              className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.project === project ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
             >
               {project} {count}
             </button>
@@ -281,10 +294,10 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
 
       <section className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
         <div className="grid gap-3 p-3 md:hidden">
-          {filteredWorkers.length === 0 ? (
+          {initialWorkers.length === 0 ? (
             <p className="px-4 py-10 text-center text-sm text-[#8a9bb3]">No field workers match these filters.</p>
           ) : (
-            filteredWorkers.map((worker) => (
+            initialWorkers.map((worker) => (
               <article key={worker.id} className="rounded-xl border border-[#edf2f7] bg-white p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -338,12 +351,12 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
               </tr>
             </thead>
             <tbody>
-              {filteredWorkers.length === 0 ? (
+              {initialWorkers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-10 text-center text-[#8a9bb3]">No field workers match these filters.</td>
                 </tr>
               ) : (
-                filteredWorkers.map((worker) => (
+                initialWorkers.map((worker) => (
                   <tr key={worker.id} className="border-t border-[#edf2f7] hover:bg-[#f8fbff]">
                     <td className="px-4 py-4">
                       <p className="font-semibold text-[#0f1f33]">{worker.name ?? 'Unnamed worker'}</p>
@@ -388,6 +401,8 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
           </table>
         </div>
       </section>
+
+      <PaginationControls pagination={pagination} buildHref={buildHref} />
 
       {isModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4 py-6">
@@ -544,5 +559,42 @@ export default function FieldWorkerManager({ initialWorkers }: FieldWorkerManage
         </div>
       ) : null}
     </div>
+  );
+}
+
+function PaginationControls({
+  pagination,
+  buildHref,
+}: {
+  pagination: FieldWorkerManagerProps['pagination'];
+  buildHref: (updates: Partial<{ page: number; q: string; project: string; source: SourceFilter }>) => string;
+}) {
+  const start = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
+  const end = Math.min(pagination.page * pagination.pageSize, pagination.total);
+  const hasPrev = pagination.page > 1;
+  const hasNext = pagination.page < pagination.totalPages;
+
+  return (
+    <nav className="flex flex-col gap-3 rounded-xl border border-[#dbe4ef] bg-white p-3 text-sm text-[#5f718a] sm:flex-row sm:items-center sm:justify-between sm:p-4" aria-label="Field worker pagination">
+      <span className="text-center sm:text-left">
+        {pagination.total === 0 ? 'No records' : `Showing ${start}-${end} of ${pagination.total}`}
+      </span>
+      <div className="grid grid-cols-2 gap-2 sm:flex">
+        {hasPrev ? (
+          <Link href={buildHref({ page: pagination.page - 1 })} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#dbe4ef] px-3 py-2 text-xs font-semibold text-[#0f1f33] hover:bg-[#f6f9fd]">
+            Previous
+          </Link>
+        ) : (
+          <span className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#edf2f7] px-3 py-2 text-xs font-semibold text-[#b8c4d4]">Previous</span>
+        )}
+        {hasNext ? (
+          <Link href={buildHref({ page: pagination.page + 1 })} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#dbe4ef] px-3 py-2 text-xs font-semibold text-[#0f1f33] hover:bg-[#f6f9fd]">
+            Next
+          </Link>
+        ) : (
+          <span className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#edf2f7] px-3 py-2 text-xs font-semibold text-[#b8c4d4]">Next</span>
+        )}
+      </div>
+    </nav>
   );
 }
