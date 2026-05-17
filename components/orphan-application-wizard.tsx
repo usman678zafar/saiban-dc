@@ -2089,9 +2089,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <h2 className="text-xl font-semibold text-slate-900">Mother Details / والدہ کی تفصیلات</h2>
             <p className="mt-1 text-sm text-slate-600">Capture the mother's identity, income, and marital status.</p>
           </div>
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-            Changing mother status or employment may clear fields that are no longer relevant.
-          </div>
+         
           <div className="grid gap-4 sm:grid-cols-2">
             {['motherName', 'motherDob', 'motherAlive', 'motherAge', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea'].map((field) =>
               field === 'motherDob'
