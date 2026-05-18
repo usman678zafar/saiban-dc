@@ -42,6 +42,7 @@ enum DocumentType {
   medical_report
   imam_verification
   principal_verification
+  attestation_confirmation
   house_photo
   other
 }

@@ -420,7 +420,8 @@ type PersistedWizardState = {
   documents?: DocumentInput[];
 };
 
-const TOTAL_STEPS = 12;
+const TOTAL_STEPS = 13;
+const ATTESTATION_DOCUMENT_TYPE = 'attestation_confirmation';
 
 const EDUCATION_OPTIONS = [
   { value: '', label: 'Select education' },
@@ -1403,6 +1404,54 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     }
   };
 
+  const escapePrintValue = (value: string) => value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+  const printValue = (value?: string) => escapePrintValue(value?.trim() || '________________');
+
+  const openAttestationPrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      setMessage('Please allow pop-ups to print the attestation packet.');
+      return;
+    }
+
+    const applicationNumber = printValue(formData.registrationNumber || applicationId || '');
+    const packetHtml = `<!doctype html><html lang="ur" dir="rtl"><head><meta charset="utf-8" /><title>Attestation Confirmation</title><style>
+      @page{size:A4;margin:12mm}*{box-sizing:border-box}body{margin:0;background:white;color:#111827;font-family:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq","Segoe UI",Arial,sans-serif}.page{min-height:273mm;border:2px solid #111827;padding:10mm 11mm;page-break-after:always}.page:last-child{page-break-after:auto}.header{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:12px;margin-bottom:8mm}.brand{direction:ltr;text-align:left;color:#0f75bc;font-family:Arial,sans-serif;font-weight:800;line-height:1}.brand strong{display:block;font-size:30px;letter-spacing:-1px}.brand span{display:block;font-size:9px;letter-spacing:2px;color:#475569}.mark{direction:ltr;text-align:right;font-family:Arial,sans-serif;font-weight:800;color:#334155}.title{text-align:center}.title h1{margin:0;font-size:30px}.title p{margin:4px 0;font-size:13px}.id{direction:ltr;font-family:Arial,sans-serif;font-size:12px}h2{width:fit-content;margin:7mm auto 5mm;border:1px solid #6b7280;padding:4px 18px;font-size:20px}h3{width:fit-content;margin:8mm auto 4mm;border-bottom:1px solid #111827;padding-bottom:2px;font-size:19px}p,li{font-size:14px;line-height:2.15}.line{display:inline-block;min-width:90px;border-bottom:1px dotted #111827;padding:0 8px;direction:ltr;text-align:center}.wide{min-width:190px}.check-row{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start;margin:3mm 0;font-size:14px;line-height:2}.box{width:15px;height:15px;border:1px solid #6b7280;margin-top:7px}.signature-grid{display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin-top:8mm}.sig-line{border-bottom:1px dotted #111827;min-height:8mm}.label{margin-top:2mm;font-size:13px}ol{margin:0;padding-right:20px}.guardian{margin-top:8mm;font-weight:700}.print-actions{direction:ltr;position:fixed;left:16px;top:16px;display:flex;gap:8px;z-index:10}.print-actions button{border:0;border-radius:8px;padding:10px 14px;color:white;background:#2563eb;font:600 14px Arial,sans-serif;cursor:pointer}@media print{.print-actions{display:none}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+    </style></head><body>
+      <div class="print-actions"><button onclick="window.print()">Print / Save PDF</button></div>
+      <section class="page">
+        <header class="header"><div class="brand"><strong>Saiban</strong><span>FOR ORPHANS<br />BAITUSSALAM</span></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت - تعلیمی ادارہ</p><div class="id">ID # ${applicationNumber}</div></div><div class="mark">BAITUSSALAM</div></header>
+        <h2>تعلیمی ادارے کے پرنسپل / ناظم اعلیٰ کی تصدیق</h2>
+        <p>تصدیق کی جاتی ہے کہ <span class="line wide">${printValue(formData.childName)}</span> ولد / بنت <span class="line wide">${printValue(formData.fatherName)}</span> ہمارے ادارہ <span class="line wide">${printValue(formData.schoolName)}</span> میں زیر تعلیم ہے۔ طالب علم کا بی فارم نمبر <span class="line wide">${printValue(formData.bFormNumber)}</span> ہے۔ ادارے کی معلومات کے مطابق یہ بچہ مستحق امداد ہے۔</p>
+        <p>دستخط: <span class="line wide"></span> مہر: <span class="line wide"></span> تاریخ: <span class="line"></span></p>
+        <h2>امام مسجد کی تصدیق</h2>
+        <p>میں درخواست کنندہ کے حالات سے واقف ہوں، امام مسجد تصدیق کرتا ہوں کہ یہ خاندان محلے کے مستحق خاندانوں میں شامل ہے۔</p>
+        <div class="check-row"><span class="box"></span><span>صاحب نصاب نہیں ہیں اور زکوٰۃ وصول کرنے کے اہل ہیں۔</span></div>
+        <div class="check-row"><span class="box"></span><span>صاحب نصاب ہیں اور زکوٰۃ وصول کرنے کے اہل نہیں ہیں۔</span></div>
+        <div class="check-row"><span class="box"></span><span>خاندان کی مالی حالت مدد کی متقاضی ہے۔</span></div>
+        <div class="signature-grid"><div><div class="sig-line"></div><div class="label">تصدیق کنندہ امام صاحب کا نام</div></div><div><div class="sig-line"></div><div class="label">مسجد / محلہ</div></div><div><div class="sig-line"></div><div class="label">موبائل نمبر</div></div><div><div class="sig-line"></div><div class="label">دستخط / مہر</div></div></div>
+      </section>
+      <section class="page">
+        <header class="header"><div class="brand"><strong>Saiban</strong><span>FOR ORPHANS<br />BAITUSSALAM</span></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت - تعلیمی ادارہ</p><div class="id">ID # ${applicationNumber}</div></div><div class="mark">BAITUSSALAM</div></header>
+        <h3>اصول و ضوابط</h3>
+        <ol><li>بیت السلام سائبان پروگرام کے تحت گھر کا دورہ ضروری ہوگا اور درست معلومات فراہم کرنا لازم ہے۔</li><li>بچے کی عمر رجسٹریشن کے وقت 12 سال سے کم ہونی چاہیے۔</li><li>رجسٹریشن کے بعد بچے کی تعلیمی، دینی اور اخلاقی تربیت کی نگرانی کی جائے گی۔</li><li>تعلیمی ادارے میں حاضری، کارکردگی اور فیس/اخراجات کی معلومات وقتاً فوقتاً طلب کی جا سکتی ہیں۔</li><li>غلط، نامکمل یا گمراہ کن معلومات کی صورت میں درخواست مسترد یا امداد بند کی جا سکتی ہے۔</li><li>سرپرست بچے کی تعلیم، صحت، حفاظت اور بہتر تربیت کے لیے ادارے سے تعاون کرے گا۔</li><li>ادارے کو ضرورت کے مطابق گھر، اسکول، مسجد یا محلے سے تصدیق کرنے کا حق حاصل ہوگا۔</li><li>سرپرست بچے کے متعلق تبدیلی، بیماری، اسکول تبدیلی، رہائش تبدیلی یا مالی حالت کی تبدیلی سے آگاہ کرے گا۔</li><li>جمع شدہ معلومات صرف ادارے کے فلاحی اور انتظامی مقاصد کے لیے استعمال ہوں گی۔</li><li>ادارہ درخواست کی منظوری یا عدم منظوری کا حتمی اختیار رکھتا ہے۔</li></ol>
+        <p class="guardian">میں تصدیق کرتا/کرتی ہوں کہ میں نے مندرجہ بالا تمام شرائط و ضوابط کو پڑھ/سن لیا ہے، سمجھ لیا ہے، اور ان پر عمل کرنے کا پابند ہوں۔</p>
+        <div class="signature-grid"><div><div class="sig-line">${printValue(formData.guardianName || formData.motherName)}</div><div class="label">سرپرست / والدہ کا نام</div></div><div><div class="sig-line"></div><div class="label">سرپرست کے دستخط / انگوٹھا</div></div><div><div class="sig-line">${printValue(formData.guardianContact || formData.motherContact)}</div><div class="label">رابطہ نمبر</div></div><div><div class="sig-line"></div><div class="label">تاریخ</div></div></div>
+      </section>
+    </body></html>`;
+
+    printWindow.document.open();
+    printWindow.document.write(packetHtml);
+    printWindow.document.close();
+    printWindow.focus();
+  };
+
   const goToStep = (nextStep: number) => {
     setStep(Math.min(Math.max(nextStep, 1), TOTAL_STEPS));
     window.requestAnimationFrame(() => {
@@ -1596,6 +1645,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     'Education & Skills / تعلیم',
     'Income / آمدنی',
     'Documents / دستاویزات',
+    'Attestation / Confirmation',
     'Review / جائزہ',
   ];
 
@@ -1673,7 +1723,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       case 11:
         return [];
       case 12:
-        return ['termsAccepted'];
+        return [];
+      case 13:
+        return [];
       default:
         return [];
     }
@@ -1736,6 +1788,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         const requiredTypes = documentTypes.map((d) => d.type);
         const uploadedTypes = documents.map((d) => d.documentType);
         return requiredTypes.every((type) => uploadedTypes.includes(type));
+
+      case 12: // Attestation / Confirmation
+        return documents.some((document) => document.documentType === ATTESTATION_DOCUMENT_TYPE);
 
       default:
         return true;
@@ -3007,10 +3062,52 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 12 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Terms and Review / شرائط اور جائزہ</h2>
-            <p className="mt-1 text-sm text-slate-600">Review the collected details and submit or save as draft.</p>
+            <h2 className="text-xl font-semibold text-slate-900">Attestation / Confirmation</h2>
+            <p className="mt-1 text-sm text-slate-600">Print the two-page attestation packet, get it signed/stamped, then upload the completed file.</p>
           </div>
-          {renderCheckbox('termsAccepted')}
+
+          <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+            <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <h3 className="text-sm font-semibold text-slate-900">Download / Print Packet</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Page 1 contains school principal and Imam mosque verification. Page 2 contains rules/regulations and guardian signature confirmation.
+              </p>
+              <button
+                type="button"
+                onClick={openAttestationPrint}
+                className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto"
+              >
+                Download / Print Form
+              </button>
+            </section>
+
+            <section className="rounded-lg border border-slate-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-slate-900">Upload Signed Confirmation</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Upload the scanned PDF or clear photos after school, mosque, and guardian signatures are complete.</p>
+              {!applicationId ? (
+                <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm leading-6 text-blue-900">
+                  Selecting a file will save this application as a draft first, then upload the attestation.
+                </div>
+              ) : null}
+              <div className="mt-4">
+                <FileUpload
+                  documentType={ATTESTATION_DOCUMENT_TYPE}
+                  applicationId={applicationId}
+                  ensureApplicationId={ensureDraftApplication}
+                  onUpload={handleDocumentUpload}
+                  onRemove={handleDocumentRemove}
+                  existingDocument={documents.find((doc) => doc.documentType === ATTESTATION_DOCUMENT_TYPE)}
+                  label="Completed Attestation / Confirmation File"
+                  accept="image/*,.pdf"
+                />
+              </div>
+            </section>
+          </div>
+        </div>
+      )}
+
+      {step === 13 && (
+        <div className="space-y-6">
           <div className="space-y-4">
             {reviewSections.map((section) => {
               const fields = section.fields.filter((field) => shouldShowField(field));
