@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useNavigationLoading } from './navigation-loading';
 
 interface LoginFormProps {
   title?: string;
@@ -20,6 +21,7 @@ export default function LoginForm({
   compact = false,
 }: LoginFormProps) {
   const router = useRouter();
+  const { startLoading, stopLoading } = useNavigationLoading();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -28,25 +30,32 @@ export default function LoginForm({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
+    startLoading();
     setError(null);
 
-    const result = await signIn('credentials', {
-      redirect: false,
-      email: identifier,
-      password,
-      loginRole,
-    });
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: identifier,
+        password,
+        loginRole,
+      });
 
-    setIsSubmitting(false);
+      if (result?.error) {
+        setError(loginRole === 'admin' ? 'Invalid admin credentials.' : loginRole === 'field_worker' ? 'Invalid field worker credentials.' : 'Invalid credentials.');
+        stopLoading();
+        return;
+      }
 
-    if (result?.error) {
-      setError(loginRole === 'admin' ? 'Invalid admin credentials.' : loginRole === 'field_worker' ? 'Invalid field worker credentials.' : 'Invalid credentials.');
-      return;
+      const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl');
+      router.push(callbackUrl ?? defaultRedirect);
+      router.refresh();
+    } catch {
+      setError('Unable to sign in. Please try again.');
+      stopLoading();
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl');
-    router.push(callbackUrl ?? defaultRedirect);
-    router.refresh();
   };
   const identifierLabel = loginRole === 'field_worker' ? 'Phone Number or CNIC' : loginRole === 'admin' ? 'Email or Username' : 'Email';
   const identifierType = loginRole ? 'text' : 'email';

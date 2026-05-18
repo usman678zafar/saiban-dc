@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Edit2, Plus, Search, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fieldWorkerProjects } from '@/lib/field-workers';
+import { useNavigationLoading } from './navigation-loading';
 
 export type FieldWorkerListItem = {
   id: string;
@@ -70,6 +71,7 @@ function formatDate(value: string) {
 
 export default function FieldWorkerManager({ initialWorkers, pagination, filters, counts }: FieldWorkerManagerProps) {
   const router = useRouter();
+  const { startLoading } = useNavigationLoading();
   const [searchTerm, setSearchTerm] = useState(filters.search);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [selectedWorker, setSelectedWorker] = useState<FieldWorkerListItem | null>(null);
@@ -100,7 +102,15 @@ export default function FieldWorkerManager({ initialWorkers, pagination, filters
 
   const applySearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    router.push(buildHref({ q: searchTerm, page: 1 }));
+    navigateTo(buildHref({ q: searchTerm, page: 1 }));
+  };
+
+  const navigateTo = (href: string) => {
+    const nextUrl = new URL(href, window.location.href);
+    if (nextUrl.pathname !== window.location.pathname || nextUrl.search !== window.location.search) {
+      startLoading();
+    }
+    router.push(href);
   };
 
   const defaultPassword = useMemo(() => {
@@ -242,7 +252,7 @@ export default function FieldWorkerManager({ initialWorkers, pagination, filters
           </button>
           <select
             value={filters.project}
-            onChange={(event) => router.push(buildHref({ project: event.target.value, page: 1 }))}
+            onChange={(event) => navigateTo(buildHref({ project: event.target.value, page: 1 }))}
             className="rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
           >
             <option value="all">All projects</option>
@@ -257,21 +267,21 @@ export default function FieldWorkerManager({ initialWorkers, pagination, filters
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
           <button
             type="button"
-            onClick={() => router.push(buildHref({ source: 'all', page: 1 }))}
+            onClick={() => navigateTo(buildHref({ source: 'all', page: 1 }))}
             className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.source === 'all' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
           >
             All {counts.totalAll}
           </button>
           <button
             type="button"
-            onClick={() => router.push(buildHref({ source: 'admin', page: 1 }))}
+            onClick={() => navigateTo(buildHref({ source: 'admin', page: 1 }))}
             className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.source === 'admin' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
           >
             Admin Added {counts.admin}
           </button>
           <button
             type="button"
-            onClick={() => router.push(buildHref({ source: 'self', page: 1 }))}
+            onClick={() => navigateTo(buildHref({ source: 'self', page: 1 }))}
             className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.source === 'self' ? 'border-purple-200 bg-purple-50 text-purple-700' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
           >
             Self Registered {counts.self}
@@ -281,7 +291,7 @@ export default function FieldWorkerManager({ initialWorkers, pagination, filters
             <button
               key={project}
               type="button"
-              onClick={() => router.push(buildHref({ project, page: 1 }))}
+              onClick={() => navigateTo(buildHref({ project, page: 1 }))}
               className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.project === project ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
             >
               {project} {count}

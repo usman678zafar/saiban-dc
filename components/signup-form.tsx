@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import logo from '@/assests/logo.png';
+import { useNavigationLoading } from './navigation-loading';
 
 function digitsOnly(value: string) {
   return value.replace(/\D/g, '');
@@ -24,6 +25,7 @@ type SuccessInfo = {
 
 export default function SignupForm() {
   const router = useRouter();
+  const { startLoading } = useNavigationLoading();
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [cnic, setCnic] = useState('');
@@ -94,7 +96,10 @@ export default function SignupForm() {
 
           <button
             type="button"
-            onClick={() => router.push('/signin')}
+            onClick={() => {
+              startLoading();
+              router.push('/signin');
+            }}
             className="mt-5 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
           >
             Go to Sign In

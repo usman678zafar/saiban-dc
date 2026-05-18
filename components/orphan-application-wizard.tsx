@@ -19,6 +19,7 @@ import {
   type OtherHouseholdAssetInput,
 } from '@/lib/household-assets';
 import FileUpload from './file-upload';
+import { useNavigationLoading } from './navigation-loading';
 
 type SiblingInput = {
   id?: string;
@@ -843,6 +844,7 @@ function normalizeInitialData(data: FormData): FormData {
 
 export default function OrphanApplicationWizard({ initialData, initialDocuments, initialApplicationId }: OrphanApplicationWizardProps) {
   const router = useRouter();
+  const { startLoading } = useNavigationLoading();
   const wizardRef = useRef<HTMLDivElement>(null);
   const mergedData = useMemo(() => normalizeInitialData({ ...defaultData, ...initialData }), [initialData]);
   const storageKey = useMemo(() => {
@@ -857,6 +859,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const [isCapturingGps, setIsCapturingGps] = useState(false);
   const [submittingAction, setSubmittingAction] = useState<'draft' | 'submitted' | null>(null);
   const [showSubmissionSuccessModal, setShowSubmissionSuccessModal] = useState(false);
+  const [submissionDoneLoading, setSubmissionDoneLoading] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(initialApplicationId ?? null);
   const [documents, setDocuments] = useState<DocumentInput[]>(initialDocuments ?? []);
   const [addressOptions, setAddressOptions] = useState<AddressOptionInput[]>([]);
@@ -1538,6 +1541,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const handleSubmissionDone = () => {
+    setSubmissionDoneLoading(true);
+    startLoading();
     setShowSubmissionSuccessModal(false);
     router.push('/applications');
     router.refresh();
@@ -2075,9 +2080,11 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <button
               type="button"
               onClick={handleSubmissionDone}
-              className="mt-6 min-h-12 w-full rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+              disabled={submissionDoneLoading}
+              className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Done
+              {submissionDoneLoading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-200 border-t-white" aria-hidden="true" /> : null}
+              {submissionDoneLoading ? 'Loading...' : 'Done'}
             </button>
           </div>
         </div>
