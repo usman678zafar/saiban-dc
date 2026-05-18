@@ -1746,6 +1746,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       case 12: // Attestation/تصدیق
         return documents.some((document) => document.documentType === ATTESTATION_DOCUMENT_TYPE);
 
+      case 13: // Review
+        return formData.status === 'submitted';
+
       default:
         return true;
     }
