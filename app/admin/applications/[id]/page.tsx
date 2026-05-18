@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
+import { getApplicationDocuments } from '@/lib/application-documents';
 
 interface AdminApplicationDetailPageProps {
   params: {
@@ -50,12 +51,12 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
       status: { not: 'draft' },
     },
     include: {
-      documents: true,
       createdBy: true,
     },
   });
 
   if (!application) notFound();
+  const applicationDocuments = await getApplicationDocuments(application.id);
 
   return (
     <AdminShell email={session.user.email}>
@@ -120,10 +121,10 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-xl font-semibold text-slate-900">Documents</h2>
             <div className="mt-4 grid gap-3">
-              {application.documents.length === 0 ? (
+              {applicationDocuments.length === 0 ? (
                 <p className="text-sm text-slate-500">No uploaded documents.</p>
               ) : (
-                application.documents.map((document) => (
+                applicationDocuments.map((document) => (
                   <a key={document.id} href={document.fileUrl ?? '#'} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 hover:bg-slate-100">
                     <div className="font-semibold text-slate-900">{document.documentType}</div>
                     <div className="text-xs text-slate-500">{document.mimeType} - {(document.size / 1024).toFixed(1)} KB</div>

@@ -8,6 +8,7 @@ import AppShell from '@/components/app-shell';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
 import { assetUsesGrams, householdAssetDisplayLabel, type HouseholdAssetKey } from '@/lib/household-assets';
+import { getApplicationDocuments } from '@/lib/application-documents';
 
 interface ApplicationDetailPageProps {
   params: {
@@ -65,7 +66,6 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       siblings: true,
       relatives: true,
       householdAssets: true,
-      documents: true,
     },
   });
 
@@ -75,6 +75,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
   if (!isAdmin && application.createdById !== session.user.id) notFound();
 
   const app = application as unknown as Record<string, unknown>;
+  const applicationDocuments = await getApplicationDocuments(application.id);
   const canEdit = application.status === 'draft' || isAdmin;
   const sections = [
     {
@@ -155,7 +156,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
           <SiblingSection siblings={application.siblings} />
           <RelativeSection relatives={application.relatives} />
           <AssetSection assets={application.householdAssets} />
-          <DocumentSection documents={application.documents} />
+          <DocumentSection documents={applicationDocuments} />
         </div>
 
         {isAdmin ? (

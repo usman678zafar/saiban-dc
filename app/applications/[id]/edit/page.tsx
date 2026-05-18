@@ -6,21 +6,13 @@ import AppShell from '@/components/app-shell';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import type { FormData } from '@/components/orphan-application-wizard';
 import { householdAssetRowsToOtherItems, householdAssetRowsToSelection } from '@/lib/household-assets';
+import { getApplicationDocuments, type ApplicationDocumentView } from '@/lib/application-documents';
 
 interface EditApplicationPageProps {
   params: {
     id: string;
   };
 }
-
-type EditableDocument = {
-  id: string;
-  documentType: string;
-  fileUrl: string | null;
-  mimeType: string;
-  size: number;
-  fileKey: string;
-};
 
 export default async function EditApplicationPage({ params }: EditApplicationPageProps) {
   const session = await getServerSession(authOptions);
@@ -34,7 +26,6 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       siblings: true,
       relatives: true,
       householdAssets: true,
-      documents: true,
     },
   });
 
@@ -46,6 +37,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     notFound();
   }
 
+  const applicationDocuments = await getApplicationDocuments(application.id);
   const app = application as any;
   const initialData: Partial<FormData> = {
     registrationNumber: app.registrationNumber ?? '',
@@ -237,7 +229,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     termsAccepted: app.termsAccepted ?? false,
     status: (app.status === 'draft' ? 'draft' : 'submitted') as 'draft' | 'submitted',
   };
-  const initialDocuments: FormData['documents'] = application.documents.map((document: EditableDocument) => ({
+  const initialDocuments: FormData['documents'] = applicationDocuments.map((document: ApplicationDocumentView) => ({
     id: document.id,
     documentType: document.documentType,
     fileUrl: document.fileUrl ?? '',
