@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
 import { authOptions } from '@/lib/auth';
+import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -137,6 +138,9 @@ export default async function ApplicationsPage({
                     Edit
                   </span>
                 )}
+                {application.status === 'draft' ? (
+                  <DeleteDraftApplicationButton applicationId={application.id} compact />
+                ) : null}
               </div>
             </article>
           ))
@@ -179,6 +183,9 @@ export default async function ApplicationsPage({
                       <Link href={`/applications/${application.id}/edit`} className="rounded-full bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-500">
                         Edit
                       </Link>
+                    ) : null}
+                    {application.status === 'draft' ? (
+                      <DeleteDraftApplicationButton applicationId={application.id} />
                     ) : null}
                     </div>
                   </td>

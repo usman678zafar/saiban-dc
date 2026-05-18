@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getOrphanApplicationSchema } from '@/lib/validation';
 import { isValidDistrictForProvince, isValidTehsilForDistrict } from '@/lib/address-utils';
+import { deleteFromR2 } from '@/lib/r2';
 
 async function getUser(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -508,4 +509,56 @@ export async function PATCH(request: NextRequest) {
       { status: 422 },
     );
   }
+}
+
+export async function DELETE(request: NextRequest) {
+  const user = await getUser(request);
+  if (!user) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const body = await request.json().catch(() => null);
+  const id = body?.id;
+  if (!id || typeof id !== 'string') {
+    return NextResponse.json({ message: 'Missing application id' }, { status: 400 });
+  }
+
+  const application = await prisma.orphanApplication.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      status: true,
+      createdById: true,
+      documents: {
+        select: {
+          fileKey: true,
+        },
+      },
+    },
+  });
+
+  if (!application) {
+    return NextResponse.json({ message: 'Application not found' }, { status: 404 });
+  }
+
+  if (application.status !== 'draft') {
+    return NextResponse.json({ message: 'Only draft applications can be deleted.' }, { status: 409 });
+  }
+
+  if (application.createdById !== user.id && user.role !== 'admin') {
+    return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+  }
+
+  await Promise.allSettled(application.documents.map((document) => deleteFromR2(document.fileKey)));
+
+  await prisma.$transaction([
+    prisma.applicationDocument.deleteMany({ where: { applicationId: id } }),
+    prisma.sibling.deleteMany({ where: { applicationId: id } }),
+    prisma.relative.deleteMany({ where: { applicationId: id } }),
+    prisma.householdAsset.deleteMany({ where: { applicationId: id } }),
+    prisma.auditLog.deleteMany({ where: { applicationId: id } }),
+    prisma.orphanApplication.delete({ where: { id } }),
+  ]);
+
+  return NextResponse.json({ message: 'Draft application deleted successfully.' });
 }
