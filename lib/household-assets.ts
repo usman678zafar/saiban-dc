@@ -17,6 +17,7 @@ export type HouseholdAssetKey = (typeof HOUSEHOLD_ASSET_KEYS)[number];
 
 export type HouseholdAssetEntry = {
   has: boolean;
+  answered: boolean;
   value: string;
   grams: string;
 };
@@ -67,7 +68,7 @@ export function assetUsesGrams(key: HouseholdAssetKey): boolean {
 }
 
 export function createDefaultHouseholdAssetSelection(): HouseholdAssetSelection {
-  const base: HouseholdAssetEntry = { has: false, value: '', grams: '' };
+  const base: HouseholdAssetEntry = { has: false, answered: false, value: '', grams: '' };
   return Object.fromEntries(HOUSEHOLD_ASSET_KEYS.map((key) => [key, { ...base }])) as HouseholdAssetSelection;
 }
 
@@ -129,6 +130,7 @@ export function householdAssetRowsToSelection(rows: AssetRow[]): HouseholdAssetS
     }
     const entry = selection[key];
     entry.has = true;
+    entry.answered = true;
     if (row.value != null && row.value !== '') {
       entry.value = String(row.value);
     }
@@ -142,6 +144,7 @@ export function householdAssetRowsToSelection(rows: AssetRow[]): HouseholdAssetS
   if (unmatched.length) {
     const other = selection.other;
     other.has = true;
+    other.answered = true;
     const parts = unmatched.map((row) => {
       const q = row.quantity != null ? `${row.quantity}` : '';
       const v = row.value != null ? `${row.value}` : '';
@@ -185,6 +188,7 @@ export function mergeHouseholdAssetSelection(partial?: Partial<HouseholdAssetSel
     if (entry) {
       next[key] = {
         has: Boolean(entry.has),
+        answered: Boolean(entry.answered || entry.has),
         value: entry.value ?? '',
         grams: entry.grams ?? '',
       };

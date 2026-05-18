@@ -877,6 +877,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       const persisted = JSON.parse(raw) as PersistedWizardState;
       const persistedFormData = persisted.formData ?? {};
 
+      if (persisted.applicationId) {
+        window.localStorage.removeItem(storageKey);
+        setHasLoadedPersistedState(true);
+        return;
+      }
+
       if (Array.isArray((persistedFormData as { householdAssets?: unknown }).householdAssets)) {
         const rawAssets = (persistedFormData as { householdAssets: { assetType: string; quantity?: string; value?: string }[] }).householdAssets;
         (persistedFormData as Partial<FormData>).householdAssetSelection = householdAssetRowsToSelection(
@@ -1328,8 +1334,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       householdAssetSelection: {
         ...current.householdAssetSelection,
         [key]: has
-          ? { ...current.householdAssetSelection[key], has: true }
-          : { has: false, value: '', grams: '' },
+          ? { ...current.householdAssetSelection[key], has: true, answered: true }
+          : { has: false, answered: true, value: '', grams: '' },
       },
     }));
   };
@@ -1465,6 +1471,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       }
 
       const application = await response.json();
+      window.localStorage.removeItem(storageKey);
+      setShouldPersistNewApplication(false);
       setApplicationId(application.id);
       setMessage('Draft saved. Uploading document...');
       router.refresh();
@@ -1514,7 +1522,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       } else {
         setMessage('Draft saved successfully.');
       }
-      if (saveStatus === 'submitted' && !initialApplicationId) {
+      if (!initialApplicationId) {
         window.localStorage.removeItem(storageKey);
         setShouldPersistNewApplication(false);
       }
@@ -1693,7 +1701,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         );
 
       case 6: // Household Assets
-        const selectedKeys = HOUSEHOLD_ASSET_KEYS.filter(k => k !== 'other' && formData.householdAssetSelection[k].has);
+        if (HOUSEHOLD_ASSET_KEYS.some(k => k !== 'other' && !formData.householdAssetSelection[k].answered)) return false;
+        const selectedKeys = HOUSEHOLD_ASSET_KEYS.filter(k => k !== 'other' && formData.householdAssetSelection[k].answered && formData.householdAssetSelection[k].has);
         const assetsComplete = selectedKeys.every(k => {
           const entry = formData.householdAssetSelection[k];
           if (assetUsesGrams(k) && !entry.grams) return false;
@@ -2609,7 +2618,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                           type="radio"
                           name={`household-asset-${key}`}
                           className="h-4 w-4 accent-blue-600"
-                          checked={!entry.has}
+                          checked={entry.answered && !entry.has}
                           onChange={() => handleHouseholdAssetHasChange(key, false)}
                         />
                         <span dir="rtl">نہیں</span>
@@ -2619,14 +2628,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                           type="radio"
                           name={`household-asset-${key}`}
                           className="h-4 w-4 accent-blue-600"
-                          checked={entry.has}
+                          checked={entry.answered && entry.has}
                           onChange={() => handleHouseholdAssetHasChange(key, true)}
                         />
                         <span dir="rtl">ہاں</span>
                       </label>
                     </div>
                   </div>
-                  {entry.has ? (
+                  {entry.answered && entry.has ? (
                     <div className={`mt-3 grid gap-3 ${showGrams ? 'sm:grid-cols-2' : ''}`}>
                       {showGrams ? (
                         <label className="grid min-w-0 gap-1.5 text-sm text-slate-700">
