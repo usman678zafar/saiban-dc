@@ -42,7 +42,7 @@ export default function LoginForm({
       });
 
       if (result?.error) {
-        setError(loginRole === 'admin' ? 'Invalid admin credentials.' : loginRole === 'field_worker' ? 'Invalid field worker credentials.' : 'Invalid credentials.');
+        setError(loginRole === 'admin' ? 'Invalid admin credentials.' : loginRole === 'field_worker' ? 'Invalid volunteer credentials.' : 'Invalid credentials.');
         stopLoading();
         return;
       }

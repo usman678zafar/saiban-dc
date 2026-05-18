@@ -86,9 +86,9 @@ export default function SignupForm() {
     return (
       <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-md items-center px-2 sm:px-0">
         <div className="w-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex min-h-16 items-center justify-between gap-6">
-            <Image src={logo} alt="Saiban" width={132} height={96} className="h-14 w-auto object-contain sm:h-16" priority />
-            <Image src={baitussalamLogo} alt="Baitussalam" width={116} height={84} className="h-14 w-auto object-contain sm:h-16" priority />
+          <div className="flex min-h-24 items-center justify-between gap-6">
+            <Image src={logo} alt="Saiban" width={180} height={130} className="h-20 w-auto object-contain sm:h-24" priority />
+            <Image src={baitussalamLogo} alt="Baitussalam" width={156} height={114} className="h-20 w-auto object-contain sm:h-24" priority />
           </div>
           <div className="flex flex-col items-center text-center">
             <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
@@ -136,9 +136,9 @@ export default function SignupForm() {
   return (
     <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-xl items-center px-2 sm:px-0">
       <div className="w-full rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-        <div className="flex min-h-16 items-center justify-between gap-6">
-          <Image src={logo} alt="Saiban" width={132} height={96} className="h-14 w-auto object-contain sm:h-16" priority />
-          <Image src={baitussalamLogo} alt="Baitussalam" width={116} height={84} className="h-14 w-auto object-contain sm:h-16" priority />
+        <div className="flex min-h-24 items-center justify-between gap-6">
+          <Image src={logo} alt="Saiban" width={180} height={130} className="h-20 w-auto object-contain sm:h-24" priority />
+          <Image src={baitussalamLogo} alt="Baitussalam" width={156} height={114} className="h-20 w-auto object-contain sm:h-24" priority />
         </div>
         <div className="mt-1 text-center">
           <h1 className="text-lg font-semibold tracking-tight text-slate-950">Volunteer Registration</h1>

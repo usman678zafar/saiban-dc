@@ -16,8 +16,8 @@ const loginOptions: Array<{
 }> = [
   {
     role: 'field_worker',
-    label: 'Field Worker',
-    title: 'Field Worker Login',
+    label: 'Volunteer',
+    title: 'Volunteer Login',
     redirect: '/applications',
   },
   {
