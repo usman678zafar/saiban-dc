@@ -1,4 +1,5 @@
 import logo from '@/assests/logo.png';
+import baitussalamLogo from '@/assests/baitussalam.webp';
 
 export type AttestationFormData = {
   applicationId?: string | null;
@@ -11,6 +12,9 @@ export type AttestationFormData = {
   motherName?: string;
   guardianContact?: string;
   motherContact?: string;
+  collectorId?: string;
+  collectorName?: string;
+  collectorContact?: string;
 };
 
 function escapePrintValue(value: string) {
@@ -60,13 +64,20 @@ function loadImage(src: string) {
 }
 
 export function buildAttestationHtml(data: AttestationFormData) {
-  const applicationNumber = printValue(data.registrationNumber || data.applicationId || '');
   return `<!doctype html><html lang="ur" dir="rtl"><head><meta charset="utf-8" /><title>Attestation Confirmation</title><style>
-    @page{size:A4;margin:12mm}*{box-sizing:border-box}body{margin:0;background:white;color:#111827;font-family:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq","Segoe UI",Arial,sans-serif}.page{min-height:273mm;border:2px solid #111827;padding:10mm 11mm;page-break-after:always}.page:last-child{page-break-after:auto}.header{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:12px;margin-bottom:8mm}.brand{direction:ltr;text-align:left;color:#0f75bc;font-family:Arial,sans-serif;font-weight:800;line-height:1}.brand strong{display:block;font-size:30px;letter-spacing:-1px}.brand span{display:block;font-size:9px;letter-spacing:2px;color:#475569}.mark{direction:ltr;text-align:right;font-family:Arial,sans-serif;font-weight:800;color:#334155}.title{text-align:center}.title h1{margin:0;font-size:30px}.title p{margin:4px 0;font-size:13px}.id{direction:ltr;font-family:Arial,sans-serif;font-size:12px}h2{width:fit-content;margin:7mm auto 5mm;border:1px solid #6b7280;padding:4px 18px;font-size:20px}h3{width:fit-content;margin:8mm auto 4mm;border-bottom:1px solid #111827;padding-bottom:2px;font-size:19px}p,li{font-size:14px;line-height:2.15}.line{display:inline-block;min-width:90px;border-bottom:1px dotted #111827;padding:0 8px;direction:ltr;text-align:center}.wide{min-width:190px}.check-row{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start;margin:3mm 0;font-size:14px;line-height:2}.box{width:15px;height:15px;border:1px solid #6b7280;margin-top:7px}.signature-grid{display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin-top:8mm}.sig-line{border-bottom:1px dotted #111827;min-height:8mm}.label{margin-top:2mm;font-size:13px}ol{margin:0;padding-right:20px}.guardian{margin-top:8mm;font-weight:700}.print-actions{direction:ltr;position:fixed;left:16px;top:16px;display:flex;gap:8px;z-index:10}.print-actions button{border:0;border-radius:8px;padding:10px 14px;color:white;background:#2563eb;font:600 14px Arial,sans-serif;cursor:pointer}@media print{.print-actions{display:none}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+    @page{size:A4;margin:12mm}*{box-sizing:border-box}body{margin:0;background:white;color:#111827;font-family:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq","Segoe UI",Arial,sans-serif}.page{min-height:273mm;border:2px solid #111827;padding:10mm 11mm;page-break-after:always}.page:last-child{page-break-after:auto}.header{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:12px;margin-bottom:7mm}.brand{direction:ltr;text-align:left}.brand img{width:35mm;height:auto}.mark{text-align:right}.mark img{width:25mm;height:auto}.title{text-align:center}.title h1{margin:0;font-size:30px}.title p{margin:4px 0;font-size:13px}h2{width:fit-content;margin:7mm auto 5mm;padding:4px 18px;font-size:20px}h3{width:fit-content;margin:8mm auto 4mm;padding-bottom:2px;font-size:19px}p,li{font-size:14px;line-height:2.15}.line{display:inline-block;min-width:90px;border-bottom:1px dotted #111827;padding:0 8px;direction:ltr;text-align:center}.wide{min-width:190px}.worker{border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;margin:2mm 0 6mm;padding:3mm 0}.worker h3{margin:0 auto 3mm}.worker-grid{display:grid;grid-template-columns:1fr 1fr;gap:2mm 8mm;font-size:13px;line-height:2}.check-row{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start;margin:3mm 0;font-size:14px;line-height:2}.box{width:15px;height:15px;border:1px solid #6b7280;margin-top:7px}.signature-grid{display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin-top:8mm}.sig-line{border-bottom:1px dotted #111827;min-height:8mm}.label{margin-top:2mm;font-size:13px}ol{margin:0;padding-right:20px}.guardian{margin-top:8mm;font-weight:700}.print-actions{direction:ltr;position:fixed;left:16px;top:16px;display:flex;gap:8px;z-index:10}.print-actions button{border:0;border-radius:8px;padding:10px 14px;color:white;background:#2563eb;font:600 14px Arial,sans-serif;cursor:pointer}@media print{.print-actions{display:none}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
   </style></head><body>
     <div class="print-actions"><button onclick="window.print()">Print / Save PDF</button></div>
     <section class="page">
-      <header class="header"><div class="brand"><strong>Saiban</strong><span>FOR ORPHANS<br />BAITUSSALAM</span></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت - تعلیمی ادارہ</p><div class="id">ID # ${applicationNumber}</div></div><div class="mark">BAITUSSALAM</div></header>
+      <header class="header"><div class="brand"><img src="${logo.src}" alt="Saiban" /></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت - تعلیمی ادارہ</p></div><div class="mark"><img src="${baitussalamLogo.src}" alt="Baitussalam" /></div></header>
+      <section class="worker">
+        <h3>فیلڈ ورکر کی تفصیلات</h3>
+        <div class="worker-grid">
+          <div>نام: <span class="line wide">${printValue(data.collectorName)}</span></div>
+          <div>آئی ڈی: <span class="line wide">${printValue(data.collectorId)}</span></div>
+          <div>رابطہ: <span class="line wide">${printValue(data.collectorContact)}</span></div>
+        </div>
+      </section>
       <h2>تعلیمی ادارے کے پرنسپل / ناظم اعلیٰ کی تصدیق</h2>
       <p>تصدیق کی جاتی ہے کہ <span class="line wide">${printValue(data.childName)}</span> ولد / بنت <span class="line wide">${printValue(data.fatherName)}</span> ہمارے ادارہ <span class="line wide">${printValue(data.schoolName)}</span> میں زیر تعلیم ہے۔ طالب علم کا بی فارم نمبر <span class="line wide">${printValue(data.bFormNumber)}</span> ہے۔ ادارے کی معلومات کے مطابق یہ بچہ مستحق امداد ہے۔</p>
       <p>دستخط: <span class="line wide"></span> مہر: <span class="line wide"></span> تاریخ: <span class="line"></span></p>
@@ -78,7 +89,7 @@ export function buildAttestationHtml(data: AttestationFormData) {
       <div class="signature-grid"><div><div class="sig-line"></div><div class="label">تصدیق کنندہ امام صاحب کا نام</div></div><div><div class="sig-line"></div><div class="label">مسجد / محلہ</div></div><div><div class="sig-line"></div><div class="label">موبائل نمبر</div></div><div><div class="sig-line"></div><div class="label">دستخط / مہر</div></div></div>
     </section>
     <section class="page">
-      <header class="header"><div class="brand"><strong>Saiban</strong><span>FOR ORPHANS<br />BAITUSSALAM</span></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت - تعلیمی ادارہ</p><div class="id">ID # ${applicationNumber}</div></div><div class="mark">BAITUSSALAM</div></header>
+      <header class="header"><div class="brand"><img src="${logo.src}" alt="Saiban" /></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت - تعلیمی ادارہ</p></div><div class="mark"><img src="${baitussalamLogo.src}" alt="Baitussalam" /></div></header>
       <h3>اصول و ضوابط</h3>
       <ol><li>بیت السلام سائبان پروگرام کے تحت گھر کا دورہ ضروری ہوگا اور درست معلومات فراہم کرنا لازم ہے۔</li><li>بچے کی عمر رجسٹریشن کے وقت 12 سال سے کم ہونی چاہیے۔</li><li>رجسٹریشن کے بعد بچے کی تعلیمی، دینی اور اخلاقی تربیت کی نگرانی کی جائے گی۔</li><li>تعلیمی ادارے میں حاضری، کارکردگی اور فیس/اخراجات کی معلومات وقتاً فوقتاً طلب کی جا سکتی ہیں۔</li><li>غلط، نامکمل یا گمراہ کن معلومات کی صورت میں درخواست مسترد یا امداد بند کی جا سکتی ہے۔</li><li>سرپرست بچے کی تعلیم، صحت، حفاظت اور بہتر تربیت کے لیے ادارے سے تعاون کرے گا۔</li><li>ادارے کو ضرورت کے مطابق گھر، اسکول، مسجد یا محلے سے تصدیق کرنے کا حق حاصل ہوگا۔</li><li>سرپرست بچے کے متعلق تبدیلی، بیماری، اسکول تبدیلی، رہائش تبدیلی یا مالی حالت کی تبدیلی سے آگاہ کرے گا۔</li><li>جمع شدہ معلومات صرف ادارے کے فلاحی اور انتظامی مقاصد کے لیے استعمال ہوں گی۔</li><li>ادارہ درخواست کی منظوری یا عدم منظوری کا حتمی اختیار رکھتا ہے۔</li></ol>
       <p class="guardian">میں تصدیق کرتا/کرتی ہوں کہ میں نے مندرجہ بالا تمام شرائط و ضوابط کو پڑھ/سن لیا ہے، سمجھ لیا ہے، اور ان پر عمل کرنے کا پابند ہوں۔</p>
@@ -111,6 +122,17 @@ async function renderAttestationPage(data: AttestationFormData, pageNumber: 1 | 
     context.fillText('Saiban', 75, 135);
   }
 
+  try {
+    const baitussalamImage = await loadImage(baitussalamLogo.src);
+    context.drawImage(baitussalamImage, 1020, 75, 125, 125);
+  } catch {
+    context.fillStyle = '#334155';
+    context.font = 'bold 28px Arial';
+    context.textAlign = 'right';
+    context.direction = 'ltr';
+    context.fillText('BAITUSSALAM', 1145, 135);
+  }
+
   context.fillStyle = '#111827';
   context.textAlign = 'center';
   context.direction = 'rtl';
@@ -118,30 +140,36 @@ async function renderAttestationPage(data: AttestationFormData, pageNumber: 1 | 
   context.fillText('بیت السلام کا سائبان', canvas.width / 2, 115);
   context.font = '22px "Segoe UI", Arial, sans-serif';
   context.fillText('یتیم بچوں کی کفالت - تعلیمی ادارہ', canvas.width / 2, 158);
-  context.direction = 'ltr';
-  context.font = '20px Arial';
-  context.fillText(`ID # ${data.registrationNumber || data.applicationId || '__________'}`, canvas.width / 2, 205);
 
   context.direction = 'rtl';
   context.textAlign = 'right';
   context.fillStyle = '#111827';
 
   if (pageNumber === 1) {
+    context.font = 'bold 28px "Segoe UI", Arial, sans-serif';
+    context.textAlign = 'center';
+    context.fillText('فیلڈ ورکر کی تفصیلات', canvas.width / 2, 245);
+    context.font = '22px "Segoe UI", Arial, sans-serif';
+    context.textAlign = 'right';
+    context.fillText(`نام: ${data.collectorName || '____________'}      آئی ڈی: ${data.collectorId || '____________'}`, 1110, 292);
+    context.fillText(`رابطہ: ${data.collectorContact || '____________'}`, 1110, 335);
+
     context.font = 'bold 30px "Segoe UI", Arial, sans-serif';
-    context.strokeStyle = '#6b7280';
-    context.strokeRect(335, 265, 570, 58);
-    context.fillText('تعلیمی ادارے کے پرنسپل / ناظم اعلیٰ کی تصدیق', 870, 304);
+    context.textAlign = 'center';
+    context.fillText('تعلیمی ادارے کے پرنسپل / ناظم اعلیٰ کی تصدیق', canvas.width / 2, 425);
     context.font = '24px "Segoe UI", Arial, sans-serif';
-    let y = 385;
+    context.textAlign = 'right';
+    let y = 490;
     y = drawRtlText(context, `تصدیق کی جاتی ہے کہ ${data.childName || '____________'} ولد / بنت ${data.fatherName || '____________'} ہمارے ادارہ ${data.schoolName || '____________'} میں زیر تعلیم ہے۔ طالب علم کا بی فارم نمبر ${data.bFormNumber || '____________'} ہے۔ ادارے کی معلومات کے مطابق یہ بچہ مستحق امداد ہے۔`, 1110, y, 980, 46);
     y += 38;
     context.fillText('دستخط: ____________________      مہر: ____________________      تاریخ: ______________', 1110, y);
-    y += 140;
+    y += 120;
     context.font = 'bold 30px "Segoe UI", Arial, sans-serif';
-    context.strokeRect(465, y - 38, 310, 58);
-    context.fillText('امام مسجد کی تصدیق', 735, y);
+    context.textAlign = 'center';
+    context.fillText('امام مسجد کی تصدیق', canvas.width / 2, y);
     y += 72;
     context.font = '24px "Segoe UI", Arial, sans-serif';
+    context.textAlign = 'right';
     y = drawRtlText(context, 'میں درخواست کنندہ کے حالات سے واقف ہوں، امام مسجد تصدیق کرتا ہوں کہ یہ خاندان محلے کے مستحق خاندانوں میں شامل ہے۔', 1110, y, 980, 46);
     ['صاحب نصاب نہیں ہیں اور زکوٰۃ وصول کرنے کے اہل ہیں۔', 'صاحب نصاب ہیں اور زکوٰۃ وصول کرنے کے اہل نہیں ہیں۔', 'خاندان کی مالی حالت مدد کی متقاضی ہے۔'].forEach((item) => {
       y += 56;

@@ -2074,6 +2074,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     motherName: formData.motherName,
     guardianContact: formData.guardianContact,
     motherContact: formData.motherContact,
+    collectorId: formData.collectorId,
+    collectorName: formData.collectorName,
+    collectorContact: formData.collectorContact,
   };
 
   const handleDownloadAttestation = async () => {
