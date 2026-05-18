@@ -1413,9 +1413,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   const printValue = (value?: string) => escapePrintValue(value?.trim() || '________________');
 
-  const openAttestationPrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
+  const openAttestationPrint = (autoPrint = false) => {
+    const printWindow = autoPrint ? window.open('', '_blank') : null;
+    if (autoPrint && !printWindow) {
       setMessage('Please allow pop-ups to print the attestation packet.');
       return;
     }
@@ -1446,10 +1446,27 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       </section>
     </body></html>`;
 
+    if (!autoPrint) {
+      const blob = new Blob([packetHtml], { type: 'text/html;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `attestation-confirmation-${formData.registrationNumber || applicationId || 'application'}.html`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      return;
+    }
+
+    if (!printWindow) return;
     printWindow.document.open();
     printWindow.document.write(packetHtml);
     printWindow.document.close();
     printWindow.focus();
+    if (autoPrint) {
+      printWindow.print();
+    }
   };
 
   const goToStep = (nextStep: number) => {
@@ -1645,7 +1662,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     'Education & Skills / تعلیم',
     'Income / آمدنی',
     'Documents / دستاویزات',
-    'Attestation / Confirmation',
+    'Attestation/تصدیق',
     'Review / جائزہ',
   ];
 
@@ -1789,7 +1806,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         const uploadedTypes = documents.map((d) => d.documentType);
         return requiredTypes.every((type) => uploadedTypes.includes(type));
 
-      case 12: // Attestation / Confirmation
+      case 12: // Attestation/تصدیق
         return documents.some((document) => document.documentType === ATTESTATION_DOCUMENT_TYPE);
 
       default:
@@ -3062,31 +3079,40 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 12 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Attestation / Confirmation</h2>
-            <p className="mt-1 text-sm text-slate-600">Print the two-page attestation packet, get it signed/stamped, then upload the completed file.</p>
+            <h2 className="text-xl font-semibold text-slate-900">Attestation/تصدیق</h2>
+            <p className="mt-1 text-sm leading-6 text-slate-600" dir="rtl">دو صفحات پر مشتمل تصدیقی فارم ڈاؤن لوڈ یا پرنٹ کریں۔ پہلے صفحے پر اسکول پرنسپل/ناظم اور امام مسجد سے تصدیق کروائیں، دوسرے صفحے پر اصول و ضوابط پڑھوا کر سرپرست کے دستخط/انگوٹھا لگوائیں، پھر مکمل فارم اپ لوڈ کریں۔</p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
             <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <h3 className="text-sm font-semibold text-slate-900">Download / Print Packet</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                Page 1 contains school principal and Imam mosque verification. Page 2 contains rules/regulations and guardian signature confirmation.
+              <h3 className="text-sm font-semibold text-slate-900">فارم ڈاؤن لوڈ / پرنٹ</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl">
+                فارم حاصل کرنے کے لیے ڈاؤن لوڈ یا پرنٹ کا بٹن استعمال کریں۔ مکمل دستخط اور مہر کے بعد یہی فارم اپ لوڈ کرنا لازمی ہے۔
               </p>
-              <button
-                type="button"
-                onClick={openAttestationPrint}
-                className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto"
-              >
-                Download / Print Form
-              </button>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => openAttestationPrint(false)}
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto"
+                >
+                  Download Form
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openAttestationPrint(true)}
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50 sm:w-auto"
+                >
+                  Print Form
+                </button>
+              </div>
             </section>
 
             <section className="rounded-lg border border-slate-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-slate-900">Upload Signed Confirmation</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">Upload the scanned PDF or clear photos after school, mosque, and guardian signatures are complete.</p>
+              <h3 className="text-sm font-semibold text-slate-900">دستخط شدہ تصدیقی فارم اپ لوڈ کریں</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl">اسکول، مسجد اور سرپرست کی تصدیق مکمل ہونے کے بعد اسکین شدہ PDF یا واضح تصویر اپ لوڈ کریں۔</p>
               {!applicationId ? (
-                <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm leading-6 text-blue-900">
-                  Selecting a file will save this application as a draft first, then upload the attestation.
+                <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm leading-6 text-blue-900" dir="rtl">
+                  فائل منتخب کرنے پر پہلے درخواست ڈرافٹ کے طور پر محفوظ ہوگی، پھر تصدیقی فارم اپ لوڈ ہوگا۔
                 </div>
               ) : null}
               <div className="mt-4">
@@ -3097,7 +3123,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   onUpload={handleDocumentUpload}
                   onRemove={handleDocumentRemove}
                   existingDocument={documents.find((doc) => doc.documentType === ATTESTATION_DOCUMENT_TYPE)}
-                  label="Completed Attestation / Confirmation File"
+                  label="مکمل شدہ تصدیقی فارم"
                   accept="image/*,.pdf"
                 />
               </div>
