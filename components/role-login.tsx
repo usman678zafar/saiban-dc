@@ -35,11 +35,11 @@ export default function RoleLogin() {
   return (
     <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-sm items-center px-2 sm:px-0">
       <div className="w-full rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-        <div className="flex items-center justify-between">
-          <Image src={logo} alt="Saiban" width={80} height={60} className="h-10 w-auto object-contain" priority />
-          <Image src={baitussalamLogo} alt="Baitussalam" width={92} height={52} className="h-10 w-auto object-contain" priority />
+        <div className="flex min-h-20 items-center justify-between gap-6">
+          <Image src={logo} alt="Saiban" width={150} height={110} className="h-16 w-auto object-contain sm:h-20" priority />
+          <Image src={baitussalamLogo} alt="Baitussalam" width={132} height={96} className="h-16 w-auto object-contain sm:h-20" priority />
         </div>
-        <div className="mt-2 text-center">
+        <div className="mt-3 text-center">
           <h1 className="text-lg font-semibold tracking-tight text-slate-950">Saiban Login</h1>
         </div>
 
