@@ -12,7 +12,7 @@ export default async function SignInPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-3 py-4 text-slate-900 sm:px-4 sm:py-6">
+    <main className="min-h-screen bg-slate-50 px-3 py-2 text-slate-900 sm:px-4 sm:py-3">
       <RoleLogin />
     </main>
   );

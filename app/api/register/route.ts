@@ -6,10 +6,18 @@ import { prisma } from '@/lib/prisma';
 
 const digitsOnly = (value: string) => value.replace(/\D/g, '');
 
+function normalizePakistanMobile(value: string) {
+  const digits = digitsOnly(value);
+  if (digits.startsWith('0092') && digits.length === 14) return `0${digits.slice(4)}`;
+  if (digits.startsWith('92') && digits.length === 12) return `0${digits.slice(2)}`;
+  if (digits.startsWith('3') && digits.length === 10) return `0${digits}`;
+  return digits;
+}
+
 const registerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  phoneNumber: z.string().transform(digitsOnly).refine((value) => value.length >= 10, {
-    message: 'Phone number must contain at least 10 digits',
+  phoneNumber: z.string().transform(normalizePakistanMobile).refine((value) => /^03\d{9}$/.test(value), {
+    message: 'Enter a valid Pakistan mobile number, for example 03XX-XXXXXXX.',
   }),
   cnic: z.string().transform(digitsOnly).refine((value) => value.length === 0 || value.length === 13, {
     message: 'CNIC must contain 13 digits',
