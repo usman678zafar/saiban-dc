@@ -84,25 +84,25 @@ export default function SignupForm() {
 
   if (success) {
     return (
-      <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-sm items-center px-2 sm:px-0">
-        <div className="w-full rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex min-h-20 items-center justify-between gap-6">
-            <Image src={logo} alt="Saiban" width={150} height={110} className="h-16 w-auto object-contain sm:h-20" priority />
-            <Image src={baitussalamLogo} alt="Baitussalam" width={132} height={96} className="h-16 w-auto object-contain sm:h-20" priority />
+      <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-md items-center px-2 sm:px-0">
+        <div className="w-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex min-h-16 items-center justify-between gap-6">
+            <Image src={logo} alt="Saiban" width={132} height={96} className="h-14 w-auto object-contain sm:h-16" priority />
+            <Image src={baitussalamLogo} alt="Baitussalam" width={116} height={84} className="h-14 w-auto object-contain sm:h-16" priority />
           </div>
           <div className="flex flex-col items-center text-center">
-            <div className="mt-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-              <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+              <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="mt-3 text-lg font-semibold text-slate-900">Registration Successful</h2>
+            <h2 className="mt-2 text-lg font-semibold text-slate-900">Registration Successful</h2>
             <p className="mt-1 text-sm text-slate-500">Welcome, {success.name}!</p>
           </div>
 
-          <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
+          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
             <p className="font-semibold text-slate-900">Your login details</p>
-            <div className="mt-3 space-y-2 text-slate-700">
+            <div className="mt-2 space-y-1.5 text-slate-700">
               <div className="flex justify-between gap-4">
                 <span className="text-slate-500">Worker ID</span>
                 <span className="font-mono font-semibold text-slate-900">{success.fieldWorkerId}</span>
@@ -112,7 +112,7 @@ export default function SignupForm() {
                 <span className="font-mono font-semibold text-slate-900">{success.password}</span>
               </div>
             </div>
-            <p className="mt-3 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-slate-500">
               Your password is the last 4 digits of your phone number. Save these details - you will need them to sign in.
             </p>
           </div>
@@ -123,7 +123,7 @@ export default function SignupForm() {
               startLoading();
               router.push('/signin');
             }}
-            className="mt-5 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+            className="mt-4 w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
           >
             Go to Sign In
           </button>
@@ -134,18 +134,18 @@ export default function SignupForm() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-sm items-center px-2 sm:px-0">
+    <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-xl items-center px-2 sm:px-0">
       <div className="w-full rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-        <div className="flex min-h-20 items-center justify-between gap-6">
-          <Image src={logo} alt="Saiban" width={150} height={110} className="h-16 w-auto object-contain sm:h-20" priority />
-          <Image src={baitussalamLogo} alt="Baitussalam" width={132} height={96} className="h-16 w-auto object-contain sm:h-20" priority />
+        <div className="flex min-h-16 items-center justify-between gap-6">
+          <Image src={logo} alt="Saiban" width={132} height={96} className="h-14 w-auto object-contain sm:h-16" priority />
+          <Image src={baitussalamLogo} alt="Baitussalam" width={116} height={84} className="h-14 w-auto object-contain sm:h-16" priority />
         </div>
-        <div className="mt-3 text-center">
+        <div className="mt-1 text-center">
           <h1 className="text-lg font-semibold tracking-tight text-slate-950">Volunteer Registration</h1>
           <p className="mt-0.5 text-xs text-slate-500">Register to help collect orphan data for Saiban.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-2.5">
+        <form onSubmit={handleSubmit} className="mt-3 grid gap-2.5 sm:grid-cols-2">
           <label className="grid gap-1.5 text-sm text-slate-700">
             <span>Full Name <span className="text-red-500">*</span></span>
             <input
@@ -154,7 +154,7 @@ export default function SignupForm() {
               onChange={(event) => setName(event.target.value)}
               required
               placeholder="Your full name"
-              className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </label>
 
@@ -168,7 +168,7 @@ export default function SignupForm() {
               inputMode="tel"
               placeholder="03XX-XXXXXXX"
               aria-invalid={phoneNumber.length > 0 && !isValidPakistanMobile(phoneNumber)}
-              className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
             {phoneNumber.length > 0 && !isValidPakistanMobile(phoneNumber) ? (
               <span className="text-xs text-red-600">Use a valid mobile number, for example 03XX-XXXXXXX.</span>
@@ -188,32 +188,32 @@ export default function SignupForm() {
               inputMode="numeric"
               placeholder="XXXXX-XXXXXXX-X"
               maxLength={15}
-              className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </label>
 
-          <label className="grid gap-1.5 text-sm text-slate-700">
+          <label className="grid gap-1.5 text-sm text-slate-700 sm:col-span-2">
             <span>Address <span className="text-xs text-slate-400">(optional)</span></span>
             <textarea
               value={address}
               onChange={(event) => setAddress(event.target.value)}
-              rows={2}
+              rows={1}
               placeholder="Your residential address"
-              className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </label>
 
-          {error ? <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
+          {error ? <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2">{error}</p> : null}
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
           >
             {isSubmitting ? 'Registering...' : 'Register'}
           </button>
 
-          <p className="text-center text-xs text-slate-500">
+          <p className="text-center text-xs text-slate-500 sm:col-span-2">
             Already registered?{' '}
             <a href="/signin" className="font-semibold text-blue-600 hover:underline">
               Sign in
@@ -228,7 +228,7 @@ export default function SignupForm() {
 
 function AuthFooter() {
   return (
-    <footer className="mt-4 border-t border-slate-200 pt-3 text-center text-[11px] leading-5 text-slate-500">
+    <footer className="mt-3 border-t border-slate-200 pt-2 text-center text-[11px] leading-5 text-slate-500">
       <a href="/privacy-policy" className="font-medium text-slate-600 hover:text-slate-900 hover:underline">
         Privacy Policy
       </a>
