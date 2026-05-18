@@ -33,6 +33,7 @@ function formatCnic(value: string) {
 type SuccessInfo = {
   fieldWorkerId: string;
   name: string;
+  phoneNumber: string;
   password: string;
 };
 
@@ -78,6 +79,7 @@ export default function SignupForm() {
     setSuccess({
       fieldWorkerId: result.fieldWorkerId,
       name: result.name,
+      phoneNumber: normalizedPhoneNumber,
       password: derivedPassword,
     });
   };
@@ -104,8 +106,8 @@ export default function SignupForm() {
             <p className="font-semibold text-slate-900">Your login details</p>
             <div className="mt-2 space-y-1.5 text-slate-700">
               <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Worker ID</span>
-                <span className="font-mono font-semibold text-slate-900">{success.fieldWorkerId}</span>
+                <span className="text-slate-500">Phone Number</span>
+                <span className="font-mono font-semibold text-slate-900">{success.phoneNumber}</span>
               </div>
               <div className="flex justify-between gap-4">
                 <span className="text-slate-500">Password</span>
@@ -156,6 +158,9 @@ export default function SignupForm() {
               placeholder="Your full name"
               className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
+            <span className="min-h-4 text-xs text-transparent" aria-hidden="true">
+              Helper text
+            </span>
           </label>
 
           <label className="grid gap-1.5 text-sm text-slate-700">
@@ -170,13 +175,15 @@ export default function SignupForm() {
               aria-invalid={phoneNumber.length > 0 && !isValidPakistanMobile(phoneNumber)}
               className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
-            {phoneNumber.length > 0 && !isValidPakistanMobile(phoneNumber) ? (
-              <span className="text-xs text-red-600">Use a valid mobile number, for example 03XX-XXXXXXX.</span>
-            ) : normalizedPhoneNumber.length >= 4 ? (
-              <span className="text-xs text-slate-500">
-                Your password will be: <span className="font-semibold text-slate-700">{derivedPassword}</span>
-              </span>
-            ) : null}
+            <span className="min-h-4 text-xs">
+              {phoneNumber.length > 0 && !isValidPakistanMobile(phoneNumber) ? (
+                <span className="text-red-600">Use a valid mobile number, for example 03XX-XXXXXXX.</span>
+              ) : normalizedPhoneNumber.length >= 4 ? (
+                <span className="text-slate-500">
+                  Your password will be: <span className="font-semibold text-slate-700">{derivedPassword}</span>
+                </span>
+              ) : null}
+            </span>
           </label>
 
           <label className="grid gap-1.5 text-sm text-slate-700">
