@@ -1393,6 +1393,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       ...current.filter((item) => item.documentType !== document.documentType),
       document,
     ]);
+    setMessage('Document uploaded successfully.');
   };
 
   const handleDocumentRemove = async (documentId: string) => {
@@ -1479,7 +1480,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       window.localStorage.removeItem(storageKey);
       setShouldPersistNewApplication(false);
       setApplicationId(application.id);
-      setMessage('Draft saved. Uploading document...');
+      setMessage('Draft saved successfully. Uploading document...');
       router.refresh();
       return application.id as string;
     } catch (error) {

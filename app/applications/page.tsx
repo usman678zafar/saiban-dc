@@ -8,6 +8,15 @@ export const dynamic = 'force-dynamic';
 
 const PAGE_SIZE = 20;
 
+const dateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: true,
+});
+
 type ApplicationListRecord = {
   id: string;
   registrationNumber: string | null;
@@ -64,7 +73,7 @@ export default async function ApplicationsPage({
     registrationNumber: application.registrationNumber ?? application.id,
     childName: application.childName ?? 'No child name',
     status: application.status,
-    updatedAt: application.updatedAt.toLocaleDateString(),
+    updatedAt: dateTimeFormatter.format(application.updatedAt),
   }));
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
