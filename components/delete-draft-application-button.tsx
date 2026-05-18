@@ -6,10 +6,10 @@ import { Trash2 } from 'lucide-react';
 
 interface DeleteDraftApplicationButtonProps {
   applicationId: string;
-  compact?: boolean;
+  className?: string;
 }
 
-export default function DeleteDraftApplicationButton({ applicationId, compact = false }: DeleteDraftApplicationButtonProps) {
+export default function DeleteDraftApplicationButton({ applicationId, className }: DeleteDraftApplicationButtonProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -42,14 +42,11 @@ export default function DeleteDraftApplicationButton({ applicationId, compact = 
       type="button"
       onClick={handleDelete}
       disabled={isDeleting}
-      className={
-        compact
-          ? 'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60'
-          : 'inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60'
-      }
+      aria-label="Delete draft"
+      title={isDeleting ? 'Deleting draft' : 'Delete draft'}
+      className={className ?? 'inline-flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60'}
     >
       <Trash2 className="h-4 w-4" />
-      {isDeleting ? 'Deleting...' : 'Delete'}
     </button>
   );
 }

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
 import { authOptions } from '@/lib/auth';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
+import { Eye, Pencil } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -125,21 +126,38 @@ export default async function ApplicationsPage({
                   <span className="text-xs text-slate-500">Updated {application.updatedAt}</span>
                 </div>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <Link href={`/applications/${application.id}`} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-200">
-                  View
+              <div className="mt-4 flex items-center gap-2">
+                <Link
+                  href={`/applications/${application.id}`}
+                  aria-label="View application"
+                  title="View application"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100 text-slate-900 hover:bg-slate-200"
+                >
+                  <Eye className="h-5 w-5" />
                 </Link>
                 {application.status === 'draft' ? (
-                  <Link href={`/applications/${application.id}/edit`} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500">
-                    Edit
+                  <Link
+                    href={`/applications/${application.id}/edit`}
+                    aria-label="Edit draft"
+                    title="Edit draft"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100"
+                  >
+                    <Pencil className="h-5 w-5" />
                   </Link>
                 ) : (
-                  <span className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-100 px-3 py-2 text-sm font-semibold text-slate-300">
-                    Edit
+                  <span
+                    aria-label="Edit unavailable"
+                    title="Edit unavailable"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-100 text-slate-300"
+                  >
+                    <Pencil className="h-5 w-5" />
                   </span>
                 )}
                 {application.status === 'draft' ? (
-                  <DeleteDraftApplicationButton applicationId={application.id} compact />
+                  <DeleteDraftApplicationButton
+                    applicationId={application.id}
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
                 ) : null}
               </div>
             </article>
@@ -176,12 +194,22 @@ export default async function ApplicationsPage({
                   <td className="px-4 py-4 align-top text-slate-500">{application.updatedAt}</td>
                   <td className="px-4 py-4 align-top">
                     <div className="flex flex-wrap gap-2">
-                    <Link href={`/applications/${application.id}`} className="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-200">
-                      View
+                    <Link
+                      href={`/applications/${application.id}`}
+                      aria-label="View application"
+                      title="View application"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-900 hover:bg-slate-200"
+                    >
+                      <Eye className="h-4 w-4" />
                     </Link>
                     {application.status === 'draft' ? (
-                      <Link href={`/applications/${application.id}/edit`} className="rounded-full bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-500">
-                        Edit
+                      <Link
+                        href={`/applications/${application.id}/edit`}
+                        aria-label="Edit draft"
+                        title="Edit draft"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      >
+                        <Pencil className="h-4 w-4" />
                       </Link>
                     ) : null}
                     {application.status === 'draft' ? (
