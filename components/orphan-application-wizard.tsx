@@ -20,6 +20,7 @@ import {
 } from '@/lib/household-assets';
 import FileUpload from './file-upload';
 import { useNavigationLoading } from './navigation-loading';
+import { downloadAttestationPdf, printAttestationForm } from './attestation-form';
 
 type SiblingInput = {
   id?: string;
@@ -1404,71 +1405,6 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     }
   };
 
-  const escapePrintValue = (value: string) => value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-
-  const printValue = (value?: string) => escapePrintValue(value?.trim() || '________________');
-
-  const openAttestationPrint = (autoPrint = false) => {
-    const printWindow = autoPrint ? window.open('', '_blank') : null;
-    if (autoPrint && !printWindow) {
-      setMessage('Please allow pop-ups to print the attestation packet.');
-      return;
-    }
-
-    const applicationNumber = printValue(formData.registrationNumber || applicationId || '');
-    const packetHtml = `<!doctype html><html lang="ur" dir="rtl"><head><meta charset="utf-8" /><title>Attestation Confirmation</title><style>
-      @page{size:A4;margin:12mm}*{box-sizing:border-box}body{margin:0;background:white;color:#111827;font-family:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq","Segoe UI",Arial,sans-serif}.page{min-height:273mm;border:2px solid #111827;padding:10mm 11mm;page-break-after:always}.page:last-child{page-break-after:auto}.header{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:12px;margin-bottom:8mm}.brand{direction:ltr;text-align:left;color:#0f75bc;font-family:Arial,sans-serif;font-weight:800;line-height:1}.brand strong{display:block;font-size:30px;letter-spacing:-1px}.brand span{display:block;font-size:9px;letter-spacing:2px;color:#475569}.mark{direction:ltr;text-align:right;font-family:Arial,sans-serif;font-weight:800;color:#334155}.title{text-align:center}.title h1{margin:0;font-size:30px}.title p{margin:4px 0;font-size:13px}.id{direction:ltr;font-family:Arial,sans-serif;font-size:12px}h2{width:fit-content;margin:7mm auto 5mm;border:1px solid #6b7280;padding:4px 18px;font-size:20px}h3{width:fit-content;margin:8mm auto 4mm;border-bottom:1px solid #111827;padding-bottom:2px;font-size:19px}p,li{font-size:14px;line-height:2.15}.line{display:inline-block;min-width:90px;border-bottom:1px dotted #111827;padding:0 8px;direction:ltr;text-align:center}.wide{min-width:190px}.check-row{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start;margin:3mm 0;font-size:14px;line-height:2}.box{width:15px;height:15px;border:1px solid #6b7280;margin-top:7px}.signature-grid{display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin-top:8mm}.sig-line{border-bottom:1px dotted #111827;min-height:8mm}.label{margin-top:2mm;font-size:13px}ol{margin:0;padding-right:20px}.guardian{margin-top:8mm;font-weight:700}.print-actions{direction:ltr;position:fixed;left:16px;top:16px;display:flex;gap:8px;z-index:10}.print-actions button{border:0;border-radius:8px;padding:10px 14px;color:white;background:#2563eb;font:600 14px Arial,sans-serif;cursor:pointer}@media print{.print-actions{display:none}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-    </style></head><body>
-      <div class="print-actions"><button onclick="window.print()">Print / Save PDF</button></div>
-      <section class="page">
-        <header class="header"><div class="brand"><strong>Saiban</strong><span>FOR ORPHANS<br />BAITUSSALAM</span></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت - تعلیمی ادارہ</p><div class="id">ID # ${applicationNumber}</div></div><div class="mark">BAITUSSALAM</div></header>
-        <h2>تعلیمی ادارے کے پرنسپل / ناظم اعلیٰ کی تصدیق</h2>
-        <p>تصدیق کی جاتی ہے کہ <span class="line wide">${printValue(formData.childName)}</span> ولد / بنت <span class="line wide">${printValue(formData.fatherName)}</span> ہمارے ادارہ <span class="line wide">${printValue(formData.schoolName)}</span> میں زیر تعلیم ہے۔ طالب علم کا بی فارم نمبر <span class="line wide">${printValue(formData.bFormNumber)}</span> ہے۔ ادارے کی معلومات کے مطابق یہ بچہ مستحق امداد ہے۔</p>
-        <p>دستخط: <span class="line wide"></span> مہر: <span class="line wide"></span> تاریخ: <span class="line"></span></p>
-        <h2>امام مسجد کی تصدیق</h2>
-        <p>میں درخواست کنندہ کے حالات سے واقف ہوں، امام مسجد تصدیق کرتا ہوں کہ یہ خاندان محلے کے مستحق خاندانوں میں شامل ہے۔</p>
-        <div class="check-row"><span class="box"></span><span>صاحب نصاب نہیں ہیں اور زکوٰۃ وصول کرنے کے اہل ہیں۔</span></div>
-        <div class="check-row"><span class="box"></span><span>صاحب نصاب ہیں اور زکوٰۃ وصول کرنے کے اہل نہیں ہیں۔</span></div>
-        <div class="check-row"><span class="box"></span><span>خاندان کی مالی حالت مدد کی متقاضی ہے۔</span></div>
-        <div class="signature-grid"><div><div class="sig-line"></div><div class="label">تصدیق کنندہ امام صاحب کا نام</div></div><div><div class="sig-line"></div><div class="label">مسجد / محلہ</div></div><div><div class="sig-line"></div><div class="label">موبائل نمبر</div></div><div><div class="sig-line"></div><div class="label">دستخط / مہر</div></div></div>
-      </section>
-      <section class="page">
-        <header class="header"><div class="brand"><strong>Saiban</strong><span>FOR ORPHANS<br />BAITUSSALAM</span></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت - تعلیمی ادارہ</p><div class="id">ID # ${applicationNumber}</div></div><div class="mark">BAITUSSALAM</div></header>
-        <h3>اصول و ضوابط</h3>
-        <ol><li>بیت السلام سائبان پروگرام کے تحت گھر کا دورہ ضروری ہوگا اور درست معلومات فراہم کرنا لازم ہے۔</li><li>بچے کی عمر رجسٹریشن کے وقت 12 سال سے کم ہونی چاہیے۔</li><li>رجسٹریشن کے بعد بچے کی تعلیمی، دینی اور اخلاقی تربیت کی نگرانی کی جائے گی۔</li><li>تعلیمی ادارے میں حاضری، کارکردگی اور فیس/اخراجات کی معلومات وقتاً فوقتاً طلب کی جا سکتی ہیں۔</li><li>غلط، نامکمل یا گمراہ کن معلومات کی صورت میں درخواست مسترد یا امداد بند کی جا سکتی ہے۔</li><li>سرپرست بچے کی تعلیم، صحت، حفاظت اور بہتر تربیت کے لیے ادارے سے تعاون کرے گا۔</li><li>ادارے کو ضرورت کے مطابق گھر، اسکول، مسجد یا محلے سے تصدیق کرنے کا حق حاصل ہوگا۔</li><li>سرپرست بچے کے متعلق تبدیلی، بیماری، اسکول تبدیلی، رہائش تبدیلی یا مالی حالت کی تبدیلی سے آگاہ کرے گا۔</li><li>جمع شدہ معلومات صرف ادارے کے فلاحی اور انتظامی مقاصد کے لیے استعمال ہوں گی۔</li><li>ادارہ درخواست کی منظوری یا عدم منظوری کا حتمی اختیار رکھتا ہے۔</li></ol>
-        <p class="guardian">میں تصدیق کرتا/کرتی ہوں کہ میں نے مندرجہ بالا تمام شرائط و ضوابط کو پڑھ/سن لیا ہے، سمجھ لیا ہے، اور ان پر عمل کرنے کا پابند ہوں۔</p>
-        <div class="signature-grid"><div><div class="sig-line">${printValue(formData.guardianName || formData.motherName)}</div><div class="label">سرپرست / والدہ کا نام</div></div><div><div class="sig-line"></div><div class="label">سرپرست کے دستخط / انگوٹھا</div></div><div><div class="sig-line">${printValue(formData.guardianContact || formData.motherContact)}</div><div class="label">رابطہ نمبر</div></div><div><div class="sig-line"></div><div class="label">تاریخ</div></div></div>
-      </section>
-    </body></html>`;
-
-    if (!autoPrint) {
-      const blob = new Blob([packetHtml], { type: 'text/html;charset=utf-8' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `attestation-confirmation-${formData.registrationNumber || applicationId || 'application'}.html`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      return;
-    }
-
-    if (!printWindow) return;
-    printWindow.document.open();
-    printWindow.document.write(packetHtml);
-    printWindow.document.close();
-    printWindow.focus();
-    if (autoPrint) {
-      printWindow.print();
-    }
-  };
-
   const goToStep = (nextStep: number) => {
     setStep(Math.min(Math.max(nextStep, 1), TOTAL_STEPS));
     window.requestAnimationFrame(() => {
@@ -2127,6 +2063,33 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const steps = Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1);
   const currentStepTitle = stepTitles[step - 1] ?? '';
   const progressPercentage = Math.round((step / TOTAL_STEPS) * 100);
+  const attestationFormData = {
+    applicationId,
+    registrationNumber: formData.registrationNumber,
+    childName: formData.childName,
+    fatherName: formData.fatherName,
+    schoolName: formData.schoolName,
+    bFormNumber: formData.bFormNumber,
+    guardianName: formData.guardianName,
+    motherName: formData.motherName,
+    guardianContact: formData.guardianContact,
+    motherContact: formData.motherContact,
+  };
+
+  const handleDownloadAttestation = async () => {
+    try {
+      await downloadAttestationPdf(attestationFormData);
+    } catch {
+      setMessage('Unable to download the attestation PDF.');
+    }
+  };
+
+  const handlePrintAttestation = () => {
+    const opened = printAttestationForm(attestationFormData);
+    if (!opened) {
+      setMessage('Please allow pop-ups to print the attestation packet.');
+    }
+  };
 
   return (
     <div ref={wizardRef} className="min-w-0 scroll-mt-24 space-y-5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm [&_h2]:text-lg [&_h2]:leading-7 [&_h3]:break-words sm:space-y-6 sm:p-8 sm:[&_h2]:text-xl">
@@ -3092,14 +3055,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <button
                   type="button"
-                  onClick={() => openAttestationPrint(false)}
+                  onClick={handleDownloadAttestation}
                   className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto"
                 >
                   Download Form
                 </button>
                 <button
                   type="button"
-                  onClick={() => openAttestationPrint(true)}
+                  onClick={handlePrintAttestation}
                   className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50 sm:w-auto"
                 >
                   Print Form
