@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
+import { CopyPlus } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { labels } from '@/lib/labels';
@@ -129,6 +130,10 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
         <>
           <Link href="/applications" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto">
             Back to List
+          </Link>
+          <Link href={`/applications/${application.id}/duplicate`} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-100 sm:w-auto">
+            <CopyPlus className="h-4 w-4" aria-hidden="true" />
+            Add Child From Same Family
           </Link>
           {canEdit ? (
             <Link href={`/applications/${application.id}/edit`} className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500 sm:w-auto">
