@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { normalizeR2FileUrl } from '@/lib/r2';
 
 export type ApplicationDocumentView = {
   id: string;
@@ -11,8 +12,8 @@ export type ApplicationDocumentView = {
   createdAt: Date;
 };
 
-export function getApplicationDocuments(applicationId: string) {
-  return prisma.$queryRaw<ApplicationDocumentView[]>`
+export async function getApplicationDocuments(applicationId: string) {
+  const documents = await prisma.$queryRaw<ApplicationDocumentView[]>`
     SELECT
       "id",
       "applicationId",
@@ -26,4 +27,9 @@ export function getApplicationDocuments(applicationId: string) {
     WHERE "applicationId" = ${applicationId}
     ORDER BY "createdAt" ASC
   `;
+
+  return documents.map((document) => ({
+    ...document,
+    fileUrl: normalizeR2FileUrl(document.fileUrl, document.fileKey),
+  }));
 }

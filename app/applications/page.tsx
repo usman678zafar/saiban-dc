@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
 import { authOptions } from '@/lib/auth';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
-import { Eye, Pencil } from 'lucide-react';
+import { CopyPlus, Eye, Pencil } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -154,6 +154,16 @@ export default async function ApplicationsPage({
                     className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 ) : null}
+                {application.status === 'submitted' ? (
+                  <Link
+                    href={`/applications/${application.id}/duplicate`}
+                    aria-label="Add child from same family"
+                    title="Add child from same family"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  >
+                    <CopyPlus className="h-5 w-5" />
+                  </Link>
+                ) : null}
               </div>
             </article>
           ))
@@ -209,6 +219,16 @@ export default async function ApplicationsPage({
                     ) : null}
                     {application.status === 'draft' ? (
                       <DeleteDraftApplicationButton applicationId={application.id} />
+                    ) : null}
+                    {application.status === 'submitted' ? (
+                      <Link
+                        href={`/applications/${application.id}/duplicate`}
+                        aria-label="Add child from same family"
+                        title="Add child from same family"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                      >
+                        <CopyPlus className="h-4 w-4" />
+                      </Link>
                     ) : null}
                     </div>
                   </td>

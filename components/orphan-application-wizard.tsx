@@ -474,6 +474,9 @@ interface OrphanApplicationWizardProps {
   initialData?: Partial<FormData>;
   initialDocuments?: DocumentInput[];
   initialApplicationId?: string;
+  initialStep?: number;
+  storageScope?: string;
+  showInstructionsOnStart?: boolean;
 }
 
 type PersistedWizardState = {
@@ -964,16 +967,23 @@ function normalizeInitialData(data: FormData): FormData {
   return next;
 }
 
-export default function OrphanApplicationWizard({ initialData, initialDocuments, initialApplicationId }: OrphanApplicationWizardProps) {
+export default function OrphanApplicationWizard({
+  initialData,
+  initialDocuments,
+  initialApplicationId,
+  initialStep = 1,
+  storageScope,
+  showInstructionsOnStart,
+}: OrphanApplicationWizardProps) {
   const router = useRouter();
   const { startLoading } = useNavigationLoading();
   const wizardRef = useRef<HTMLDivElement>(null);
   const mergedData = useMemo(() => normalizeInitialData({ ...defaultData, ...initialData }), [initialData]);
   const storageKey = useMemo(() => {
     const collectorKey = mergedData.collectorId || mergedData.collectorCnic || 'unknown';
-    return `saiban-orphan-application:new:${collectorKey}`;
-  }, [mergedData.collectorCnic, mergedData.collectorId]);
-  const [step, setStep] = useState(1);
+    return `saiban-orphan-application:new:${collectorKey}:${storageScope ?? 'default'}`;
+  }, [mergedData.collectorCnic, mergedData.collectorId, storageScope]);
+  const [step, setStep] = useState(clampWizardStep(initialStep));
   const [formData, setFormData] = useState<FormData>(mergedData);
   const [message, setMessage] = useState<string | null>(null);
   const [gpsMessage, setGpsMessage] = useState<string | null>(null);
@@ -981,7 +991,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const [isCapturingGps, setIsCapturingGps] = useState(false);
   const [submittingAction, setSubmittingAction] = useState<'draft' | 'submitted' | null>(null);
   const [showSubmissionSuccessModal, setShowSubmissionSuccessModal] = useState(false);
-  const [showNewApplicationInstructions, setShowNewApplicationInstructions] = useState(!initialApplicationId);
+  const [showNewApplicationInstructions, setShowNewApplicationInstructions] = useState(showInstructionsOnStart ?? !initialApplicationId);
   const [instructionSlide, setInstructionSlide] = useState(0);
   const [submissionDoneLoading, setSubmissionDoneLoading] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(initialApplicationId ?? null);
