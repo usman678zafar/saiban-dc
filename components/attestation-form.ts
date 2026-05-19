@@ -131,6 +131,22 @@ function drawDetailLine(context: CanvasRenderingContext2D, label: string, value:
   context.fillText(value?.trim() || '', valueX, y, valueWidth - 12);
 }
 
+function drawInlineField(context: CanvasRenderingContext2D, label: string, x: number, y: number, labelWidth: number, lineWidth: number) {
+  context.direction = 'rtl';
+  context.textAlign = 'right';
+  context.font = canvasFont(22);
+  context.fillText(label, x, y);
+
+  const lineRight = x - labelWidth;
+  const lineLeft = lineRight - lineWidth;
+  context.strokeStyle = '#111827';
+  context.lineWidth = 1;
+  context.beginPath();
+  context.moveTo(lineLeft, y + 7);
+  context.lineTo(lineRight, y + 7);
+  context.stroke();
+}
+
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
@@ -160,7 +176,7 @@ function buildWorkerDetailsHtml(data: AttestationFormData) {
 export function buildAttestationHtml(data: AttestationFormData) {
   let pageIndex = 0;
   return `<!doctype html><html lang="ur" dir="rtl"><head><meta charset="utf-8" /><title>Attestation Confirmation</title><style>
-    @page{size:A4;margin:12mm}*{box-sizing:border-box}html,body{width:100%;margin:0;overflow-x:hidden}body{background:white;color:#111827;font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu","Segoe UI",Arial,sans-serif}.page{width:186mm;min-height:273mm;margin:0 auto;border:2px solid #111827;padding:10mm 11mm;page-break-after:always;overflow:hidden;direction:rtl}.page:last-child{page-break-after:auto}.header{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:12px;margin-bottom:7mm}.brand{direction:ltr;text-align:left}.brand img{width:35mm;height:auto}.mark{text-align:right}.mark img{width:25mm;height:auto}.title{text-align:center}.title h1{margin:0;font-size:30px}.title p{margin:4px 0;font-size:13px}h2{width:fit-content;margin:7mm auto 5mm;padding:4px 18px;font-size:20px}h3{width:fit-content;margin:8mm auto 4mm;padding-bottom:2px;font-size:19px}p,li{font-size:14px;line-height:2.15}p,ol{max-width:100%}.line{display:inline-block;min-width:90px;max-width:100%;border-bottom:1px dotted #111827;padding:0 8px;direction:ltr;text-align:center;font-family:"Segoe UI",Inter,Arial,sans-serif;vertical-align:baseline}.wide{min-width:190px}.worker{border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;margin:2mm 0 6mm;padding:3mm 0}.worker h3{margin:0 auto 3mm}.worker .orphan-title{margin:3mm auto 2mm}.worker-grid,.orphan-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2mm 8mm;font-size:13px;line-height:2}.worker-grid>div,.orphan-grid>div{min-width:0;white-space:nowrap}.orphan-grid{border-top:1px solid #f1f5f9;margin-top:2mm;padding-top:2mm}.check-row{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start;margin:3mm 0;font-size:14px;line-height:2}.box{width:15px;height:15px;border:1px solid #6b7280;margin-top:7px}.signature-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8mm;margin-top:8mm}.sig-line{border-bottom:1px dotted #111827;min-height:8mm;direction:ltr;text-align:center;font-family:"Segoe UI",Inter,Arial,sans-serif}.label{margin-top:2mm;font-size:13px}ol{list-style-position:inside;margin:0;padding:0;text-align:right}.guardian{margin-top:8mm;font-weight:700}.print-actions{direction:ltr;position:fixed;left:16px;top:16px;display:flex;gap:8px;z-index:10}.print-actions button{border:0;border-radius:8px;padding:10px 14px;color:white;background:#2563eb;font:600 14px Arial,sans-serif;cursor:pointer}@media print{.print-actions{display:none}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{margin:0}}
+    @page{size:A4;margin:12mm}*{box-sizing:border-box}html,body{width:100%;margin:0;overflow-x:hidden}body{background:white;color:#111827;font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu","Segoe UI",Arial,sans-serif}.page{width:186mm;min-height:273mm;margin:0 auto;border:2px solid #111827;padding:10mm 11mm;page-break-after:always;overflow:hidden;direction:rtl}.page:last-child{page-break-after:auto}.header{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:12px;margin-bottom:7mm}.brand{direction:ltr;text-align:left}.brand img{width:35mm;height:auto}.mark{text-align:right}.mark img{width:25mm;height:auto}.title{text-align:center}.title h1{margin:0;font-size:30px}.title p{margin:4px 0;font-size:13px}h2{width:fit-content;margin:7mm auto 5mm;padding:4px 18px;font-size:20px}h3{width:fit-content;margin:8mm auto 4mm;padding-bottom:2px;font-size:19px}p,li{font-size:14px;line-height:2.15}p,ol{max-width:100%}.line{display:inline-block;min-width:90px;max-width:100%;border-bottom:1px dotted #111827;padding:0 8px;direction:ltr;text-align:center;font-family:"Segoe UI",Inter,Arial,sans-serif;vertical-align:baseline}.wide{min-width:190px}.worker{border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;margin:2mm 0 6mm;padding:3mm 0}.worker h3{margin:0 auto 3mm}.worker .orphan-title{margin:3mm auto 2mm}.worker-grid,.orphan-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2mm 8mm;font-size:13px;line-height:2}.worker-grid>div,.orphan-grid>div{min-width:0;white-space:nowrap}.orphan-grid{border-top:1px solid #f1f5f9;margin-top:2mm;padding-top:2mm}.check-row{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start;margin:3mm 0;font-size:14px;line-height:2}.box{width:15px;height:15px;border:1px solid #6b7280;margin-top:7px}.signature-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8mm;margin-top:8mm}.signature-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6mm;margin-top:8mm}.sig-line{border-bottom:1px dotted #111827;min-height:8mm;direction:ltr;text-align:center;font-family:"Segoe UI",Inter,Arial,sans-serif}.label{margin-top:2mm;font-size:13px}ol{list-style-position:inside;margin:0;padding:0;text-align:right}.guardian{margin-top:8mm;font-weight:700}.print-actions{direction:ltr;position:fixed;left:16px;top:16px;display:flex;gap:8px;z-index:10}.print-actions button{border:0;border-radius:8px;padding:10px 14px;color:white;background:#2563eb;font:600 14px Arial,sans-serif;cursor:pointer}@media print{.print-actions{display:none}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{margin:0}}
   </style></head><body>
     <div class="print-actions"><button onclick="window.print()">Print / Save PDF</button></div>
     <section class="page">
@@ -174,8 +190,12 @@ export function buildAttestationHtml(data: AttestationFormData) {
         </div>
       </section>
       <h2>تعلیمی ادارے کے پرنسپل / ناظم اعلیٰ کی تصدیق</h2>
-      <p>تصدیق کی جاتی ہے کہ <span class="line wide">${printValue(data.childName)}</span> ولد / بنت <span class="line wide">${printValue(data.fatherName)}</span> ہمارے ادارہ <span class="line wide">${printValue(data.schoolName)}</span> میں زیر تعلیم ہے۔ طالب علم کا بی فارم نمبر <span class="line wide">${printValue(data.bFormNumber)}</span> ہے۔ ادارے کی معلومات کے مطابق یہ بچہ مستحق امداد ہے۔</p>
-      <p>دستخط: <span class="line wide"></span> مہر: <span class="line wide"></span> تاریخ: <span class="line"></span></p>
+      <p>تصدیق کی جاتی ہے کہ مذکورہ بالا بچہ ہمارے ادارہ <span class="line wide">${printValue(data.schoolName)}</span> میں زیر تعلیم ہے۔ ادارے کی معلومات کے مطابق یہ بچہ مستحق امداد ہے۔</p>
+      <div class="signature-grid-3">
+        <div><div class="sig-line"></div><div class="label">دستخط</div></div>
+        <div><div class="sig-line"></div><div class="label">مہر</div></div>
+        <div><div class="sig-line"></div><div class="label">تاریخ</div></div>
+      </div>
       <h2>امام مسجد کی تصدیق</h2>
       <p>میں درخواست کنندہ کے حالات سے واقف ہوں، امام مسجد تصدیق کرتا ہوں کہ یہ خاندان محلے کے مستحق خاندانوں میں شامل ہے۔</p>
       <div class="check-row"><span class="box"></span><span>صاحب نصاب نہیں ہیں اور زکوٰۃ وصول کرنے کے اہل ہیں۔</span></div>
@@ -254,9 +274,11 @@ async function renderAttestationPage(data: AttestationFormData, pageNumber: 1 | 
     context.font = canvasFont(24);
     context.textAlign = 'right';
     let y = 685;
-    y = drawRtlText(context, `تصدیق کی جاتی ہے کہ ${data.childName || '____________'} ولد / بنت ${data.fatherName || '____________'} ہمارے ادارہ ${data.schoolName || '____________'} میں زیر تعلیم ہے۔ طالب علم کا بی فارم نمبر ${data.bFormNumber || '____________'} ہے۔ ادارے کی معلومات کے مطابق یہ بچہ مستحق امداد ہے۔`, 1110, y, 980, 46);
-    y += 38;
-    context.fillText('دستخط: ____________________      مہر: ____________________      تاریخ: ______________', 1110, y);
+    y = drawRtlText(context, `تصدیق کی جاتی ہے کہ مذکورہ بالا بچہ ہمارے ادارہ ${data.schoolName || '____________'} میں زیر تعلیم ہے۔ ادارے کی معلومات کے مطابق یہ بچہ مستحق امداد ہے۔`, 1110, y, 980, 46);
+    y += 48;
+    drawInlineField(context, 'دستخط:', 1110, y, 70, 220);
+    drawInlineField(context, 'مہر:', 720, y, 50, 220);
+    drawInlineField(context, 'تاریخ:', 350, y, 60, 180);
     y += 120;
     context.font = canvasFont(30, 'bold');
     context.textAlign = 'center';
@@ -271,9 +293,11 @@ async function renderAttestationPage(data: AttestationFormData, pageNumber: 1 | 
       context.fillText(item, 1048, y);
     });
     y += 100;
-    context.fillText('تصدیق کنندہ امام صاحب کا نام: ____________________      مسجد / محلہ: ____________________', 1110, y);
+    drawInlineField(context, 'تصدیق کنندہ امام صاحب کا نام:', 1110, y, 260, 220);
+    drawInlineField(context, 'مسجد / محلہ:', 590, y, 120, 320);
     y += 62;
-    context.fillText('موبائل نمبر: ____________________      دستخط / مہر: ____________________', 1110, y);
+    drawInlineField(context, 'موبائل نمبر:', 1110, y, 120, 360);
+    drawInlineField(context, 'دستخط / مہر:', 590, y, 120, 320);
   } else {
     drawWorkerDetails(context, data, 245);
     context.direction = 'rtl';
