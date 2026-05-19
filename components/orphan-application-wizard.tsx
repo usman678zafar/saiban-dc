@@ -466,6 +466,10 @@ type PersistedWizardState = {
 const TOTAL_STEPS = 13;
 const ATTESTATION_DOCUMENT_TYPE = 'attestation_confirmation';
 
+function clampWizardStep(value: unknown) {
+  return Math.min(Math.max(Number(value) || 1, 1), TOTAL_STEPS);
+}
+
 const EDUCATION_OPTIONS = [
   { value: '', label: 'Select education' },
   { value: 'Illiterate / No Formal Education', label: 'Illiterate / No Formal Education' },
@@ -905,15 +909,27 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const [showSubmissionSuccessModal, setShowSubmissionSuccessModal] = useState(false);
   const [submissionDoneLoading, setSubmissionDoneLoading] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(initialApplicationId ?? null);
+  const applicationStepStorageKey = useMemo(
+    () => (applicationId ? `saiban-orphan-application:step:${applicationId}` : null),
+    [applicationId],
+  );
   const [documents, setDocuments] = useState<DocumentInput[]>(initialDocuments ?? []);
   const [addressOptions, setAddressOptions] = useState<AddressOptionInput[]>([]);
-  const [hasLoadedPersistedState, setHasLoadedPersistedState] = useState(Boolean(initialApplicationId));
+  const [hasLoadedPersistedState, setHasLoadedPersistedState] = useState(false);
   const [shouldPersistNewApplication, setShouldPersistNewApplication] = useState(!initialApplicationId);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState<'saving' | 'saved' | 'error' | null>(null);
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastAutosavedPayloadRef = useRef<string | null>(null);
   const latestApplicationIdRef = useRef<string | null>(initialApplicationId ?? null);
+  const unsavedChangeVersionRef = useRef(0);
   const isSubmitting = submittingAction !== null;
+
+  const markFormChanged = () => {
+    if (!hasLoadedPersistedState) return;
+    unsavedChangeVersionRef.current += 1;
+    setHasUnsavedChanges(true);
+  };
 
   useEffect(() => {
     latestApplicationIdRef.current = applicationId;
@@ -940,9 +956,17 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   }, [autosaveStatus]);
 
   useEffect(() => {
-    if (initialApplicationId) return;
-
     try {
+      if (initialApplicationId) {
+        const rawStep = window.localStorage.getItem(`saiban-orphan-application:step:${initialApplicationId}`);
+        if (rawStep) {
+          const persistedStep = JSON.parse(rawStep) as { step?: number };
+          setStep(clampWizardStep(persistedStep.step));
+        }
+        setHasLoadedPersistedState(true);
+        return;
+      }
+
       const raw = window.localStorage.getItem(storageKey);
       if (!raw) {
         setHasLoadedPersistedState(true);
@@ -987,12 +1011,17 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         collectorAddress: mergedData.collectorAddress,
         collectorContact: mergedData.collectorContact,
       }));
-      setStep(Math.min(Math.max(Number(persisted.step) || 1, 1), TOTAL_STEPS));
+      setStep(clampWizardStep(persisted.step));
       setApplicationId(persisted.applicationId ?? null);
       setDocuments(Array.isArray(persisted.documents) ? persisted.documents : []);
+      setHasUnsavedChanges(hasUserEnteredDraftData({ ...defaultData, ...mergedData, ...persistedFormData } as FormData));
       setHasLoadedPersistedState(true);
     } catch (error) {
-      window.localStorage.removeItem(storageKey);
+      if (initialApplicationId) {
+        window.localStorage.removeItem(`saiban-orphan-application:step:${initialApplicationId}`);
+      } else {
+        window.localStorage.removeItem(storageKey);
+      }
       setHasLoadedPersistedState(true);
     }
   }, [initialApplicationId, mergedData, storageKey]);
@@ -1030,6 +1059,18 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     window.localStorage.setItem(storageKey, JSON.stringify(persisted));
   }, [applicationId, documents, formData, hasLoadedPersistedState, initialApplicationId, shouldPersistNewApplication, step, storageKey]);
 
+  useEffect(() => {
+    if (!applicationStepStorageKey || !hasLoadedPersistedState) return;
+
+    window.localStorage.setItem(
+      applicationStepStorageKey,
+      JSON.stringify({
+        step,
+        updatedAt: new Date().toISOString(),
+      }),
+    );
+  }, [applicationStepStorageKey, hasLoadedPersistedState, step]);
+
   const updateField = (field: keyof FormData, value: FormData[keyof FormData]) => {
     const nextValue =
       typeof value === 'string' && field.toLowerCase().includes('cnic')
@@ -1037,10 +1078,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         : field === 'bFormNumber' && typeof value === 'string'
           ? formatBForm(value)
           : value;
+    markFormChanged();
     setFormData((current) => ({ ...current, [field]: nextValue }));
   };
 
   const clearFields = (fields: Array<keyof FormData>) => {
+    markFormChanged();
     setFormData((current) => {
       const next = { ...current };
       fields.forEach((field) => {
@@ -1051,6 +1094,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const updateFields = (values: Partial<FormData>) => {
+    markFormChanged();
     setFormData((current) => ({ ...current, ...values }));
   };
 
@@ -1355,6 +1399,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const handleTotalSiblingsChange = (value: string) => {
     const digits = value.replace(/\D/g, '');
     const count = Math.max(0, Number(digits || 0));
+    markFormChanged();
     setFormData((current) => {
       const siblings = Array.from({ length: count }, (_, index) => current.siblings[index] ?? {
         name: '',
@@ -1394,6 +1439,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       : '';
 
   const toggleMultiSelectValue = (field: 'childHobbies', value: string) => {
+    markFormChanged();
     setFormData((current) => {
       const currentValues = current[field];
       const nextValues = currentValues.includes(value)
@@ -1404,25 +1450,31 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const handleHouseholdAssetHasChange = (key: HouseholdAssetKey, has: boolean) => {
-    setFormData((current) => ({
-      ...current,
-      householdAssetSelection: {
-        ...current.householdAssetSelection,
-        [key]: has
-          ? { ...current.householdAssetSelection[key], has: true, answered: true }
-          : { has: false, answered: true, value: '', grams: '' },
-      },
-    }));
+    markFormChanged();
+    setFormData((current) => {
+      return {
+        ...current,
+        householdAssetSelection: {
+          ...current.householdAssetSelection,
+          [key]: has
+            ? { ...current.householdAssetSelection[key], has: true, answered: true }
+            : { has: false, answered: true, value: '', grams: '' },
+        },
+      };
+    });
   };
 
   const updateHouseholdAssetEntry = (key: HouseholdAssetKey, patch: Partial<HouseholdAssetEntry>) => {
-    setFormData((current) => ({
-      ...current,
-      householdAssetSelection: {
-        ...current.householdAssetSelection,
-        [key]: { ...current.householdAssetSelection[key], ...patch },
-      },
-    }));
+    markFormChanged();
+    setFormData((current) => {
+      return {
+        ...current,
+        householdAssetSelection: {
+          ...current.householdAssetSelection,
+          [key]: { ...current.householdAssetSelection[key], ...patch },
+        },
+      };
+    });
   };
 
   const updateArrayItem = <T extends object>(
@@ -1430,6 +1482,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     index: number,
     value: Partial<T>,
   ) => {
+    markFormChanged();
     setFormData((current) => {
       const list = [...current[key]] as any[];
       list[index] = { ...list[index], ...value };
@@ -1438,6 +1491,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const addArrayItem = (key: 'siblings' | 'relatives') => {
+    markFormChanged();
     setFormData((current) => {
       const item = key === 'siblings'
         ? { name: '', relation: 'brother', dob: '', age: '', educationStatus: '', currentlyStudying: '', occupation: '', monthlyIncomeOrFee: '', maritalStatus: '' }
@@ -1448,6 +1502,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const removeArrayItem = (key: 'siblings' | 'relatives', index: number) => {
+    markFormChanged();
     setFormData((current) => {
       const next = current[key].filter((_, idx) => idx !== index);
       return {
@@ -1528,12 +1583,17 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   useEffect(() => {
     if (!hasLoadedPersistedState || submittingAction !== null || showSubmissionSuccessModal) return;
+    if (!hasUnsavedChanges) return;
     if (!hasUserEnteredDraftData(formData)) return;
     if (!hasAutosaveIdentifier(formData)) return;
 
     const body = buildApplicationRequestBody('draft');
     const payloadSignature = JSON.stringify(body);
-    if (payloadSignature === lastAutosavedPayloadRef.current) return;
+    if (payloadSignature === lastAutosavedPayloadRef.current) {
+      setHasUnsavedChanges(false);
+      return;
+    }
+    const autosaveVersion = unsavedChangeVersionRef.current;
 
     if (autosaveTimerRef.current) {
       clearTimeout(autosaveTimerRef.current);
@@ -1568,6 +1628,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           id: application.id,
           status: 'draft',
         });
+        if (unsavedChangeVersionRef.current === autosaveVersion) {
+          setHasUnsavedChanges(false);
+        }
         setAutosaveStatus('saved');
         router.refresh();
       } catch (error) {
@@ -1580,21 +1643,17 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         clearTimeout(autosaveTimerRef.current);
       }
     };
-  }, [applicationId, formData, hasLoadedPersistedState, showSubmissionSuccessModal, storageKey, submittingAction, router]);
+  }, [applicationId, formData, hasLoadedPersistedState, hasUnsavedChanges, showSubmissionSuccessModal, storageKey, submittingAction, router]);
 
   useEffect(() => {
-    const body = buildApplicationRequestBody('draft');
-    const payloadSignature = JSON.stringify(body);
-    const hasUnsyncedData = hasUserEnteredDraftData(formData) && payloadSignature !== lastAutosavedPayloadRef.current;
-
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (!hasUnsyncedData) return;
+      if (!hasUnsavedChanges) return;
       event.preventDefault();
       event.returnValue = '';
     };
 
     const handleDocumentClick = (event: MouseEvent) => {
-      if (!hasUnsyncedData) return;
+      if (!hasUnsavedChanges) return;
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
       const target = event.target instanceof Element ? event.target.closest('a[href]') : null;
@@ -1617,7 +1676,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('click', handleDocumentClick, true);
     };
-  }, [applicationId, formData]);
+  }, [hasUnsavedChanges]);
 
   const ensureDraftApplication = async () => {
     if (applicationId) return applicationId;
@@ -1631,6 +1690,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         throw new Error(orphanAgeError);
       }
 
+      const saveVersion = unsavedChangeVersionRef.current;
       const response = await fetch('/api/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1655,6 +1715,9 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         id: application.id,
         status: 'draft',
       });
+      if (unsavedChangeVersionRef.current === saveVersion) {
+        setHasUnsavedChanges(false);
+      }
       setAutosaveStatus('saved');
       setMessage('Draft saved successfully. Uploading document...');
       router.refresh();
@@ -1683,6 +1746,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
       const method = applicationId ? 'PATCH' : 'POST';
       const body = buildApplicationRequestBody(saveStatus);
+      const saveVersion = unsavedChangeVersionRef.current;
       const response = await fetch('/api/applications', {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -1705,7 +1769,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         id: application.id,
         status: 'draft',
       });
+      if (unsavedChangeVersionRef.current === saveVersion) {
+        setHasUnsavedChanges(false);
+      }
       setAutosaveStatus(saveStatus === 'draft' ? 'saved' : null);
+      if (saveStatus === 'submitted') {
+        window.localStorage.removeItem(`saiban-orphan-application:step:${application.id}`);
+      }
       if (saveStatus === 'submitted') {
         setShowSubmissionSuccessModal(true);
       } else {
@@ -2280,6 +2350,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       setMessage('Please allow pop-ups to print the attestation packet.');
     }
   };
+
+  if (!hasLoadedPersistedState) {
+    return (
+      <div ref={wizardRef} className="min-w-0 scroll-mt-24 rounded-lg border border-slate-200 bg-white p-6 text-sm font-medium text-slate-600 shadow-sm">
+        Loading saved progress...
+      </div>
+    );
+  }
 
   return (
     <div ref={wizardRef} className="min-w-0 scroll-mt-24 space-y-5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm [&_h2]:text-lg [&_h2]:leading-7 [&_h3]:break-words sm:space-y-6 sm:p-8 sm:[&_h2]:text-xl">
