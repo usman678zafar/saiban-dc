@@ -162,7 +162,7 @@ export default async function AdminPortalPage() {
             })}
           </section>
 
-          <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_430px]">
+          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,0.85fr)_minmax(360px,0.55fr)] 2xl:grid-cols-[minmax(0,0.78fr)_minmax(420px,0.52fr)]">
             <section className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
               <div className="flex flex-col gap-2 border-b border-[#edf2f7] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -179,7 +179,7 @@ export default async function AdminPortalPage() {
                   <p className="px-4 py-10 text-center text-sm text-[#8a9bb3] sm:px-6">No applications found.</p>
                 ) : (
                   recentApplications.map((application: RecentApplication) => (
-                    <div key={application.id} className="grid gap-2 px-4 py-3 hover:bg-[#f8fbff] sm:grid-cols-[minmax(0,1.4fr)_auto] sm:items-center lg:grid-cols-[minmax(0,1.35fr)_minmax(90px,0.55fr)_minmax(90px,0.55fr)_minmax(92px,0.55fr)_auto]">
+                    <div key={application.id} className="grid gap-2 px-4 py-3 hover:bg-[#f8fbff] sm:grid-cols-[minmax(0,1.4fr)_auto] sm:items-center lg:grid-cols-[minmax(0,1.2fr)_minmax(74px,0.42fr)_minmax(72px,0.42fr)_minmax(76px,0.42fr)_auto]">
                       <div className="min-w-0">
                         <p className="break-words text-base font-semibold leading-6 text-[#0f1f33] sm:text-sm">{application.registrationNumber ?? application.id}</p>
                         <p className="mt-1 truncate text-sm text-[#8a9bb3] sm:text-xs">{application.childName ?? 'No child name'}</p>
@@ -203,36 +203,32 @@ export default async function AdminPortalPage() {
                 <h2 className="text-base font-semibold text-[#0f1f33]">Field Workers</h2>
                 <p className="mt-0.5 text-xs text-[#8a9bb3]">People with access to the field worker portal.</p>
               </div>
-              <div className="max-h-[480px] overflow-auto">
+              <div>
                 {fieldWorkers.length === 0 ? (
                   <p className="p-4 text-sm text-[#8a9bb3]">No field workers yet.</p>
                 ) : (
-                  <table className="min-w-full text-left text-xs text-[#506784]">
-                    <thead className="sticky top-0 bg-[#f6f9fd] text-[11px] uppercase tracking-wide text-[#64748b]">
-                      <tr>
-                        <th className="px-3 py-2 font-semibold">Worker</th>
-                        <th className="px-3 py-2 font-semibold">Project</th>
-                        <th className="px-3 py-2 font-semibold">Phone</th>
-                        <th className="px-3 py-2 font-semibold">Added</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#edf2f7]">
-                      {fieldWorkers.map((worker: FieldWorker) => (
-                        <tr key={worker.id} className="hover:bg-[#f8fbff]">
-                          <td className="px-3 py-2 align-top">
-                            <p className="max-w-[150px] truncate font-semibold text-[#0f1f33]">{worker.name ?? 'Unnamed worker'}</p>
-                            <p className="mt-0.5 font-mono text-[11px] text-[#2563eb]">{worker.fieldWorkerId ?? worker.id}</p>
-                          </td>
-                          <td className="max-w-[110px] truncate px-3 py-2 align-top">{worker.project ?? '-'}</td>
-                          <td className="px-3 py-2 align-top">
-                            <p className="whitespace-nowrap">{worker.phoneNumber ?? '-'}</p>
-                            <p className="mt-0.5 whitespace-nowrap text-[11px] text-[#8a9bb3]">{worker.cnic ?? '-'}</p>
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2 align-top text-[#8a9bb3]">{worker.createdAt.toLocaleDateString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <div className="grid gap-2 p-3">
+                    {fieldWorkers.slice(0, 8).map((worker: FieldWorker) => (
+                      <article key={worker.id} className="rounded-lg border border-[#edf2f7] bg-[#fbfdff] p-3">
+                        <div className="flex min-w-0 items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-[#0f1f33]">{worker.name ?? 'Unnamed worker'}</p>
+                            <p className="mt-0.5 truncate font-mono text-[11px] text-[#2563eb]">{worker.fieldWorkerId ?? worker.id}</p>
+                          </div>
+                          <span className="shrink-0 text-xs text-[#8a9bb3]">{worker.createdAt.toLocaleDateString()}</span>
+                        </div>
+                        <div className="mt-2 grid gap-2 text-xs text-[#506784] sm:grid-cols-2">
+                          <p className="min-w-0 truncate"><span className="font-semibold text-[#0f1f33]">Project:</span> {worker.project ?? '-'}</p>
+                          <p className="min-w-0 truncate"><span className="font-semibold text-[#0f1f33]">Phone:</span> {worker.phoneNumber ?? '-'}</p>
+                        </div>
+                      </article>
+                    ))}
+                    {fieldWorkers.length > 8 ? (
+                      <Link href="/admin/field-workers" className="rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 py-2 text-center text-xs font-semibold text-[#2563eb] hover:bg-[#eef4fb]">
+                        View all {fieldWorkers.length} field workers
+                      </Link>
+                    ) : null}
+                  </div>
                 )}
               </div>
             </div>
