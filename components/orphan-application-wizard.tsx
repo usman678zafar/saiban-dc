@@ -466,6 +466,40 @@ type PersistedWizardState = {
 const TOTAL_STEPS = 13;
 const ATTESTATION_DOCUMENT_TYPE = 'attestation_confirmation';
 
+const NEW_APPLICATION_INSTRUCTIONS = [
+  {
+    text: 'یتیم بچے سے مراد وہ بچہ ہے جس کے والد کا انتقال ہوچکا ہو اور رجسٹریشن کے وقت اس کی عمر 12 سال سے کم ہو۔',
+    important: true,
+  },
+  { text: 'تمام معلومات درست، مکمل اور دیانتداری کے ساتھ درج کی جائیں۔', important: true },
+  { text: 'رجسٹریشن شروع کرنے سے پہلے ضروری معلومات اور دستاویزات کی دستیابی یقینی بنائیں۔', important: false },
+  {
+    text: 'بچے کا ب فارم، والد کا ڈیتھ سرٹیفکیٹ، سرپرست کا ایکٹو شناختی کارڈ، والدہ کا اگر انتقال ہوگیا ہے تو ان کا ڈیتھ سرٹیفکیٹ لازماً حاصل کریں۔',
+    important: true,
+  },
+  {
+    text: 'اسکول / مدرسہ کی فیس صرف اسی صورت میں درج کریں جب مستند فیس واؤچر یا ثبوت موجود ہو۔',
+    important: true,
+  },
+  { text: 'بچے کی رہائش کا درست پتہ اور GPS لوکیشن محفوظ کرنا ضروری ہے۔', important: true },
+  {
+    text: 'اگر بچہ اسکول یا مدرسہ میں زیرِ تعلیم نہیں ہے تو سرپرست سے آئندہ تعلیم شروع کروانے کی رضامندی حاصل کریں۔',
+    important: false,
+  },
+  { text: 'بیماری، معذوری یا دیگر خاص صورتحال کی معلومات مکمل تفصیل کے ساتھ درج کریں۔', important: false },
+  { text: 'کسی بھی قسم کی غلط، نامکمل یا مشکوک معلومات رجسٹریشن مسترد ہونے کا سبب بن سکتی ہیں۔', important: true },
+  { text: 'ادارہ ضرورت پڑنے پر معلومات، دستاویزات اور رہائش کی تصدیق کا حق محفوظ رکھتا ہے۔', important: true },
+  { text: 'رجسٹریشن جمع کروانا کفالت یا منظوری کی ضمانت نہیں ہے۔', important: true },
+];
+
+const NEW_APPLICATION_INSTRUCTION_SLIDES = [
+  NEW_APPLICATION_INSTRUCTIONS.slice(0, 4),
+  NEW_APPLICATION_INSTRUCTIONS.slice(4, 8),
+  NEW_APPLICATION_INSTRUCTIONS.slice(8),
+];
+
+const urduInstructionFont = '"Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", "Noto Nastaleeq Urdu", serif';
+
 function clampWizardStep(value: unknown) {
   return Math.min(Math.max(Number(value) || 1, 1), TOTAL_STEPS);
 }
@@ -927,6 +961,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const [isCapturingGps, setIsCapturingGps] = useState(false);
   const [submittingAction, setSubmittingAction] = useState<'draft' | 'submitted' | null>(null);
   const [showSubmissionSuccessModal, setShowSubmissionSuccessModal] = useState(false);
+  const [showNewApplicationInstructions, setShowNewApplicationInstructions] = useState(!initialApplicationId);
+  const [instructionSlide, setInstructionSlide] = useState(0);
   const [submissionDoneLoading, setSubmissionDoneLoading] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(initialApplicationId ?? null);
   const applicationStepStorageKey = useMemo(
@@ -944,6 +980,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const latestApplicationIdRef = useRef<string | null>(initialApplicationId ?? null);
   const unsavedChangeVersionRef = useRef(0);
   const isSubmitting = submittingAction !== null;
+  const currentInstructionSlide = NEW_APPLICATION_INSTRUCTION_SLIDES[instructionSlide] ?? NEW_APPLICATION_INSTRUCTION_SLIDES[0];
+  const currentInstructionStartNumber = NEW_APPLICATION_INSTRUCTION_SLIDES
+    .slice(0, instructionSlide)
+    .reduce((total, slide) => total + slide.length, 0);
+  const isFirstInstructionSlide = instructionSlide === 0;
+  const isLastInstructionSlide = instructionSlide === NEW_APPLICATION_INSTRUCTION_SLIDES.length - 1;
 
   const markFormChanged = () => {
     if (!hasLoadedPersistedState) return;
@@ -2421,6 +2463,83 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   return (
     <div ref={wizardRef} className="min-w-0 scroll-mt-24 space-y-5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm [&_h2]:text-lg [&_h2]:leading-7 [&_h3]:break-words sm:space-y-6 sm:p-8 sm:[&_h2]:text-xl">
+      {!initialApplicationId && hasLoadedPersistedState && showNewApplicationInstructions ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 px-2 py-2 sm:px-3"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="new-application-instructions-title"
+        >
+          <div
+            dir="rtl"
+            className="w-full max-w-2xl overflow-hidden rounded-md border border-blue-100 bg-white shadow-2xl"
+            style={{ fontFamily: urduInstructionFont }}
+          >
+            <div className="border-b border-blue-100 bg-white px-3 py-1.5 sm:px-4">
+              <p className="text-right text-[10px] font-semibold leading-4 text-blue-700">براہِ کرم رجسٹریشن شروع کرنے سے پہلے پڑھیں</p>
+              <h2 id="new-application-instructions-title" className="text-right text-base font-bold leading-6 text-blue-700">
+                یتیم رجسٹریشن پورٹل کے لیے اہم ہدایات
+              </h2>
+            </div>
+            <div className="px-3 py-2 sm:px-4">
+              <div className="h-36 space-y-1.5 text-right text-[15px] leading-7 text-slate-900 sm:h-40 sm:text-base sm:leading-8">
+                {currentInstructionSlide.map((instruction, index) => {
+                  const instructionNumber = currentInstructionStartNumber + index + 1;
+                  return (
+                    <div
+                      key={instructionNumber}
+                      className="grid grid-cols-[auto_1fr] gap-3 text-slate-900"
+                    >
+                      <span className="shrink-0 tabular-nums text-left" dir="ltr">{instructionNumber}.</span>
+                      <span>{instruction.text}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-2">
+                <div className="flex items-center gap-1.5" dir="ltr">
+                  {NEW_APPLICATION_INSTRUCTION_SLIDES.map((_, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setInstructionSlide(index)}
+                      aria-label={`Show instruction slide ${index + 1}`}
+                      className={`h-2 w-2 rounded-full transition ${instructionSlide === index ? 'bg-blue-700' : 'bg-slate-300 hover:bg-slate-400'}`}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInstructionSlide((current) => Math.max(current - 1, 0))}
+                    disabled={isFirstInstructionSlide}
+                    aria-label="Previous instruction slide"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    &larr;
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInstructionSlide((current) => Math.min(current + 1, NEW_APPLICATION_INSTRUCTION_SLIDES.length - 1))}
+                    disabled={isLastInstructionSlide}
+                    aria-label="Next instruction slide"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-sm font-bold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    &rarr;
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowNewApplicationInstructions(false)}
+                  className="inline-flex min-h-8 w-full items-center justify-center rounded-md bg-blue-700 px-3.5 py-1 text-xs font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
+                >
+                  میں نے ہدایات پڑھ لی ہیں
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {showSubmissionSuccessModal ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-6"
