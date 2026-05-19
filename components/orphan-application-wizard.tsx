@@ -920,6 +920,26 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   }, [applicationId]);
 
   useEffect(() => {
+    if (!message?.toLowerCase().includes('success')) return;
+
+    const timer = setTimeout(() => {
+      setMessage(null);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  useEffect(() => {
+    if (autosaveStatus !== 'saved') return;
+
+    const timer = setTimeout(() => {
+      setAutosaveStatus(null);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [autosaveStatus]);
+
+  useEffect(() => {
     if (initialApplicationId) return;
 
     try {
@@ -2354,24 +2374,28 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </div>
       </div>
 
-      {message ? (
-        <div className={`rounded-lg border p-4 text-sm ${message.toLowerCase().includes('success') ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
-          <div className="whitespace-pre-wrap font-medium">{message}</div>
-        </div>
-      ) : null}
-      {autosaveStatus ? (
-        <div
-          className={`rounded-lg border px-4 py-3 text-sm font-medium ${
-            autosaveStatus === 'error'
-              ? 'border-amber-200 bg-amber-50 text-amber-800'
-              : 'border-emerald-200 bg-emerald-50 text-emerald-800'
-          }`}
-        >
-          {autosaveStatus === 'saving'
-            ? 'Saving draft automatically...'
-            : autosaveStatus === 'saved'
-              ? 'Draft autosaved.'
-              : 'Autosave could not finish. Use Save Draft before leaving.'}
+      {(message || autosaveStatus) ? (
+        <div className="fixed bottom-24 left-1/2 z-50 grid w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 gap-2 sm:bottom-8">
+          {message ? (
+            <div className={`rounded-lg border p-4 text-sm shadow-lg ${message.toLowerCase().includes('success') ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
+              <div className="whitespace-pre-wrap font-medium">{message}</div>
+            </div>
+          ) : null}
+          {autosaveStatus ? (
+            <div
+              className={`rounded-lg border px-4 py-3 text-sm font-medium shadow-lg ${
+                autosaveStatus === 'error'
+                  ? 'border-amber-200 bg-amber-50 text-amber-800'
+                  : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              }`}
+            >
+              {autosaveStatus === 'saving'
+                ? 'Saving draft automatically...'
+                : autosaveStatus === 'saved'
+                  ? 'Draft autosaved.'
+                  : 'Autosave could not finish. Use Save Draft before leaving.'}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
