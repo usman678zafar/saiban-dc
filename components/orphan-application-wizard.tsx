@@ -877,11 +877,15 @@ function normalizeInitialData(data: FormData): FormData {
     next.motherIsGuardian = next.guardianName || next.guardianContact ? 'no' : 'yes';
   }
 
-  if ((next.motherAlive === 'yes' || next.motherAlive === 'separated') && next.motherDob && !next.motherAge) {
+  if (next.fatherDob && next.fatherDateOfDeath) {
+    next.fatherAge = calculateAgeFromDate(next.fatherDob, next.fatherDateOfDeath);
+  }
+
+  if ((next.motherAlive === 'yes' || next.motherAlive === 'separated') && next.motherDob) {
     next.motherAge = calculateAgeFromDate(next.motherDob);
   }
 
-  if (next.motherAlive === 'no' && next.motherDob && next.motherDeathDate && !next.motherAge) {
+  if (next.motherAlive === 'no' && next.motherDob && next.motherDeathDate) {
     next.motherAge = calculateAgeFromDate(next.motherDob, next.motherDeathDate);
   }
 
@@ -1145,14 +1149,29 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     void saveAddressOption('tehsil', normalizedValue);
   };
 
+  const handleFatherDobChange = (value: string) => {
+    updateFields({
+      fatherDob: value,
+      fatherAge: value && formData.fatherDateOfDeath ? calculateAgeFromDate(value, formData.fatherDateOfDeath) : '',
+    });
+  };
+
+  const handleFatherDateOfDeathChange = (value: string) => {
+    updateFields({
+      fatherDateOfDeath: value,
+      fatherAge: formData.fatherDob && value ? calculateAgeFromDate(formData.fatherDob, value) : '',
+    });
+  };
+
   const handleMotherAliveChange = (value: string) => {
     updateFields({
       motherAlive: value,
-      ...(value === 'no' && formData.motherDob && formData.motherDeathDate
-        ? { motherAge: calculateAgeFromDate(formData.motherDob, formData.motherDeathDate) }
-        : (value === 'yes' || value === 'separated') && formData.motherDob
-          ? { motherAge: calculateAgeFromDate(formData.motherDob) }
-          : {}),
+      motherAge:
+        value === 'no' && formData.motherDob && formData.motherDeathDate
+          ? calculateAgeFromDate(formData.motherDob, formData.motherDeathDate)
+          : (value === 'yes' || value === 'separated') && formData.motherDob
+            ? calculateAgeFromDate(formData.motherDob)
+            : '',
       ...(value === 'no'
         ? {
             motherContact: '',
@@ -1177,18 +1196,19 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const handleMotherDobChange = (value: string) => {
     updateFields({
       motherDob: value,
-      ...(formData.motherAlive === 'no' && formData.motherDeathDate
-        ? { motherAge: calculateAgeFromDate(value, formData.motherDeathDate) }
-        : motherIsLiving
-          ? { motherAge: calculateAgeFromDate(value) }
-          : {}),
+      motherAge:
+        formData.motherAlive === 'no' && formData.motherDeathDate
+          ? calculateAgeFromDate(value, formData.motherDeathDate)
+          : motherIsLiving
+            ? calculateAgeFromDate(value)
+            : '',
     });
   };
 
   const handleMotherDeathDateChange = (value: string) => {
     updateFields({
       motherDeathDate: value,
-      ...(formData.motherDob ? { motherAge: calculateAgeFromDate(formData.motherDob, value) } : {}),
+      motherAge: formData.motherDob && value ? calculateAgeFromDate(formData.motherDob, value) : '',
     });
   };
 
@@ -2484,9 +2504,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             <p className="mt-1 text-sm text-slate-600">Add the father's personal, educational, and death information.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {['fatherName', 'fatherDob', 'fatherAge', 'fatherCnic', 'fatherEducation', 'fatherTongue', 'fatherNativeArea', 'fatherOccupation', 'fatherDateOfDeath', 'fatherCauseOfDeath'].map((field) =>
-              field === 'fatherDob' || field === 'fatherDateOfDeath'
-                ? renderTextField(field as keyof FormData, 'date')
+            {['fatherName', 'fatherDob', 'fatherDateOfDeath', 'fatherAge', 'fatherCnic', 'fatherEducation', 'fatherTongue', 'fatherNativeArea', 'fatherOccupation', 'fatherCauseOfDeath'].map((field) =>
+              field === 'fatherDob'
+                ? renderTextField(field as keyof FormData, 'date', false, handleFatherDobChange)
+                : field === 'fatherDateOfDeath'
+                  ? renderTextField(field as keyof FormData, 'date', false, handleFatherDateOfDeathChange)
+                : field === 'fatherAge'
+                  ? renderTextField(field as keyof FormData, 'number', true)
                 : field === 'fatherEducation'
                   ? renderEducationSelect(field as keyof FormData)
                   : field === 'fatherTongue'
@@ -2526,7 +2550,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                         {formData.motherAlive === 'no' ? renderTextField('motherDeathDate', 'date', false, handleMotherDeathDateChange, undefined, true) : null}
                       </>
                     )
-                : field === 'motherAge' && formData.motherDob && (motherIsLiving || (formData.motherAlive === 'no' && formData.motherDeathDate))
+                : field === 'motherAge'
                   ? renderTextField(field as keyof FormData, 'number', true, undefined, undefined, true)
                 : field === 'motherEducation'
                   ? renderSelectField(field as keyof FormData, EDUCATION_OPTIONS, undefined, true)
