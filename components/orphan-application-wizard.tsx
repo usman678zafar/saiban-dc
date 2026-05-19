@@ -1931,26 +1931,26 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   }, [formData.siblings]);
   const documentTypes = useMemo(() => {
     const types = [
-      { type: 'child_photo', label: "Orphan's Picture" },
-      { type: 'child_b_form', label: "Orphan's B form" },
-      { type: 'father_cnic', label: "Father's CNIC Copy" },
-      { type: 'father_death_certificate', label: "Father's Death Certificate Copy" },
+      { type: 'child_photo', label: "Orphan's Picture / یتیم بچے کی تصویر" },
+      { type: 'child_b_form', label: "Orphan's B form / یتیم بچے کا ب فارم" },
+      { type: 'father_cnic', label: "Father's CNIC Copy / والد کے شناختی کارڈ کی کاپی" },
+      { type: 'father_death_certificate', label: "Father's Death Certificate Copy / والد کے ڈیتھ سرٹیفکیٹ کی کاپی" },
     ];
 
     if (formData.motherAlive !== 'no') {
-      types.push({ type: 'mother_cnic', label: "Mother's CNIC Copy" });
+      types.push({ type: 'mother_cnic', label: "Mother's CNIC Copy / والدہ کے شناختی کارڈ کی کاپی" });
     }
 
     if (formData.motherAlive === 'no') {
-      types.push({ type: 'mother_death_certificate', label: "Mother's Death Certificate Copy" });
+      types.push({ type: 'mother_death_certificate', label: "Mother's Death Certificate Copy / والدہ کے ڈیتھ سرٹیفکیٹ کی کاپی" });
     }
 
     if (guardianDetailsNeeded) {
-      types.push({ type: 'guardian_cnic', label: "Guardian's CNIC Copy" });
+      types.push({ type: 'guardian_cnic', label: "Guardian's CNIC Copy / سرپرست کے شناختی کارڈ کی کاپی" });
     }
 
     if (formData.healthStatus === 'chronic_illness' || formData.healthStatus === 'disabled') {
-      types.push({ type: 'medical_report', label: 'Medical Report' });
+      types.push({ type: 'medical_report', label: 'Medical Report / میڈیکل رپورٹ' });
     }
 
     return types;
@@ -3548,7 +3548,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   onUpload={handleDocumentUpload}
                   onRemove={handleDocumentRemove}
                   existingDocument={existingDocument}
-                  label={documentType.label}
+                  label={renderLocalizedLabel(documentType.label)}
                   accept="image/*,.pdf"
                 />
               );
@@ -3566,8 +3566,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
           <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
             <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <h3 className="text-sm font-semibold text-slate-900">فارم ڈاؤن لوڈ / پرنٹ</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl">
+              <h3 className="text-sm font-semibold text-slate-900" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>فارم ڈاؤن لوڈ / پرنٹ</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>
                 فارم حاصل کرنے کے لیے ڈاؤن لوڈ یا پرنٹ کا بٹن استعمال کریں۔ مکمل دستخط اور مہر کے بعد یہی فارم اپ لوڈ کرنا لازمی ہے۔
               </p>
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -3589,10 +3589,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             </section>
 
             <section className="rounded-lg border border-slate-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-slate-900">دستخط شدہ تصدیقی فارم اپ لوڈ کریں</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl">اسکول، مسجد اور سرپرست کی تصدیق مکمل ہونے کے بعد اسکین شدہ PDF یا واضح تصویر اپ لوڈ کریں۔</p>
+              <h3 className="text-sm font-semibold text-slate-900" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>دستخط شدہ تصدیقی فارم اپ لوڈ کریں</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>اسکول، مسجد اور سرپرست کی تصدیق مکمل ہونے کے بعد اسکین شدہ PDF یا واضح تصویر اپ لوڈ کریں۔</p>
               {!applicationId ? (
-                <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm leading-6 text-blue-900" dir="rtl">
+                <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm leading-6 text-blue-900" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>
                   فائل منتخب کرنے پر پہلے درخواست ڈرافٹ کے طور پر محفوظ ہوگی، پھر تصدیقی فارم اپ لوڈ ہوگا۔
                 </div>
               ) : null}
@@ -3604,7 +3604,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   onUpload={handleDocumentUpload}
                   onRemove={handleDocumentRemove}
                   existingDocument={documents.find((doc) => doc.documentType === ATTESTATION_DOCUMENT_TYPE)}
-                  label="مکمل شدہ تصدیقی فارم"
+                  label={<span dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>مکمل شدہ تصدیقی فارم</span>}
                   accept="image/*,.pdf"
                 />
               </div>

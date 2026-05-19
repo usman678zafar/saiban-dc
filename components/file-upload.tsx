@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, type ReactNode } from 'react';
 import { Upload, X } from 'lucide-react';
 
 interface FileUploadProps {
@@ -10,7 +10,7 @@ interface FileUploadProps {
   onUpload: (document: any) => void;
   onRemove?: (documentId: string) => void;
   existingDocument?: any;
-  label: string;
+  label: ReactNode;
   accept?: string;
 }
 
