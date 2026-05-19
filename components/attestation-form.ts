@@ -260,7 +260,7 @@ async function renderAttestationPage(data: AttestationFormData, pageNumber: 1 | 
   context.font = canvasFont(42);
   context.fillText('بیت السلام کا سائبان', canvas.width / 2, 115);
   context.font = canvasFont(22);
-  context.fillText('یتیم بچوں کی کفالت - تعلیمی ادارہ', canvas.width / 2, 158);
+  context.fillText('یتیم بچوں کی کفالت کا ادارہ', canvas.width / 2, 158);
 
   context.direction = 'rtl';
   context.textAlign = 'right';
