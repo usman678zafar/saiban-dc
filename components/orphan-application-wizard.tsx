@@ -408,6 +408,26 @@ function validationIssuesMessage(issues: Array<{ path?: Array<string | number>; 
     .join('\n');
 }
 
+function splitLocalizedLabel(value: string) {
+  const separatorIndex = value.indexOf(' / ');
+  if (separatorIndex >= 0) {
+    return {
+      english: value.slice(0, separatorIndex),
+      urdu: value.slice(separatorIndex + 3),
+    };
+  }
+
+  const compactSeparatorIndex = value.indexOf('/');
+  if (compactSeparatorIndex >= 0) {
+    return {
+      english: value.slice(0, compactSeparatorIndex).trim(),
+      urdu: value.slice(compactSeparatorIndex + 1).trim(),
+    };
+  }
+
+  return { english: value, urdu: '' };
+}
+
 function hasUserEnteredDraftData(data: FormData) {
   const ignoredFields = new Set<keyof FormData>([
     'collectorId',
@@ -465,6 +485,40 @@ type PersistedWizardState = {
 
 const TOTAL_STEPS = 13;
 const ATTESTATION_DOCUMENT_TYPE = 'attestation_confirmation';
+
+const NEW_APPLICATION_INSTRUCTIONS = [
+  {
+    text: 'یتیم بچے سے مراد وہ بچہ ہے جس کے والد کا انتقال ہوچکا ہو اور رجسٹریشن کے وقت اس کی عمر 12 سال سے کم ہو۔',
+    important: true,
+  },
+  { text: 'تمام معلومات درست، مکمل اور دیانتداری کے ساتھ درج کی جائیں۔', important: true },
+  { text: 'رجسٹریشن شروع کرنے سے پہلے ضروری معلومات اور دستاویزات کی دستیابی یقینی بنائیں۔', important: false },
+  {
+    text: 'بچے کا ب فارم، والد کا ڈیتھ سرٹیفکیٹ، سرپرست کا ایکٹو شناختی کارڈ، والدہ کا اگر انتقال ہوگیا ہے تو ان کا ڈیتھ سرٹیفکیٹ لازماً حاصل کریں۔',
+    important: true,
+  },
+  {
+    text: 'اسکول / مدرسہ کی فیس صرف اسی صورت میں درج کریں جب مستند فیس واؤچر یا ثبوت موجود ہو۔',
+    important: true,
+  },
+  { text: 'بچے کی رہائش کا درست پتہ اور GPS لوکیشن محفوظ کرنا ضروری ہے۔', important: true },
+  {
+    text: 'اگر بچہ اسکول یا مدرسہ میں زیرِ تعلیم نہیں ہے تو سرپرست سے آئندہ تعلیم شروع کروانے کی رضامندی حاصل کریں۔',
+    important: false,
+  },
+  { text: 'بیماری، معذوری یا دیگر خاص صورتحال کی معلومات مکمل تفصیل کے ساتھ درج کریں۔', important: false },
+  { text: 'کسی بھی قسم کی غلط، نامکمل یا مشکوک معلومات رجسٹریشن مسترد ہونے کا سبب بن سکتی ہیں۔', important: true },
+  { text: 'ادارہ ضرورت پڑنے پر معلومات، دستاویزات اور رہائش کی تصدیق کا حق محفوظ رکھتا ہے۔', important: true },
+  { text: 'رجسٹریشن جمع کروانا کفالت یا منظوری کی ضمانت نہیں ہے۔', important: true },
+];
+
+const NEW_APPLICATION_INSTRUCTION_SLIDES = [
+  NEW_APPLICATION_INSTRUCTIONS.slice(0, 4),
+  NEW_APPLICATION_INSTRUCTIONS.slice(4, 8),
+  NEW_APPLICATION_INSTRUCTIONS.slice(8),
+];
+
+const urduInstructionFont = '"Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", "Noto Nastaleeq Urdu", serif';
 
 function clampWizardStep(value: unknown) {
   return Math.min(Math.max(Number(value) || 1, 1), TOTAL_STEPS);
@@ -638,6 +692,22 @@ const GUARDIAN_RELATIONSHIP_OPTIONS = [
   { value: 'Non-Relative Guardian', label: 'Non-Relative Guardian / غیر رشتہ دار سرپرست' },
   { value: 'Other', label: 'Other / دیگر' },
 ];
+
+const MALE_GUARDIAN_RELATIONSHIPS = new Set([
+  'Paternal Grandfather',
+  'Maternal Grandfather',
+  'Uncle (Paternal)',
+  'Uncle (Maternal)',
+  'Elder Brother',
+]);
+
+const FEMALE_GUARDIAN_RELATIONSHIPS = new Set([
+  'Paternal Grandmother',
+  'Maternal Grandmother',
+  'Aunt (Paternal)',
+  'Aunt (Maternal)',
+  'Elder Sister',
+]);
 
 const MOTHER_SEPARATION_REASON_OPTIONS = [
   { value: '', label: 'Select separation reason' },
@@ -911,6 +981,8 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const [isCapturingGps, setIsCapturingGps] = useState(false);
   const [submittingAction, setSubmittingAction] = useState<'draft' | 'submitted' | null>(null);
   const [showSubmissionSuccessModal, setShowSubmissionSuccessModal] = useState(false);
+  const [showNewApplicationInstructions, setShowNewApplicationInstructions] = useState(!initialApplicationId);
+  const [instructionSlide, setInstructionSlide] = useState(0);
   const [submissionDoneLoading, setSubmissionDoneLoading] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(initialApplicationId ?? null);
   const applicationStepStorageKey = useMemo(
@@ -928,6 +1000,12 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const latestApplicationIdRef = useRef<string | null>(initialApplicationId ?? null);
   const unsavedChangeVersionRef = useRef(0);
   const isSubmitting = submittingAction !== null;
+  const currentInstructionSlide = NEW_APPLICATION_INSTRUCTION_SLIDES[instructionSlide] ?? NEW_APPLICATION_INSTRUCTION_SLIDES[0];
+  const currentInstructionStartNumber = NEW_APPLICATION_INSTRUCTION_SLIDES
+    .slice(0, instructionSlide)
+    .reduce((total, slide) => total + slide.length, 0);
+  const isFirstInstructionSlide = instructionSlide === 0;
+  const isLastInstructionSlide = instructionSlide === NEW_APPLICATION_INSTRUCTION_SLIDES.length - 1;
 
   const markFormChanged = () => {
     if (!hasLoadedPersistedState) return;
@@ -1246,8 +1324,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const handleGuardianGenderChange = (value: string) => {
+    const currentRelationship = formData.guardianRelationship;
+    const relationshipConflictsWithGender =
+      (value === 'male' && FEMALE_GUARDIAN_RELATIONSHIPS.has(currentRelationship)) ||
+      (value === 'female' && MALE_GUARDIAN_RELATIONSHIPS.has(currentRelationship));
+
     updateFields({
       guardianGender: value,
+      ...(relationshipConflictsWithGender ? { guardianRelationship: '' } : {}),
       guardianOccupation: '',
     });
   };
@@ -1847,26 +1931,26 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   }, [formData.siblings]);
   const documentTypes = useMemo(() => {
     const types = [
-      { type: 'child_photo', label: "Orphan's Picture" },
-      { type: 'child_b_form', label: "Orphan's B form" },
-      { type: 'father_cnic', label: "Father's CNIC Copy" },
-      { type: 'father_death_certificate', label: "Father's Death Certificate Copy" },
+      { type: 'child_photo', label: "Orphan's Picture / یتیم بچے کی تصویر" },
+      { type: 'child_b_form', label: "Orphan's B form / یتیم بچے کا ب فارم" },
+      { type: 'father_cnic', label: "Father's CNIC Copy / والد کے شناختی کارڈ کی کاپی" },
+      { type: 'father_death_certificate', label: "Father's Death Certificate Copy / والد کے ڈیتھ سرٹیفکیٹ کی کاپی" },
     ];
 
     if (formData.motherAlive !== 'no') {
-      types.push({ type: 'mother_cnic', label: "Mother's CNIC Copy" });
+      types.push({ type: 'mother_cnic', label: "Mother's CNIC Copy / والدہ کے شناختی کارڈ کی کاپی" });
     }
 
     if (formData.motherAlive === 'no') {
-      types.push({ type: 'mother_death_certificate', label: "Mother's Death Certificate Copy" });
+      types.push({ type: 'mother_death_certificate', label: "Mother's Death Certificate Copy / والدہ کے ڈیتھ سرٹیفکیٹ کی کاپی" });
     }
 
     if (guardianDetailsNeeded) {
-      types.push({ type: 'guardian_cnic', label: "Guardian's CNIC Copy" });
+      types.push({ type: 'guardian_cnic', label: "Guardian's CNIC Copy / سرپرست کے شناختی کارڈ کی کاپی" });
     }
 
     if (formData.healthStatus === 'chronic_illness' || formData.healthStatus === 'disabled') {
-      types.push({ type: 'medical_report', label: 'Medical Report' });
+      types.push({ type: 'medical_report', label: 'Medical Report / میڈیکل رپورٹ' });
     }
 
     return types;
@@ -2061,8 +2145,22 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const fieldLabelClass = 'block min-w-0 break-words font-medium leading-6';
   const fieldControlClass = 'min-h-12 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-3 text-base leading-6 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-sm';
   const disabledFieldControlClass = 'disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500';
+  const renderLocalizedLabel = (value: string) => {
+    const { english, urdu } = splitLocalizedLabel(value);
+    if (!urdu) return english;
+
+    return (
+      <>
+        <span>{english}</span>
+        <span aria-hidden="true"> / </span>
+        <span dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>
+          {urdu}
+        </span>
+      </>
+    );
+  };
   const renderFieldLabel = (field: keyof FormData, required = true) => (
-    <span className={fieldLabelClass}>{fieldLabel(field)}{renderRequiredMark(required)}</span>
+    <span className={fieldLabelClass}>{renderLocalizedLabel(fieldLabel(field))}{renderRequiredMark(required)}</span>
   );
 
   const renderTextField = (field: keyof FormData, type = 'text', locked = false, onChange?: (value: string) => void, maxLength?: number, required = true) => {
@@ -2214,7 +2312,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         </label>
         {selectValue === 'Other' ? (
           <label className={fieldWrapperClass}>
-            <span className={fieldLabelClass}>{otherLabel}</span>
+            <span className={fieldLabelClass}>{renderLocalizedLabel(otherLabel)}</span>
             <input
               value={currentValue === 'Other' ? '' : currentValue}
               onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
@@ -2240,8 +2338,15 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const renderMotherTongueField = (field: keyof FormData) =>
     renderSelectWithOther(field, MOTHER_TONGUE_OPTIONS, 'Other Mother Tongue / دیگر مادری زبان');
 
-  const renderGuardianRelationshipField = () =>
-    renderSelectWithOther('guardianRelationship', GUARDIAN_RELATIONSHIP_OPTIONS, 'Other Guardian Relationship / دیگر سرپرست کا تعلق');
+  const renderGuardianRelationshipField = () => {
+    const filteredOptions = GUARDIAN_RELATIONSHIP_OPTIONS.filter((option) => {
+      if (formData.guardianGender === 'male') return !FEMALE_GUARDIAN_RELATIONSHIPS.has(option.value);
+      if (formData.guardianGender === 'female') return !MALE_GUARDIAN_RELATIONSHIPS.has(option.value);
+      return true;
+    });
+
+    return renderSelectWithOther('guardianRelationship', filteredOptions, 'Other Guardian Relationship / دیگر سرپرست کا تعلق');
+  };
 
   const renderMotherSeparationReasonField = () =>
     renderSelectWithOther('motherSeparationReason', MOTHER_SEPARATION_REASON_OPTIONS, 'Other Separation Reason / علیحدگی کی دیگر وجہ');
@@ -2281,7 +2386,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
         onChange={(event) => updateField(field, event.target.checked)}
         className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500 sm:mt-0"
       />
-      <span className="min-w-0 break-words">{labelText ?? fieldLabel(field)}</span>
+      <span className="min-w-0 break-words">{renderLocalizedLabel(labelText ?? fieldLabel(field))}</span>
     </label>
   );
 
@@ -2392,6 +2497,83 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
   return (
     <div ref={wizardRef} className="min-w-0 scroll-mt-24 space-y-5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm [&_h2]:text-lg [&_h2]:leading-7 [&_h3]:break-words sm:space-y-6 sm:p-8 sm:[&_h2]:text-xl">
+      {!initialApplicationId && hasLoadedPersistedState && showNewApplicationInstructions ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 px-2 py-2 sm:px-3"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="new-application-instructions-title"
+        >
+          <div
+            dir="rtl"
+            className="w-full max-w-2xl overflow-hidden rounded-md border border-blue-100 bg-white shadow-2xl"
+            style={{ fontFamily: urduInstructionFont }}
+          >
+            <div className="border-b border-blue-100 bg-white px-3 py-1.5 sm:px-4">
+              <p className="text-right text-[10px] font-semibold leading-4 text-blue-700">براہِ کرم رجسٹریشن شروع کرنے سے پہلے پڑھیں</p>
+              <h2 id="new-application-instructions-title" className="text-right text-base font-bold leading-6 text-blue-700">
+                یتیم رجسٹریشن پورٹل کے لیے اہم ہدایات
+              </h2>
+            </div>
+            <div className="px-3 py-2 sm:px-4">
+              <div className="h-36 space-y-1.5 text-right text-[15px] leading-7 text-slate-900 sm:h-40 sm:text-base sm:leading-8">
+                {currentInstructionSlide.map((instruction, index) => {
+                  const instructionNumber = currentInstructionStartNumber + index + 1;
+                  return (
+                    <div
+                      key={instructionNumber}
+                      className="grid grid-cols-[auto_1fr] gap-3 text-slate-900"
+                    >
+                      <span className="shrink-0 tabular-nums text-left" dir="ltr">{instructionNumber}.</span>
+                      <span>{instruction.text}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-2">
+                <div className="flex items-center gap-1.5" dir="ltr">
+                  {NEW_APPLICATION_INSTRUCTION_SLIDES.map((_, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setInstructionSlide(index)}
+                      aria-label={`Show instruction slide ${index + 1}`}
+                      className={`h-2 w-2 rounded-full transition ${instructionSlide === index ? 'bg-blue-700' : 'bg-slate-300 hover:bg-slate-400'}`}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInstructionSlide((current) => Math.max(current - 1, 0))}
+                    disabled={isFirstInstructionSlide}
+                    aria-label="Previous instruction slide"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    &larr;
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInstructionSlide((current) => Math.min(current + 1, NEW_APPLICATION_INSTRUCTION_SLIDES.length - 1))}
+                    disabled={isLastInstructionSlide}
+                    aria-label="Next instruction slide"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-sm font-bold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    &rarr;
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowNewApplicationInstructions(false)}
+                  className="inline-flex min-h-8 w-full items-center justify-center rounded-md bg-blue-700 px-3.5 py-1 text-xs font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
+                >
+                  میں نے ہدایات پڑھ لی ہیں
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {showSubmissionSuccessModal ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-6"
@@ -2429,7 +2611,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Step {step} of {TOTAL_STEPS}</p>
-              <p className="mt-1 break-words text-base font-semibold leading-6 text-slate-950">{currentStepTitle}</p>
+              <p className="mt-1 break-words text-base font-semibold leading-6 text-slate-950">{renderLocalizedLabel(currentStepTitle)}</p>
             </div>
             <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm">{progressPercentage}%</span>
           </div>
@@ -2475,7 +2657,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   ) : null}
-                  <span className="min-w-0 truncate">{item}. {stepTitles[item - 1]}</span>
+                  <span className="min-w-0 truncate">{item}. {renderLocalizedLabel(stepTitles[item - 1])}</span>
                 </span>
               </button>
             );
@@ -2511,7 +2693,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 1 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Deceased Father Details / مرحوم والد کی تفصیلات</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Deceased Father Details / مرحوم والد کی تفصیلات')}</h2>
             <p className="mt-1 text-sm text-slate-600">Add the father's personal, educational, and death information.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -2541,7 +2723,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 2 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Mother Details / والدہ کی تفصیلات</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Mother Details / والدہ کی تفصیلات')}</h2>
             <p className="mt-1 text-sm text-slate-600">Capture the mother's identity, income, and marital status.</p>
           </div>
          
@@ -2592,7 +2774,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 3 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Guardian Details / سرپرست کی تفصیلات</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Guardian Details / سرپرست کی تفصیلات')}</h2>
             <p className="mt-1 text-sm text-slate-600">Record the guardian's contact, occupation, family holder status, and income.</p>
           </div>
           {formData.motherAlive === 'yes' ? (
@@ -2624,6 +2806,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                           { value: 'male', label: 'Male / مرد' },
                           { value: 'female', label: 'Female / عورت' },
                         ], handleGuardianGenderChange)
+                    : field === 'guardianMotherTongue'
+                      ? renderMotherTongueField(field as keyof FormData)
+                    : field === 'guardianNativeArea'
+                      ? renderNativeAreaField(field as keyof FormData)
                       : renderTextField(field as keyof FormData),
                 )}
                 {formData.guardianGender === 'male' ? renderOccupationSelect('guardianOccupation') : null}
@@ -2634,7 +2820,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   { value: 'no', label: 'No / نہیں' },
                 ], handleGuardianFamilyHolderChange)}
                 {formData.guardianFamilyHolder === 'yes' ? renderTextField('guardianFamilyMembersCount', 'number') : null}
-                {renderTextField('guardianMonthlyIncome', 'number')}
+                {renderSelectField('guardianMonthlyIncome', MONTHLY_INCOME_OPTIONS)}
               </>
             ) : null}
           </div>
@@ -2644,7 +2830,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 4 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Close Relatives / قریبی رشتہ دار</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Close Relatives / قریبی رشتہ دار')}</h2>
             <p className="mt-1 text-sm text-slate-600">Optionally collect close relative details for support assessment and emergency reference.</p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
@@ -2661,7 +2847,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     checked={formData.relativeInformationDisclosed === 'yes'}
                     onChange={() => handleRelativeDisclosureChange('yes')}
                   />
-                  <span>Yes / ہاں</span>
+                  <span>{renderLocalizedLabel('Yes / ہاں')}</span>
                 </label>
                 <label className="flex min-h-11 w-full cursor-pointer items-start gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 sm:w-auto sm:items-center">
                   <input
@@ -2692,7 +2878,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                 <div key={index} className="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className={fieldWrapperClass}>
-                      <span>Relative Relationship / رشتہ داری *</span>
+                      <span>{renderLocalizedLabel('Relative Relationship / رشتہ داری')} *</span>
                       <select
                         value={relative.relativeType}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { relativeType: event.target.value as RelativeInput['relativeType'] })}
@@ -2704,7 +2890,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       </select>
                     </label>
                     <label className={fieldWrapperClass}>
-                      <span>Relative Name / نام *</span>
+                      <span>{renderLocalizedLabel('Relative Name / نام')} *</span>
                       <input
                         value={relative.name}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { name: event.target.value })}
@@ -2714,7 +2900,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   </div>
                   <div className="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
                     <label className={fieldWrapperClass}>
-                      <span>Occupation / پیشہ *</span>
+                      <span>{renderLocalizedLabel('Occupation / پیشہ')} *</span>
                       <select
                         value={relative.occupation}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, {
@@ -2730,7 +2916,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     </label>
                     {relative.occupation === 'Other' ? (
                       <label className={fieldWrapperClass}>
-                        <span>Specify Occupation / پیشے کی وضاحت کریں *</span>
+                        <span>{renderLocalizedLabel('Specify Occupation / پیشے کی وضاحت کریں')} *</span>
                         <input
                           value={relative.occupationOther}
                           onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { occupationOther: event.target.value })}
@@ -2739,7 +2925,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       </label>
                     ) : null}
                     <label className={fieldWrapperClass}>
-                      <span>Monthly Income / ماہانہ آمدنی *</span>
+                      <span>{renderLocalizedLabel('Monthly Income / ماہانہ آمدنی')} *</span>
                       <select
                         value={relative.monthlyIncome}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { monthlyIncome: event.target.value })}
@@ -2751,7 +2937,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                       </select>
                     </label>
                     <label className={`${fieldWrapperClass} min-w-0 lg:col-span-2 xl:col-span-1`}>
-                      <span>Nature of Support / یتیم بچے کی معاونت *</span>
+                      <span>{renderLocalizedLabel('Nature of Support / یتیم بچے کی معاونت')} *</span>
                       <select
                         value={relative.supportType}
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, {
@@ -2767,7 +2953,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     </label>
                     {relative.supportType === 'other' ? (
                       <label className={`${fieldWrapperClass} min-w-0 lg:col-span-2 xl:col-span-1`}>
-                        <span>Specify Support / معاونت کی وضاحت کریں *</span>
+                        <span>{renderLocalizedLabel('Specify Support / معاونت کی وضاحت کریں')} *</span>
                         <input
                           value={relative.supportTypeOther}
                           onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { supportTypeOther: event.target.value })}
@@ -2794,7 +2980,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 5 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Home Details / گھر کی تفصیلات</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Home Details / گھر کی تفصیلات')}</h2>
             <p className="mt-1 text-sm text-slate-600">Capture the household address and property status.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -2920,7 +3106,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 6 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Household Assets / گھریلو اثاثے</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Household Assets / گھریلو اثاثے')}</h2>
             
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -2945,7 +3131,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                         formData.otherHouseholdAssets.map((asset, index) => (
                           <div key={index} className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_auto]">
                             <label className="grid min-w-0 gap-1.5 text-sm text-slate-700">
-                              <span>Item / چیز</span>
+                              <span>{renderLocalizedLabel('Item / چیز')}</span>
                               <input
                                 value={asset.item}
                                 onChange={(event) => updateOtherHouseholdAsset(index, { item: event.target.value })}
@@ -2953,7 +3139,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                               />
                             </label>
                             <label className="grid min-w-0 gap-1.5 text-sm text-slate-700">
-                              <span>Value (PKR) / قدر</span>
+                              <span>{renderLocalizedLabel('Value (PKR) / قدر')}</span>
                               <input
                                 value={asset.value}
                                 onChange={(event) => updateOtherHouseholdAsset(index, { value: event.target.value })}
@@ -3055,7 +3241,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 7 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Orphan Child Details / یتیم بچے کی تفصیلات</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Orphan Child Details / یتیم بچے کی تفصیلات')}</h2>
             <p className="mt-1 text-sm text-slate-600">Add structured child details and sibling information.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -3095,13 +3281,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             </div>
           </div>
           <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
-            <p className="text-sm font-semibold text-slate-900">Sibling Information / بہن بھائیوں کی معلومات</p>
+            <p className="text-sm font-semibold text-slate-900">{renderLocalizedLabel('Sibling Information / بہن بھائیوں کی معلومات')}</p>
             {formData.siblings.map((sibling, index) => (
               <div key={index} className="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
                 <h3 className="mb-4 text-sm font-semibold text-slate-900">Sibling {index + 1}</h3>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   <label className={fieldWrapperClass}>
-                    <span>Sibling Name / نام *</span>
+                    <span>{renderLocalizedLabel('Sibling Name / نام')} *</span>
                     <input
                       value={sibling.name}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { name: event.target.value })}
@@ -3109,7 +3295,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     />
                   </label>
                   <label className={fieldWrapperClass}>
-                    <span>Relation / رشتہ *</span>
+                    <span>{renderLocalizedLabel('Relation / رشتہ')} *</span>
                     <select
                       value={sibling.relation}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { relation: event.target.value })}
@@ -3121,7 +3307,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     </select>
                   </label>
                   <label className={fieldWrapperClass}>
-                    <span>DOB / تاریخ پیدائش *</span>
+                    <span>{renderLocalizedLabel('DOB / تاریخ پیدائش')} *</span>
                     <input
                       value={sibling.dob}
                       onChange={(event) => handleSiblingDobChange(index, event.target.value)}
@@ -3130,7 +3316,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     />
                   </label>
                   <label className={fieldWrapperClass}>
-                    <span>Age / عمر</span>
+                    <span>{renderLocalizedLabel('Age / عمر')}</span>
                     <input
                       value={sibling.age}
                       readOnly
@@ -3139,7 +3325,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     />
                   </label>
                   <label className={fieldWrapperClass}>
-                    <span>Education Status / تعلیمی حیثیت *</span>
+                    <span>{renderLocalizedLabel('Education Status / تعلیمی حیثیت')} *</span>
                     <select
                       value={sibling.educationStatus}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { educationStatus: event.target.value })}
@@ -3151,7 +3337,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     </select>
                   </label>
                   <label className={fieldWrapperClass}>
-                    <span>Currently Studying / زیرِ تعلیم *</span>
+                    <span>{renderLocalizedLabel('Currently Studying / زیرِ تعلیم')} *</span>
                     <select
                       value={sibling.currentlyStudying}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { currentlyStudying: event.target.value })}
@@ -3163,7 +3349,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     </select>
                   </label>
                   <label className={fieldWrapperClass}>
-                    <span>Occupation / پیشہ *</span>
+                    <span>{renderLocalizedLabel('Occupation / پیشہ')} *</span>
                     <select
                       value={sibling.occupation}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { occupation: event.target.value })}
@@ -3175,7 +3361,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     </select>
                   </label>
                   <label className={fieldWrapperClass}>
-                    <span>Monthly Income / ماہانہ آمدن *</span>
+                    <span>{renderLocalizedLabel('Monthly Income / ماہانہ آمدن')} *</span>
                     <select
                       value={sibling.monthlyIncomeOrFee}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { monthlyIncomeOrFee: event.target.value })}
@@ -3187,7 +3373,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     </select>
                   </label>
                   <label className={fieldWrapperClass}>
-                    <span>Marital Status / ازدواجی حیثیت *</span>
+                    <span>{renderLocalizedLabel('Marital Status / ازدواجی حیثیت')} *</span>
                     <select
                       value={sibling.maritalStatus}
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { maritalStatus: event.target.value })}
@@ -3211,7 +3397,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 8 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Orphan Health Information / صحت کی معلومات</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Orphan Health Information / صحت کی معلومات')}</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {renderSelectField('healthStatus', HEALTH_STATUS_OPTIONS, handleHealthStatusChange)}
@@ -3242,7 +3428,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 9 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Education & Skills / تعلیم اور ہنر</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Education & Skills / تعلیم اور ہنر')}</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {renderBooleanSelect('currentlyStudying', handleSchoolEnrollmentChange, 'Yes / ہاں', 'No / نہیں')}
@@ -3296,7 +3482,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             {formData.currentSkillLearning === 'no' ? renderSelectField('technicalSkillInterest', [{ value: '', label: 'Interested in technical skill?' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }]) : null}
             {formData.currentSkillLearning === 'no' && formData.technicalSkillInterest === 'yes' ? renderSelectField('technicalSkill', SKILL_OPTIONS) : null}
             <div className="space-y-2 sm:col-span-2">
-              <p className="text-sm font-semibold text-slate-900">{fieldLabel('childHobbies')}</p>
+              <p className="text-sm font-semibold text-slate-900">{renderLocalizedLabel(fieldLabel('childHobbies'))}</p>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {HOBBY_OPTIONS.map((option) => (
                   <label key={option.value} className="flex min-h-11 items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-5 sm:items-center">
@@ -3313,7 +3499,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 10 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Household Income & External Assistance / گھریلو آمدنی اور بیرونی امداد</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Household Income & External Assistance / گھریلو آمدنی اور بیرونی امداد')}</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {renderTextField('totalFamilyMembers', 'number')}
@@ -3342,7 +3528,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 11 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Documents Upload / دستاویزات اپ لوڈ</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Documents Upload / دستاویزات اپ لوڈ')}</h2>
             <p className="mt-1 text-sm text-slate-600">Choose the required documents. The draft is saved automatically before the first upload.</p>
           </div>
           {!applicationId ? (
@@ -3362,7 +3548,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   onUpload={handleDocumentUpload}
                   onRemove={handleDocumentRemove}
                   existingDocument={existingDocument}
-                  label={documentType.label}
+                  label={renderLocalizedLabel(documentType.label)}
                   accept="image/*,.pdf"
                 />
               );
@@ -3374,14 +3560,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {step === 12 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Attestation/تصدیق</h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600" dir="rtl">دو صفحات پر مشتمل تصدیقی فارم ڈاؤن لوڈ یا پرنٹ کریں۔ پہلے صفحے پر اسکول پرنسپل/ناظم اور امام مسجد سے تصدیق کروائیں، دوسرے صفحے پر اصول و ضوابط پڑھوا کر سرپرست کے دستخط/انگوٹھا لگوائیں، پھر مکمل فارم اپ لوڈ کریں۔</p>
+            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Attestation/تصدیق')}</h2>
+            <p className="mt-1 text-sm leading-6 text-slate-600" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>دو صفحات پر مشتمل تصدیقی فارم ڈاؤن لوڈ یا پرنٹ کریں۔ پہلے صفحے پر اسکول پرنسپل/ناظم اور امام مسجد سے تصدیق کروائیں، دوسرے صفحے پر اصول و ضوابط پڑھوا کر سرپرست کے دستخط/انگوٹھا لگوائیں، پھر مکمل فارم اپ لوڈ کریں۔</p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
             <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <h3 className="text-sm font-semibold text-slate-900">فارم ڈاؤن لوڈ / پرنٹ</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl">
+              <h3 className="text-sm font-semibold text-slate-900" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>فارم ڈاؤن لوڈ / پرنٹ</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>
                 فارم حاصل کرنے کے لیے ڈاؤن لوڈ یا پرنٹ کا بٹن استعمال کریں۔ مکمل دستخط اور مہر کے بعد یہی فارم اپ لوڈ کرنا لازمی ہے۔
               </p>
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -3403,10 +3589,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
             </section>
 
             <section className="rounded-lg border border-slate-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-slate-900">دستخط شدہ تصدیقی فارم اپ لوڈ کریں</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl">اسکول، مسجد اور سرپرست کی تصدیق مکمل ہونے کے بعد اسکین شدہ PDF یا واضح تصویر اپ لوڈ کریں۔</p>
+              <h3 className="text-sm font-semibold text-slate-900" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>دستخط شدہ تصدیقی فارم اپ لوڈ کریں</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>اسکول، مسجد اور سرپرست کی تصدیق مکمل ہونے کے بعد اسکین شدہ PDF یا واضح تصویر اپ لوڈ کریں۔</p>
               {!applicationId ? (
-                <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm leading-6 text-blue-900" dir="rtl">
+                <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm leading-6 text-blue-900" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>
                   فائل منتخب کرنے پر پہلے درخواست ڈرافٹ کے طور پر محفوظ ہوگی، پھر تصدیقی فارم اپ لوڈ ہوگا۔
                 </div>
               ) : null}
@@ -3418,7 +3604,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   onUpload={handleDocumentUpload}
                   onRemove={handleDocumentRemove}
                   existingDocument={documents.find((doc) => doc.documentType === ATTESTATION_DOCUMENT_TYPE)}
-                  label="مکمل شدہ تصدیقی فارم"
+                  label={<span dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>مکمل شدہ تصدیقی فارم</span>}
                   accept="image/*,.pdf"
                 />
               </div>
@@ -3445,7 +3631,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       {fields.map((field) => (
                         <div key={field} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                          <p className="text-xs font-semibold text-slate-500">{fieldLabel(field)}</p>
+                          <p className="text-xs font-semibold text-slate-500">{renderLocalizedLabel(fieldLabel(field))}</p>
                           <p className="mt-1 break-words text-sm text-slate-900">{formatReviewValue(field)}</p>
                         </div>
                       ))}
