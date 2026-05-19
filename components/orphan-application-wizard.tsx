@@ -2653,6 +2653,10 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                           { value: 'male', label: 'Male / مرد' },
                           { value: 'female', label: 'Female / عورت' },
                         ], handleGuardianGenderChange)
+                    : field === 'guardianMotherTongue'
+                      ? renderMotherTongueField(field as keyof FormData)
+                    : field === 'guardianNativeArea'
+                      ? renderNativeAreaField(field as keyof FormData)
                       : renderTextField(field as keyof FormData),
                 )}
                 {formData.guardianGender === 'male' ? renderOccupationSelect('guardianOccupation') : null}
@@ -2663,7 +2667,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   { value: 'no', label: 'No / نہیں' },
                 ], handleGuardianFamilyHolderChange)}
                 {formData.guardianFamilyHolder === 'yes' ? renderTextField('guardianFamilyMembersCount', 'number') : null}
-                {renderTextField('guardianMonthlyIncome', 'number')}
+                {renderSelectField('guardianMonthlyIncome', MONTHLY_INCOME_OPTIONS)}
               </>
             ) : null}
           </div>
