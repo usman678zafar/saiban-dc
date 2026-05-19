@@ -518,7 +518,7 @@ const NEW_APPLICATION_INSTRUCTION_SLIDES = [
   NEW_APPLICATION_INSTRUCTIONS.slice(8),
 ];
 
-const urduInstructionFont = '"Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", "Noto Nastaleeq Urdu", serif';
+const urduInstructionFont = 'var(--urdu-font-family)';
 
 function clampWizardStep(value: unknown) {
   return Math.min(Math.max(Number(value) || 1, 1), TOTAL_STEPS);
@@ -2499,14 +2499,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     <div ref={wizardRef} className="min-w-0 scroll-mt-24 space-y-5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm [&_h2]:text-lg [&_h2]:leading-7 [&_h3]:break-words sm:space-y-6 sm:p-8 sm:[&_h2]:text-xl">
       {!initialApplicationId && hasLoadedPersistedState && showNewApplicationInstructions ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 px-2 py-2 sm:px-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 p-3 sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="new-application-instructions-title"
         >
           <div
             dir="rtl"
-            className="w-full max-w-2xl overflow-hidden rounded-md border border-blue-100 bg-white shadow-2xl"
+            className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-md border border-blue-100 bg-white shadow-2xl sm:max-w-2xl"
             style={{ fontFamily: urduInstructionFont }}
           >
             <div className="border-b border-blue-100 bg-white px-3 py-1.5 sm:px-4">
@@ -2516,7 +2516,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
               </h2>
             </div>
             <div className="px-3 py-2 sm:px-4">
-              <div className="h-36 space-y-1.5 text-right text-[15px] leading-7 text-slate-900 sm:h-40 sm:text-base sm:leading-8">
+              <div className="min-h-[13.5rem] space-y-1.5 text-right text-[15px] leading-8 text-slate-900 sm:min-h-40 sm:text-base sm:leading-8">
                 {currentInstructionSlide.map((instruction, index) => {
                   const instructionNumber = currentInstructionStartNumber + index + 1;
                   return (
@@ -2530,7 +2530,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   );
                 })}
               </div>
-              <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-2">
+              <div className="mt-3 grid grid-cols-[1fr_auto] items-center gap-2 border-t border-slate-100 pt-2 sm:flex sm:justify-between sm:gap-3">
                 <div className="flex items-center gap-1.5" dir="ltr">
                   {NEW_APPLICATION_INSTRUCTION_SLIDES.map((_, index) => (
                     <button
@@ -2565,7 +2565,7 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                 <button
                   type="button"
                   onClick={() => setShowNewApplicationInstructions(false)}
-                  className="inline-flex min-h-8 w-full items-center justify-center rounded-md bg-blue-700 px-3.5 py-1 text-xs font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
+                  className="order-first col-span-2 inline-flex min-h-10 w-full items-center justify-center rounded-md bg-blue-700 px-3.5 py-2 text-sm font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:order-none sm:min-h-8 sm:w-auto sm:py-1 sm:text-xs"
                 >
                   میں نے ہدایات پڑھ لی ہیں
                 </button>
