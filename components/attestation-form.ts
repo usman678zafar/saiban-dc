@@ -99,7 +99,6 @@ function drawWorkerDetails(context: CanvasRenderingContext2D, data: AttestationF
   drawDetailLine(context, '\u06cc\u062a\u06cc\u0645 \u0628\u0686\u06d2 \u06a9\u0627 \u0646\u0627\u0645:', data.childName, 1110, y + 190, 260);
   drawDetailLine(context, '\u0648\u0627\u0644\u062f \u06a9\u0627 \u0646\u0627\u0645:', data.fatherName, 590, y + 190, 260);
   drawDetailLine(context, '\u0628 \u0641\u0627\u0631\u0645 \u0646\u0645\u0628\u0631:', data.bFormNumber, 1110, y + 235, 260);
-  drawDetailLine(context, '\u062a\u0639\u0644\u06cc\u0645\u06cc \u0627\u062f\u0627\u0631\u06c1:', data.schoolName, 590, y + 235, 260);
 
   context.beginPath();
   context.moveTo(95, y + 265);
@@ -154,7 +153,6 @@ function buildWorkerDetailsHtml(data: AttestationFormData) {
           <div>&#1740;&#1578;&#1740;&#1605; &#1576;&#1670;&#1746; &#1705;&#1575; &#1606;&#1575;&#1605;: <span class="line wide">${printValue(data.childName)}</span></div>
           <div>&#1608;&#1575;&#1604;&#1583; &#1705;&#1575; &#1606;&#1575;&#1605;: <span class="line wide">${printValue(data.fatherName)}</span></div>
           <div>&#1576; &#1601;&#1575;&#1585;&#1605; &#1606;&#1605;&#1576;&#1585;: <span class="line wide">${printValue(data.bFormNumber)}</span></div>
-          <div>&#1578;&#1593;&#1604;&#1740;&#1605;&#1740; &#1575;&#1583;&#1575;&#1585;&#1729;: <span class="line wide">${printValue(data.schoolName)}</span></div>
         </div>
       </section>`;
 }
@@ -166,7 +164,7 @@ export function buildAttestationHtml(data: AttestationFormData) {
   </style></head><body>
     <div class="print-actions"><button onclick="window.print()">Print / Save PDF</button></div>
     <section class="page">
-      <header class="header"><div class="brand"><img src="${logo.src}" alt="Saiban" /></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت - تعلیمی ادارہ</p></div><div class="mark"><img src="${baitussalamLogo.src}" alt="Baitussalam" /></div></header>
+      <header class="header"><div class="brand"><img src="${logo.src}" alt="Saiban" /></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت کا ادارہ</p></div><div class="mark"><img src="${baitussalamLogo.src}" alt="Baitussalam" /></div></header>
       <section class="worker">
         <h3>فیلڈ ورکر کی تفصیلات</h3>
         <div class="worker-grid">
@@ -186,7 +184,7 @@ export function buildAttestationHtml(data: AttestationFormData) {
       <div class="signature-grid"><div><div class="sig-line"></div><div class="label">تصدیق کنندہ امام صاحب کا نام</div></div><div><div class="sig-line"></div><div class="label">مسجد / محلہ</div></div><div><div class="sig-line"></div><div class="label">موبائل نمبر</div></div><div><div class="sig-line"></div><div class="label">دستخط / مہر</div></div></div>
     </section>
     <section class="page">
-      <header class="header"><div class="brand"><img src="${logo.src}" alt="Saiban" /></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت - تعلیمی ادارہ</p></div><div class="mark"><img src="${baitussalamLogo.src}" alt="Baitussalam" /></div></header>
+      <header class="header"><div class="brand"><img src="${logo.src}" alt="Saiban" /></div><div class="title"><h1>بیت السلام کا سائبان</h1><p>یتیم بچوں کی کفالت کا ادارہ</p></div><div class="mark"><img src="${baitussalamLogo.src}" alt="Baitussalam" /></div></header>
       <h3>اصول و ضوابط</h3>
       <ol><li>بیت السلام سائبان پروگرام کے تحت گھر کا دورہ ضروری ہوگا اور درست معلومات فراہم کرنا لازم ہے۔</li><li>بچے کی عمر رجسٹریشن کے وقت 12 سال سے کم ہونی چاہیے۔</li><li>رجسٹریشن کے بعد بچے کی تعلیمی، دینی اور اخلاقی تربیت کی نگرانی کی جائے گی۔</li><li>تعلیمی ادارے میں حاضری، کارکردگی اور فیس/اخراجات کی معلومات وقتاً فوقتاً طلب کی جا سکتی ہیں۔</li><li>غلط، نامکمل یا گمراہ کن معلومات کی صورت میں درخواست مسترد یا امداد بند کی جا سکتی ہے۔</li><li>سرپرست بچے کی تعلیم، صحت، حفاظت اور بہتر تربیت کے لیے ادارے سے تعاون کرے گا۔</li><li>ادارے کو ضرورت کے مطابق گھر، اسکول، مسجد یا محلے سے تصدیق کرنے کا حق حاصل ہوگا۔</li><li>سرپرست بچے کے متعلق تبدیلی، بیماری، اسکول تبدیلی، رہائش تبدیلی یا مالی حالت کی تبدیلی سے آگاہ کرے گا۔</li><li>جمع شدہ معلومات صرف ادارے کے فلاحی اور انتظامی مقاصد کے لیے استعمال ہوں گی۔</li><li>ادارہ درخواست کی منظوری یا عدم منظوری کا حتمی اختیار رکھتا ہے۔</li></ol>
       <p class="guardian">میں تصدیق کرتا/کرتی ہوں کہ میں نے مندرجہ بالا تمام شرائط و ضوابط کو پڑھ/سن لیا ہے، سمجھ لیا ہے، اور ان پر عمل کرنے کا پابند ہوں۔</p>
