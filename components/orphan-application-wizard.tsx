@@ -1339,6 +1339,17 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     );
   };
 
+  const handleClearGps = () => {
+    updateFields({
+      latitude: '',
+      longitude: '',
+      gpsAccuracyMeters: '',
+      gpsCapturedAt: '',
+    });
+    setGpsMessage('GPS location cleared. You can capture it again.');
+    setGpsWarning(null);
+  };
+
   const handleHealthStatusChange = (value: string) => {
     updateFields({
       healthStatus: value,
@@ -2793,14 +2804,24 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
                   <h3 className="text-base font-semibold text-slate-900">GPS Location / GPS مقام</h3>
                   <p className="mt-1 text-sm text-slate-600">Capture latitude and longitude. Please enter the address fields manually.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleCaptureGps}
-                  disabled={isCapturingGps}
-                  className="min-h-12 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                >
-                  {isCapturingGps ? 'Capturing GPS...' : 'GPS مقام حاصل کریں / Capture GPS Location'}
-                </button>
+                <div className="grid w-full gap-2 sm:w-auto sm:grid-flow-col">
+                  <button
+                    type="button"
+                    onClick={handleCaptureGps}
+                    disabled={isCapturingGps}
+                    className="min-h-12 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isCapturingGps ? 'Capturing GPS...' : 'GPS مقام حاصل کریں / Capture GPS Location'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearGps}
+                    disabled={isCapturingGps || (!formData.latitude && !formData.longitude && !formData.gpsAccuracyMeters)}
+                    className="min-h-12 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Clear GPS
+                  </button>
+                </div>
               </div>
               {gpsMessage ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{gpsMessage}</div> : null}
               {gpsWarning ? <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{gpsWarning}</div> : null}
