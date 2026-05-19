@@ -639,6 +639,22 @@ const GUARDIAN_RELATIONSHIP_OPTIONS = [
   { value: 'Other', label: 'Other / دیگر' },
 ];
 
+const MALE_GUARDIAN_RELATIONSHIPS = new Set([
+  'Paternal Grandfather',
+  'Maternal Grandfather',
+  'Uncle (Paternal)',
+  'Uncle (Maternal)',
+  'Elder Brother',
+]);
+
+const FEMALE_GUARDIAN_RELATIONSHIPS = new Set([
+  'Paternal Grandmother',
+  'Maternal Grandmother',
+  'Aunt (Paternal)',
+  'Aunt (Maternal)',
+  'Elder Sister',
+]);
+
 const MOTHER_SEPARATION_REASON_OPTIONS = [
   { value: '', label: 'Select separation reason' },
   { value: 'Financial Hardship', label: 'Financial Hardship / مالی مشکلات' },
@@ -1246,8 +1262,14 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   };
 
   const handleGuardianGenderChange = (value: string) => {
+    const currentRelationship = formData.guardianRelationship;
+    const relationshipConflictsWithGender =
+      (value === 'male' && FEMALE_GUARDIAN_RELATIONSHIPS.has(currentRelationship)) ||
+      (value === 'female' && MALE_GUARDIAN_RELATIONSHIPS.has(currentRelationship));
+
     updateFields({
       guardianGender: value,
+      ...(relationshipConflictsWithGender ? { guardianRelationship: '' } : {}),
       guardianOccupation: '',
     });
   };
@@ -2240,8 +2262,15 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const renderMotherTongueField = (field: keyof FormData) =>
     renderSelectWithOther(field, MOTHER_TONGUE_OPTIONS, 'Other Mother Tongue / دیگر مادری زبان');
 
-  const renderGuardianRelationshipField = () =>
-    renderSelectWithOther('guardianRelationship', GUARDIAN_RELATIONSHIP_OPTIONS, 'Other Guardian Relationship / دیگر سرپرست کا تعلق');
+  const renderGuardianRelationshipField = () => {
+    const filteredOptions = GUARDIAN_RELATIONSHIP_OPTIONS.filter((option) => {
+      if (formData.guardianGender === 'male') return !FEMALE_GUARDIAN_RELATIONSHIPS.has(option.value);
+      if (formData.guardianGender === 'female') return !MALE_GUARDIAN_RELATIONSHIPS.has(option.value);
+      return true;
+    });
+
+    return renderSelectWithOther('guardianRelationship', filteredOptions, 'Other Guardian Relationship / دیگر سرپرست کا تعلق');
+  };
 
   const renderMotherSeparationReasonField = () =>
     renderSelectWithOther('motherSeparationReason', MOTHER_SEPARATION_REASON_OPTIONS, 'Other Separation Reason / علیحدگی کی دیگر وجہ');
