@@ -408,6 +408,48 @@ function validationIssuesMessage(issues: Array<{ path?: Array<string | number>; 
     .join('\n');
 }
 
+function hasUserEnteredDraftData(data: FormData) {
+  const ignoredFields = new Set<keyof FormData>([
+    'collectorId',
+    'collectorName',
+    'collectorProject',
+    'collectorCnic',
+    'collectorAddress',
+    'collectorContact',
+    'nationality',
+    'status',
+    'householdAssetSelection',
+    'siblings',
+    'relatives',
+    'otherHouseholdAssets',
+    'documents',
+  ]);
+
+  return (Object.keys(data) as Array<keyof FormData>).some((field) => {
+    if (ignoredFields.has(field)) return false;
+
+    const value = data[field];
+    if (typeof value === 'string') return value.trim().length > 0;
+    if (typeof value === 'boolean') return value !== defaultData[field];
+    if (Array.isArray(value)) return value.length > 0;
+    return false;
+  });
+}
+
+function hasAutosaveIdentifier(data: FormData) {
+  return [
+    data.childName,
+    data.bFormNumber,
+    data.fatherName,
+    data.fatherCnic,
+    data.motherName,
+    data.motherCnic,
+    data.guardianName,
+    data.guardianCnic,
+    data.fullAddress,
+  ].some((value) => value.trim().length > 0);
+}
+
 interface OrphanApplicationWizardProps {
   initialData?: Partial<FormData>;
   initialDocuments?: DocumentInput[];
@@ -867,7 +909,15 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
   const [addressOptions, setAddressOptions] = useState<AddressOptionInput[]>([]);
   const [hasLoadedPersistedState, setHasLoadedPersistedState] = useState(Boolean(initialApplicationId));
   const [shouldPersistNewApplication, setShouldPersistNewApplication] = useState(!initialApplicationId);
+  const [autosaveStatus, setAutosaveStatus] = useState<'saving' | 'saved' | 'error' | null>(null);
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastAutosavedPayloadRef = useRef<string | null>(null);
+  const latestApplicationIdRef = useRef<string | null>(initialApplicationId ?? null);
   const isSubmitting = submittingAction !== null;
+
+  useEffect(() => {
+    latestApplicationIdRef.current = applicationId;
+  }, [applicationId]);
 
   useEffect(() => {
     if (initialApplicationId) return;
@@ -1450,6 +1500,105 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
     } as any;
   };
 
+  useEffect(() => {
+    if (!initialApplicationId || !hasLoadedPersistedState || lastAutosavedPayloadRef.current) return;
+
+    lastAutosavedPayloadRef.current = JSON.stringify(buildApplicationRequestBody('draft'));
+  }, [hasLoadedPersistedState, initialApplicationId]);
+
+  useEffect(() => {
+    if (!hasLoadedPersistedState || submittingAction !== null || showSubmissionSuccessModal) return;
+    if (!hasUserEnteredDraftData(formData)) return;
+    if (!hasAutosaveIdentifier(formData)) return;
+
+    const body = buildApplicationRequestBody('draft');
+    const payloadSignature = JSON.stringify(body);
+    if (payloadSignature === lastAutosavedPayloadRef.current) return;
+
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+    }
+
+    autosaveTimerRef.current = setTimeout(async () => {
+      setAutosaveStatus('saving');
+
+      try {
+        const currentApplicationId = latestApplicationIdRef.current;
+        const response = await fetch('/api/applications', {
+          method: currentApplicationId ? 'PATCH' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...body,
+            id: currentApplicationId,
+            status: 'draft',
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Autosave failed');
+        }
+
+        const application = await response.json();
+        latestApplicationIdRef.current = application.id;
+        setApplicationId(application.id);
+        setShouldPersistNewApplication(false);
+        window.localStorage.removeItem(storageKey);
+        lastAutosavedPayloadRef.current = JSON.stringify({
+          ...body,
+          id: application.id,
+          status: 'draft',
+        });
+        setAutosaveStatus('saved');
+        router.refresh();
+      } catch (error) {
+        setAutosaveStatus('error');
+      }
+    }, 1200);
+
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+      }
+    };
+  }, [applicationId, formData, hasLoadedPersistedState, showSubmissionSuccessModal, storageKey, submittingAction, router]);
+
+  useEffect(() => {
+    const body = buildApplicationRequestBody('draft');
+    const payloadSignature = JSON.stringify(body);
+    const hasUnsyncedData = hasUserEnteredDraftData(formData) && payloadSignature !== lastAutosavedPayloadRef.current;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsyncedData) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (!hasUnsyncedData) return;
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      const target = event.target instanceof Element ? event.target.closest('a[href]') : null;
+      if (!(target instanceof HTMLAnchorElement)) return;
+      if (target.target && target.target !== '_self') return;
+      if (target.origin !== window.location.origin) return;
+      if (target.pathname === window.location.pathname && target.search === window.location.search) return;
+
+      const shouldLeave = window.confirm('Your latest changes may not be saved yet. Leave this page anyway?');
+      if (!shouldLeave) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('click', handleDocumentClick, true);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('click', handleDocumentClick, true);
+    };
+  }, [applicationId, formData]);
+
   const ensureDraftApplication = async () => {
     if (applicationId) return applicationId;
 
@@ -1480,6 +1629,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       window.localStorage.removeItem(storageKey);
       setShouldPersistNewApplication(false);
       setApplicationId(application.id);
+      latestApplicationIdRef.current = application.id;
+      lastAutosavedPayloadRef.current = JSON.stringify({
+        ...buildApplicationRequestBody('draft'),
+        id: application.id,
+        status: 'draft',
+      });
+      setAutosaveStatus('saved');
       setMessage('Draft saved successfully. Uploading document...');
       router.refresh();
       return application.id as string;
@@ -1523,6 +1679,13 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
 
       const application = await response.json();
       setApplicationId(application.id);
+      latestApplicationIdRef.current = application.id;
+      lastAutosavedPayloadRef.current = JSON.stringify({
+        ...buildApplicationRequestBody('draft'),
+        id: application.id,
+        status: 'draft',
+      });
+      setAutosaveStatus(saveStatus === 'draft' ? 'saved' : null);
       if (saveStatus === 'submitted') {
         setShowSubmissionSuccessModal(true);
       } else {
@@ -2194,6 +2357,21 @@ export default function OrphanApplicationWizard({ initialData, initialDocuments,
       {message ? (
         <div className={`rounded-lg border p-4 text-sm ${message.toLowerCase().includes('success') ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
           <div className="whitespace-pre-wrap font-medium">{message}</div>
+        </div>
+      ) : null}
+      {autosaveStatus ? (
+        <div
+          className={`rounded-lg border px-4 py-3 text-sm font-medium ${
+            autosaveStatus === 'error'
+              ? 'border-amber-200 bg-amber-50 text-amber-800'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+          }`}
+        >
+          {autosaveStatus === 'saving'
+            ? 'Saving draft automatically...'
+            : autosaveStatus === 'saved'
+              ? 'Draft autosaved.'
+              : 'Autosave could not finish. Use Save Draft before leaving.'}
         </div>
       ) : null}
 
