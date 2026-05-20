@@ -595,6 +595,14 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
         message: 'Madrasa education details are required when enrolled in madrasa',
       });
     }
+
+    if (!data.educationStartCondition) {
+      ctx.addIssue({
+        path: ['educationStartCondition'],
+        code: z.ZodIssueCode.custom,
+        message: 'Islamic studies level is required when enrolled in madrasa',
+      });
+    }
   }
 
   if (data.receivingOtherAid) {

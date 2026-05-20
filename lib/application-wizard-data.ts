@@ -1,5 +1,5 @@
 import type { FormData } from '@/components/orphan-application-wizard';
-import { householdAssetRowsToOtherItems, householdAssetRowsToSelection } from '@/lib/household-assets';
+import { HOUSEHOLD_ASSET_KEYS, householdAssetRowsToOtherItems, householdAssetRowsToSelection } from '@/lib/household-assets';
 import type { ApplicationDocumentView } from '@/lib/application-documents';
 
 function dateOnly(value: unknown) {
@@ -16,6 +16,14 @@ function stringValue(value: unknown, fallback = '') {
 
 export function applicationToWizardData(application: any): Partial<FormData> {
   const householdAssets = application.householdAssets ?? [];
+  const householdAssetSelection = householdAssetRowsToSelection(householdAssets);
+  if (application.status && application.status !== 'draft') {
+    for (const key of HOUSEHOLD_ASSET_KEYS) {
+      if (key !== 'other' && !householdAssetSelection[key].answered) {
+        householdAssetSelection[key].answered = true;
+      }
+    }
+  }
 
   return {
     registrationNumber: application.registrationNumber ?? '',
@@ -178,7 +186,9 @@ export function applicationToWizardData(application: any): Partial<FormData> {
       monthlyIncomeOrFee: stringValue(sibling.monthlyIncomeOrFee),
       maritalStatus: sibling.maritalStatus ?? '',
     })),
-    totalSiblings: (application.siblings ?? []).length ? String((application.siblings ?? []).length) : '',
+    totalSiblings: application.totalSiblings !== null && application.totalSiblings !== undefined
+      ? stringValue(application.totalSiblings)
+      : ((application.siblings ?? []).length ? String((application.siblings ?? []).length) : ''),
     relatives: (application.relatives ?? []).map((relative: any) => ({
       relativeType: relative.relativeType ?? 'paternal_grandfather',
       name: relative.name ?? '',
@@ -189,7 +199,7 @@ export function applicationToWizardData(application: any): Partial<FormData> {
       supportType: relative.supportType ?? '',
       supportTypeOther: relative.supportTypeOther ?? '',
     })),
-    householdAssetSelection: householdAssetRowsToSelection(householdAssets),
+    householdAssetSelection,
     otherHouseholdAssets: householdAssetRowsToOtherItems(householdAssets),
     monthlyMedicalExpenses: stringValue(application.monthlyMedicalExpenses),
     termsAccepted: application.termsAccepted ?? false,

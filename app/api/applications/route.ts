@@ -300,7 +300,7 @@ function normalizeConditionalPayload(payload: any) {
   }
 
   if (next.currentlyStudying === true || next.currentlyStudying === 'true') {
-    clearPayloadFields(next, ['notStudyingReason', 'educationStartCondition']);
+    clearPayloadFields(next, ['notStudyingReason']);
   }
 
   if (next.educationFeeStatus !== 'paid') {
@@ -308,7 +308,7 @@ function normalizeConditionalPayload(payload: any) {
   }
 
   if (next.enrolledInMadrasa === false || next.enrolledInMadrasa === 'false') {
-    clearPayloadFields(next, ['madrasaName', 'madrasaEducationDetails']);
+    clearPayloadFields(next, ['madrasaName', 'madrasaEducationDetails', 'educationStartCondition']);
   }
 
   if (next.receivingOtherAid === false || next.receivingOtherAid === 'false') {
@@ -316,6 +316,50 @@ function normalizeConditionalPayload(payload: any) {
   }
 
   return next;
+}
+
+function requiredDocumentTypesForApplication(data: any) {
+  const types = [
+    'child_photo',
+    'child_b_form',
+    'father_cnic',
+    'father_death_certificate',
+  ];
+
+  if (data.motherAlive !== 'no') {
+    types.push('mother_cnic');
+  }
+
+  if (data.motherAlive === 'no') {
+    types.push('mother_death_certificate');
+  }
+
+  const guardianDetailsNeeded = data.motherAlive !== 'yes' || data.motherIsGuardian !== 'yes';
+  if (guardianDetailsNeeded) {
+    types.push('guardian_cnic');
+  }
+
+  if (data.healthStatus === 'chronic_illness' || data.healthStatus === 'disabled') {
+    types.push('medical_report');
+  }
+
+  types.push('attestation_confirmation');
+  return types;
+}
+
+async function validateSubmittedDocuments(applicationId: string, data: any) {
+  if (data.status !== 'submitted') return;
+
+  const uploadedDocuments = await prisma.applicationDocument.findMany({
+    where: { applicationId },
+    select: { documentType: true },
+  });
+  const uploadedTypes = new Set(uploadedDocuments.map((document) => document.documentType));
+  const missingTypes = requiredDocumentTypesForApplication(data).filter((type) => !uploadedTypes.has(type as any));
+
+  if (missingTypes.length > 0) {
+    throw new Error(`Upload required documents before submitting: ${missingTypes.map((type) => type.replace(/_/g, ' ')).join(', ')}`);
+  }
 }
 
 function buildRegistrationNumber() {
@@ -488,6 +532,9 @@ export async function POST(request: NextRequest) {
     const { siblings, relatives, householdAssets, ...payload } = validated;
 
     const status = payload.status ?? 'draft';
+    if (status === 'submitted') {
+      throw new Error('Save the application as a draft, upload all required documents and attestation, then submit.');
+    }
     await validateSubmittedAddress({ ...payload, status });
     const application = await prisma.orphanApplication.create({
       data: {
@@ -561,6 +608,7 @@ export async function PATCH(request: NextRequest) {
       status: validated.status ?? application.status,
     };
     await validateSubmittedAddress(updateData);
+    await validateSubmittedDocuments(id, updateData);
 
     const shouldGenerateRegistrationNumber = application.status !== 'submitted' && updateData.status === 'submitted' && !application.registrationNumber;
     delete updateData.registrationNumber;

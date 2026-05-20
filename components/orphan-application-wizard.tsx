@@ -1678,16 +1678,6 @@ export default function OrphanApplicationWizard({
     }
   };
 
-  const goToStep = (nextStep: number) => {
-    setStep(Math.min(Math.max(nextStep, 1), TOTAL_STEPS));
-    window.requestAnimationFrame(() => {
-      wizardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  };
-
-  const goNext = () => goToStep(step + 1);
-  const goBack = () => goToStep(step - 1);
-
   const buildApplicationRequestBody = (saveStatus: 'draft' | 'submitted') => {
     const { householdAssetSelection, otherHouseholdAssets, ...formFields } = formData;
     const relativeInformationDisclosed = formFields.relativeInformationDisclosed === 'yes';
@@ -1891,6 +1881,14 @@ export default function OrphanApplicationWizard({
     }
 
     try {
+      if (saveStatus === 'submitted') {
+        const incompleteStep = firstIncompleteSubmissionStep();
+        if (incompleteStep) {
+          goToStep(incompleteStep);
+          throw new Error(`Please complete step ${incompleteStep}: ${stepTitles[incompleteStep - 1]} before submitting.`);
+        }
+      }
+
       if (orphanAgeError) {
         setStep(7);
         throw new Error(orphanAgeError);
@@ -2009,6 +2007,8 @@ export default function OrphanApplicationWizard({
   ];
 
   const getStepRequiredFields = (stepNumber: number): Array<keyof FormData> => {
+    const isLegacySubmittedReview = readOnly && formData.status === 'submitted';
+
     switch (stepNumber) {
       case 1:
         return ['fatherName', 'fatherDob', 'fatherCnic', 'fatherEducation', 'fatherTongue', 'fatherNativeArea', 'fatherOccupation', 'fatherDateOfDeath', 'fatherCauseOfDeath'];
@@ -2053,7 +2053,12 @@ export default function OrphanApplicationWizard({
       case 9: {
         const fields: Array<keyof FormData> = ['currentlyStudying', 'enrolledInMadrasa', 'currentSkillLearning'];
         if (formData.currentlyStudying) fields.push('currentClass', 'schoolName', 'schoolAddress', 'schoolDistanceKm', 'schoolTransportMode', 'schoolStudyingSince');
-        if (formData.enrolledInMadrasa) fields.push('madrasaName', 'madrasaEducationDetails', 'educationStartCondition');
+        if (formData.enrolledInMadrasa) {
+          fields.push('madrasaName', 'madrasaEducationDetails');
+          if (!isLegacySubmittedReview || formData.educationStartCondition.trim()) {
+            fields.push('educationStartCondition');
+          }
+        }
         if (formData.currentlyStudying || formData.enrolledInMadrasa) {
           fields.push('educationFree');
           if (formData.educationFree === 'no') fields.push('monthlySchoolFee');
@@ -2158,6 +2163,44 @@ export default function OrphanApplicationWizard({
         return true;
     }
   };
+
+  const areIdentityDetailsComplete = () => [1, 2, 3, 7].every((item) => isStepComplete(item));
+
+  const canOpenStep = (stepNumber: number) => {
+    if (readOnly) return true;
+    if (stepNumber === 11) return areIdentityDetailsComplete();
+    if (stepNumber === 12) return areIdentityDetailsComplete() && isStepComplete(11);
+    if (stepNumber === 13) return Array.from({ length: 12 }, (_, index) => index + 1).every((item) => isStepComplete(item));
+    return true;
+  };
+
+  const firstIncompleteSubmissionStep = () => {
+    for (let item = 1; item <= 12; item += 1) {
+      if (!isStepComplete(item)) return item;
+    }
+    return null;
+  };
+
+  const goToStep = (nextStep: number) => {
+    const clampedStep = Math.min(Math.max(nextStep, 1), TOTAL_STEPS);
+    if (!canOpenStep(clampedStep)) {
+      const message = clampedStep === 11
+        ? 'Complete father, mother, guardian, and child details before opening documents.'
+        : clampedStep === 12
+          ? 'Complete required documents before opening attestation.'
+          : 'Complete previous steps before opening review.';
+      setMessage(message);
+      return;
+    }
+
+    setStep(clampedStep);
+    window.requestAnimationFrame(() => {
+      wizardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const goNext = () => goToStep(step + 1);
+  const goBack = () => goToStep(step - 1);
 
   const districtOptions = useMemo(() => {
     if (!formData.province) return [];
@@ -2453,7 +2496,8 @@ export default function OrphanApplicationWizard({
     if (field === 'specifyReligion') return formData.religion === 'Other';
     if (field === 'monthlyMedicalExpenses') return formData.healthStatus === 'chronic_illness' || formData.healthStatus === 'disabled';
     if (['currentClass', 'schoolName', 'schoolAddress', 'educationFeeStatus'].includes(field)) return formData.currentlyStudying;
-    if (['notStudyingReason', 'educationStartCondition'].includes(field)) return !formData.currentlyStudying;
+    if (field === 'notStudyingReason') return !formData.currentlyStudying;
+    if (field === 'educationStartCondition') return formData.enrolledInMadrasa;
     if (field === 'monthlySchoolFee') return formData.currentlyStudying && formData.educationFeeStatus === 'paid';
     if (['madrasaName', 'madrasaEducationDetails'].includes(field)) return formData.enrolledInMadrasa;
     if (['otherAidSource', 'monthlyAidAmount'].includes(field)) return formData.receivingOtherAid;
@@ -2496,7 +2540,7 @@ export default function OrphanApplicationWizard({
     { title: 'Household Assets', fields: ['householdAssetSelection'] },
     { title: 'Child', fields: ['childName', 'gender', 'religion', 'specifyReligion', 'syedStatus', 'nationality', 'specifyNationality', 'bFormNumber', 'dateOfBirth', 'age', 'totalSiblings', 'siblings'] },
     { title: 'Health', fields: ['healthStatus', 'disabilityType', 'disabilityCause', 'disabilityDetails', 'disabilityCauseDetails', 'disabilitySince', 'treatmentOngoing', 'chronicDisease', 'specifyDisease', 'illnessSince', 'treatmentPlace', 'monthlyMedicalExpenses'] as Array<keyof FormData> },
-    { title: 'Education and Skills', fields: ['currentlyStudying', 'currentClass', 'schoolName', 'schoolAddress', 'schoolDistanceKm', 'schoolTransportMode', 'schoolStudyingSince', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails', 'educationUndertakingAccepted', 'educationFree', 'monthlySchoolFee', 'currentSkillLearning', 'currentSkill', 'childHobbies', 'technicalSkillInterest', 'technicalSkill'] as Array<keyof FormData> },
+    { title: 'Education and Skills', fields: ['currentlyStudying', 'notStudyingReason', 'currentClass', 'schoolName', 'schoolAddress', 'schoolDistanceKm', 'schoolTransportMode', 'schoolStudyingSince', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails', 'educationStartCondition', 'educationUndertakingAccepted', 'educationFree', 'monthlySchoolFee', 'currentSkillLearning', 'currentSkill', 'childHobbies', 'technicalSkillInterest', 'technicalSkill'] as Array<keyof FormData> },
     { title: 'Income and Aid', fields: ['totalFamilyMembers', 'householdHasMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'childEarnsIncome', 'childWorkNature', 'childMonthlyIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'assistanceApplied', 'assistanceAppliedWhere'] as Array<keyof FormData> },
   ];
 
