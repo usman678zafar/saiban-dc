@@ -4,15 +4,20 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { UserRole } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
-import { isFieldWorkerProject } from '@/lib/field-workers';
+import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
+
+const digitsOnly = (value: string) => value.replace(/\D/g, '');
+const supervisorEmailForPhone = (phoneNumber: string) => `${phoneNumber.replace(/[^a-zA-Z0-9]+/g, '')}@supervisor.saiban.local`;
 
 const updateSupervisorSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  email: z.string().trim().email('Valid email is required').transform((value) => value.toLowerCase()),
-  phoneNumber: z.string().trim().optional().default(''),
-  project: z.string().refine(isFieldWorkerProject, 'Project is required'),
-  password: z.string().optional().default('').refine((value) => value.length === 0 || value.length >= 4, 'Password must be at least 4 characters'),
+  phoneNumber: z.string().trim().min(1, 'Phone number is required').refine((value) => digitsOnly(value).length >= 4, {
+    message: 'Phone number must contain at least 4 digits',
+  }),
+  project: z.string().trim().min(1, 'Department is required'),
+  cnic: z.string().trim().optional().default(''),
+  address: z.string().trim().optional().default(''),
 });
 
 async function requireAdmin() {
@@ -34,36 +39,45 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
   try {
     const input = updateSupervisorSchema.parse(await request.json());
+    const projects = await getFieldWorkerProjectOptions();
+    if (!projects.includes(input.project)) {
+      return NextResponse.json({ message: 'Department is required' }, { status: 422 });
+    }
     const existing = await prisma.user.findFirst({
       where: {
         id: { not: params.id },
         OR: [
-          { email: input.email },
-          ...(input.phoneNumber ? [{ phoneNumber: input.phoneNumber }] : []),
+          { email: supervisorEmailForPhone(input.phoneNumber) },
+          { phoneNumber: input.phoneNumber },
+          ...(input.cnic ? [{ cnic: input.cnic }] : []),
         ],
       },
       select: { id: true },
     });
 
     if (existing) {
-      return NextResponse.json({ message: 'A user with this email or phone already exists.' }, { status: 409 });
+      return NextResponse.json({ message: 'A user with this phone number or CNIC already exists.' }, { status: 409 });
     }
 
-    const passwordHash = input.password ? await bcrypt.hash(input.password, 10) : undefined;
+    const passwordHash = await bcrypt.hash(digitsOnly(input.phoneNumber).slice(-4), 10);
     const supervisor = await prisma.user.update({
       where: { id: params.id, role: UserRole.supervisor },
       data: {
         name: input.name,
-        email: input.email,
-        phoneNumber: input.phoneNumber || null,
+        email: supervisorEmailForPhone(input.phoneNumber),
+        phoneNumber: input.phoneNumber,
+        cnic: input.cnic || null,
+        address: input.address || null,
         project: input.project,
-        ...(passwordHash ? { passwordHash } : {}),
+        passwordHash,
       },
       select: {
         id: true,
         name: true,
         email: true,
         phoneNumber: true,
+        cnic: true,
+        address: true,
         project: true,
         createdAt: true,
       },
@@ -91,6 +105,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
         select: {
           updatedApps: true,
           auditLogs: true,
+          fieldWorkers: true,
         },
       },
     },
@@ -100,6 +115,10 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     return NextResponse.json({ message: 'Supervisor not found.' }, { status: 404 });
   }
 
+  if (supervisor._count.fieldWorkers > 0) {
+    return NextResponse.json({ message: 'This supervisor has assigned field workers and cannot be deleted.' }, { status: 409 });
+  }
+
   if (supervisor._count.updatedApps > 0 || supervisor._count.auditLogs > 0) {
     return NextResponse.json({ message: 'This supervisor has review history and cannot be deleted.' }, { status: 409 });
   }
@@ -107,3 +126,8 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
   await prisma.user.delete({ where: { id: params.id } });
   return NextResponse.json({ message: 'Supervisor deleted successfully.' });
 }
+
+
+
+
+

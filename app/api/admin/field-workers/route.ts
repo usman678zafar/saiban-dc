@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
-import { fieldWorkerProjects } from '@/lib/field-workers';
+import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
 
 const digitsOnly = (value: string) => value.replace(/\D/g, '');
@@ -18,9 +18,8 @@ const createFieldWorkerSchema = z.object({
     message: 'CNIC must contain 13 digits',
   }),
   address: z.string().trim().min(1, 'Address is required'),
-  project: z.enum(fieldWorkerProjects, {
-    errorMap: () => ({ message: 'Project is required' }),
-  }),
+  project: z.string().trim().min(1, 'Department is required'),
+  supervisorId: z.string().uuid('Supervisor is required'),
   password: z.string().min(4, 'Password must be at least 4 characters'),
 });
 
@@ -60,6 +59,23 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const input = createFieldWorkerSchema.parse(body);
+    const projects = await getFieldWorkerProjectOptions();
+    if (!projects.includes(input.project)) {
+      return NextResponse.json({ message: 'Department is required' }, { status: 422 });
+    }
+    const supervisor = await prisma.user.findFirst({
+      where: {
+        id: input.supervisorId,
+        role: 'supervisor',
+        project: input.project,
+      },
+      select: { id: true },
+    });
+
+    if (!supervisor) {
+      return NextResponse.json({ message: 'Select a supervisor from the same department.' }, { status: 422 });
+    }
+
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
@@ -88,6 +104,7 @@ export async function POST(request: NextRequest) {
             fieldWorkerId: await generateFieldWorkerId(),
             address: input.address,
             project: input.project,
+            supervisorId: input.supervisorId,
             passwordHash,
             role: 'field_worker',
           },
@@ -99,6 +116,7 @@ export async function POST(request: NextRequest) {
             cnic: true,
             address: true,
             project: true,
+            supervisorId: true,
             role: true,
           },
         });
@@ -125,3 +143,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: error instanceof Error ? error.message : 'Unable to create field worker' }, { status: 500 });
   }
 }
+
+
+
+
+

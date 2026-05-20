@@ -84,6 +84,16 @@ export const authOptions: NextAuthOptions = {
               ],
             },
           })
+          : loginRole === 'supervisor'
+            ? await prisma.user.findFirst({
+              where: {
+                role: 'supervisor',
+                OR: [
+                  { phoneNumber: identifier },
+                  { email },
+                ],
+              },
+            })
           : await prisma.user.findUnique({
             where: { email },
           }) ?? await ensureBootstrapAdmin(email, credentials.password);
@@ -128,3 +138,4 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
+

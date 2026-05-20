@@ -90,7 +90,7 @@ export default async function AdminApplicationsPage({
               type="search"
               name="q"
               defaultValue={search}
-              placeholder="Search by name, registration, B-form, CNIC, project"
+              placeholder="Search by name, registration, B-form, CNIC, department"
               className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] pl-10 pr-3 text-sm text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
             />
           </label>
@@ -186,3 +186,7 @@ export default async function AdminApplicationsPage({
     </AdminShell>
   );
 }
+
+
+
+

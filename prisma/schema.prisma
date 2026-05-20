@@ -6,7 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
 enum UserRole {
   admin
   supervisor
@@ -63,238 +62,241 @@ enum AddressOptionType {
 }
 
 model User {
-  id           String              @id @default(uuid())
-  name         String?
-  email        String              @unique
-  phoneNumber  String?             @unique
-  cnic         String?             @unique
-  fieldWorkerId String?            @unique
-  address      String?
-  project      String?
-  passwordHash String
-  role         UserRole            @default(field_worker)
-  selfRegistered Boolean           @default(false)
-  applications OrphanApplication[] @relation("CreatedApplications")
-  updatedApps  OrphanApplication[] @relation("UpdatedApplications")
-  auditLogs    AuditLog[]
+  id             String              @id @default(uuid())
+  name           String?
+  email          String              @unique
+  phoneNumber    String?             @unique
+  cnic           String?             @unique
+  fieldWorkerId  String?             @unique
+  address        String?
+  project        String?
+  supervisorId   String?
+  supervisor     User?               @relation("SupervisorFieldWorkers", fields: [supervisorId], references: [id])
+  fieldWorkers   User[]              @relation("SupervisorFieldWorkers")
+  passwordHash   String
+  role           UserRole            @default(field_worker)
+  selfRegistered Boolean             @default(false)
+  applications   OrphanApplication[] @relation("CreatedApplications")
+  updatedApps    OrphanApplication[] @relation("UpdatedApplications")
+  auditLogs      AuditLog[]
   addressOptions AddressOption[]
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 }
 
 model OrphanApplication {
-  id                         String             @id @default(uuid())
-  registrationNumber         String?            @unique
-  collectorId                String?
-  collectorName              String?
-  collectorProject           String?
-  collectorCnic              String?
-  collectorAddress           String?
-  collectorContact           String?
-  fatherName                 String?
-  fatherDob                  DateTime?
-  fatherAge                  Int?
-  fatherCnic                 String?
-  fatherEducation            String?
-  fatherTongue               String?
-  fatherNativeArea           String?
-  fatherOccupation           String?
-  fatherDateOfDeath          DateTime?
-  fatherCauseOfDeath         String?
-  motherName                 String?
-  motherDob                  DateTime?
-  motherAge                  Int?
-  motherCnic                 String?
-  motherEducation            String?
-  motherTongue               String?
-  motherNativeArea           String?
-  motherAlive                String?
-  motherSeparationReason     String?
-  motherEmploymentStatus     String?
-  motherIsGuardian           String?
-  motherContact              String?
-  motherIsHousewife          Boolean?
-  motherOccupation           String?
-  motherMonthlyIncome        Float?
-  motherRemarried            Boolean?
-  motherDeathDate            DateTime?
-  motherDeathCause           String?
-  guardianName               String?
-  guardianRelationship       String?
-  guardianGender             String?
-  guardianCnic               String?
-  guardianEducation          String?
-  guardianMotherTongue       String?
-  guardianNativeArea         String?
-  guardianContact            String?
-  guardianZakatStatus        String?
-  guardianOccupation         String?
-  guardianFamilyHolder       String?
-  guardianFamilyHolderAmount Float?
-  guardianFamilyMembersCount Int?
-  guardianMonthlyIncome      Float?
-  paternalGrandfatherName    String?
-  paternalGrandfatherAge     Int?
+  id                            String                @id @default(uuid())
+  registrationNumber            String?               @unique
+  collectorId                   String?
+  collectorName                 String?
+  collectorProject              String?
+  collectorCnic                 String?
+  collectorAddress              String?
+  collectorContact              String?
+  fatherName                    String?
+  fatherDob                     DateTime?
+  fatherAge                     Int?
+  fatherCnic                    String?
+  fatherEducation               String?
+  fatherTongue                  String?
+  fatherNativeArea              String?
+  fatherOccupation              String?
+  fatherDateOfDeath             DateTime?
+  fatherCauseOfDeath            String?
+  motherName                    String?
+  motherDob                     DateTime?
+  motherAge                     Int?
+  motherCnic                    String?
+  motherEducation               String?
+  motherTongue                  String?
+  motherNativeArea              String?
+  motherAlive                   String?
+  motherSeparationReason        String?
+  motherEmploymentStatus        String?
+  motherIsGuardian              String?
+  motherContact                 String?
+  motherIsHousewife             Boolean?
+  motherOccupation              String?
+  motherMonthlyIncome           Float?
+  motherRemarried               Boolean?
+  motherDeathDate               DateTime?
+  motherDeathCause              String?
+  guardianName                  String?
+  guardianRelationship          String?
+  guardianGender                String?
+  guardianCnic                  String?
+  guardianEducation             String?
+  guardianMotherTongue          String?
+  guardianNativeArea            String?
+  guardianContact               String?
+  guardianZakatStatus           String?
+  guardianOccupation            String?
+  guardianFamilyHolder          String?
+  guardianFamilyHolderAmount    Float?
+  guardianFamilyMembersCount    Int?
+  guardianMonthlyIncome         Float?
+  paternalGrandfatherName       String?
+  paternalGrandfatherAge        Int?
   paternalGrandfatherOccupation String?
-  paternalGrandfatherIncome  Float?
-  maternalGrandfatherName    String?
-  maternalGrandfatherAge     Int?
+  paternalGrandfatherIncome     Float?
+  maternalGrandfatherName       String?
+  maternalGrandfatherAge        Int?
   maternalGrandfatherOccupation String?
-  maternalGrandfatherIncome  Float?
-  relativeInformationDisclosed Boolean?
-  province                   String?
-  city                       String?
-  district                   String?
-  tehsil                     String?
-  residentialArea            String?
-  fullAddress                String?
-  longitude                  Float?
-  latitude                   Float?
-  gpsAccuracyMeters          Float?
-  gpsCapturedAt              DateTime?
-  houseOwnershipStatus       String?
-  monthlyRent                Float?
-  rentPaidBy                 String?
-  houseOwner                 String?
-  houseCondition             String?
-  residenceStructureType     String?
-  residenceCategory          String?
-  houseConditionRemarks      String?
-  electricityAvailable       Boolean?
-  gasAvailable               Boolean?
-  waterAvailable             Boolean?
-  furnishingCondition        String?
-  furnishingConditionRemarks String?
-  childName                  String?
-  gender                     String?
-  caste                      String?
-  sect                       String?
-  religion                   String?
-  specifyReligion            String?
-  syedStatus                 String?
-  nationality                String?
-  specifyNationality         String?
-  bFormNumber                String?
-  dateOfBirth                DateTime?
-  age                        Int?
-  totalSiblings              Int?
-  totalBrothers              Int?
-  totalSisters               Int?
-  registeredBrothers         Int?
-  registeredSisters          Int?
-  siblingsUnder12            Int?
-  childLivesWithMother       Boolean?
-  livingSituationNotes       String?
-  healthStatus               String?
-  disabilityDetails           String?
-  disabilityType             String?
-  disabilityCause            String?
-  disabilityCauseDetails     String?
-  disabilitySince            String?
-  treatmentOngoing           String?
-  chronicDisease             String?
-  specifyDisease             String?
-  illnessSince               DateTime?
-  treatmentPlace             String?
-  monthlyMedicalExpenses     Float?
-  currentlyStudying          Boolean?
-  notStudyingReason          String?
-  educationStartCondition    String?
-  currentClass               String?
-  schoolName                 String?
-  schoolAddress              String?
-  enrolledInMadrasa          Boolean?
-  madrasaName                String?
-  madrasaEducationDetails    String?
-  educationFeeStatus         String?
-  monthlySchoolFee           Float?
-  schoolDistanceKm           Float?
-  schoolTransportMode        String?
-  schoolStudyingSince        DateTime?
-  educationUndertakingAccepted Boolean?
-  educationFree              String?
-  currentSkillLearning       String?
-  currentSkill               String?
-  childHobbies               String?
-  technicalSkillInterest     String?
-  technicalSkill             String?
-  totalFamilyMembers         Int?
-  householdHasMonthlyIncome  String?
-  childEarnsIncome           String?
-  childWorkNature            String?
-  assistanceApplied          String?
-  assistanceAppliedWhere     String?
-  careerGoal                 String?
-  technicalInterest          String?
-  learningSkill              String?
-  childMonthlyIncome         Float?
-  householdEarnersCount      Int?
-  totalHouseholdIncome       Float?
-  receivingOtherAid          Boolean?
-  otherAidSource             String?
-  monthlyAidAmount           Float?
-  notAppliedElsewhereReason  String?
-  principalName              String?
-  institutionName            String?
-  verifiedStudentName        String?
-  verifiedFatherName         String?
-  verifiedClass              String?
-  verifiedMonthlyFee         Float?
-  principalSignatureFileKey  String?
-  institutionStampFileKey    String?
-  imamName                   String?
-  mosqueName                 String?
-  neighborhoodCity           String?
-  imamMobile                 String?
-  motherZakatStatus          String?
-  imamSignatureFileKey       String?
-  mosqueStampFileKey         String?
-  guardianSignatureFileKey   String?
-  termsAccepted              Boolean?           @default(false)
-  termsAcceptedAt            DateTime?
-  status                     ApplicationStatus  @default(draft)
-  migrationStatus            MigrationStatus   @default(pending)
-  mainSaibanId               String?
-  migrationErrors            String?
-  createdBy                  User               @relation("CreatedApplications", fields: [createdById], references: [id])
-  createdById                String
-  updatedBy                  User?              @relation("UpdatedApplications", fields: [updatedById], references: [id])
-  updatedById                String?
-  siblings                   Sibling[]
-  relatives                  Relative[]
-  householdAssets            HouseholdAsset[]
-  documents                  ApplicationDocument[]
-  auditLogs                  AuditLog[]
-  createdAt                  DateTime           @default(now())
-  updatedAt                  DateTime           @updatedAt
+  maternalGrandfatherIncome     Float?
+  relativeInformationDisclosed  Boolean?
+  province                      String?
+  city                          String?
+  district                      String?
+  tehsil                        String?
+  residentialArea               String?
+  fullAddress                   String?
+  longitude                     Float?
+  latitude                      Float?
+  gpsAccuracyMeters             Float?
+  gpsCapturedAt                 DateTime?
+  houseOwnershipStatus          String?
+  monthlyRent                   Float?
+  rentPaidBy                    String?
+  houseOwner                    String?
+  houseCondition                String?
+  residenceStructureType        String?
+  residenceCategory             String?
+  houseConditionRemarks         String?
+  electricityAvailable          Boolean?
+  gasAvailable                  Boolean?
+  waterAvailable                Boolean?
+  furnishingCondition           String?
+  furnishingConditionRemarks    String?
+  childName                     String?
+  gender                        String?
+  caste                         String?
+  sect                          String?
+  religion                      String?
+  specifyReligion               String?
+  syedStatus                    String?
+  nationality                   String?
+  specifyNationality            String?
+  bFormNumber                   String?
+  dateOfBirth                   DateTime?
+  age                           Int?
+  totalSiblings                 Int?
+  totalBrothers                 Int?
+  totalSisters                  Int?
+  registeredBrothers            Int?
+  registeredSisters             Int?
+  siblingsUnder12               Int?
+  childLivesWithMother          Boolean?
+  livingSituationNotes          String?
+  healthStatus                  String?
+  disabilityDetails             String?
+  disabilityType                String?
+  disabilityCause               String?
+  disabilityCauseDetails        String?
+  disabilitySince               String?
+  treatmentOngoing              String?
+  chronicDisease                String?
+  specifyDisease                String?
+  illnessSince                  DateTime?
+  treatmentPlace                String?
+  monthlyMedicalExpenses        Float?
+  currentlyStudying             Boolean?
+  notStudyingReason             String?
+  educationStartCondition       String?
+  currentClass                  String?
+  schoolName                    String?
+  schoolAddress                 String?
+  enrolledInMadrasa             Boolean?
+  madrasaName                   String?
+  madrasaEducationDetails       String?
+  educationFeeStatus            String?
+  monthlySchoolFee              Float?
+  schoolDistanceKm              Float?
+  schoolTransportMode           String?
+  schoolStudyingSince           DateTime?
+  educationUndertakingAccepted  Boolean?
+  educationFree                 String?
+  currentSkillLearning          String?
+  currentSkill                  String?
+  childHobbies                  String?
+  technicalSkillInterest        String?
+  technicalSkill                String?
+  totalFamilyMembers            Int?
+  householdHasMonthlyIncome     String?
+  childEarnsIncome              String?
+  childWorkNature               String?
+  assistanceApplied             String?
+  assistanceAppliedWhere        String?
+  careerGoal                    String?
+  technicalInterest             String?
+  learningSkill                 String?
+  childMonthlyIncome            Float?
+  householdEarnersCount         Int?
+  totalHouseholdIncome          Float?
+  receivingOtherAid             Boolean?
+  otherAidSource                String?
+  monthlyAidAmount              Float?
+  notAppliedElsewhereReason     String?
+  principalName                 String?
+  institutionName               String?
+  verifiedStudentName           String?
+  verifiedFatherName            String?
+  verifiedClass                 String?
+  verifiedMonthlyFee            Float?
+  principalSignatureFileKey     String?
+  institutionStampFileKey       String?
+  imamName                      String?
+  mosqueName                    String?
+  neighborhoodCity              String?
+  imamMobile                    String?
+  motherZakatStatus             String?
+  imamSignatureFileKey          String?
+  mosqueStampFileKey            String?
+  guardianSignatureFileKey      String?
+  termsAccepted                 Boolean?              @default(false)
+  termsAcceptedAt               DateTime?
+  status                        ApplicationStatus     @default(draft)
+  migrationStatus               MigrationStatus       @default(pending)
+  mainSaibanId                  String?
+  migrationErrors               String?
+  createdBy                     User                  @relation("CreatedApplications", fields: [createdById], references: [id])
+  createdById                   String
+  updatedBy                     User?                 @relation("UpdatedApplications", fields: [updatedById], references: [id])
+  updatedById                   String?
+  siblings                      Sibling[]
+  relatives                     Relative[]
+  householdAssets               HouseholdAsset[]
+  documents                     ApplicationDocument[]
+  auditLogs                     AuditLog[]
+  createdAt                     DateTime              @default(now())
+  updatedAt                     DateTime              @updatedAt
 }
 
 model Sibling {
-  id                   String             @id @default(uuid())
-  application          OrphanApplication  @relation(fields: [applicationId], references: [id])
-  applicationId        String
-  name                 String?
-  relation             String?
-  dob                  DateTime?
-  age                  Int?
-  educationStatus      String?
-  currentlyStudying    Boolean?
-  occupation           String?
-  monthlyIncomeOrFee   Float?
-  maritalStatus        String?
+  id                 String            @id @default(uuid())
+  application        OrphanApplication @relation(fields: [applicationId], references: [id])
+  applicationId      String
+  name               String?
+  relation           String?
+  dob                DateTime?
+  age                Int?
+  educationStatus    String?
+  currentlyStudying  Boolean?
+  occupation         String?
+  monthlyIncomeOrFee Float?
+  maritalStatus      String?
 }
 
 model Relative {
-  id            String            @id @default(uuid())
-  application   OrphanApplication @relation(fields: [applicationId], references: [id])
-  applicationId String
-  relativeType  RelativeType
-  name          String?
-  age           Int?
-  occupation    String?
-  occupationOther String?
-  monthlyIncome Float?
-  supportType   String?
+  id               String            @id @default(uuid())
+  application      OrphanApplication @relation(fields: [applicationId], references: [id])
+  applicationId    String
+  relativeType     RelativeType
+  name             String?
+  age              Int?
+  occupation       String?
+  occupationOther  String?
+  monthlyIncome    Float?
+  supportType      String?
   supportTypeOther String?
 }
 
@@ -320,28 +322,35 @@ model ApplicationDocument {
 }
 
 model AuditLog {
-  id          String   @id @default(uuid())
-  tableName   String
-  recordId    String
-  action      String
-  actor       User     @relation(fields: [actorId], references: [id])
-  actorId     String
-  application OrphanApplication @relation(fields: [applicationId], references: [id])
+  id            String            @id @default(uuid())
+  tableName     String
+  recordId      String
+  action        String
+  actor         User              @relation(fields: [actorId], references: [id])
+  actorId       String
+  application   OrphanApplication @relation(fields: [applicationId], references: [id])
   applicationId String
-  details     Json?
-  createdAt   DateTime @default(now())
+  details       Json?
+  createdAt     DateTime          @default(now())
 }
 
 model AddressOption {
-  id        String            @id @default(uuid())
-  type      AddressOptionType
-  province  String
-  district  String?
-  name      String
-  createdBy User?             @relation(fields: [createdById], references: [id])
+  id          String            @id @default(uuid())
+  type        AddressOptionType
+  province    String
+  district    String?
+  name        String
+  createdBy   User?             @relation(fields: [createdById], references: [id])
   createdById String?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   @@unique([type, province, district, name])
+}
+
+model ProjectOption {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

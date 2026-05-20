@@ -74,3 +74,4 @@ export default async function AppShell({ title, description, actions, maxWidth =
     </main>
   );
 }
+

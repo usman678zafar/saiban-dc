@@ -98,7 +98,7 @@ export default function FieldWorkerForm() {
         />
       </label>
       <label className="grid gap-2 text-sm text-slate-700">
-        <span>Project/منصوبہ</span>
+        <span>Department/شعبہ</span>
         <select
           value={project}
           onChange={(event) => setProject(event.target.value)}
@@ -155,3 +155,8 @@ export default function FieldWorkerForm() {
     </form>
   );
 }
+
+
+
+
+

@@ -29,9 +29,9 @@ export default async function SupervisorPage({
   const project = user?.role === 'admin' ? undefined : user?.project;
   if (user?.role !== 'admin' && !project) {
     return (
-      <AppShell title="Supervisor Review" description="Your supervisor account needs a project assignment before applications can appear.">
+      <AppShell title="Supervisor Review" description="Your supervisor account needs a department assignment before applications can appear.">
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Ask an admin to assign your supervisor account to a project.
+          Ask an admin to assign your supervisor account to a department.
         </div>
       </AppShell>
     );
@@ -75,7 +75,7 @@ export default async function SupervisorPage({
               type="search"
               name="q"
               defaultValue={search}
-              placeholder="Search by name, registration, B-form, CNIC, project"
+              placeholder="Search by name, registration, B-form, CNIC, department"
               className="min-h-11 w-full rounded-lg border border-slate-300 bg-slate-50 pl-10 pr-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </label>
@@ -97,7 +97,7 @@ export default async function SupervisorPage({
             <thead className="bg-slate-50 text-slate-700">
               <tr>
                 <th className="px-4 py-3">Application</th>
-                <th className="px-4 py-3">Project</th>
+                <th className="px-4 py-3">Department</th>
                 <th className="px-4 py-3">Collector</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Updated</th>
@@ -152,3 +152,9 @@ export default async function SupervisorPage({
     </AppShell>
   );
 }
+
+
+
+
+
+

@@ -11,7 +11,7 @@ export const labels: Record<string, LabelPair> = {
   motherIsGuardian: { ur: 'والدہ سرپرست ہیں', en: 'Mother Is Guardian' },
   registrationNumber: { ur: 'رجسٹریشن نمبر', en: 'Registration Number' },
   collectorName: { ur: 'جمع کرنے والے کا نام', en: 'Collector Name' },
-  collectorProject: { ur: 'پراجیکٹ', en: 'Project' },
+  collectorProject: { ur: 'شعبہ', en: 'Department' },
   collectorCnic: { ur: 'جمع کرنے والے کا CNIC', en: 'Collector CNIC' },
   collectorAddress: { ur: 'جمع کرنے والے کا پتہ', en: 'Collector Address' },
   collectorContact: { ur: 'جمع کرنے والے کا رابطہ', en: 'Collector Contact' },
@@ -158,3 +158,6 @@ export const labels: Record<string, LabelPair> = {
   termsAccepted: { ur: 'شرائط قبول کی گئی ہیں', en: 'Terms Accepted' },
   termsAcceptedAt: { ur: 'شرائط قبول کرنے کی تاریخ', en: 'Terms Accepted At' },
 };
+
+
+

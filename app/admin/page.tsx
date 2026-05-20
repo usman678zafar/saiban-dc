@@ -219,7 +219,7 @@ export default async function AdminPortalPage() {
                           <span className="shrink-0 text-xs text-[#8a9bb3]">{worker.createdAt.toLocaleDateString()}</span>
                         </div>
                         <div className="mt-2 grid gap-2 text-xs text-[#506784] sm:grid-cols-2">
-                          <p className="min-w-0 truncate"><span className="font-semibold text-[#0f1f33]">Project:</span> {worker.project ?? '-'}</p>
+                          <p className="min-w-0 truncate"><span className="font-semibold text-[#0f1f33]">Department:</span> {worker.project ?? '-'}</p>
                           <p className="min-w-0 truncate"><span className="font-semibold text-[#0f1f33]">Phone:</span> {worker.phoneNumber ?? '-'}</p>
                         </div>
                       </article>
@@ -237,3 +237,9 @@ export default async function AdminPortalPage() {
     </AdminShell>
   );
 }
+
+
+
+
+
+

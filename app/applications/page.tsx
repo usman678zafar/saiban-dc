@@ -130,7 +130,7 @@ export default async function ApplicationsPage({
               type="search"
               name="q"
               defaultValue={search}
-              placeholder="Search by name, registration, B-form, CNIC, project"
+              placeholder="Search by name, registration, B-form, CNIC, department"
               className="min-h-11 w-full rounded-lg border border-slate-300 bg-slate-50 pl-10 pr-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </label>
@@ -341,3 +341,7 @@ function MobilePagination({ page, hasPrev, hasNext, totalPages, pageHref }: { pa
     </div>
   );
 }
+
+
+
+

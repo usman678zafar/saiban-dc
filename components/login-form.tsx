@@ -57,7 +57,7 @@ export default function LoginForm({
       setIsSubmitting(false);
     }
   };
-  const identifierLabel = loginRole === 'field_worker' ? 'Phone Number or CNIC' : loginRole === 'admin' || loginRole === 'supervisor' ? 'Email or Username' : 'Email';
+  const identifierLabel = loginRole === 'field_worker' ? 'Phone Number or CNIC' : loginRole === 'supervisor' ? 'Phone Number' : loginRole === 'admin' ? 'Email or Username' : 'Email';
   const identifierType = loginRole ? 'text' : 'email';
 
   return (
@@ -97,3 +97,4 @@ export default function LoginForm({
     </div>
   );
 }
+

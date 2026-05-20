@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, ClipboardList, LayoutDashboard, LogOut, PlusCircle, ShieldCheck, UsersRound } from 'lucide-react';
+import { BarChart3, ClipboardList, FolderKanban, LayoutDashboard, LogOut, PlusCircle, ShieldCheck, UsersRound } from 'lucide-react';
 import clsx from 'clsx';
 import SignOutButton from './sign-out-button';
 import logo from '@/assests/logo.png';
@@ -18,6 +18,7 @@ const navItems = [
   { href: '/admin/applications/new', label: 'New Application', mobileLabel: 'New', icon: PlusCircle, exact: true },
   { href: '/admin/supervisors', label: 'Supervisors', mobileLabel: 'Supers', icon: ShieldCheck },
   { href: '/admin/field-workers', label: 'Field Workers', mobileLabel: 'Workers', icon: UsersRound },
+  { href: '/admin/projects', label: 'Departments', mobileLabel: 'Depts', icon: FolderKanban },
   { href: '/dashboard', label: 'Field Dashboard', mobileLabel: 'Field', icon: BarChart3, exact: true },
 ];
 
@@ -74,7 +75,7 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
       </aside>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#dbe4ef] bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
-        <div className="mx-auto grid max-w-xl grid-cols-7 gap-1">
+        <div className="mx-auto grid max-w-2xl grid-cols-8 gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActivePath(pathname, item.href, item.exact);
@@ -104,3 +105,6 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
     </>
   );
 }
+
+
+

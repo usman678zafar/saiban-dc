@@ -21,3 +21,4 @@ export function applicationSearchWhere(search: string): Prisma.OrphanApplication
     ],
   };
 }
+

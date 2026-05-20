@@ -4,15 +4,20 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { UserRole } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
-import { isFieldWorkerProject, fieldWorkerProjects } from '@/lib/field-workers';
+import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
+
+const digitsOnly = (value: string) => value.replace(/\D/g, '');
+const supervisorEmailForPhone = (phoneNumber: string) => `${phoneNumber.replace(/[^a-zA-Z0-9]+/g, '')}@supervisor.saiban.local`;
 
 const createSupervisorSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  email: z.string().trim().email('Valid email is required').transform((value) => value.toLowerCase()),
-  phoneNumber: z.string().trim().optional().default(''),
-  project: z.string().refine(isFieldWorkerProject, 'Project is required'),
-  password: z.string().min(4, 'Password must be at least 4 characters'),
+  phoneNumber: z.string().trim().min(1, 'Phone number is required').refine((value) => digitsOnly(value).length >= 4, {
+    message: 'Phone number must contain at least 4 digits',
+  }),
+  project: z.string().trim().min(1, 'Department is required'),
+  cnic: z.string().trim().optional().default(''),
+  address: z.string().trim().optional().default(''),
 });
 
 export async function POST(request: NextRequest) {
@@ -27,27 +32,35 @@ export async function POST(request: NextRequest) {
 
   try {
     const input = createSupervisorSchema.parse(await request.json());
+    const projects = await getFieldWorkerProjectOptions();
+    if (!projects.includes(input.project)) {
+      return NextResponse.json({ message: 'Department is required' }, { status: 422 });
+    }
     const existing = await prisma.user.findFirst({
       where: {
         OR: [
-          { email: input.email },
-          ...(input.phoneNumber ? [{ phoneNumber: input.phoneNumber }] : []),
+          { email: supervisorEmailForPhone(input.phoneNumber) },
+          { phoneNumber: input.phoneNumber },
+          ...(input.cnic ? [{ cnic: input.cnic }] : []),
         ],
       },
       select: { id: true },
     });
 
     if (existing) {
-      return NextResponse.json({ message: 'A user with this email or phone already exists.' }, { status: 409 });
+      return NextResponse.json({ message: 'A user with this phone number or CNIC already exists.' }, { status: 409 });
     }
 
+    const password = digitsOnly(input.phoneNumber).slice(-4);
     const supervisor = await prisma.user.create({
       data: {
         name: input.name,
-        email: input.email,
-        phoneNumber: input.phoneNumber || null,
+        email: supervisorEmailForPhone(input.phoneNumber),
+        phoneNumber: input.phoneNumber,
+        cnic: input.cnic || null,
+        address: input.address || null,
         project: input.project,
-        passwordHash: await bcrypt.hash(input.password, 10),
+        passwordHash: await bcrypt.hash(password, 10),
         role: UserRole.supervisor,
       },
       select: {
@@ -55,6 +68,8 @@ export async function POST(request: NextRequest) {
         name: true,
         email: true,
         phoneNumber: true,
+        cnic: true,
+        address: true,
         project: true,
         createdAt: true,
       },
@@ -70,6 +85,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export function GET() {
-  return NextResponse.json({ projects: fieldWorkerProjects });
+export async function GET() {
+  const projects = await getFieldWorkerProjectOptions();
+  return NextResponse.json({ projects });
 }
+
+
+
+
+

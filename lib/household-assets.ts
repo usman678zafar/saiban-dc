@@ -220,3 +220,4 @@ export function householdSelectionToApiRows(selection: HouseholdAssetSelection):
 
   return rows;
 }
+

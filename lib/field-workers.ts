@@ -1,16 +1,16 @@
 import type { Prisma } from '@prisma/client';
 
-export const fieldWorkerProjects = ['Link Road', 'Talagang', 'Schools', 'Volunteer', 'Self Registered'] as const;
+export const fieldWorkerProjects = ['Link Road', 'Talagang', 'Makatib', 'Volunteer', 'Self Registered'] as const;
 
 export type FieldWorkerProject = (typeof fieldWorkerProjects)[number];
 
 export const reviewProjects = fieldWorkerProjects;
 
 const projectAliases: Record<FieldWorkerProject, string[]> = {
-  'Link Road': [],
+  'Link Road': ['Link Road/\u0644\u0646\u06a9 \u0631\u0648\u0688'],
   Talagang: [],
-  Schools: [],
-  Volunteer: ['Volunteer/رضاکار'],
+  Makatib: ['Schools'],
+  Volunteer: ['Volunteer/\u0631\u0636\u0627\u06a9\u0627\u0631'],
   'Self Registered': [],
 };
 
@@ -50,3 +50,4 @@ export function projectMatchesReviewAssignment(applicationProject: string | null
 
   return projectReviewValues(reviewerProject).includes(applicationProject);
 }
+

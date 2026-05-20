@@ -33,3 +33,4 @@ export async function getApplicationDocuments(applicationId: string) {
     fileUrl: normalizeR2FileUrl(document.fileUrl, document.fileKey),
   }));
 }
+

@@ -123,3 +123,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Registration failed. Please try again.' }, { status: 500 });
   }
 }
+

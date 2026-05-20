@@ -217,3 +217,4 @@ export function documentsToWizardDocuments(documents: ApplicationDocumentView[])
     fileKey: document.fileKey,
   }));
 }
+

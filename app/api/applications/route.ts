@@ -712,3 +712,4 @@ export async function DELETE(request: NextRequest) {
 
   return NextResponse.json({ message: 'Draft application deleted successfully.' });
 }
+

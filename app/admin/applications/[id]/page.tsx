@@ -80,3 +80,4 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
     </AdminShell>
   );
 }
+

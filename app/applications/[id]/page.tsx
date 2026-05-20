@@ -83,3 +83,4 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
     </AppShell>
   );
 }
+

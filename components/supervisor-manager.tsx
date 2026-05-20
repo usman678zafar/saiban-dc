@@ -3,36 +3,37 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Edit2, Plus, Trash2, X } from 'lucide-react';
-import { fieldWorkerProjects } from '@/lib/field-workers';
 
 export type SupervisorListItem = {
   id: string;
   name: string | null;
   email: string;
   phoneNumber: string | null;
+  cnic: string | null;
+  address: string | null;
   project: string | null;
   createdAt: string;
 };
 
 type FormState = {
   name: string;
-  email: string;
   phoneNumber: string;
+  cnic: string;
+  address: string;
   project: string;
-  password: string;
 };
 
-const emptyForm: FormState = {
+const buildEmptyForm = (projects: string[]): FormState => ({
   name: '',
-  email: '',
   phoneNumber: '',
-  project: fieldWorkerProjects[0],
-  password: '',
-};
+  cnic: '',
+  address: '',
+  project: projects[0] ?? '',
+});
 
-export default function SupervisorManager({ supervisors }: { supervisors: SupervisorListItem[] }) {
+export default function SupervisorManager({ supervisors, projects }: { supervisors: SupervisorListItem[]; projects: string[] }) {
   const router = useRouter();
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [form, setForm] = useState<FormState>(() => buildEmptyForm(projects));
   const [selected, setSelected] = useState<SupervisorListItem | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -40,7 +41,7 @@ export default function SupervisorManager({ supervisors }: { supervisors: Superv
 
   const openAdd = () => {
     setSelected(null);
-    setForm(emptyForm);
+    setForm(buildEmptyForm(projects));
     setMessage(null);
     setIsOpen(true);
   };
@@ -49,10 +50,10 @@ export default function SupervisorManager({ supervisors }: { supervisors: Superv
     setSelected(supervisor);
     setForm({
       name: supervisor.name ?? '',
-      email: supervisor.email,
       phoneNumber: supervisor.phoneNumber ?? '',
-      project: fieldWorkerProjects.includes(supervisor.project as any) ? supervisor.project! : fieldWorkerProjects[0],
-      password: '',
+      cnic: supervisor.cnic ?? '',
+      address: supervisor.address ?? '',
+      project: supervisor.project && projects.includes(supervisor.project) ? supervisor.project : projects[0] ?? '',
     });
     setMessage(null);
     setIsOpen(true);
@@ -77,12 +78,12 @@ export default function SupervisorManager({ supervisors }: { supervisors: Superv
     }
 
     setIsOpen(false);
-    setForm(emptyForm);
+    setForm(buildEmptyForm(projects));
     router.refresh();
   };
 
   const remove = async (supervisor: SupervisorListItem) => {
-    if (!window.confirm(`Delete supervisor ${supervisor.name ?? supervisor.email}?`)) return;
+    if (!window.confirm(`Delete supervisor ${supervisor.name ?? supervisor.phoneNumber ?? supervisor.email}?`)) return;
 
     const response = await fetch(`/api/admin/supervisors/${supervisor.id}`, { method: 'DELETE' });
     const result = await response.json();
@@ -99,7 +100,7 @@ export default function SupervisorManager({ supervisors }: { supervisors: Superv
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-[#0f1f33]">Supervisor Accounts</h2>
-            <p className="mt-1 text-sm text-[#5f718a]">Assign each supervisor to the project they review.</p>
+            <p className="mt-1 text-sm text-[#5f718a]">Assign each supervisor to the department they review.</p>
           </div>
           <button type="button" onClick={openAdd} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-4 py-3 text-sm font-semibold text-white hover:bg-[#2563eb]">
             <Plus size={18} />
@@ -115,7 +116,7 @@ export default function SupervisorManager({ supervisors }: { supervisors: Superv
           <thead className="bg-[#f6f9fd] text-xs uppercase tracking-[0.12em] text-[#7d8fa6]">
             <tr>
               <th className="px-4 py-3">Supervisor</th>
-              <th className="px-4 py-3">Project</th>
+              <th className="px-4 py-3">Department</th>
               <th className="px-4 py-3">Phone</th>
               <th className="px-4 py-3">Added</th>
               <th className="px-4 py-3 text-right">Actions</th>
@@ -131,7 +132,7 @@ export default function SupervisorManager({ supervisors }: { supervisors: Superv
                 <tr key={supervisor.id} className="border-t border-[#edf2f7] hover:bg-[#f8fbff]">
                   <td className="px-4 py-4">
                     <p className="font-semibold text-[#0f1f33]">{supervisor.name ?? 'Unnamed supervisor'}</p>
-                    <p className="mt-1 text-xs text-[#8a9bb3]">{supervisor.email}</p>
+                    <p className="mt-1 text-xs text-[#8a9bb3]">Login: {supervisor.phoneNumber ?? '-'}</p>
                   </td>
                   <td className="px-4 py-4">{supervisor.project ?? '-'}</td>
                   <td className="px-4 py-4">{supervisor.phoneNumber ?? '-'}</td>
@@ -159,7 +160,7 @@ export default function SupervisorManager({ supervisors }: { supervisors: Superv
             <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">{selected ? 'Edit Supervisor' : 'Add Supervisor'}</h2>
-                <p className="mt-1 text-sm text-slate-500">Supervisors can only review applications for their assigned project.</p>
+                <p className="mt-1 text-sm text-slate-500">Default password is the last 4 digits of the phone number.</p>
               </div>
               <button type="button" onClick={() => setIsOpen(false)} className="inline-flex size-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Close modal">
                 <X size={18} />
@@ -169,32 +170,35 @@ export default function SupervisorManager({ supervisors }: { supervisors: Superv
             <form onSubmit={submit} className="grid gap-4 px-6 py-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm text-slate-700">
-                  <span>Name</span>
+                  <span>Name <span className="text-rose-500">*</span></span>
                   <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                 </label>
                 <label className="grid gap-2 text-sm text-slate-700">
-                  <span>Email</span>
-                  <input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                  <span>Phone Number <span className="text-rose-500">*</span></span>
+                  <input value={form.phoneNumber} onChange={(event) => setForm({ ...form, phoneNumber: event.target.value })} required inputMode="tel" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                 </label>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm text-slate-700">
-                  <span>Phone</span>
-                  <input value={form.phoneNumber} onChange={(event) => setForm({ ...form, phoneNumber: event.target.value })} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
-                </label>
-                <label className="grid gap-2 text-sm text-slate-700">
-                  <span>Project</span>
+                  <span>Department <span className="text-rose-500">*</span></span>
                   <select value={form.project} onChange={(event) => setForm({ ...form, project: event.target.value })} required className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-                    {fieldWorkerProjects.map((project) => (
+                    {projects.map((project) => (
                       <option key={project} value={project}>{project}</option>
                     ))}
                   </select>
                 </label>
+                <label className="grid gap-2 text-sm text-slate-700">
+                  <span>CNIC <span className="text-xs text-slate-400">(optional)</span></span>
+                  <input value={form.cnic} onChange={(event) => setForm({ ...form, cnic: event.target.value })} inputMode="numeric" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                </label>
               </div>
               <label className="grid gap-2 text-sm text-slate-700">
-                <span>{selected ? 'New Password' : 'Password'}</span>
-                <input type="text" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required={!selected} placeholder={selected ? 'Leave blank to keep current password' : ''} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                <span>Address <span className="text-xs text-slate-400">(optional)</span></span>
+                <textarea value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} rows={3} className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </label>
+              <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                Supervisor login uses this phone number. Password: last 4 digits of the phone number.
+              </div>
 
               {message ? <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{message}</p> : null}
 
@@ -213,3 +217,9 @@ export default function SupervisorManager({ supervisors }: { supervisors: Superv
     </div>
   );
 }
+
+
+
+
+
+

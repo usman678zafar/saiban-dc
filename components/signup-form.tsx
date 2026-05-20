@@ -248,3 +248,4 @@ function AuthFooter() {
     </footer>
   );
 }
+

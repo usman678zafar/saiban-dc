@@ -44,3 +44,4 @@ export function badgeClass(status: string) {
       return 'bg-slate-100 text-slate-800';
   }
 }
+
