@@ -2,10 +2,12 @@ import Link from 'next/link';
 import { ApplicationStatus } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
+import { Search, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import { applicationStatusLabel } from '@/lib/application-workflow';
+import { applicationSearchWhere } from '@/lib/application-search';
 
 const PAGE_SIZE = 50;
 const adminVisibleApplicationWhere = {
@@ -26,18 +28,28 @@ type ApplicationListItem = {
 export default async function AdminApplicationsPage({
   searchParams,
 }: {
-  searchParams: { page?: string };
+  searchParams: { page?: string; q?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications');
   if (session.user.role !== 'admin') redirect('/dashboard');
 
+  const search = searchParams.q?.trim() ?? '';
+  const searchWhere = applicationSearchWhere(search);
+  const where = { ...adminVisibleApplicationWhere, ...searchWhere };
   const page = Math.max(1, Number(searchParams.page) || 1);
   const skip = (page - 1) * PAGE_SIZE;
+  const pageHref = (nextPage: number) => {
+    const params = new URLSearchParams();
+    if (search) params.set('q', search);
+    if (nextPage > 1) params.set('page', String(nextPage));
+    const query = params.toString();
+    return query ? `/admin/applications?${query}` : '/admin/applications';
+  };
 
   const [applications, total] = await Promise.all([
     prisma.orphanApplication.findMany({
-      where: adminVisibleApplicationWhere,
+      where,
       orderBy: { updatedAt: 'desc' },
       skip,
       take: PAGE_SIZE,
@@ -50,7 +62,7 @@ export default async function AdminApplicationsPage({
         updatedAt: true,
       },
     }) as Promise<ApplicationListItem[]>,
-    prisma.orphanApplication.count({ where: adminVisibleApplicationWhere }),
+    prisma.orphanApplication.count({ where }),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -68,6 +80,31 @@ export default async function AdminApplicationsPage({
           New Application
         </Link>
       </header>
+
+      <form action="/admin/applications" className="mb-4 rounded-xl border border-[#dbe4ef] bg-white p-3">
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <label className="relative min-w-0 flex-1">
+            <span className="sr-only">Search applications</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9bb3]" aria-hidden="true" />
+            <input
+              type="search"
+              name="q"
+              defaultValue={search}
+              placeholder="Search by name, registration, B-form, CNIC, project"
+              className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] pl-10 pr-3 text-sm text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
+            />
+          </label>
+          <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#3b82f6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2563eb]">
+            Search
+          </button>
+          {search ? (
+            <Link href="/admin/applications" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-4 py-2 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd]">
+              <X className="h-4 w-4" aria-hidden="true" />
+              Clear
+            </Link>
+          ) : null}
+        </div>
+      </form>
 
       <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
         <div className="grid gap-3 p-3 md:hidden">
@@ -130,14 +167,14 @@ export default async function AdminApplicationsPage({
           <span>{total === 0 ? 'No records' : `Showing ${skip + 1}–${Math.min(skip + PAGE_SIZE, total)} of ${total}`}</span>
           <div className="flex gap-2">
             {hasPrev ? (
-              <Link href={`/admin/applications?page=${page - 1}`} className="rounded-lg border border-[#dbe4ef] px-3 py-1.5 text-xs font-semibold hover:bg-[#f6f9fd]">
+              <Link href={pageHref(page - 1)} className="rounded-lg border border-[#dbe4ef] px-3 py-1.5 text-xs font-semibold hover:bg-[#f6f9fd]">
                 Previous
               </Link>
             ) : (
               <span className="rounded-lg border border-[#edf2f7] px-3 py-1.5 text-xs font-semibold text-[#c2d0e0]">Previous</span>
             )}
             {hasNext ? (
-              <Link href={`/admin/applications?page=${page + 1}`} className="rounded-lg border border-[#dbe4ef] px-3 py-1.5 text-xs font-semibold hover:bg-[#f6f9fd]">
+              <Link href={pageHref(page + 1)} className="rounded-lg border border-[#dbe4ef] px-3 py-1.5 text-xs font-semibold hover:bg-[#f6f9fd]">
                 Next
               </Link>
             ) : (

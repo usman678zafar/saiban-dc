@@ -1,3 +1,5 @@
+import type { Prisma } from '@prisma/client';
+
 export const fieldWorkerProjects = ['Link Road', 'Talagang', 'Schools', 'Volunteer', 'Self Registered'] as const;
 
 export type FieldWorkerProject = (typeof fieldWorkerProjects)[number];
@@ -22,7 +24,7 @@ export function projectReviewValues(project: string) {
   return [project, ...projectAliases[project]];
 }
 
-export function collectorProjectReviewWhere(project: string) {
+export function collectorProjectReviewWhere(project: string): Prisma.OrphanApplicationWhereInput {
   if (project === 'Self Registered') {
     return {
       OR: [
