@@ -10,7 +10,7 @@ import { applicationStatusLabel } from '@/lib/application-workflow';
 const PAGE_SIZE = 50;
 const adminVisibleApplicationWhere = {
   status: {
-    in: ['supervisor_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
+    in: ['submitted', 'supervisor_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
   },
 };
 

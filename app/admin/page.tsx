@@ -36,7 +36,7 @@ type FieldWorker = {
 
 const adminVisibleApplicationWhere = {
   status: {
-    in: ['supervisor_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
+    in: ['submitted', 'supervisor_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
   },
 };
 

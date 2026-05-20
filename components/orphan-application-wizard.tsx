@@ -477,6 +477,7 @@ interface OrphanApplicationWizardProps {
   initialStep?: number;
   storageScope?: string;
   showInstructionsOnStart?: boolean;
+  readOnly?: boolean;
 }
 
 type PersistedWizardState = {
@@ -974,6 +975,7 @@ export default function OrphanApplicationWizard({
   initialStep = 1,
   storageScope,
   showInstructionsOnStart,
+  readOnly = false,
 }: OrphanApplicationWizardProps) {
   const router = useRouter();
   const { startLoading } = useNavigationLoading();
@@ -1001,7 +1003,7 @@ export default function OrphanApplicationWizard({
   );
   const [documents, setDocuments] = useState<DocumentInput[]>(initialDocuments ?? []);
   const [addressOptions, setAddressOptions] = useState<AddressOptionInput[]>([]);
-  const [hasLoadedPersistedState, setHasLoadedPersistedState] = useState(false);
+  const [hasLoadedPersistedState, setHasLoadedPersistedState] = useState(readOnly);
   const [shouldPersistNewApplication, setShouldPersistNewApplication] = useState(!initialApplicationId);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState<'saving' | 'saved' | 'error' | null>(null);
@@ -1018,14 +1020,16 @@ export default function OrphanApplicationWizard({
   const isLastInstructionSlide = instructionSlide === NEW_APPLICATION_INSTRUCTION_SLIDES.length - 1;
 
   const markFormChanged = () => {
+    if (readOnly) return;
     if (!hasLoadedPersistedState) return;
     unsavedChangeVersionRef.current += 1;
     setHasUnsavedChanges(true);
   };
 
   useEffect(() => {
+    if (readOnly) return;
     latestApplicationIdRef.current = applicationId;
-  }, [applicationId]);
+  }, [applicationId, readOnly]);
 
   useEffect(() => {
     if (!message?.toLowerCase().includes('success')) return;
@@ -1048,6 +1052,7 @@ export default function OrphanApplicationWizard({
   }, [autosaveStatus]);
 
   useEffect(() => {
+    if (readOnly) return;
     try {
       if (initialApplicationId) {
         const rawStep = window.localStorage.getItem(`saiban-orphan-application:step:${initialApplicationId}`);
@@ -1116,9 +1121,10 @@ export default function OrphanApplicationWizard({
       }
       setHasLoadedPersistedState(true);
     }
-  }, [initialApplicationId, mergedData, storageKey]);
+  }, [initialApplicationId, mergedData, readOnly, storageKey]);
 
   useEffect(() => {
+    if (readOnly) return;
     let isMounted = true;
 
     fetch('/api/address-options')
@@ -1135,9 +1141,10 @@ export default function OrphanApplicationWizard({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [readOnly]);
 
   useEffect(() => {
+    if (readOnly) return;
     if (initialApplicationId || !shouldPersistNewApplication || !hasLoadedPersistedState) return;
 
     const persisted: PersistedWizardState & { updatedAt: string } = {
@@ -1149,9 +1156,10 @@ export default function OrphanApplicationWizard({
     };
 
     window.localStorage.setItem(storageKey, JSON.stringify(persisted));
-  }, [applicationId, documents, formData, hasLoadedPersistedState, initialApplicationId, shouldPersistNewApplication, step, storageKey]);
+  }, [applicationId, documents, formData, hasLoadedPersistedState, initialApplicationId, readOnly, shouldPersistNewApplication, step, storageKey]);
 
   useEffect(() => {
+    if (readOnly) return;
     if (!applicationStepStorageKey || !hasLoadedPersistedState) return;
 
     window.localStorage.setItem(
@@ -1161,9 +1169,10 @@ export default function OrphanApplicationWizard({
         updatedAt: new Date().toISOString(),
       }),
     );
-  }, [applicationStepStorageKey, hasLoadedPersistedState, step]);
+  }, [applicationStepStorageKey, hasLoadedPersistedState, readOnly, step]);
 
   const updateField = (field: keyof FormData, value: FormData[keyof FormData]) => {
+    if (readOnly) return;
     const nextValue =
       typeof value === 'string' && field.toLowerCase().includes('cnic')
         ? formatCnic(value)
@@ -1175,6 +1184,7 @@ export default function OrphanApplicationWizard({
   };
 
   const clearFields = (fields: Array<keyof FormData>) => {
+    if (readOnly) return;
     markFormChanged();
     setFormData((current) => {
       const next = { ...current };
@@ -1186,6 +1196,7 @@ export default function OrphanApplicationWizard({
   };
 
   const updateFields = (values: Partial<FormData>) => {
+    if (readOnly) return;
     markFormChanged();
     setFormData((current) => ({ ...current, ...values }));
   };
@@ -1395,6 +1406,7 @@ export default function OrphanApplicationWizard({
   };
 
   const handleCaptureGps = () => {
+    if (readOnly) return;
     setGpsMessage(null);
     setGpsWarning(null);
 
@@ -1434,6 +1446,7 @@ export default function OrphanApplicationWizard({
   };
 
   const handleClearGps = () => {
+    if (readOnly) return;
     updateFields({
       latitude: '',
       longitude: '',
@@ -1522,6 +1535,7 @@ export default function OrphanApplicationWizard({
   };
 
   const handleTotalSiblingsChange = (value: string) => {
+    if (readOnly) return;
     const digits = value.replace(/\D/g, '');
     const count = Math.max(0, Number(digits || 0));
     markFormChanged();
@@ -1564,6 +1578,7 @@ export default function OrphanApplicationWizard({
       : '';
 
   const toggleMultiSelectValue = (field: 'childHobbies', value: string) => {
+    if (readOnly) return;
     markFormChanged();
     setFormData((current) => {
       const currentValues = current[field];
@@ -1575,6 +1590,7 @@ export default function OrphanApplicationWizard({
   };
 
   const handleHouseholdAssetHasChange = (key: HouseholdAssetKey, has: boolean) => {
+    if (readOnly) return;
     markFormChanged();
     setFormData((current) => {
       return {
@@ -1590,6 +1606,7 @@ export default function OrphanApplicationWizard({
   };
 
   const updateHouseholdAssetEntry = (key: HouseholdAssetKey, patch: Partial<HouseholdAssetEntry>) => {
+    if (readOnly) return;
     markFormChanged();
     setFormData((current) => {
       return {
@@ -1607,6 +1624,7 @@ export default function OrphanApplicationWizard({
     index: number,
     value: Partial<T>,
   ) => {
+    if (readOnly) return;
     markFormChanged();
     setFormData((current) => {
       const list = [...current[key]] as any[];
@@ -1616,6 +1634,7 @@ export default function OrphanApplicationWizard({
   };
 
   const addArrayItem = (key: 'siblings' | 'relatives') => {
+    if (readOnly) return;
     markFormChanged();
     setFormData((current) => {
       const item = key === 'siblings'
@@ -1627,6 +1646,7 @@ export default function OrphanApplicationWizard({
   };
 
   const removeArrayItem = (key: 'siblings' | 'relatives', index: number) => {
+    if (readOnly) return;
     markFormChanged();
     setFormData((current) => {
       const next = current[key].filter((_, idx) => idx !== index);
@@ -1639,6 +1659,7 @@ export default function OrphanApplicationWizard({
   };
 
   const handleDocumentUpload = (document: DocumentInput) => {
+    if (readOnly) return;
     setDocuments((current) => [
       ...current.filter((item) => item.documentType !== document.documentType),
       document,
@@ -1647,6 +1668,7 @@ export default function OrphanApplicationWizard({
   };
 
   const handleDocumentRemove = async (documentId: string) => {
+    if (readOnly) return;
     try {
       await fetch(`/api/upload?documentId=${documentId}`, { method: 'DELETE' });
       setDocuments((current) => current.filter((doc) => doc.id !== documentId));
@@ -1701,12 +1723,14 @@ export default function OrphanApplicationWizard({
   };
 
   useEffect(() => {
+    if (readOnly) return;
     if (!initialApplicationId || !hasLoadedPersistedState || lastAutosavedPayloadRef.current) return;
 
     lastAutosavedPayloadRef.current = JSON.stringify(buildApplicationRequestBody('draft'));
-  }, [hasLoadedPersistedState, initialApplicationId]);
+  }, [hasLoadedPersistedState, initialApplicationId, readOnly]);
 
   useEffect(() => {
+    if (readOnly) return;
     if (!hasLoadedPersistedState || submittingAction !== null || showSubmissionSuccessModal) return;
     if (!hasUnsavedChanges) return;
     if (!hasUserEnteredDraftData(formData)) return;
@@ -1768,9 +1792,10 @@ export default function OrphanApplicationWizard({
         clearTimeout(autosaveTimerRef.current);
       }
     };
-  }, [applicationId, formData, hasLoadedPersistedState, hasUnsavedChanges, showSubmissionSuccessModal, storageKey, submittingAction, router]);
+  }, [applicationId, formData, hasLoadedPersistedState, hasUnsavedChanges, readOnly, showSubmissionSuccessModal, storageKey, submittingAction, router]);
 
   useEffect(() => {
+    if (readOnly) return;
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (!hasUnsavedChanges) return;
       event.preventDefault();
@@ -1801,9 +1826,10 @@ export default function OrphanApplicationWizard({
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('click', handleDocumentClick, true);
     };
-  }, [hasUnsavedChanges]);
+  }, [hasUnsavedChanges, readOnly]);
 
   const ensureDraftApplication = async () => {
+    if (readOnly) return null;
     if (applicationId) return applicationId;
 
     setSubmittingAction('draft');
@@ -1857,6 +1883,7 @@ export default function OrphanApplicationWizard({
   };
 
   const submit = async (saveStatus: 'draft' | 'submitted') => {
+    if (readOnly) return;
     setSubmittingAction(saveStatus);
     setMessage(null);
     if (saveStatus === 'submitted') {
@@ -2175,6 +2202,7 @@ export default function OrphanApplicationWizard({
 
   const renderTextField = (field: keyof FormData, type = 'text', locked = false, onChange?: (value: string) => void, maxLength?: number, required = true) => {
     const isCnicField = field.toLowerCase().includes('cnic');
+    const disabled = readOnly || locked;
 
     return (
       <label key={field} className={fieldWrapperClass}>
@@ -2183,11 +2211,12 @@ export default function OrphanApplicationWizard({
           value={formData[field] as string}
           onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
           type={type}
-          readOnly={locked}
+          readOnly={disabled}
+          disabled={readOnly}
           inputMode={isCnicField ? 'numeric' : undefined}
           maxLength={maxLength ?? (isCnicField ? 15 : undefined)}
           placeholder={isCnicField ? '11111-2222222-3' : undefined}
-          className={`${fieldControlClass} ${locked ? 'cursor-not-allowed bg-slate-100 text-slate-600' : ''}`}
+          className={`${fieldControlClass} ${disabled ? 'cursor-not-allowed bg-slate-100 text-slate-600' : ''}`}
         />
       </label>
     );
@@ -2201,7 +2230,9 @@ export default function OrphanApplicationWizard({
         onChange={(event) => updateField(field, event.target.value)}
         maxLength={maxLength}
         rows={4}
-        className="min-h-28 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-3 text-base leading-6 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 sm:text-sm"
+        readOnly={readOnly}
+        disabled={readOnly}
+        className="min-h-28 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-3 text-base leading-6 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-600 sm:px-4 sm:text-sm"
       />
     </label>
   );
@@ -2217,7 +2248,8 @@ export default function OrphanApplicationWizard({
       <select
         value={formData[field] as string}
         onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
-        className={fieldControlClass}
+        disabled={readOnly}
+        className={`${fieldControlClass} ${readOnly ? disabledFieldControlClass : ''}`}
       >
         {options.map((option, index) => (
           <option key={`${option.value}-${index}`} value={option.value}>
@@ -2239,7 +2271,7 @@ export default function OrphanApplicationWizard({
       <select
         value={formData[field] as string}
         onChange={(event) => onChange(event.target.value)}
-        disabled={disabled}
+        disabled={readOnly || disabled}
         className={`${fieldControlClass} ${disabledFieldControlClass}`}
       >
         {options.map((option, index) => (
@@ -2266,7 +2298,7 @@ export default function OrphanApplicationWizard({
         <input
           value={formData[field]}
           list={listId}
-          disabled={disabled}
+          disabled={readOnly || disabled}
           placeholder={placeholder}
           onChange={(event) => updateField(field, event.target.value)}
           onBlur={(event) => {
@@ -2286,7 +2318,7 @@ export default function OrphanApplicationWizard({
             <option key={`${option}-${index}`} value={option} />
           ))}
         </datalist>
-        {!disabled && formData[field] && !hasOption(options, formData[field]) ? (
+        {!readOnly && !disabled && formData[field] && !hasOption(options, formData[field]) ? (
           <span className="text-xs text-slate-500">Press Enter or leave the field to add this option for all field workers.</span>
         ) : null}
       </label>
@@ -2311,7 +2343,8 @@ export default function OrphanApplicationWizard({
           <select
             value={selectValue}
             onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
-            className={fieldControlClass}
+            disabled={readOnly}
+            className={`${fieldControlClass} ${readOnly ? disabledFieldControlClass : ''}`}
           >
             {options.map((option, index) => (
               <option key={`${option.value}-${index}`} value={option.value}>
@@ -2327,7 +2360,9 @@ export default function OrphanApplicationWizard({
               value={currentValue === 'Other' ? '' : currentValue}
               onChange={(event) => (onChange ? onChange(event.target.value) : updateField(field, event.target.value))}
               type="text"
-              className={fieldControlClass}
+              readOnly={readOnly}
+              disabled={readOnly}
+              className={`${fieldControlClass} ${readOnly ? disabledFieldControlClass : ''}`}
             />
           </label>
         ) : null}
@@ -2380,7 +2415,8 @@ export default function OrphanApplicationWizard({
             updateField(field, nextValue);
           }
         }}
-        className={fieldControlClass}
+        disabled={readOnly}
+        className={`${fieldControlClass} ${readOnly ? disabledFieldControlClass : ''}`}
       >
         <option value="no">{noLabel}</option>
         <option value="yes">{yesLabel}</option>
@@ -2394,6 +2430,7 @@ export default function OrphanApplicationWizard({
         type="checkbox"
         checked={formData[field] as boolean}
         onChange={(event) => updateField(field, event.target.checked)}
+        disabled={readOnly}
         className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500 sm:mt-0"
       />
       <span className="min-w-0 break-words">{renderLocalizedLabel(labelText ?? fieldLabel(field))}</span>
@@ -2700,6 +2737,10 @@ export default function OrphanApplicationWizard({
         </div>
       ) : null}
 
+      <fieldset
+        disabled={readOnly}
+        className="contents disabled:[&_button]:cursor-not-allowed disabled:[&_button]:opacity-50 disabled:[&_input]:cursor-not-allowed disabled:[&_input]:bg-slate-100 disabled:[&_select]:cursor-not-allowed disabled:[&_select]:bg-slate-100 disabled:[&_textarea]:cursor-not-allowed disabled:[&_textarea]:bg-slate-100"
+      >
       {step === 1 && (
         <div className="space-y-6">
           <div>
@@ -3445,7 +3486,7 @@ export default function OrphanApplicationWizard({
             {renderBooleanSelect('enrolledInMadrasa', handleMadrasaChange, 'Yes / ہاں', 'No / نہیں')}
             {(!formData.currentlyStudying || !formData.enrolledInMadrasa) ? (
               <label className="flex min-h-12 items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-4 text-sm leading-6 text-amber-900 sm:col-span-2 sm:px-4">
-                <input type="checkbox" checked={formData.educationUndertakingAccepted} onChange={(e) => updateField('educationUndertakingAccepted', e.target.checked)} className="mt-1 h-5 w-5 shrink-0" />
+                <input type="checkbox" checked={formData.educationUndertakingAccepted} onChange={(e) => updateField('educationUndertakingAccepted', e.target.checked)} disabled={readOnly} className="mt-1 h-5 w-5 shrink-0" />
                 <span className="min-w-0 break-words">تعلیمی اقرار نامہ: سرپرست اس بات سے اتفاق کرتا ہے کہ اگر بچہ کفالت پروگرام میں رجسٹر ہو گیا تو اس کی چھوٹی ہوئی اسکول یا مدرسہ تعلیم شروع کروائی جائے گی۔</span>
               </label>
             ) : null}
@@ -3482,6 +3523,7 @@ export default function OrphanApplicationWizard({
                       existingDocument={documents.find((doc) => doc.documentType === 'fee_voucher')}
                       label="Fee Voucher / فیس واؤچر (Optional)"
                       accept="image/*,.pdf"
+                      disabled={readOnly}
                     />
                   </div>
                 ) : null}
@@ -3496,7 +3538,7 @@ export default function OrphanApplicationWizard({
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {HOBBY_OPTIONS.map((option) => (
                   <label key={option.value} className="flex min-h-11 items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-5 sm:items-center">
-                    <input type="checkbox" checked={formData.childHobbies.includes(option.value)} onChange={() => toggleMultiSelectValue('childHobbies', option.value)} className="mt-0.5 shrink-0 sm:mt-0" />
+                    <input type="checkbox" checked={formData.childHobbies.includes(option.value)} onChange={() => toggleMultiSelectValue('childHobbies', option.value)} disabled={readOnly} className="mt-0.5 shrink-0 sm:mt-0" />
                     <span className="min-w-0 break-words">{option.label}</span>
                   </label>
                 ))}
@@ -3560,6 +3602,7 @@ export default function OrphanApplicationWizard({
                   existingDocument={existingDocument}
                   label={renderLocalizedLabel(documentType.label)}
                   accept="image/*,.pdf"
+                  disabled={readOnly}
                 />
               );
             })}
@@ -3616,6 +3659,7 @@ export default function OrphanApplicationWizard({
                   existingDocument={documents.find((doc) => doc.documentType === ATTESTATION_DOCUMENT_TYPE)}
                   label={<span dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>مکمل شدہ تصدیقی فارم</span>}
                   accept="image/*,.pdf"
+                  disabled={readOnly}
                 />
               </div>
             </section>
@@ -3658,6 +3702,8 @@ export default function OrphanApplicationWizard({
         </div>
       )}
 
+      </fieldset>
+
       <div className="sticky bottom-[var(--mobile-nav-offset)] z-20 -mx-3 border-t border-slate-200 bg-white/95 px-3 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:static lg:mx-0 lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none">
         <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:justify-end sm:gap-3">
           <button
@@ -3677,6 +3723,7 @@ export default function OrphanApplicationWizard({
               Next
             </button>
           ) : null}
+          {!readOnly ? (
           <button
             type="button"
             onClick={() => submit('draft')}
@@ -3685,7 +3732,8 @@ export default function OrphanApplicationWizard({
           >
             {submittingAction === 'draft' ? 'Saving…' : 'Save Draft'}
           </button>
-          {step === TOTAL_STEPS ? (
+          ) : null}
+          {!readOnly && step === TOTAL_STEPS ? (
             <button
               type="button"
               onClick={() => submit('submitted')}

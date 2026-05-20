@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
 import { applicationStatusLabel } from '@/lib/application-workflow';
+import { collectorProjectReviewWhere } from '@/lib/field-workers';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +33,7 @@ export default async function SupervisorPage() {
   const applications = await prisma.orphanApplication.findMany({
     where: {
       status: 'submitted',
-      ...(project ? { collectorProject: project } : {}),
+      ...(project ? collectorProjectReviewWhere(project) : {}),
     },
     orderBy: { updatedAt: 'asc' },
     select: {

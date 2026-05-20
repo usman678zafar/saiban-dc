@@ -7,38 +7,14 @@ import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
+import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import { getApplicationDocuments } from '@/lib/application-documents';
+import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
 
 interface AdminApplicationDetailPageProps {
   params: {
     id: string;
   };
-}
-
-function badgeClass(status: string) {
-  switch (status) {
-    case 'submitted':
-      return 'bg-blue-100 text-blue-800';
-    case 'validated':
-      return 'bg-emerald-100 text-emerald-800';
-    case 'migrated':
-      return 'bg-violet-100 text-violet-800';
-    case 'rejected':
-      return 'bg-rose-100 text-rose-800';
-    case 'needs_correction':
-      return 'bg-amber-100 text-amber-800';
-    default:
-      return 'bg-slate-100 text-slate-800';
-  }
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-slate-900">{value}</p>
-    </div>
-  );
 }
 
 export default async function AdminApplicationDetailPage({ params }: AdminApplicationDetailPageProps) {
@@ -49,14 +25,17 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   const application = await prisma.orphanApplication.findFirst({
     where: {
       id: params.id,
-      status: { in: ['supervisor_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] },
+      status: { in: ['submitted', 'supervisor_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] },
     },
     include: {
-      createdBy: true,
+      siblings: true,
+      relatives: true,
+      householdAssets: true,
     },
   });
 
   if (!application) notFound();
+
   const applicationDocuments = await getApplicationDocuments(application.id);
 
   return (
@@ -64,7 +43,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
       <header className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{application.registrationNumber ?? application.id}</h1>
-          <p className="mt-2 text-sm text-slate-600">Review status, migration metadata, and key registration details.</p>
+          <p className="mt-2 text-sm text-slate-600">Review the application in the same step-by-step format used during form entry.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Link href="/admin/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
@@ -80,65 +59,13 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
         </div>
       </header>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-        <div className="space-y-6">
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-semibold text-slate-900">Summary</h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <DetailRow label="Child" value={application.childName ?? '-'} />
-              <DetailRow label="Collector" value={application.collectorName ?? '-'} />
-              <DetailRow label="Created By" value={application.createdBy?.email ?? 'Unknown'} />
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Status</p>
-                <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${badgeClass(application.status)}`}>
-                  {application.status}
-                </span>
-              </div>
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Migration</p>
-                <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${badgeClass(application.migrationStatus)}`}>
-                  {application.migrationStatus}
-                </span>
-              </div>
-              <DetailRow label="Updated" value={application.updatedAt.toLocaleString()} />
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-semibold text-slate-900">Registration Details</h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <DetailRow label="Gender" value={application.gender ?? '-'} />
-              <DetailRow label="B-Form" value={application.bFormNumber ?? '-'} />
-              <DetailRow label="Date of Birth" value={application.dateOfBirth?.toLocaleDateString() ?? '-'} />
-              <DetailRow label="City" value={application.city ?? '-'} />
-              <DetailRow label="Father" value={application.fatherName ?? '-'} />
-              <DetailRow label="Mother" value={application.motherName ?? '-'} />
-              <DetailRow label="Guardian" value={application.guardianName ?? '-'} />
-              <DetailRow label="Guardian Contact" value={application.guardianContact ?? '-'} />
-              <DetailRow label="Residence Structure" value={application.residenceStructureType ?? '-'} />
-              <DetailRow label="Residence Category" value={application.residenceCategory ?? '-'} />
-              <DetailRow label="Electricity Available" value={application.electricityAvailable ? 'Yes' : 'No'} />
-              <DetailRow label="Gas Available" value={application.gasAvailable ? 'Yes' : 'No'} />
-              <DetailRow label="Water Available" value={application.waterAvailable ? 'Yes' : 'No'} />
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-semibold text-slate-900">Documents</h2>
-            <div className="mt-4 grid gap-3">
-              {applicationDocuments.length === 0 ? (
-                <p className="text-sm text-slate-500">No uploaded documents.</p>
-              ) : (
-                applicationDocuments.map((document) => (
-                  <a key={document.id} href={document.fileUrl ?? '#'} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 hover:bg-slate-100">
-                    <div className="font-semibold text-slate-900">{document.documentType}</div>
-                    <div className="text-xs text-slate-500">{document.mimeType} - {(document.size / 1024).toFixed(1)} KB</div>
-                  </a>
-                ))
-              )}
-            </div>
-          </section>
-        </div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <OrphanApplicationWizard
+          initialData={applicationToWizardData(application)}
+          initialDocuments={documentsToWizardDocuments(applicationDocuments)}
+          initialApplicationId={application.id}
+          readOnly
+        />
 
         <aside className="space-y-6">
           <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="admin" />
