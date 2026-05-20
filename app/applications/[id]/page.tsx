@@ -77,7 +77,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
 
   const app = application as unknown as Record<string, unknown>;
   const applicationDocuments = await getApplicationDocuments(application.id);
-  const canEdit = application.status === 'draft' || isAdmin;
+  const canEdit = application.status === 'draft' || application.status === 'needs_correction' || isAdmin;
   const sections = [
     {
       title: 'Collector',
@@ -137,7 +137,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
           </Link>
           {canEdit ? (
             <Link href={`/applications/${application.id}/edit`} className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500 sm:w-auto">
-              {application.status === 'draft' ? 'Edit Draft' : 'Edit'}
+              {application.status === 'draft' ? 'Edit Draft' : application.status === 'needs_correction' ? 'Correct Application' : 'Edit'}
             </Link>
           ) : null}
         </>
@@ -166,7 +166,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
 
         {isAdmin ? (
           <aside className="min-w-0 space-y-5">
-            <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} />
+            <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="admin" />
             <ApplicationMigrationFields
               applicationId={application.id}
               initialMigrationStatus={application.migrationStatus}

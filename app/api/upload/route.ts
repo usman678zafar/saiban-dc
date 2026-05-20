@@ -49,6 +49,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
+    if (user.role !== 'admin' && !['draft', 'needs_correction'].includes(application.status)) {
+      return NextResponse.json({ message: 'Uploads are only allowed for draft or returned applications.' }, { status: 409 });
+    }
+
     let processedBody: File | Blob | ArrayBuffer | Uint8Array = file;
     let processedName = file.name;
     let finalMimeType = file.type;
@@ -113,6 +117,10 @@ export async function DELETE(request: NextRequest) {
 
   if (document.application.createdById !== user.id && user.role !== 'admin') {
     return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+  }
+
+  if (user.role !== 'admin' && !['draft', 'needs_correction'].includes(document.application.status)) {
+    return NextResponse.json({ message: 'Documents can only be removed from draft or returned applications.' }, { status: 409 });
   }
 
   try {

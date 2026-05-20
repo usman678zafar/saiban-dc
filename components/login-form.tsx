@@ -9,7 +9,7 @@ interface LoginFormProps {
   title?: string;
   description?: string;
   defaultRedirect?: string;
-  loginRole?: 'admin' | 'field_worker';
+  loginRole?: 'admin' | 'supervisor' | 'field_worker';
   compact?: boolean;
 }
 
@@ -42,7 +42,7 @@ export default function LoginForm({
       });
 
       if (result?.error) {
-        setError(loginRole === 'admin' ? 'Invalid admin credentials.' : loginRole === 'field_worker' ? 'Invalid volunteer credentials.' : 'Invalid credentials.');
+        setError(loginRole === 'admin' ? 'Invalid admin credentials.' : loginRole === 'supervisor' ? 'Invalid supervisor credentials.' : loginRole === 'field_worker' ? 'Invalid volunteer credentials.' : 'Invalid credentials.');
         stopLoading();
         return;
       }
@@ -57,7 +57,7 @@ export default function LoginForm({
       setIsSubmitting(false);
     }
   };
-  const identifierLabel = loginRole === 'field_worker' ? 'Phone Number or CNIC' : loginRole === 'admin' ? 'Email or Username' : 'Email';
+  const identifierLabel = loginRole === 'field_worker' ? 'Phone Number or CNIC' : loginRole === 'admin' || loginRole === 'supervisor' ? 'Email or Username' : 'Email';
   const identifierType = loginRole ? 'text' : 'email';
 
   return (

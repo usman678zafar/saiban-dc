@@ -37,6 +37,10 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     notFound();
   }
 
+  if (session.user.role !== 'admin' && !['draft', 'needs_correction'].includes(application.status)) {
+    notFound();
+  }
+
   const applicationDocuments = await getApplicationDocuments(application.id);
   const app = application as any;
   const initialData: Partial<FormData> = {

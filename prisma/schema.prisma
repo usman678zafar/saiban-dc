@@ -9,6 +9,7 @@ datasource db {
 
 enum UserRole {
   admin
+  supervisor
   field_worker
   viewer
 }
@@ -17,6 +18,8 @@ enum ApplicationStatus {
   draft
   submitted
   needs_correction
+  supervisor_approved
+  admin_approved
   validated
   rejected
   migrated

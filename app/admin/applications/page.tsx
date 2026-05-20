@@ -1,14 +1,16 @@
 import Link from 'next/link';
+import { ApplicationStatus } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
+import { applicationStatusLabel } from '@/lib/application-workflow';
 
 const PAGE_SIZE = 50;
 const adminVisibleApplicationWhere = {
   status: {
-    not: 'draft' as const,
+    in: ['supervisor_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
   },
 };
 
@@ -77,7 +79,7 @@ export default async function AdminApplicationsPage({
                 <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
                 <div className="mt-1 text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold capitalize text-[#2563eb]">{application.status}</span>
+                  <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
                   <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784]">{application.migrationStatus}</span>
                 </div>
                 <p className="mt-3 text-xs text-[#8a9bb3]">Updated {application.updatedAt.toLocaleDateString()}</p>
@@ -109,7 +111,7 @@ export default async function AdminApplicationsPage({
                       <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
                       <div className="text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
                     </td>
-                    <td className="px-4 py-4 capitalize">{application.status}</td>
+                    <td className="px-4 py-4">{applicationStatusLabel(application.status)}</td>
                     <td className="px-4 py-4 capitalize">{application.migrationStatus}</td>
                     <td className="px-4 py-4 text-[#8a9bb3]">{application.updatedAt.toLocaleDateString()}</td>
                     <td className="px-4 py-4">

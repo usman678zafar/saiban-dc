@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
             passwordHash,
             role: 'field_worker',
             selfRegistered: true,
+            project: 'Self Registered',
           },
           select: {
             id: true,

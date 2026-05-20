@@ -49,7 +49,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   const application = await prisma.orphanApplication.findFirst({
     where: {
       id: params.id,
-      status: { not: 'draft' },
+      status: { in: ['supervisor_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] },
     },
     include: {
       createdBy: true,
@@ -141,7 +141,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
         </div>
 
         <aside className="space-y-6">
-          <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} />
+          <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="admin" />
           <ApplicationMigrationFields
             applicationId={application.id}
             initialMigrationStatus={application.migrationStatus}
