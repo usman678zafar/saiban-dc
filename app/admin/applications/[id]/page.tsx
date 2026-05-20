@@ -25,7 +25,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   const application = await prisma.orphanApplication.findFirst({
     where: {
       id: params.id,
-      status: { in: ['submitted', 'supervisor_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] },
+      status: { in: ['reviewer_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] },
     },
     include: {
       siblings: true,
@@ -37,13 +37,14 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   if (!application) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
+  const canEdit = ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
 
   return (
     <AdminShell email={session.user.email}>
       <header className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{application.registrationNumber ?? application.id}</h1>
-          <p className="mt-2 text-sm text-slate-600">Review the application in the same step-by-step format used during form entry.</p>
+          <p className="mt-2 text-sm text-slate-600">Final review after supervisor and reviewer approval.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Link href="/admin/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
@@ -53,9 +54,11 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
             <CopyPlus className="h-4 w-4" aria-hidden="true" />
             Add Child Same Family
           </Link>
-          <Link href={`/applications/${application.id}/edit`} className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
-            Edit
-          </Link>
+          {canEdit ? (
+            <Link href={`/applications/${application.id}/edit`} className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+              Edit
+            </Link>
+          ) : null}
         </div>
       </header>
 

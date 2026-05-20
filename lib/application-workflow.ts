@@ -3,6 +3,7 @@ export const applicationStatuses = [
   'submitted',
   'needs_correction',
   'supervisor_approved',
+  'reviewer_approved',
   'admin_approved',
   'validated',
   'rejected',
@@ -17,6 +18,7 @@ export function applicationStatusLabel(status: string) {
     submitted: 'Submitted',
     needs_correction: 'Needs correction',
     supervisor_approved: 'Supervisor approved',
+    reviewer_approved: 'Reviewer approved',
     admin_approved: 'Admin approved',
     validated: 'Validated',
     rejected: 'Rejected',
@@ -31,6 +33,7 @@ export function badgeClass(status: string) {
     case 'submitted':
       return 'bg-blue-100 text-blue-800';
     case 'supervisor_approved':
+    case 'reviewer_approved':
     case 'admin_approved':
     case 'validated':
       return 'bg-emerald-100 text-emerald-800';

@@ -36,14 +36,14 @@ type FieldWorker = {
 
 const adminVisibleApplicationWhere = {
   status: {
-    in: ['submitted', 'supervisor_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
+    in: ['reviewer_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
   },
 };
 
 async function getAdminPortalData() {
   const [
     totalApplications,
-    supervisorApprovedApplications,
+    reviewerApprovedApplications,
     adminApprovedApplications,
     migratedApplications,
     rejectedApplications,
@@ -53,7 +53,7 @@ async function getAdminPortalData() {
     recentApplications,
   ] = await Promise.all([
     prisma.orphanApplication.count({ where: adminVisibleApplicationWhere }),
-    prisma.orphanApplication.count({ where: { status: 'supervisor_approved' } }),
+    prisma.orphanApplication.count({ where: { status: 'reviewer_approved' } }),
     prisma.orphanApplication.count({ where: { status: { in: ['admin_approved', 'validated'] } } }),
     prisma.orphanApplication.count({ where: { status: 'migrated' } }),
     prisma.orphanApplication.count({ where: { status: 'rejected' } }),
@@ -90,7 +90,7 @@ async function getAdminPortalData() {
 
   const metrics: AdminMetric[] = [
     { label: 'Total Applications', value: totalApplications, detail: 'All records', tone: 'blue' },
-    { label: 'Supervisor Approved', value: supervisorApprovedApplications, detail: 'Awaiting final review', tone: 'violet' },
+    { label: 'Reviewer Approved', value: reviewerApprovedApplications, detail: 'Awaiting final review', tone: 'violet' },
     { label: 'Final Approved', value: adminApprovedApplications, detail: 'Validated records', tone: 'emerald' },
     { label: 'Migrated', value: migratedApplications, detail: 'Moved onward', tone: 'sky' },
     { label: 'Rejected', value: rejectedApplications, detail: 'Needs attention', tone: 'red' },

@@ -17,6 +17,7 @@ type FieldWorker = {
   phoneNumber: string | null;
   cnic: string | null;
   address: string | null;
+  reference: string | null;
   project: string | null;
   supervisorId: string | null;
   supervisor: {
@@ -77,6 +78,7 @@ export default async function AdminFieldWorkersPage({
           { phoneNumber: { contains: search, mode: 'insensitive' as const } },
           { cnic: { contains: search, mode: 'insensitive' as const } },
           { address: { contains: search, mode: 'insensitive' as const } },
+          { reference: { contains: search, mode: 'insensitive' as const } },
           { project: { contains: search, mode: 'insensitive' as const } },
           { supervisor: { is: { name: { contains: search, mode: 'insensitive' as const } } } },
           { supervisor: { is: { phoneNumber: { contains: search, mode: 'insensitive' as const } } } },
@@ -107,6 +109,7 @@ export default async function AdminFieldWorkersPage({
         phoneNumber: true,
         cnic: true,
         address: true,
+        reference: true,
         project: true,
         supervisorId: true,
         supervisor: {

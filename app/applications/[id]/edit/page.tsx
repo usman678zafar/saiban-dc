@@ -32,11 +32,14 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     notFound();
   }
 
-  if (application.createdById !== session.user.id && session.user.role !== 'admin') {
+  const canReviewerEdit = session.user.role === 'reviewer' && application.status === 'supervisor_approved';
+  const canAdminEdit = session.user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+
+  if (application.createdById !== session.user.id && !canReviewerEdit && !canAdminEdit) {
     notFound();
   }
 
-  if (session.user.role !== 'admin' && !['draft', 'needs_correction'].includes(application.status)) {
+  if (session.user.role === 'field_worker' && !['draft', 'needs_correction'].includes(application.status)) {
     notFound();
   }
 

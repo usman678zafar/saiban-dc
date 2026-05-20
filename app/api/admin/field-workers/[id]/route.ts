@@ -20,6 +20,7 @@ const updateAdminWorkerSchema = z.object({
     .transform(digitsOnly)
     .refine((v) => v.length === 13, { message: 'CNIC must contain 13 digits' }),
   address: z.string().trim().min(1, 'Address is required'),
+  reference: z.string().trim().optional().default(''),
   project: z.string().trim().min(1, 'Department is required'),
   supervisorId: z.string().uuid('Supervisor is required'),
   password: z
@@ -41,6 +42,7 @@ const updateSelfWorkerSchema = z.object({
     .transform((v) => (v ? digitsOnly(v) : ''))
     .refine((v) => v.length === 0 || v.length === 13, { message: 'CNIC must contain 13 digits' }),
   address: z.string().trim().optional().default(''),
+  reference: z.string().trim().optional().default(''),
   project: z.string().trim().min(1, 'Department is required'),
   supervisorId: z.string().uuid('Supervisor is required'),
   password: z
@@ -126,6 +128,7 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
           phoneNumber: input.phoneNumber,
           cnic: input.cnic || null,
           address: input.address,
+          reference: input.reference || null,
           project: input.project,
           supervisorId: input.supervisorId,
           ...(passwordHash ? { passwordHash } : {}),
@@ -137,6 +140,7 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
           phoneNumber: true,
           cnic: true,
           address: true,
+          reference: true,
           project: true,
           supervisorId: true,
           createdAt: true,
@@ -189,6 +193,7 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
         phoneNumber: input.phoneNumber,
         cnic: input.cnic,
         address: input.address,
+        reference: input.reference || null,
         project: input.project,
         supervisorId: input.supervisorId,
         ...(passwordHash ? { passwordHash } : {}),
@@ -200,6 +205,7 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
         phoneNumber: true,
         cnic: true,
         address: true,
+        reference: true,
         project: true,
         supervisorId: true,
         createdAt: true,

@@ -6,7 +6,7 @@ import LoginForm from './login-form';
 import logo from '@/assests/logo.png';
 import baitussalamLogo from '@/assests/baitussalam.webp';
 
-type LoginRole = 'admin' | 'supervisor' | 'field_worker';
+type LoginRole = 'admin' | 'reviewer' | 'supervisor' | 'field_worker';
 
 const loginOptions: Array<{
   role: LoginRole;
@@ -25,6 +25,12 @@ const loginOptions: Array<{
     label: 'Admin',
     title: 'Admin Login',
     redirect: '/admin',
+  },
+  {
+    role: 'reviewer',
+    label: 'Reviewer',
+    title: 'Reviewer Login',
+    redirect: '/reviewer',
   },
   {
     role: 'supervisor',
@@ -49,7 +55,7 @@ export default function RoleLogin() {
           <h1 className="text-lg font-semibold tracking-tight text-slate-950">Saiban Login</h1>
         </div>
 
-        <div className="mt-3 grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-0.5">
+        <div className="mt-3 grid grid-cols-4 gap-1 rounded-lg bg-slate-100 p-0.5">
           {loginOptions.map((option) => {
             const isSelected = option.role === selectedRole;
             return (

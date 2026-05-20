@@ -13,6 +13,7 @@ export type FieldWorkerListItem = {
   phoneNumber: string | null;
   cnic: string | null;
   address: string | null;
+  reference: string | null;
   project: string | null;
   supervisorId: string | null;
   supervisor: {
@@ -40,6 +41,7 @@ type FormState = {
   phoneNumber: string;
   cnic: string;
   address: string;
+  reference: string;
   project: string;
   supervisorId: string;
   password: string;
@@ -74,6 +76,7 @@ const emptyForm: FormState = {
   phoneNumber: '',
   cnic: '',
   address: '',
+  reference: '',
   project: '',
   supervisorId: '',
   password: '',
@@ -160,6 +163,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
       phoneNumber: worker.phoneNumber ?? '',
       cnic: worker.cnic ?? '',
       address: worker.address ?? '',
+      reference: worker.reference ?? '',
       project: worker.project && projects.includes(worker.project) ? worker.project : projects[0] ?? '',
       supervisorId: worker.supervisorId ?? '',
       password: '',
@@ -193,6 +197,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
       phoneNumber: form.phoneNumber,
       cnic: form.cnic,
       address: form.address,
+      reference: form.reference,
       project: form.project,
       supervisorId: form.supervisorId,
       password: modalMode === 'add' ? form.password || defaultPassword : form.password,
@@ -269,7 +274,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search by name, worker ID, phone, CNIC, supervisor, address"
+              placeholder="Search by name, worker ID, phone, CNIC, supervisor, reference, address"
               className="w-full rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] py-3 pl-10 pr-4 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
             />
           </label>
@@ -386,6 +391,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                   <p><span className="font-semibold text-[#0f1f33]">Supervisor:</span> {worker.supervisor?.name ?? worker.supervisor?.phoneNumber ?? '-'}</p>
                   <p><span className="font-semibold text-[#0f1f33]">Phone:</span> {worker.phoneNumber ?? '-'}</p>
                   <p><span className="font-semibold text-[#0f1f33]">CNIC:</span> {worker.cnic ?? '-'}</p>
+                  <p><span className="font-semibold text-[#0f1f33]">Reference:</span> {worker.reference ?? '-'}</p>
                   <p className="break-words"><span className="font-semibold text-[#0f1f33]">Address:</span> {worker.address ?? '-'}</p>
                   <p className="text-xs text-[#8a9bb3]">Added {formatDate(worker.createdAt)}</p>
                 </div>
@@ -402,6 +408,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                 <th className="px-4 py-3">Department</th>
                 <th className="px-4 py-3">Supervisor</th>
                 <th className="px-4 py-3">Contact</th>
+                <th className="px-4 py-3">Reference</th>
                 <th className="px-4 py-3">Address</th>
                 <th className="px-4 py-3">Added</th>
                 <th className="px-4 py-3 text-right">Actions</th>
@@ -410,7 +417,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
             <tbody>
               {initialWorkers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-[#8a9bb3]">No field workers match these filters.</td>
+                  <td colSpan={8} className="px-4 py-10 text-center text-[#8a9bb3]">No field workers match these filters.</td>
                 </tr>
               ) : (
                 initialWorkers.map((worker) => (
@@ -431,6 +438,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                       <p>{worker.phoneNumber ?? '-'}</p>
                       <p className="mt-1 text-xs text-[#8a9bb3]">CNIC: {worker.cnic ?? '-'}</p>
                     </td>
+                    <td className="max-w-[220px] px-4 py-4 text-[#5f718a]">{worker.reference ?? '-'}</td>
                     <td className="max-w-[320px] px-4 py-4 text-[#5f718a]">{worker.address ?? '-'}</td>
                     <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(worker.createdAt)}</td>
                     <td className="px-4 py-4">
@@ -570,6 +578,15 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                   required={!isEditingSelfRegistered}
                   rows={3}
                   className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </label>
+
+              <label className="grid gap-2 text-sm text-slate-700">
+                <span>Reference <span className="text-xs text-slate-400">(optional)</span></span>
+                <input
+                  value={form.reference}
+                  onChange={(event) => updateForm('reference', event.target.value)}
+                  className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </label>
 

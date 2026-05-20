@@ -467,18 +467,18 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
     }
   }
 
+  if (user.role === 'reviewer') {
+    allowed = application.status === 'supervisor_approved' && ['reviewer_approved', 'rejected'].includes(status);
+    action = status === 'reviewer_approved' ? 'approved_by_reviewer' : 'rejected_by_reviewer';
+  }
+
   if (user.role === 'admin') {
     allowed = (
-      (application.status === 'supervisor_approved' && ['admin_approved', 'rejected'].includes(status)) ||
+      (application.status === 'reviewer_approved' && ['admin_approved', 'rejected'].includes(status)) ||
       (application.status === 'admin_approved' && status === 'migrated') ||
-      (application.status === 'validated' && status === 'migrated') ||
-      (application.status === 'submitted' && ['needs_correction', 'supervisor_approved'].includes(status))
+      (application.status === 'validated' && status === 'migrated')
     );
-    action = status === 'admin_approved' ? 'approved_by_admin' : status === 'needs_correction' ? 'returned_by_admin' : 'status_changed_by_admin';
-
-    if (status === 'needs_correction' && !comment) {
-      return NextResponse.json({ message: 'Correction comment is required.' }, { status: 422 });
-    }
+    action = status === 'admin_approved' ? 'approved_by_admin' : status === 'rejected' ? 'rejected_by_admin' : 'status_changed_by_admin';
   }
 
   if (!allowed) {
@@ -594,18 +594,21 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: 'Application not found' }, { status: 404 });
     }
 
-    if (application.createdById !== user.id && user.role !== 'admin') {
+    const canReviewerEdit = user.role === 'reviewer' && application.status === 'supervisor_approved';
+    const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+
+    if (application.createdById !== user.id && !canReviewerEdit && !canAdminEdit) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    if (user.role !== 'admin' && !['draft', 'needs_correction'].includes(application.status)) {
+    if (user.role === 'field_worker' && !['draft', 'needs_correction'].includes(application.status)) {
       return NextResponse.json({ message: 'Only draft or returned applications can be edited.' }, { status: 409 });
     }
 
     const updateData: any = {
       ...validated,
       updatedById: user.id,
-      status: validated.status ?? application.status,
+      status: user.role === 'reviewer' || user.role === 'admin' ? application.status : validated.status ?? application.status,
     };
     await validateSubmittedAddress(updateData);
     await validateSubmittedDocuments(id, updateData);
@@ -644,9 +647,28 @@ export async function PATCH(request: NextRequest) {
       };
     }
 
-    const updated = await prisma.orphanApplication.update({
-      where: { id },
-      data: updateData,
+    const updated = await prisma.$transaction(async (tx) => {
+      const next = await tx.orphanApplication.update({
+        where: { id },
+        data: updateData,
+      });
+
+      if (user.role === 'reviewer' || user.role === 'admin') {
+        await tx.auditLog.create({
+          data: {
+            tableName: 'OrphanApplication',
+            recordId: id,
+            action: user.role === 'reviewer' ? 'edited_by_reviewer' : 'edited_by_admin',
+            actorId: user.id,
+            applicationId: id,
+            details: {
+              status: application.status,
+            },
+          },
+        });
+      }
+
+      return next;
     });
 
     return NextResponse.json(updated);

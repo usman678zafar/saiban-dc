@@ -12,7 +12,7 @@ import { applicationSearchWhere } from '@/lib/application-search';
 const PAGE_SIZE = 50;
 const adminVisibleApplicationWhere = {
   status: {
-    in: ['submitted', 'supervisor_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
+    in: ['reviewer_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
   },
 };
 
@@ -74,7 +74,7 @@ export default async function AdminApplicationsPage({
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-[#0f1f33]">Application Review</h1>
-          <p className="mt-2 text-sm text-[#5f718a]">Review submitted records and open applications that need admin attention.</p>
+          <p className="mt-2 text-sm text-[#5f718a]">Review applications approved by reviewers and complete final admin decisions.</p>
         </div>
         <Link href="/admin/applications/new" className="rounded-xl bg-[#3b82f6] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-[#2563eb]">
           New Application
