@@ -1008,6 +1008,7 @@ export default function OrphanApplicationWizard({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState<'saving' | 'saved' | 'error' | null>(null);
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const messageClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastAutosavedPayloadRef = useRef<string | null>(null);
   const latestApplicationIdRef = useRef<string | null>(initialApplicationId ?? null);
   const unsavedChangeVersionRef = useRef(0);
@@ -1025,6 +1026,26 @@ export default function OrphanApplicationWizard({
     unsavedChangeVersionRef.current += 1;
     setHasUnsavedChanges(true);
   };
+
+  const showTemporaryMessage = (nextMessage: string, durationMs = 3000) => {
+    if (messageClearTimerRef.current) {
+      clearTimeout(messageClearTimerRef.current);
+    }
+
+    setMessage(nextMessage);
+    messageClearTimerRef.current = setTimeout(() => {
+      setMessage((currentMessage) => currentMessage === nextMessage ? null : currentMessage);
+      messageClearTimerRef.current = null;
+    }, durationMs);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (messageClearTimerRef.current) {
+        clearTimeout(messageClearTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (readOnly) return;
@@ -2189,7 +2210,7 @@ export default function OrphanApplicationWizard({
         : clampedStep === 12
           ? 'Complete required documents before opening attestation.'
           : 'Complete previous steps before opening review.';
-      setMessage(message);
+      showTemporaryMessage(message);
       return;
     }
 
@@ -2756,28 +2777,11 @@ export default function OrphanApplicationWizard({
         </div>
       </div>
 
-      {(message || autosaveStatus) ? (
+      {message ? (
         <div className="fixed bottom-24 left-1/2 z-50 grid w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 gap-2 sm:bottom-8">
-          {message ? (
-            <div className={`rounded-lg border p-4 text-sm shadow-lg ${message.toLowerCase().includes('success') ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
-              <div className="whitespace-pre-wrap font-medium">{message}</div>
-            </div>
-          ) : null}
-          {autosaveStatus ? (
-            <div
-              className={`rounded-lg border px-4 py-3 text-sm font-medium shadow-lg ${
-                autosaveStatus === 'error'
-                  ? 'border-amber-200 bg-amber-50 text-amber-800'
-                  : 'border-emerald-200 bg-emerald-50 text-emerald-800'
-              }`}
-            >
-              {autosaveStatus === 'saving'
-                ? 'Saving draft automatically...'
-                : autosaveStatus === 'saved'
-                  ? 'Draft autosaved.'
-                  : 'Autosave could not finish. Use Save Draft before leaving.'}
-            </div>
-          ) : null}
+          <div className={`rounded-lg border p-4 text-sm shadow-lg ${message.toLowerCase().includes('success') ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
+            <div className="whitespace-pre-wrap font-medium">{message}</div>
+          </div>
         </div>
       ) : null}
 
@@ -3625,7 +3629,7 @@ export default function OrphanApplicationWizard({
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Documents Upload / دستاویزات اپ لوڈ')}</h2>
-            <p className="mt-1 text-sm text-slate-600">Choose the required documents. The draft is saved automatically before the first upload.</p>
+            <p className="mt-1 text-sm text-slate-600">Every document shown here is required before attestation and submission.</p>
           </div>
           {!applicationId ? (
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm leading-6 text-blue-900 sm:p-4">
@@ -3644,7 +3648,7 @@ export default function OrphanApplicationWizard({
                   onUpload={handleDocumentUpload}
                   onRemove={handleDocumentRemove}
                   existingDocument={existingDocument}
-                  label={renderLocalizedLabel(documentType.label)}
+                  label={<>{renderLocalizedLabel(documentType.label)} <span className="text-rose-500">*</span></>}
                   accept="image/*,.pdf"
                   disabled={readOnly}
                 />
