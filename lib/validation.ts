@@ -318,7 +318,7 @@ const baseOrphanApplicationSchema = z.object({
   guardianSignatureFileKey: optionalString,
   termsAccepted: booleanString.optional(),
   termsAcceptedAt: parseDate.optional(),
-  status: z.enum(['draft', 'submitted', 'needs_correction', 'validated', 'rejected', 'migrated']).optional(),
+  status: z.enum(['draft', 'submitted', 'needs_correction', 'supervisor_approved', 'reviewer_approved', 'admin_approved', 'validated', 'rejected', 'migrated']).optional(),
   migrationStatus: z.enum(['pending', 'validated', 'migrated', 'rejected']).optional(),
   mainSaibanId: optionalString,
   migrationErrors: optionalString,
@@ -595,6 +595,14 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
         message: 'Madrasa education details are required when enrolled in madrasa',
       });
     }
+
+    if (!data.educationStartCondition) {
+      ctx.addIssue({
+        path: ['educationStartCondition'],
+        code: z.ZodIssueCode.custom,
+        message: 'Islamic studies level is required when enrolled in madrasa',
+      });
+    }
   }
 
   if (data.receivingOtherAid) {
@@ -699,3 +707,4 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
 });
 
 export const getOrphanApplicationSchema = orphanApplicationSchema;
+

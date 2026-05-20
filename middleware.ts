@@ -30,6 +30,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname.startsWith('/supervisor')) {
+    if (!token) {
+      return redirectTo(request, '/signin', callbackPath);
+    }
+    if (token.role !== 'supervisor' && token.role !== 'admin') {
+      return redirectTo(request, '/applications');
+    }
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith('/reviewer')) {
+    if (!token) {
+      return redirectTo(request, '/signin', callbackPath);
+    }
+    if (token.role !== 'reviewer' && token.role !== 'admin') {
+      return redirectTo(request, '/applications');
+    }
+    return NextResponse.next();
+  }
+
   if (!token) {
     return redirectTo(request, '/signin', callbackPath);
   }
@@ -38,5 +58,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/dashboard', '/applications/:path*'],
+  matcher: ['/admin/:path*', '/supervisor/:path*', '/reviewer/:path*', '/dashboard', '/applications/:path*'],
 };

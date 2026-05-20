@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
-import { fieldWorkerProjects } from '@/lib/field-workers';
+import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
 
 const digitsOnly = (value: string) => value.replace(/\D/g, '');
@@ -20,9 +20,9 @@ const updateAdminWorkerSchema = z.object({
     .transform(digitsOnly)
     .refine((v) => v.length === 13, { message: 'CNIC must contain 13 digits' }),
   address: z.string().trim().min(1, 'Address is required'),
-  project: z.enum(fieldWorkerProjects, {
-    errorMap: () => ({ message: 'Project is required' }),
-  }),
+  reference: z.string().trim().optional().default(''),
+  project: z.string().trim().min(1, 'Department is required'),
+  supervisorId: z.string().uuid('Supervisor is required'),
   password: z
     .string()
     .optional()
@@ -42,6 +42,9 @@ const updateSelfWorkerSchema = z.object({
     .transform((v) => (v ? digitsOnly(v) : ''))
     .refine((v) => v.length === 0 || v.length === 13, { message: 'CNIC must contain 13 digits' }),
   address: z.string().trim().optional().default(''),
+  reference: z.string().trim().optional().default(''),
+  project: z.string().trim().min(1, 'Department is required'),
+  supervisorId: z.string().uuid('Supervisor is required'),
   password: z
     .string()
     .optional()
@@ -87,6 +90,22 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
 
     if (worker.selfRegistered) {
       const input = updateSelfWorkerSchema.parse(body);
+      const projects = await getFieldWorkerProjectOptions();
+      if (!projects.includes(input.project)) {
+        return NextResponse.json({ message: 'Department is required' }, { status: 422 });
+      }
+      const supervisor = await prisma.user.findFirst({
+        where: {
+          id: input.supervisorId,
+          role: 'supervisor',
+          project: input.project,
+        },
+        select: { id: true },
+      });
+
+      if (!supervisor) {
+        return NextResponse.json({ message: 'Select a supervisor from the same department.' }, { status: 422 });
+      }
 
       const orConditions: Prisma.UserWhereInput[] = [{ phoneNumber: input.phoneNumber }];
       if (input.cnic) orConditions.push({ cnic: input.cnic });
@@ -109,6 +128,9 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
           phoneNumber: input.phoneNumber,
           cnic: input.cnic || null,
           address: input.address,
+          reference: input.reference || null,
+          project: input.project,
+          supervisorId: input.supervisorId,
           ...(passwordHash ? { passwordHash } : {}),
         },
         select: {
@@ -118,7 +140,9 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
           phoneNumber: true,
           cnic: true,
           address: true,
+          reference: true,
           project: true,
+          supervisorId: true,
           createdAt: true,
         },
       });
@@ -127,6 +151,22 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
     }
 
     const input = updateAdminWorkerSchema.parse(body);
+    const projects = await getFieldWorkerProjectOptions();
+    if (!projects.includes(input.project)) {
+      return NextResponse.json({ message: 'Department is required' }, { status: 422 });
+    }
+    const supervisor = await prisma.user.findFirst({
+      where: {
+        id: input.supervisorId,
+        role: 'supervisor',
+        project: input.project,
+      },
+      select: { id: true },
+    });
+
+    if (!supervisor) {
+      return NextResponse.json({ message: 'Select a supervisor from the same department.' }, { status: 422 });
+    }
 
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -153,7 +193,9 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
         phoneNumber: input.phoneNumber,
         cnic: input.cnic,
         address: input.address,
+        reference: input.reference || null,
         project: input.project,
+        supervisorId: input.supervisorId,
         ...(passwordHash ? { passwordHash } : {}),
       },
       select: {
@@ -163,7 +205,9 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
         phoneNumber: true,
         cnic: true,
         address: true,
+        reference: true,
         project: true,
+        supervisorId: true,
         createdAt: true,
       },
     });
@@ -216,3 +260,8 @@ export async function DELETE(_request: NextRequest, { params }: FieldWorkerRoute
     return NextResponse.json({ message: error instanceof Error ? error.message : 'Unable to delete field worker' }, { status: 500 });
   }
 }
+
+
+
+
+

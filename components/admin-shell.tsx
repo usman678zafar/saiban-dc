@@ -18,3 +18,4 @@ export default function AdminShell({ email, children }: AdminShellProps) {
     </main>
   );
 }
+

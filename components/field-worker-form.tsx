@@ -14,6 +14,7 @@ export default function FieldWorkerForm() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [cnic, setCnic] = useState('');
   const [address, setAddress] = useState('');
+  const [reference, setReference] = useState('');
   const [project, setProject] = useState<string>(fieldWorkerProjects[0]);
   const [customPassword, setCustomPassword] = useState('');
   const [useCustomPassword, setUseCustomPassword] = useState(false);
@@ -34,7 +35,7 @@ export default function FieldWorkerForm() {
     const response = await fetch('/api/admin/field-workers', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phoneNumber, cnic, address, project, password }),
+      body: JSON.stringify({ name, phoneNumber, cnic, address, reference, project, password }),
     });
 
     const result = await response.json();
@@ -49,6 +50,7 @@ export default function FieldWorkerForm() {
     setPhoneNumber('');
     setCnic('');
     setAddress('');
+    setReference('');
     setProject(fieldWorkerProjects[0]);
     setCustomPassword('');
     setUseCustomPassword(false);
@@ -98,7 +100,15 @@ export default function FieldWorkerForm() {
         />
       </label>
       <label className="grid gap-2 text-sm text-slate-700">
-        <span>Project/منصوبہ</span>
+        <span>Reference <span className="text-xs text-slate-400">(optional)</span></span>
+        <input
+          value={reference}
+          onChange={(event) => setReference(event.target.value)}
+          className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        />
+      </label>
+      <label className="grid gap-2 text-sm text-slate-700">
+        <span>Department/شعبہ</span>
         <select
           value={project}
           onChange={(event) => setProject(event.target.value)}
@@ -155,3 +165,8 @@ export default function FieldWorkerForm() {
     </form>
   );
 }
+
+
+
+
+

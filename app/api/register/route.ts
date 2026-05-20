@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
             passwordHash,
             role: 'field_worker',
             selfRegistered: true,
+            project: 'Self Registered',
           },
           select: {
             id: true,
@@ -122,3 +123,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Registration failed. Please try again.' }, { status: 500 });
   }
 }
+

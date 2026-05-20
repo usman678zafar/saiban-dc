@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
+import { ApplicationStatus } from '@prisma/client';
 import { ArrowRight, CheckCircle2, ClipboardList, Database, FileCheck2, FileText, ShieldCheck, UsersRound } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -35,15 +36,15 @@ type FieldWorker = {
 
 const adminVisibleApplicationWhere = {
   status: {
-    not: 'draft' as const,
+    in: ['reviewer_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
   },
 };
 
 async function getAdminPortalData() {
   const [
     totalApplications,
-    submittedApplications,
-    validatedApplications,
+    reviewerApprovedApplications,
+    adminApprovedApplications,
     migratedApplications,
     rejectedApplications,
     totalUsers,
@@ -52,8 +53,8 @@ async function getAdminPortalData() {
     recentApplications,
   ] = await Promise.all([
     prisma.orphanApplication.count({ where: adminVisibleApplicationWhere }),
-    prisma.orphanApplication.count({ where: { status: 'submitted' } }),
-    prisma.orphanApplication.count({ where: { status: 'validated' } }),
+    prisma.orphanApplication.count({ where: { status: 'reviewer_approved' } }),
+    prisma.orphanApplication.count({ where: { status: { in: ['admin_approved', 'validated'] } } }),
     prisma.orphanApplication.count({ where: { status: 'migrated' } }),
     prisma.orphanApplication.count({ where: { status: 'rejected' } }),
     prisma.user.count(),
@@ -89,8 +90,8 @@ async function getAdminPortalData() {
 
   const metrics: AdminMetric[] = [
     { label: 'Total Applications', value: totalApplications, detail: 'All records', tone: 'blue' },
-    { label: 'Submitted', value: submittedApplications, detail: 'Awaiting review', tone: 'violet' },
-    { label: 'Validated', value: validatedApplications, detail: 'Ready records', tone: 'emerald' },
+    { label: 'Reviewer Approved', value: reviewerApprovedApplications, detail: 'Awaiting final review', tone: 'violet' },
+    { label: 'Final Approved', value: adminApprovedApplications, detail: 'Validated records', tone: 'emerald' },
     { label: 'Migrated', value: migratedApplications, detail: 'Moved onward', tone: 'sky' },
     { label: 'Rejected', value: rejectedApplications, detail: 'Needs attention', tone: 'red' },
     { label: 'Users', value: totalUsers, detail: 'Portal access', tone: 'orange' },
@@ -218,7 +219,7 @@ export default async function AdminPortalPage() {
                           <span className="shrink-0 text-xs text-[#8a9bb3]">{worker.createdAt.toLocaleDateString()}</span>
                         </div>
                         <div className="mt-2 grid gap-2 text-xs text-[#506784] sm:grid-cols-2">
-                          <p className="min-w-0 truncate"><span className="font-semibold text-[#0f1f33]">Project:</span> {worker.project ?? '-'}</p>
+                          <p className="min-w-0 truncate"><span className="font-semibold text-[#0f1f33]">Department:</span> {worker.project ?? '-'}</p>
                           <p className="min-w-0 truncate"><span className="font-semibold text-[#0f1f33]">Phone:</span> {worker.phoneNumber ?? '-'}</p>
                         </div>
                       </article>
@@ -236,3 +237,9 @@ export default async function AdminPortalPage() {
     </AdminShell>
   );
 }
+
+
+
+
+
+

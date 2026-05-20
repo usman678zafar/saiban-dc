@@ -4,7 +4,9 @@ import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
 import { authOptions } from '@/lib/auth';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
-import { CopyPlus, Eye, Pencil } from 'lucide-react';
+import { CopyPlus, Eye, Pencil, Search, X } from 'lucide-react';
+import { applicationStatusLabel } from '@/lib/application-workflow';
+import { applicationSearchWhere } from '@/lib/application-search';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +27,7 @@ type ApplicationListRecord = {
   childName: string | null;
   status: string;
   updatedAt: Date;
+  auditLogs?: Array<{ details: unknown; createdAt: Date }>;
 };
 
 type ApplicationListItem = {
@@ -33,12 +36,13 @@ type ApplicationListItem = {
   childName: string;
   status: string;
   updatedAt: string;
+  correctionComment: string | null;
 };
 
 export default async function ApplicationsPage({
   searchParams,
 }: {
-  searchParams: { page?: string };
+  searchParams: { page?: string; q?: string };
 }) {
   const session = await getServerSession(authOptions);
   const isAdmin = session?.user?.role === 'admin';
@@ -48,10 +52,20 @@ export default async function ApplicationsPage({
       select: { id: true },
     })
     : null;
-  const where = isAdmin ? undefined : { createdById: user?.id ?? '' };
+  const search = searchParams.q?.trim() ?? '';
+  const ownerWhere = isAdmin ? {} : { createdById: user?.id ?? '' };
+  const searchWhere = applicationSearchWhere(search);
+  const where = { ...ownerWhere, ...searchWhere };
 
   const page = Math.max(1, Number(searchParams.page) || 1);
   const skip = (page - 1) * PAGE_SIZE;
+  const pageHref = (nextPage: number) => {
+    const params = new URLSearchParams();
+    if (search) params.set('q', search);
+    if (nextPage > 1) params.set('page', String(nextPage));
+    const query = params.toString();
+    return query ? `/applications?${query}` : '/applications';
+  };
 
   const [records, total] = await Promise.all([
     prisma.orphanApplication.findMany({
@@ -65,6 +79,12 @@ export default async function ApplicationsPage({
         childName: true,
         status: true,
         updatedAt: true,
+        auditLogs: {
+          where: { action: { in: ['returned_by_supervisor', 'returned_by_admin'] } },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { details: true, createdAt: true },
+        },
       },
     }) as Promise<ApplicationListRecord[]>,
     prisma.orphanApplication.count({ where }),
@@ -76,6 +96,7 @@ export default async function ApplicationsPage({
     childName: application.childName ?? 'No child name',
     status: application.status,
     updatedAt: dateTimeFormatter.format(application.updatedAt),
+    correctionComment: typeof (application.auditLogs?.[0]?.details as any)?.comment === 'string' ? (application.auditLogs?.[0]?.details as any).comment : null,
   }));
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -100,6 +121,31 @@ export default async function ApplicationsPage({
         ) : null
       }
     >
+      <form action="/applications" className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <label className="relative min-w-0 flex-1">
+            <span className="sr-only">Search applications</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <input
+              type="search"
+              name="q"
+              defaultValue={search}
+              placeholder="Search by name, registration, B-form, CNIC, department"
+              className="min-h-11 w-full rounded-lg border border-slate-300 bg-slate-50 pl-10 pr-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </label>
+          <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
+            Search
+          </button>
+          {search ? (
+            <Link href="/applications" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              <X className="h-4 w-4" aria-hidden="true" />
+              Clear
+            </Link>
+          ) : null}
+        </div>
+      </form>
+
       <div className="grid min-w-0 gap-3 md:hidden">
         <div className="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-600 shadow-sm">
           {total === 0 ? 'No records' : `Showing ${skip + 1}-${Math.min(skip + PAGE_SIZE, total)} of ${total}`}
@@ -117,9 +163,12 @@ export default async function ApplicationsPage({
                   <p className="mt-1 break-words text-sm leading-6 text-slate-600 [overflow-wrap:anywhere]">{application.childName}</p>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold capitalize text-slate-700">{application.status}</span>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{applicationStatusLabel(application.status)}</span>
                   <span className="text-xs text-slate-500">Updated {application.updatedAt}</span>
                 </div>
+                {application.correctionComment ? (
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">{application.correctionComment}</p>
+                ) : null}
               </div>
               <div className="mt-4 flex items-center gap-2">
                 <Link
@@ -130,7 +179,7 @@ export default async function ApplicationsPage({
                 >
                   <Eye className="h-5 w-5" />
                 </Link>
-                {application.status === 'draft' ? (
+                {application.status === 'draft' || application.status === 'needs_correction' ? (
                   <Link
                     href={`/applications/${application.id}/edit`}
                     aria-label="Edit draft"
@@ -168,7 +217,7 @@ export default async function ApplicationsPage({
             </article>
           ))
         )}
-        <MobilePagination page={page} hasPrev={hasPrev} hasNext={hasNext} totalPages={totalPages} />
+        <MobilePagination page={page} hasPrev={hasPrev} hasNext={hasNext} totalPages={totalPages} pageHref={pageHref} />
       </div>
 
       <div className="hidden min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:block">
@@ -195,7 +244,12 @@ export default async function ApplicationsPage({
                     <div className="break-words font-semibold text-slate-900 [overflow-wrap:anywhere]">{application.registrationNumber}</div>
                     <div className="mt-1 break-words text-xs text-slate-500 [overflow-wrap:anywhere]">{application.childName}</div>
                   </td>
-                  <td className="px-4 py-4 align-top capitalize text-slate-700">{application.status}</td>
+                  <td className="px-4 py-4 align-top text-slate-700">
+                    <span>{applicationStatusLabel(application.status)}</span>
+                    {application.correctionComment ? (
+                      <p className="mt-1 max-w-xs text-xs leading-5 text-amber-700">{application.correctionComment}</p>
+                    ) : null}
+                  </td>
                   <td className="px-4 py-4 align-top text-slate-500">{application.updatedAt}</td>
                   <td className="px-4 py-4 align-top">
                     <div className="flex flex-wrap gap-2">
@@ -207,7 +261,7 @@ export default async function ApplicationsPage({
                     >
                       <Eye className="h-4 w-4" />
                     </Link>
-                    {application.status === 'draft' ? (
+                    {application.status === 'draft' || application.status === 'needs_correction' ? (
                       <Link
                         href={`/applications/${application.id}/edit`}
                         aria-label="Edit draft"
@@ -242,14 +296,14 @@ export default async function ApplicationsPage({
           <span>{total === 0 ? 'No records' : `Showing ${skip + 1}–${Math.min(skip + PAGE_SIZE, total)} of ${total}`}</span>
           <div className="flex gap-2">
             {hasPrev ? (
-              <Link href={`/applications?page=${page - 1}`} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50">
+              <Link href={pageHref(page - 1)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50">
                 Previous
               </Link>
             ) : (
               <span className="rounded-lg border border-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-300">Previous</span>
             )}
             {hasNext ? (
-              <Link href={`/applications?page=${page + 1}`} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50">
+              <Link href={pageHref(page + 1)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50">
                 Next
               </Link>
             ) : (
@@ -262,7 +316,7 @@ export default async function ApplicationsPage({
   );
 }
 
-function MobilePagination({ page, hasPrev, hasNext, totalPages }: { page: number; hasPrev: boolean; hasNext: boolean; totalPages: number }) {
+function MobilePagination({ page, hasPrev, hasNext, totalPages, pageHref }: { page: number; hasPrev: boolean; hasNext: boolean; totalPages: number; pageHref: (page: number) => string }) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
       <div className="mb-3 text-center text-xs font-semibold text-slate-500">
@@ -270,14 +324,14 @@ function MobilePagination({ page, hasPrev, hasNext, totalPages }: { page: number
       </div>
       <div className="grid grid-cols-2 gap-2">
         {hasPrev ? (
-          <Link href={`/applications?page=${page - 1}`} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+          <Link href={pageHref(page - 1)} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             Previous
           </Link>
         ) : (
           <span className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-100 px-3 py-2 text-sm font-semibold text-slate-300">Previous</span>
         )}
         {hasNext ? (
-          <Link href={`/applications?page=${page + 1}`} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+          <Link href={pageHref(page + 1)} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             Next
           </Link>
         ) : (
@@ -287,3 +341,7 @@ function MobilePagination({ page, hasPrev, hasNext, totalPages }: { page: number
     </div>
   );
 }
+
+
+
+

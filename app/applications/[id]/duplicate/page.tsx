@@ -45,3 +45,4 @@ export default async function DuplicateApplicationPage({ params }: DuplicateAppl
     </AppShell>
   );
 }
+

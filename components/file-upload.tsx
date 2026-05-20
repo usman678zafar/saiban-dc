@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, type ReactNode } from 'react';
-import { Upload, X } from 'lucide-react';
+import { useRef, useState, type ReactNode } from 'react';
+import { ExternalLink, Upload, X } from 'lucide-react';
 
 interface FileUploadProps {
   documentType: string;
@@ -12,6 +12,7 @@ interface FileUploadProps {
   existingDocument?: any;
   label: ReactNode;
   accept?: string;
+  disabled?: boolean;
 }
 
 export default function FileUpload({
@@ -23,6 +24,7 @@ export default function FileUpload({
   existingDocument,
   label,
   accept = 'image/*,.pdf',
+  disabled = false,
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +32,7 @@ export default function FileUpload({
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || disabled) return;
 
     setIsUploading(true);
     setError(null);
@@ -66,10 +68,10 @@ export default function FileUpload({
   };
 
   const handleRemove = async () => {
-    if (existingDocument && onRemove) {
+    if (existingDocument && onRemove && !disabled) {
       try {
         await onRemove(existingDocument.id);
-      } catch (error) {
+      } catch {
         setError('Failed to remove document');
       }
     }
@@ -81,20 +83,32 @@ export default function FileUpload({
 
       {existingDocument ? (
         <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
-          <div className="min-w-0 flex-1">
+          <a
+            href={existingDocument.fileUrl ?? '#'}
+            target={existingDocument.fileUrl ? '_blank' : undefined}
+            rel={existingDocument.fileUrl ? 'noreferrer' : undefined}
+            aria-disabled={!existingDocument.fileUrl}
+            className={`min-w-0 flex-1 rounded-md outline-none focus:ring-2 focus:ring-blue-200 ${existingDocument.fileUrl ? 'hover:text-blue-700' : 'pointer-events-none'}`}
+          >
             <p className="break-words text-sm font-medium text-slate-900">{existingDocument.documentType}</p>
-            <p className="mt-0.5 break-words text-xs leading-5 text-slate-500">
-              {(existingDocument.size / 1024).toFixed(1)} KB • {existingDocument.mimeType}
+            <p className="mt-0.5 flex flex-wrap items-center gap-1.5 break-words text-xs leading-5 text-slate-500">
+              <span>{(existingDocument.size / 1024).toFixed(1)} KB • {existingDocument.mimeType}</span>
+              {existingDocument.fileUrl ? <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /> : null}
             </p>
-          </div>
+          </a>
           <button
             type="button"
             onClick={handleRemove}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+            disabled={disabled}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600 disabled:hidden"
             aria-label="Remove uploaded file"
           >
             <X className="h-4 w-4" />
           </button>
+        </div>
+      ) : disabled ? (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+          No document uploaded.
         </div>
       ) : (
         <div className="relative">
@@ -118,7 +132,8 @@ export default function FileUpload({
         </div>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
     </div>
   );
 }
+

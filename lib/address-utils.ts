@@ -24,3 +24,4 @@ export function isValidTehsilForDistrict(province: string, district: string, teh
   if (!tehsil || tehsil === 'unknown') return true;
   return getTehsilsByDistrict(province, district).some((item) => item.name === tehsil);
 }
+

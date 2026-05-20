@@ -45,8 +45,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Application not found' }, { status: 404 });
     }
 
-    if (application.createdById !== user.id && user.role !== 'admin') {
+    const canReviewerEdit = user.role === 'reviewer' && application.status === 'supervisor_approved';
+    const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+
+    if (application.createdById !== user.id && !canReviewerEdit && !canAdminEdit) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+    }
+
+    if (user.role === 'field_worker' && !['draft', 'needs_correction'].includes(application.status)) {
+      return NextResponse.json({ message: 'Uploads are only allowed for draft or returned applications.' }, { status: 409 });
     }
 
     let processedBody: File | Blob | ArrayBuffer | Uint8Array = file;
@@ -111,8 +118,15 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ message: 'Document not found' }, { status: 404 });
   }
 
-  if (document.application.createdById !== user.id && user.role !== 'admin') {
+  const canReviewerEdit = user.role === 'reviewer' && document.application.status === 'supervisor_approved';
+  const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(document.application.status);
+
+  if (document.application.createdById !== user.id && !canReviewerEdit && !canAdminEdit) {
     return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+  }
+
+  if (user.role === 'field_worker' && !['draft', 'needs_correction'].includes(document.application.status)) {
+    return NextResponse.json({ message: 'Documents can only be removed from draft or returned applications.' }, { status: 409 });
   }
 
   try {
@@ -124,3 +138,4 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ message: 'Delete failed' }, { status: 500 });
   }
 }
+

@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma';
 import { getOrphanApplicationSchema } from '@/lib/validation';
 import { isValidDistrictForProvince, isValidTehsilForDistrict } from '@/lib/address-utils';
 import { deleteFromR2 } from '@/lib/r2';
+import { applicationStatuses } from '@/lib/application-workflow';
+import { projectMatchesReviewAssignment } from '@/lib/field-workers';
 
 async function getUser(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -87,7 +89,6 @@ const draftDateFields = [
   'illnessSince', 'schoolStudyingSince', 'termsAcceptedAt',
 ] as const;
 
-const applicationStatuses = ['draft', 'submitted', 'needs_correction', 'validated', 'rejected', 'migrated'];
 const migrationStatuses = ['pending', 'validated', 'migrated', 'rejected'];
 const relativeTypes = ['paternal_grandfather', 'maternal_grandfather', 'paternal_uncle', 'maternal_uncle'];
 
@@ -299,7 +300,7 @@ function normalizeConditionalPayload(payload: any) {
   }
 
   if (next.currentlyStudying === true || next.currentlyStudying === 'true') {
-    clearPayloadFields(next, ['notStudyingReason', 'educationStartCondition']);
+    clearPayloadFields(next, ['notStudyingReason']);
   }
 
   if (next.educationFeeStatus !== 'paid') {
@@ -307,7 +308,7 @@ function normalizeConditionalPayload(payload: any) {
   }
 
   if (next.enrolledInMadrasa === false || next.enrolledInMadrasa === 'false') {
-    clearPayloadFields(next, ['madrasaName', 'madrasaEducationDetails']);
+    clearPayloadFields(next, ['madrasaName', 'madrasaEducationDetails', 'educationStartCondition']);
   }
 
   if (next.receivingOtherAid === false || next.receivingOtherAid === 'false') {
@@ -315,6 +316,50 @@ function normalizeConditionalPayload(payload: any) {
   }
 
   return next;
+}
+
+function requiredDocumentTypesForApplication(data: any) {
+  const types = [
+    'child_photo',
+    'child_b_form',
+    'father_cnic',
+    'father_death_certificate',
+  ];
+
+  if (data.motherAlive !== 'no') {
+    types.push('mother_cnic');
+  }
+
+  if (data.motherAlive === 'no') {
+    types.push('mother_death_certificate');
+  }
+
+  const guardianDetailsNeeded = data.motherAlive !== 'yes' || data.motherIsGuardian !== 'yes';
+  if (guardianDetailsNeeded) {
+    types.push('guardian_cnic');
+  }
+
+  if (data.healthStatus === 'chronic_illness' || data.healthStatus === 'disabled') {
+    types.push('medical_report');
+  }
+
+  types.push('attestation_confirmation');
+  return types;
+}
+
+async function validateSubmittedDocuments(applicationId: string, data: any) {
+  if (data.status !== 'submitted') return;
+
+  const uploadedDocuments = await prisma.applicationDocument.findMany({
+    where: { applicationId },
+    select: { documentType: true },
+  });
+  const uploadedTypes = new Set(uploadedDocuments.map((document) => document.documentType));
+  const missingTypes = requiredDocumentTypesForApplication(data).filter((type) => !uploadedTypes.has(type as any));
+
+  if (missingTypes.length > 0) {
+    throw new Error(`Upload required documents before submitting: ${missingTypes.map((type) => type.replace(/_/g, ' ')).join(', ')}`);
+  }
 }
 
 function buildRegistrationNumber() {
@@ -377,6 +422,99 @@ async function validateSubmittedAddress(payload: any) {
   }
 }
 
+function isStatusOnlyRequest(body: any) {
+  const keys = Object.keys(body);
+  return keys.every((key) => ['id', 'status', 'reviewComment'].includes(key));
+}
+
+async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<typeof getUser>>>, body: any) {
+  const { id, status, reviewComment } = body;
+  if (!applicationStatuses.includes(status)) {
+    return NextResponse.json({ message: 'Invalid application status' }, { status: 422 });
+  }
+
+  const application = await prisma.orphanApplication.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      status: true,
+      createdById: true,
+      collectorProject: true,
+      registrationNumber: true,
+    },
+  });
+
+  if (!application) {
+    return NextResponse.json({ message: 'Application not found' }, { status: 404 });
+  }
+
+  const comment = typeof reviewComment === 'string' ? reviewComment.trim() : '';
+  let allowed = false;
+  let action = 'status_changed';
+
+  if (user.role === 'field_worker' && application.createdById === user.id) {
+    allowed = application.status === 'needs_correction' && status === 'submitted';
+    action = 'resubmitted';
+  }
+
+  if (user.role === 'supervisor') {
+    const projectMatches = projectMatchesReviewAssignment(application.collectorProject, user.project);
+    allowed = projectMatches && application.status === 'submitted' && ['needs_correction', 'supervisor_approved', 'rejected'].includes(status);
+    action = status === 'needs_correction' ? 'returned_by_supervisor' : status === 'supervisor_approved' ? 'approved_by_supervisor' : 'rejected_by_supervisor';
+
+    if (status === 'needs_correction' && !comment) {
+      return NextResponse.json({ message: 'Correction comment is required.' }, { status: 422 });
+    }
+  }
+
+  if (user.role === 'reviewer') {
+    allowed = application.status === 'supervisor_approved' && ['reviewer_approved', 'rejected'].includes(status);
+    action = status === 'reviewer_approved' ? 'approved_by_reviewer' : 'rejected_by_reviewer';
+  }
+
+  if (user.role === 'admin') {
+    allowed = (
+      (application.status === 'reviewer_approved' && ['admin_approved', 'rejected'].includes(status)) ||
+      (application.status === 'admin_approved' && status === 'migrated') ||
+      (application.status === 'validated' && status === 'migrated')
+    );
+    action = status === 'admin_approved' ? 'approved_by_admin' : status === 'rejected' ? 'rejected_by_admin' : 'status_changed_by_admin';
+  }
+
+  if (!allowed) {
+    return NextResponse.json({ message: 'This status transition is not allowed for your role.' }, { status: 403 });
+  }
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const next = await tx.orphanApplication.update({
+      where: { id },
+      data: {
+        status,
+        updatedById: user.id,
+      },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        tableName: 'OrphanApplication',
+        recordId: id,
+        action,
+        actorId: user.id,
+        applicationId: id,
+        details: {
+          from: application.status,
+          to: status,
+          comment,
+        },
+      },
+    });
+
+    return next;
+  });
+
+  return NextResponse.json(updated);
+}
+
 export async function POST(request: NextRequest) {
   const user = await getUser(request);
   if (!user) {
@@ -394,6 +532,9 @@ export async function POST(request: NextRequest) {
     const { siblings, relatives, householdAssets, ...payload } = validated;
 
     const status = payload.status ?? 'draft';
+    if (status === 'submitted') {
+      throw new Error('Save the application as a draft, upload all required documents and attestation, then submit.');
+    }
     await validateSubmittedAddress({ ...payload, status });
     const application = await prisma.orphanApplication.create({
       data: {
@@ -439,6 +580,10 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
+    if (isStatusOnlyRequest(body)) {
+      return updateApplicationStatus(user, body);
+    }
+
     const normalizedBody = normalizeConditionalPayload(body);
     const requestedStatus = normalizedBody.status === 'submitted' ? 'submitted' : 'draft';
     const validated = requestedStatus === 'submitted'
@@ -449,16 +594,24 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: 'Application not found' }, { status: 404 });
     }
 
-    if (application.createdById !== user.id && user.role !== 'admin') {
+    const canReviewerEdit = user.role === 'reviewer' && application.status === 'supervisor_approved';
+    const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+
+    if (application.createdById !== user.id && !canReviewerEdit && !canAdminEdit) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+    }
+
+    if (user.role === 'field_worker' && !['draft', 'needs_correction'].includes(application.status)) {
+      return NextResponse.json({ message: 'Only draft or returned applications can be edited.' }, { status: 409 });
     }
 
     const updateData: any = {
       ...validated,
       updatedById: user.id,
-      status: validated.status ?? application.status,
+      status: user.role === 'reviewer' || user.role === 'admin' ? application.status : validated.status ?? application.status,
     };
     await validateSubmittedAddress(updateData);
+    await validateSubmittedDocuments(id, updateData);
 
     const shouldGenerateRegistrationNumber = application.status !== 'submitted' && updateData.status === 'submitted' && !application.registrationNumber;
     delete updateData.registrationNumber;
@@ -494,9 +647,28 @@ export async function PATCH(request: NextRequest) {
       };
     }
 
-    const updated = await prisma.orphanApplication.update({
-      where: { id },
-      data: updateData,
+    const updated = await prisma.$transaction(async (tx) => {
+      const next = await tx.orphanApplication.update({
+        where: { id },
+        data: updateData,
+      });
+
+      if (user.role === 'reviewer' || user.role === 'admin') {
+        await tx.auditLog.create({
+          data: {
+            tableName: 'OrphanApplication',
+            recordId: id,
+            action: user.role === 'reviewer' ? 'edited_by_reviewer' : 'edited_by_admin',
+            actorId: user.id,
+            applicationId: id,
+            details: {
+              status: application.status,
+            },
+          },
+        });
+      }
+
+      return next;
     });
 
     return NextResponse.json(updated);
@@ -562,3 +734,4 @@ export async function DELETE(request: NextRequest) {
 
   return NextResponse.json({ message: 'Draft application deleted successfully.' });
 }
+

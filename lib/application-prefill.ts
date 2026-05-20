@@ -26,3 +26,4 @@ export async function getApplicationCollectorPrefill(session: Session | null) {
     collectorContact: user?.phoneNumber ?? '',
   };
 }
+

@@ -17,6 +17,8 @@ interface AppShellProps {
 export default async function AppShell({ title, description, actions, maxWidth = 'max-w-7xl', children }: AppShellProps) {
   const session = await getServerSession(authOptions);
   const isAdmin = session?.user?.role === 'admin';
+  const isSupervisor = session?.user?.role === 'supervisor';
+  const isReviewer = session?.user?.role === 'reviewer';
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -36,6 +38,16 @@ export default async function AppShell({ title, description, actions, maxWidth =
             {isAdmin ? (
               <Link href="/dashboard" className="snap-start whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 sm:px-3 sm:py-2.5 sm:text-sm">
                 Dashboard
+              </Link>
+            ) : null}
+            {isSupervisor || isAdmin ? (
+              <Link href="/supervisor" className="snap-start whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 sm:px-3 sm:py-2.5 sm:text-sm">
+                Supervisor
+              </Link>
+            ) : null}
+            {isReviewer || isAdmin ? (
+              <Link href="/reviewer" className="snap-start whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 sm:px-3 sm:py-2.5 sm:text-sm">
+                Reviewer
               </Link>
             ) : null}
             <Link href="/applications" className="snap-start whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 sm:px-3 sm:py-2.5 sm:text-sm">
@@ -68,3 +80,4 @@ export default async function AppShell({ title, description, actions, maxWidth =
     </main>
   );
 }
+

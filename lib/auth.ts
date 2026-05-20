@@ -4,7 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { type NextAuthOptions } from 'next-auth';
 import { prisma } from './prisma';
 
-export type Role = 'admin' | 'field_worker' | 'viewer';
+export type Role = 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer';
 
 declare module 'next-auth' {
   interface Session {
@@ -72,7 +72,7 @@ export const authOptions: NextAuthOptions = {
         const identifier = credentials.email.trim();
         const email = identifier.toLowerCase();
         const numericIdentifier = digitsOnly(identifier);
-        const loginRole = credentials.loginRole === 'admin' || credentials.loginRole === 'field_worker' ? credentials.loginRole : undefined;
+        const loginRole = credentials.loginRole === 'admin' || credentials.loginRole === 'reviewer' || credentials.loginRole === 'supervisor' || credentials.loginRole === 'field_worker' ? credentials.loginRole : undefined;
         const user = loginRole === 'field_worker'
           ? await prisma.user.findFirst({
             where: {
@@ -84,6 +84,26 @@ export const authOptions: NextAuthOptions = {
               ],
             },
           })
+          : loginRole === 'supervisor'
+            ? await prisma.user.findFirst({
+              where: {
+                role: 'supervisor',
+                OR: [
+                  { phoneNumber: identifier },
+                  { email },
+                ],
+              },
+            })
+          : loginRole === 'reviewer'
+            ? await prisma.user.findFirst({
+              where: {
+                role: 'reviewer',
+                OR: [
+                  { phoneNumber: identifier },
+                  { email },
+                ],
+              },
+            })
           : await prisma.user.findUnique({
             where: { email },
           }) ?? await ensureBootstrapAdmin(email, credentials.password);
@@ -128,3 +148,4 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
+
