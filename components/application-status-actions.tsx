@@ -42,6 +42,13 @@ const actionButtons: Record<'admin' | 'reviewer' | 'supervisor' | 'field_worker'
   ],
 };
 
+const redirectAfterAction: Record<'admin' | 'reviewer' | 'supervisor' | 'field_worker', string> = {
+  admin: '/admin/applications',
+  reviewer: '/reviewer',
+  supervisor: '/supervisor',
+  field_worker: '/applications',
+};
+
 export default function ApplicationStatusActions({ applicationId, currentStatus, actorRole = 'admin', onUpdated }: ApplicationStatusActionsProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -67,6 +74,7 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
       setMessage('Status updated successfully.');
       setComment('');
       onUpdated?.();
+      router.push(redirectAfterAction[actorRole]);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Status update failed.');
