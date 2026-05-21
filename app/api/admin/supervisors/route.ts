@@ -6,17 +6,18 @@ import { UserRole } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
-
-const digitsOnly = (value: string) => value.replace(/\D/g, '');
+import { cnicVariants, digitsOnly, formatCnic, isValidCnic, normalizePakistanMobile } from '@/lib/contact-format';
 const supervisorEmailForPhone = (phoneNumber: string) => `${phoneNumber.replace(/[^a-zA-Z0-9]+/g, '')}@supervisor.saiban.local`;
 
 const createSupervisorSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  phoneNumber: z.string().trim().min(1, 'Phone number is required').refine((value) => digitsOnly(value).length >= 4, {
-    message: 'Phone number must contain at least 4 digits',
+  phoneNumber: z.string().transform(normalizePakistanMobile).refine((value) => /^03\d{9}$/.test(value), {
+    message: 'Phone number must use the format 03332101476',
   }),
   project: z.string().trim().min(1, 'Department is required'),
-  cnic: z.string().trim().optional().default(''),
+  cnic: z.string().transform((value) => (value ? formatCnic(value) : '')).refine((value) => value.length === 0 || isValidCnic(value), {
+    message: 'CNIC must use the format 42101-0536155-7',
+  }).optional().default(''),
   address: z.string().trim().optional().default(''),
 });
 
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
         OR: [
           { email: supervisorEmailForPhone(input.phoneNumber) },
           { phoneNumber: input.phoneNumber },
-          ...(input.cnic ? [{ cnic: input.cnic }] : []),
+          ...cnicVariants(input.cnic).map((cnic) => ({ cnic })),
         ],
       },
       select: { id: true },

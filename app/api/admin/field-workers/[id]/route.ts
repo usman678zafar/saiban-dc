@@ -6,19 +6,14 @@ import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
-
-const digitsOnly = (value: string) => value.replace(/\D/g, '');
+import { cnicVariants, formatCnic, isValidCnic } from '@/lib/contact-format';
 
 const updateAdminWorkerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  phoneNumber: z
-    .string()
-    .transform(digitsOnly)
-    .refine((v) => v.length >= 10, { message: 'Phone number must contain at least 10 digits' }),
   cnic: z
     .string()
-    .transform(digitsOnly)
-    .refine((v) => v.length === 13, { message: 'CNIC must contain 13 digits' }),
+    .transform(formatCnic)
+    .refine(isValidCnic, { message: 'CNIC must use the format 42101-0536155-7' }),
   address: z.string().trim().min(1, 'Address is required'),
   reference: z.string().trim().optional().default(''),
   project: z.string().trim().min(1, 'Department is required'),
@@ -32,15 +27,11 @@ const updateAdminWorkerSchema = z.object({
 
 const updateSelfWorkerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  phoneNumber: z
-    .string()
-    .transform(digitsOnly)
-    .refine((v) => v.length >= 10, { message: 'Phone number must contain at least 10 digits' }),
   cnic: z
     .string()
     .optional()
-    .transform((v) => (v ? digitsOnly(v) : ''))
-    .refine((v) => v.length === 0 || v.length === 13, { message: 'CNIC must contain 13 digits' }),
+    .transform((v) => (v ? formatCnic(v) : ''))
+    .refine((v) => v.length === 0 || isValidCnic(v), { message: 'CNIC must use the format 42101-0536155-7' }),
   address: z.string().trim().optional().default(''),
   reference: z.string().trim().optional().default(''),
   project: z.string().trim().min(1, 'Department is required'),
@@ -81,7 +72,7 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
 
     const worker = await prisma.user.findFirst({
       where: { id: params.id, role: 'field_worker' },
-      select: { id: true, selfRegistered: true },
+      select: { id: true, selfRegistered: true, phoneNumber: true },
     });
 
     if (!worker) {
@@ -107,13 +98,14 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
         return NextResponse.json({ message: 'Select a supervisor from the same department.' }, { status: 422 });
       }
 
-      const orConditions: Prisma.UserWhereInput[] = [{ phoneNumber: input.phoneNumber }];
-      if (input.cnic) orConditions.push({ cnic: input.cnic });
+      const orConditions: Prisma.UserWhereInput[] = input.cnic ? cnicVariants(input.cnic).map((cnic) => ({ cnic })) : [];
 
-      const existingUser = await prisma.user.findFirst({
-        where: { id: { not: params.id }, OR: orConditions },
-        select: { id: true },
-      });
+      const existingUser = orConditions.length
+        ? await prisma.user.findFirst({
+          where: { id: { not: params.id }, OR: orConditions },
+          select: { id: true },
+        })
+        : null;
 
       if (existingUser) {
         return NextResponse.json({ message: 'A field worker with this phone number already exists.' }, { status: 409 });
@@ -124,8 +116,6 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
         where: { id: params.id },
         data: {
           name: input.name,
-          email: `${input.phoneNumber}@public.saiban.local`,
-          phoneNumber: input.phoneNumber,
           cnic: input.cnic || null,
           address: input.address,
           reference: input.reference || null,
@@ -172,9 +162,8 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
       where: {
         id: { not: params.id },
         OR: [
-          { phoneNumber: input.phoneNumber },
-          { cnic: input.cnic },
-          { email: `${input.cnic}@field.saiban.local` },
+          ...cnicVariants(input.cnic).map((cnic) => ({ cnic })),
+          ...cnicVariants(input.cnic).map((cnic) => ({ email: `${cnic}@field.saiban.local` })),
         ],
       },
       select: { id: true },
@@ -190,7 +179,6 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
       data: {
         name: input.name,
         email: `${input.cnic}@field.saiban.local`,
-        phoneNumber: input.phoneNumber,
         cnic: input.cnic,
         address: input.address,
         reference: input.reference || null,

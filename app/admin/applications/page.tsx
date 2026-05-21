@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
+import { formatDate } from '@/lib/date-format';
 
 const PAGE_SIZE = 50;
 const adminVisibleApplicationWhere = {
@@ -125,7 +126,7 @@ export default async function AdminApplicationsPage({
                   <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
                   <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784]">{application.migrationStatus}</span>
                 </div>
-                <p className="mt-3 text-xs text-[#8a9bb3]">Updated {application.updatedAt.toLocaleDateString()}</p>
+                <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
               </Link>
             ))
           )}
@@ -156,7 +157,7 @@ export default async function AdminApplicationsPage({
                     </td>
                     <td className="px-4 py-4">{applicationStatusLabel(application.status)}</td>
                     <td className="px-4 py-4 capitalize">{application.migrationStatus}</td>
-                    <td className="px-4 py-4 text-[#8a9bb3]">{application.updatedAt.toLocaleDateString()}</td>
+                    <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(application.updatedAt)}</td>
                     <td className="px-4 py-4">
                       <Link href={`/admin/applications/${application.id}`} className="rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff]">
                         Review

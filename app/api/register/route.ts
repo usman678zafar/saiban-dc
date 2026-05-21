@@ -3,24 +3,15 @@ import bcrypt from 'bcryptjs';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-
-const digitsOnly = (value: string) => value.replace(/\D/g, '');
-
-function normalizePakistanMobile(value: string) {
-  const digits = digitsOnly(value);
-  if (digits.startsWith('0092') && digits.length === 14) return `0${digits.slice(4)}`;
-  if (digits.startsWith('92') && digits.length === 12) return `0${digits.slice(2)}`;
-  if (digits.startsWith('3') && digits.length === 10) return `0${digits}`;
-  return digits;
-}
+import { cnicVariants, formatCnic, isValidCnic, normalizePakistanMobile } from '@/lib/contact-format';
 
 const registerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
   phoneNumber: z.string().transform(normalizePakistanMobile).refine((value) => /^03\d{9}$/.test(value), {
     message: 'Enter a valid Pakistan mobile number, for example 03XX-XXXXXXX.',
   }),
-  cnic: z.string().transform(digitsOnly).refine((value) => value.length === 0 || value.length === 13, {
-    message: 'CNIC must contain 13 digits',
+  cnic: z.string().transform((value) => (value ? formatCnic(value) : '')).refine((value) => value.length === 0 || isValidCnic(value), {
+    message: 'CNIC must use the format 42101-0536155-7',
   }).optional().default(''),
   address: z.string().trim().optional().default(''),
 });
@@ -54,7 +45,7 @@ export async function POST(request: NextRequest) {
       where: {
         OR: [
           { phoneNumber: input.phoneNumber },
-          ...(input.cnic ? [{ cnic: input.cnic }] : []),
+          ...cnicVariants(input.cnic).map((cnic) => ({ cnic })),
         ],
       },
       select: { id: true, phoneNumber: true, cnic: true },

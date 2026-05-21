@@ -3,6 +3,8 @@
 import { FormEvent, useState } from 'react';
 import { Edit2, Plus, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { formatDate } from '@/lib/date-format';
+import { formatCnic, formatPakistanMobile } from '@/lib/contact-format';
 
 export type ReviewerListItem = {
   id: string;
@@ -19,6 +21,7 @@ type FormState = {
   phoneNumber: string;
   cnic: string;
   address: string;
+  password: string;
 };
 
 const emptyForm: FormState = {
@@ -26,6 +29,7 @@ const emptyForm: FormState = {
   phoneNumber: '',
   cnic: '',
   address: '',
+  password: '',
 };
 
 export default function ReviewerManager({ reviewers }: { reviewers: ReviewerListItem[] }) {
@@ -47,9 +51,10 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
     setSelected(reviewer);
     setForm({
       name: reviewer.name ?? '',
-      phoneNumber: reviewer.phoneNumber ?? '',
-      cnic: reviewer.cnic ?? '',
+      phoneNumber: formatPakistanMobile(reviewer.phoneNumber ?? ''),
+      cnic: formatCnic(reviewer.cnic ?? ''),
       address: reviewer.address ?? '',
+      password: '',
     });
     setMessage(null);
     setIsOpen(true);
@@ -60,10 +65,13 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
     setIsSubmitting(true);
     setMessage(null);
 
+    const payload = selected
+      ? { name: form.name, cnic: form.cnic, address: form.address, password: form.password }
+      : form;
     const response = await fetch(selected ? `/api/admin/reviewers/${selected.id}` : '/api/admin/reviewers', {
       method: selected ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
     const result = await response.json();
     setIsSubmitting(false);
@@ -132,9 +140,9 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
                     <p className="mt-1 text-xs text-[#8a9bb3]">Login: {reviewer.phoneNumber ?? '-'}</p>
                   </td>
                   <td className="px-4 py-4">{reviewer.phoneNumber ?? '-'}</td>
-                  <td className="px-4 py-4">{reviewer.cnic ?? '-'}</td>
+                  <td className="px-4 py-4">{reviewer.cnic ? formatCnic(reviewer.cnic) : '-'}</td>
                   <td className="max-w-[320px] px-4 py-4">{reviewer.address ?? '-'}</td>
-                  <td className="px-4 py-4 text-[#8a9bb3]">{new Date(reviewer.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(reviewer.createdAt)}</td>
                   <td className="px-4 py-4">
                     <div className="flex justify-end gap-2">
                       <button type="button" onClick={() => openEdit(reviewer)} className="inline-flex size-9 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white text-[#506784] hover:bg-[#f6f9fd]" aria-label="Edit reviewer">
@@ -173,13 +181,22 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
                 </label>
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>Phone Number <span className="text-rose-500">*</span></span>
-                  <input value={form.phoneNumber} onChange={(event) => setForm({ ...form, phoneNumber: event.target.value })} required inputMode="tel" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                  <input
+                    value={form.phoneNumber}
+                    onChange={(event) => setForm({ ...form, phoneNumber: formatPakistanMobile(event.target.value) })}
+                    required
+                    disabled={Boolean(selected)}
+                    inputMode="tel"
+                    placeholder="03332101476"
+                    className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:text-slate-500"
+                  />
+                  {selected ? <span className="text-xs text-slate-500">Phone number cannot be changed after registration.</span> : null}
                 </label>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>CNIC <span className="text-xs text-slate-400">(optional)</span></span>
-                  <input value={form.cnic} onChange={(event) => setForm({ ...form, cnic: event.target.value })} inputMode="numeric" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                  <input value={form.cnic} onChange={(event) => setForm({ ...form, cnic: formatCnic(event.target.value) })} inputMode="numeric" placeholder="42101-0536155-7" maxLength={15} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                 </label>
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>Address <span className="text-xs text-slate-400">(optional)</span></span>
@@ -189,6 +206,12 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
               <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
                 Reviewer login uses this phone number. Password: last 4 digits of the phone number.
               </div>
+              {selected ? (
+                <label className="grid gap-2 text-sm text-slate-700">
+                  <span>New Password <span className="text-xs text-slate-400">(optional)</span></span>
+                  <input value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} minLength={form.password ? 4 : undefined} placeholder="Leave blank to keep current password" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                </label>
+              ) : null}
 
               {message ? <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{message}</p> : null}
 
