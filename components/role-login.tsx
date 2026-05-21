@@ -46,7 +46,7 @@ export default function RoleLogin() {
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-sm items-center px-2 sm:px-0">
-      <div className="w-full rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+      <div className="w-full min-h-[520px] rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:min-h-[540px] sm:p-4">
         <div className="flex min-h-20 items-center justify-between gap-6">
           <Image src={logo} alt="Saiban" width={150} height={110} className="h-16 w-auto object-contain sm:h-20" priority />
           <Image src={baitussalamLogo} alt="Baitussalam" width={132} height={96} className="h-16 w-auto object-contain sm:h-20" priority />
@@ -55,7 +55,7 @@ export default function RoleLogin() {
           <h1 className="text-lg font-semibold tracking-tight text-slate-950">Saiban Login</h1>
         </div>
 
-        <div className="mt-3 grid grid-cols-4 gap-1 rounded-lg bg-slate-100 p-0.5">
+        <div className="mt-3 grid h-9 grid-cols-4 gap-1 rounded-lg bg-slate-100 p-0.5">
           {loginOptions.map((option) => {
             const isSelected = option.role === selectedRole;
             return (
@@ -63,11 +63,11 @@ export default function RoleLogin() {
                 key={option.role}
                 type="button"
                 onClick={() => setSelectedRole(option.role)}
-                className={`rounded-md px-2 py-1.5 text-xs font-semibold transition ${
+                className={`min-w-0 rounded-md px-1 text-center text-xs font-semibold leading-none transition ${
                   isSelected ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {option.label}
+                <span className="block truncate">{option.label}</span>
               </button>
             );
           })}
@@ -81,14 +81,16 @@ export default function RoleLogin() {
           compact
         />
 
-        {selectedRole === 'field_worker' ? (
-          <p className="mt-3 text-center text-xs text-slate-500">
-            Want to volunteer?{' '}
-            <a href="/signup" className="font-semibold text-blue-600 hover:underline">
-              Register here
-            </a>
-          </p>
-        ) : null}
+        <div className="mt-3 min-h-5 text-center text-xs leading-5">
+          {selectedRole === 'field_worker' ? (
+            <p className="text-slate-500">
+              Want to volunteer?{' '}
+              <a href="/signup" className="font-semibold text-blue-600 hover:underline">
+                Register here
+              </a>
+            </p>
+          ) : null}
+        </div>
         <AuthFooter />
       </div>
     </div>

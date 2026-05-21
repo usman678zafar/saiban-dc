@@ -2190,7 +2190,7 @@ export default function OrphanApplicationWizard({
   const canOpenStep = (stepNumber: number) => {
     if (readOnly) return true;
     if (stepNumber === 11) return areIdentityDetailsComplete();
-    if (stepNumber === 12) return areIdentityDetailsComplete() && isStepComplete(11);
+    if (stepNumber === 12) return areIdentityDetailsComplete();
     if (stepNumber === 13) return Array.from({ length: 12 }, (_, index) => index + 1).every((item) => isStepComplete(item));
     return true;
   };
@@ -2208,7 +2208,7 @@ export default function OrphanApplicationWizard({
       const message = clampedStep === 11
         ? 'Complete father, mother, guardian, and child details before opening documents.'
         : clampedStep === 12
-          ? 'Complete required documents before opening attestation.'
+          ? 'Complete father, mother, guardian, and child details before opening attestation.'
           : 'Complete previous steps before opening review.';
       showTemporaryMessage(message);
       return;
