@@ -5,16 +5,17 @@ import { z } from 'zod';
 import { UserRole } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-
-const digitsOnly = (value: string) => value.replace(/\D/g, '');
+import { cnicVariants, digitsOnly, formatCnic, isValidCnic, normalizePakistanMobile } from '@/lib/contact-format';
 const reviewerEmailForPhone = (phoneNumber: string) => `${phoneNumber.replace(/[^a-zA-Z0-9]+/g, '')}@reviewer.saiban.local`;
 
 const createReviewerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  phoneNumber: z.string().trim().min(1, 'Phone number is required').refine((value) => digitsOnly(value).length >= 4, {
-    message: 'Phone number must contain at least 4 digits',
+  phoneNumber: z.string().transform(normalizePakistanMobile).refine((value) => /^03\d{9}$/.test(value), {
+    message: 'Phone number must use the format 03332101476',
   }),
-  cnic: z.string().trim().optional().default(''),
+  cnic: z.string().transform((value) => (value ? formatCnic(value) : '')).refine((value) => value.length === 0 || isValidCnic(value), {
+    message: 'CNIC must use the format 42101-0536155-7',
+  }).optional().default(''),
   address: z.string().trim().optional().default(''),
 });
 
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
         OR: [
           { email: reviewerEmailForPhone(input.phoneNumber) },
           { phoneNumber: input.phoneNumber },
-          ...(input.cnic ? [{ cnic: input.cnic }] : []),
+          ...cnicVariants(input.cnic).map((cnic) => ({ cnic })),
         ],
       },
       select: { id: true },

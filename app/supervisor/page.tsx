@@ -9,6 +9,7 @@ import AppShell from '@/components/app-shell';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { collectorProjectReviewWhere } from '@/lib/field-workers';
 import { applicationSearchWhere } from '@/lib/application-search';
+import { formatDate } from '@/lib/date-format';
 
 export const dynamic = 'force-dynamic';
 
@@ -119,7 +120,7 @@ export default async function SupervisorPage({
                     <td className="px-4 py-4">{application.collectorProject ?? '-'}</td>
                     <td className="px-4 py-4">{application.collectorName ?? '-'}</td>
                     <td className="px-4 py-4">{applicationStatusLabel(application.status)}</td>
-                    <td className="px-4 py-4 text-slate-500">{application.updatedAt.toLocaleDateString()}</td>
+                    <td className="px-4 py-4 text-slate-500">{formatDate(application.updatedAt)}</td>
                     <td className="px-4 py-4">
                       <Link href={`/supervisor/applications/${application.id}`} className="rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100">
                         Review
@@ -142,7 +143,7 @@ export default async function SupervisorPage({
                 <div className="mt-1 text-sm text-slate-600">{application.childName ?? 'No child name'}</div>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
                   <span>{application.collectorProject ?? '-'}</span>
-                  <span>{application.updatedAt.toLocaleDateString()}</span>
+                  <span>{formatDate(application.updatedAt)}</span>
                 </div>
               </Link>
             ))

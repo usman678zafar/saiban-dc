@@ -6,6 +6,7 @@ import { ArrowRight, CheckCircle2, ClipboardList, Database, FileCheck2, FileText
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
+import { formatDate } from '@/lib/date-format';
 
 type AdminMetric = {
   label: string;
@@ -196,7 +197,7 @@ export default async function AdminPortalPage() {
                       <div className="flex flex-wrap gap-2 text-xs sm:justify-end lg:contents">
                         <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold capitalize text-[#2563eb] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium lg:text-[#506784]">{application.status}</span>
                         <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium">{application.migrationStatus}</span>
-                        <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#8a9bb3] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium">{application.updatedAt.toLocaleDateString()}</span>
+                        <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#8a9bb3] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium">{formatDate(application.updatedAt)}</span>
                         <Link href={`/admin/applications/${application.id}`} className="inline-flex min-h-9 items-center justify-center rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff] lg:justify-self-end">
                           Review
                         </Link>
@@ -224,7 +225,7 @@ export default async function AdminPortalPage() {
                             <p className="truncate text-sm font-semibold text-[#0f1f33]">{worker.name ?? 'Unnamed worker'}</p>
                             <p className="mt-0.5 truncate font-mono text-[11px] text-[#2563eb]">{worker.fieldWorkerId ?? worker.id}</p>
                           </div>
-                          <span className="shrink-0 text-xs text-[#8a9bb3]">{worker.createdAt.toLocaleDateString()}</span>
+                          <span className="shrink-0 text-xs text-[#8a9bb3]">{formatDate(worker.createdAt)}</span>
                         </div>
                         <div className="mt-2 grid gap-2 text-xs text-[#506784] sm:grid-cols-2">
                           <p className="min-w-0 truncate"><span className="font-semibold text-[#0f1f33]">Department:</span> {worker.project ?? '-'}</p>

@@ -6,18 +6,20 @@ import { UserRole } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
-
-const digitsOnly = (value: string) => value.replace(/\D/g, '');
-const supervisorEmailForPhone = (phoneNumber: string) => `${phoneNumber.replace(/[^a-zA-Z0-9]+/g, '')}@supervisor.saiban.local`;
+import { cnicVariants, formatCnic, isValidCnic } from '@/lib/contact-format';
 
 const updateSupervisorSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  phoneNumber: z.string().trim().min(1, 'Phone number is required').refine((value) => digitsOnly(value).length >= 4, {
-    message: 'Phone number must contain at least 4 digits',
-  }),
   project: z.string().trim().min(1, 'Department is required'),
-  cnic: z.string().trim().optional().default(''),
+  cnic: z.string().transform((value) => (value ? formatCnic(value) : '')).refine((value) => value.length === 0 || isValidCnic(value), {
+    message: 'CNIC must use the format 42101-0536155-7',
+  }).optional().default(''),
   address: z.string().trim().optional().default(''),
+  password: z
+    .string()
+    .optional()
+    .transform((v) => v?.trim() ?? '')
+    .refine((v) => v.length === 0 || v.length >= 4, { message: 'Password must be at least 4 characters' }),
 });
 
 async function requireAdmin() {
@@ -43,33 +45,30 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if (!projects.includes(input.project)) {
       return NextResponse.json({ message: 'Department is required' }, { status: 422 });
     }
-    const existing = await prisma.user.findFirst({
-      where: {
-        id: { not: params.id },
-        OR: [
-          { email: supervisorEmailForPhone(input.phoneNumber) },
-          { phoneNumber: input.phoneNumber },
-          ...(input.cnic ? [{ cnic: input.cnic }] : []),
-        ],
-      },
-      select: { id: true },
-    });
+    const orConditions = cnicVariants(input.cnic).map((cnic) => ({ cnic }));
+    const existing = orConditions.length
+      ? await prisma.user.findFirst({
+        where: {
+          id: { not: params.id },
+          OR: orConditions,
+        },
+        select: { id: true },
+      })
+      : null;
 
     if (existing) {
       return NextResponse.json({ message: 'A user with this phone number or CNIC already exists.' }, { status: 409 });
     }
 
-    const passwordHash = await bcrypt.hash(digitsOnly(input.phoneNumber).slice(-4), 10);
+    const passwordHash = input.password ? await bcrypt.hash(input.password, 10) : undefined;
     const supervisor = await prisma.user.update({
       where: { id: params.id, role: UserRole.supervisor },
       data: {
         name: input.name,
-        email: supervisorEmailForPhone(input.phoneNumber),
-        phoneNumber: input.phoneNumber,
         cnic: input.cnic || null,
         address: input.address || null,
         project: input.project,
-        passwordHash,
+        ...(passwordHash ? { passwordHash } : {}),
       },
       select: {
         id: true,

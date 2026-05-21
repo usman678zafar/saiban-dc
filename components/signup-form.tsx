@@ -5,30 +5,8 @@ import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import logo from '@/assests/logo.png';
 import baitussalamLogo from '@/assests/baitussalam.webp';
+import { formatCnic, formatPakistanMobile, isValidPakistanMobile, normalizePakistanMobile } from '@/lib/contact-format';
 import { useNavigationLoading } from './navigation-loading';
-
-function digitsOnly(value: string) {
-  return value.replace(/\D/g, '');
-}
-
-function normalizePakistanMobile(value: string) {
-  const digits = digitsOnly(value);
-  if (digits.startsWith('0092') && digits.length === 14) return `0${digits.slice(4)}`;
-  if (digits.startsWith('92') && digits.length === 12) return `0${digits.slice(2)}`;
-  if (digits.startsWith('3') && digits.length === 10) return `0${digits}`;
-  return digits;
-}
-
-function isValidPakistanMobile(value: string) {
-  return /^03\d{9}$/.test(normalizePakistanMobile(value));
-}
-
-function formatCnic(value: string) {
-  const digits = digitsOnly(value).slice(0, 13);
-  if (digits.length <= 5) return digits;
-  if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
-  return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
-}
 
 type SuccessInfo = {
   fieldWorkerId: string;
@@ -168,7 +146,7 @@ export default function SignupForm() {
             <input
               type="tel"
               value={phoneNumber}
-              onChange={(event) => setPhoneNumber(event.target.value)}
+              onChange={(event) => setPhoneNumber(formatPakistanMobile(event.target.value))}
               required
               inputMode="tel"
               placeholder="03XX-XXXXXXX"

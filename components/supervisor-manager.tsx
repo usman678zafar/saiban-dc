@@ -3,6 +3,8 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Edit2, Plus, Trash2, X } from 'lucide-react';
+import { formatDate } from '@/lib/date-format';
+import { formatCnic, formatPakistanMobile } from '@/lib/contact-format';
 
 export type SupervisorListItem = {
   id: string;
@@ -21,6 +23,7 @@ type FormState = {
   cnic: string;
   address: string;
   project: string;
+  password: string;
 };
 
 const buildEmptyForm = (projects: string[]): FormState => ({
@@ -29,6 +32,7 @@ const buildEmptyForm = (projects: string[]): FormState => ({
   cnic: '',
   address: '',
   project: projects[0] ?? '',
+  password: '',
 });
 
 export default function SupervisorManager({ supervisors, projects }: { supervisors: SupervisorListItem[]; projects: string[] }) {
@@ -50,10 +54,11 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
     setSelected(supervisor);
     setForm({
       name: supervisor.name ?? '',
-      phoneNumber: supervisor.phoneNumber ?? '',
-      cnic: supervisor.cnic ?? '',
+      phoneNumber: formatPakistanMobile(supervisor.phoneNumber ?? ''),
+      cnic: formatCnic(supervisor.cnic ?? ''),
       address: supervisor.address ?? '',
       project: supervisor.project && projects.includes(supervisor.project) ? supervisor.project : projects[0] ?? '',
+      password: '',
     });
     setMessage(null);
     setIsOpen(true);
@@ -64,10 +69,13 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
     setIsSubmitting(true);
     setMessage(null);
 
+    const payload = selected
+      ? { name: form.name, cnic: form.cnic, address: form.address, project: form.project, password: form.password }
+      : form;
     const response = await fetch(selected ? `/api/admin/supervisors/${selected.id}` : '/api/admin/supervisors', {
       method: selected ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
     const result = await response.json();
     setIsSubmitting(false);
@@ -136,7 +144,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
                   </td>
                   <td className="px-4 py-4">{supervisor.project ?? '-'}</td>
                   <td className="px-4 py-4">{supervisor.phoneNumber ?? '-'}</td>
-                  <td className="px-4 py-4 text-[#8a9bb3]">{new Date(supervisor.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(supervisor.createdAt)}</td>
                   <td className="px-4 py-4">
                     <div className="flex justify-end gap-2">
                       <button type="button" onClick={() => openEdit(supervisor)} className="inline-flex size-9 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white text-[#506784] hover:bg-[#f6f9fd]" aria-label="Edit supervisor">
@@ -175,7 +183,16 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
                 </label>
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>Phone Number <span className="text-rose-500">*</span></span>
-                  <input value={form.phoneNumber} onChange={(event) => setForm({ ...form, phoneNumber: event.target.value })} required inputMode="tel" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                  <input
+                    value={form.phoneNumber}
+                    onChange={(event) => setForm({ ...form, phoneNumber: formatPakistanMobile(event.target.value) })}
+                    required
+                    disabled={Boolean(selected)}
+                    inputMode="tel"
+                    placeholder="03332101476"
+                    className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:text-slate-500"
+                  />
+                  {selected ? <span className="text-xs text-slate-500">Phone number cannot be changed after registration.</span> : null}
                 </label>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -189,13 +206,19 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
                 </label>
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>CNIC <span className="text-xs text-slate-400">(optional)</span></span>
-                  <input value={form.cnic} onChange={(event) => setForm({ ...form, cnic: event.target.value })} inputMode="numeric" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                  <input value={form.cnic} onChange={(event) => setForm({ ...form, cnic: formatCnic(event.target.value) })} inputMode="numeric" placeholder="42101-0536155-7" maxLength={15} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                 </label>
               </div>
               <label className="grid gap-2 text-sm text-slate-700">
                 <span>Address <span className="text-xs text-slate-400">(optional)</span></span>
                 <textarea value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} rows={3} className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </label>
+              {selected ? (
+                <label className="grid gap-2 text-sm text-slate-700">
+                  <span>New Password <span className="text-xs text-slate-400">(optional)</span></span>
+                  <input value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} minLength={form.password ? 4 : undefined} placeholder="Leave blank to keep current password" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                </label>
+              ) : null}
               <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
                 Supervisor login uses this phone number. Password: last 4 digits of the phone number.
               </div>

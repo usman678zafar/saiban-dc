@@ -6,16 +6,15 @@ import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
-
-const digitsOnly = (value: string) => value.replace(/\D/g, '');
+import { cnicVariants, formatCnic, isValidCnic, normalizePakistanMobile } from '@/lib/contact-format';
 
 const createFieldWorkerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  phoneNumber: z.string().transform(digitsOnly).refine((value) => value.length >= 10, {
-    message: 'Phone number must contain at least 10 digits',
+  phoneNumber: z.string().transform(normalizePakistanMobile).refine((value) => /^03\d{9}$/.test(value), {
+    message: 'Phone number must use the format 03332101476',
   }),
-  cnic: z.string().transform(digitsOnly).refine((value) => value.length === 13, {
-    message: 'CNIC must contain 13 digits',
+  cnic: z.string().transform(formatCnic).refine(isValidCnic, {
+    message: 'CNIC must use the format 42101-0536155-7',
   }),
   address: z.string().trim().min(1, 'Address is required'),
   reference: z.string().trim().optional().default(''),
@@ -81,8 +80,8 @@ export async function POST(request: NextRequest) {
       where: {
         OR: [
           { phoneNumber: input.phoneNumber },
-          { cnic: input.cnic },
-          { email: `${input.cnic}@field.saiban.local` },
+          ...cnicVariants(input.cnic).map((cnic) => ({ cnic })),
+          ...cnicVariants(input.cnic).map((cnic) => ({ email: `${cnic}@field.saiban.local` })),
         ],
       },
     });

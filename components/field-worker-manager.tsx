@@ -4,6 +4,8 @@ import { FormEvent, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Edit2, Plus, Search, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { formatDate } from '@/lib/date-format';
+import { formatCnic, formatPakistanMobile } from '@/lib/contact-format';
 import { useNavigationLoading } from './navigation-loading';
 
 export type FieldWorkerListItem = {
@@ -86,10 +88,6 @@ function digitsOnly(value: string) {
   return value.replace(/\D/g, '');
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString();
-}
-
 export default function FieldWorkerManager({ initialWorkers, supervisors, projects, pagination, filters, counts }: FieldWorkerManagerProps) {
   const router = useRouter();
   const { startLoading } = useNavigationLoading();
@@ -160,8 +158,8 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
     setSelectedWorker(worker);
     setForm({
       name: worker.name ?? '',
-      phoneNumber: worker.phoneNumber ?? '',
-      cnic: worker.cnic ?? '',
+      phoneNumber: formatPakistanMobile(worker.phoneNumber ?? ''),
+      cnic: formatCnic(worker.cnic ?? ''),
       address: worker.address ?? '',
       reference: worker.reference ?? '',
       project: worker.project && projects.includes(worker.project) ? worker.project : projects[0] ?? '',
@@ -181,6 +179,8 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
 
   const updateForm = (key: keyof FormState, value: string) => {
     setForm((current) => {
+      if (key === 'phoneNumber') return { ...current, phoneNumber: formatPakistanMobile(value) };
+      if (key === 'cnic') return { ...current, cnic: formatCnic(value) };
       if (key !== 'project') return { ...current, [key]: value };
       const firstSupervisor = supervisors.find((supervisor) => supervisor.project === value);
       return { ...current, project: value, supervisorId: firstSupervisor?.id ?? '' };
@@ -194,7 +194,6 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
 
     const payload: Record<string, string> = {
       name: form.name,
-      phoneNumber: form.phoneNumber,
       cnic: form.cnic,
       address: form.address,
       reference: form.reference,
@@ -202,6 +201,9 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
       supervisorId: form.supervisorId,
       password: modalMode === 'add' ? form.password || defaultPassword : form.password,
     };
+    if (modalMode === 'add') {
+      payload.phoneNumber = form.phoneNumber;
+    }
 
     const response = await fetch(modalMode === 'add' ? '/api/admin/field-workers' : `/api/admin/field-workers/${selectedWorker?.id}`, {
       method: modalMode === 'add' ? 'POST' : 'PATCH',
@@ -390,7 +392,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                   <p><span className="font-semibold text-[#0f1f33]">Department:</span> {worker.project ?? '-'}</p>
                   <p><span className="font-semibold text-[#0f1f33]">Supervisor:</span> {worker.supervisor?.name ?? worker.supervisor?.phoneNumber ?? '-'}</p>
                   <p><span className="font-semibold text-[#0f1f33]">Phone:</span> {worker.phoneNumber ?? '-'}</p>
-                  <p><span className="font-semibold text-[#0f1f33]">CNIC:</span> {worker.cnic ?? '-'}</p>
+                  <p><span className="font-semibold text-[#0f1f33]">CNIC:</span> {worker.cnic ? formatCnic(worker.cnic) : '-'}</p>
                   <p><span className="font-semibold text-[#0f1f33]">Reference:</span> {worker.reference ?? '-'}</p>
                   <p className="break-words"><span className="font-semibold text-[#0f1f33]">Address:</span> {worker.address ?? '-'}</p>
                   <p className="text-xs text-[#8a9bb3]">Added {formatDate(worker.createdAt)}</p>
@@ -436,7 +438,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                     </td>
                     <td className="px-4 py-4">
                       <p>{worker.phoneNumber ?? '-'}</p>
-                      <p className="mt-1 text-xs text-[#8a9bb3]">CNIC: {worker.cnic ?? '-'}</p>
+                      <p className="mt-1 text-xs text-[#8a9bb3]">CNIC: {worker.cnic ? formatCnic(worker.cnic) : '-'}</p>
                     </td>
                     <td className="max-w-[220px] px-4 py-4 text-[#5f718a]">{worker.reference ?? '-'}</td>
                     <td className="max-w-[320px] px-4 py-4 text-[#5f718a]">{worker.address ?? '-'}</td>
@@ -510,9 +512,12 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                     value={form.phoneNumber}
                     onChange={(event) => updateForm('phoneNumber', event.target.value)}
                     required
+                    disabled={modalMode === 'edit'}
                     inputMode="tel"
-                    className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    placeholder="03332101476"
+                    className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:text-slate-500"
                   />
+                  {modalMode === 'edit' ? <span className="text-xs text-slate-500">Phone number cannot be changed after registration.</span> : null}
                 </label>
               </div>
 
@@ -527,6 +532,8 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                     onChange={(event) => updateForm('cnic', event.target.value)}
                     required={!isEditingSelfRegistered}
                     inputMode="numeric"
+                    placeholder="42101-0536155-7"
+                    maxLength={15}
                     className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </label>
