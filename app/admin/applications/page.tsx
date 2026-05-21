@@ -12,7 +12,13 @@ import { applicationSearchWhere } from '@/lib/application-search';
 const PAGE_SIZE = 50;
 const adminVisibleApplicationWhere = {
   status: {
-    in: ['reviewer_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
+    in: [
+      ApplicationStatus.reviewer_approved,
+      ApplicationStatus.admin_approved,
+      ApplicationStatus.validated,
+      ApplicationStatus.rejected,
+      ApplicationStatus.migrated,
+    ],
   },
 };
 

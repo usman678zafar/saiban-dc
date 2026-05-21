@@ -21,10 +21,10 @@ const loginOptions: Array<{
     redirect: '/applications',
   },
   {
-    role: 'admin',
-    label: 'Admin',
-    title: 'Admin Login',
-    redirect: '/admin',
+    role: 'supervisor',
+    label: 'Supervisor',
+    title: 'Supervisor Login',
+    redirect: '/supervisor',
   },
   {
     role: 'reviewer',
@@ -33,10 +33,10 @@ const loginOptions: Array<{
     redirect: '/reviewer',
   },
   {
-    role: 'supervisor',
-    label: 'Supervisor',
-    title: 'Supervisor Login',
-    redirect: '/supervisor',
+    role: 'admin',
+    label: 'Admin',
+    title: 'Admin Login',
+    redirect: '/admin',
   },
 ];
 
