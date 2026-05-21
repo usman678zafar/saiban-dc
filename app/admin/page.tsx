@@ -36,7 +36,13 @@ type FieldWorker = {
 
 const adminVisibleApplicationWhere = {
   status: {
-    in: ['reviewer_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] as ApplicationStatus[],
+    in: [
+      ApplicationStatus.reviewer_approved,
+      ApplicationStatus.admin_approved,
+      ApplicationStatus.validated,
+      ApplicationStatus.rejected,
+      ApplicationStatus.migrated,
+    ],
   },
 };
 
@@ -53,10 +59,12 @@ async function getAdminPortalData() {
     recentApplications,
   ] = await Promise.all([
     prisma.orphanApplication.count({ where: adminVisibleApplicationWhere }),
-    prisma.orphanApplication.count({ where: { status: 'reviewer_approved' } }),
-    prisma.orphanApplication.count({ where: { status: { in: ['admin_approved', 'validated'] } } }),
-    prisma.orphanApplication.count({ where: { status: 'migrated' } }),
-    prisma.orphanApplication.count({ where: { status: 'rejected' } }),
+    prisma.orphanApplication.count({ where: { status: ApplicationStatus.reviewer_approved } }),
+    prisma.orphanApplication.count({
+      where: { status: { in: [ApplicationStatus.admin_approved, ApplicationStatus.validated] } },
+    }),
+    prisma.orphanApplication.count({ where: { status: ApplicationStatus.migrated } }),
+    prisma.orphanApplication.count({ where: { status: ApplicationStatus.rejected } }),
     prisma.user.count(),
     prisma.user.count({ where: { role: 'admin' } }),
     prisma.user.findMany({
