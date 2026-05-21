@@ -7,6 +7,7 @@ import DeleteDraftApplicationButton from '@/components/delete-draft-application-
 import { CopyPlus, Eye, Pencil, Search, X } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
+import VolunteerApplicationStatus from '@/components/volunteer-application-status';
 
 export const dynamic = 'force-dynamic';
 
@@ -163,7 +164,11 @@ export default async function ApplicationsPage({
                   <p className="mt-1 break-words text-sm leading-6 text-slate-600 [overflow-wrap:anywhere]">{application.childName}</p>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{applicationStatusLabel(application.status)}</span>
+                  {isAdmin ? (
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{applicationStatusLabel(application.status)}</span>
+                  ) : (
+                    <VolunteerApplicationStatus status={application.status} />
+                  )}
                   <span className="text-xs text-slate-500">Updated {application.updatedAt}</span>
                 </div>
                 {application.correctionComment ? (
@@ -245,7 +250,7 @@ export default async function ApplicationsPage({
                     <div className="mt-1 break-words text-xs text-slate-500 [overflow-wrap:anywhere]">{application.childName}</div>
                   </td>
                   <td className="px-4 py-4 align-top text-slate-700">
-                    <span>{applicationStatusLabel(application.status)}</span>
+                    {isAdmin ? <span>{applicationStatusLabel(application.status)}</span> : <VolunteerApplicationStatus status={application.status} />}
                     {application.correctionComment ? (
                       <p className="mt-1 max-w-xs text-xs leading-5 text-amber-700">{application.correctionComment}</p>
                     ) : null}
