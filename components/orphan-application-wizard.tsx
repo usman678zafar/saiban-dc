@@ -2008,7 +2008,9 @@ export default function OrphanApplicationWizard({
       if (!applicationId) {
         setStep(TOTAL_STEPS);
       }
-      router.refresh();
+      if (saveStatus === 'draft') {
+        router.refresh();
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Submission failed.');
     } finally {
@@ -2020,8 +2022,7 @@ export default function OrphanApplicationWizard({
     setSubmissionDoneLoading(true);
     startLoading();
     setShowSubmissionSuccessModal(false);
-    router.push('/applications');
-    router.refresh();
+    router.replace('/applications');
   };
 
   const guardianDetailsNeeded = formData.motherAlive !== 'yes' || formData.motherIsGuardian !== 'yes';

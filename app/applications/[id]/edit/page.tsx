@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -40,7 +40,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
   }
 
   if (session.user.role === 'field_worker' && !['draft', 'needs_correction'].includes(application.status)) {
-    notFound();
+    redirect(`/applications/${application.id}`);
   }
 
   const applicationDocuments = await getApplicationDocuments(application.id);
