@@ -599,6 +599,35 @@ const OCCUPATION_OPTIONS = [
   { value: 'Other', label: 'Other / دیگر' },
 ];
 
+const SIBLING_OCCUPATION_OPTIONS = [
+  { value: '', label: 'Select occupation' },
+  { value: 'Unemployed', label: 'Unemployed / بے روزگار' },
+  { value: 'Laborer / Daily Wage Worker', label: 'Laborer / Daily Wage Worker / مزدور / دیہاڑی دار' },
+  { value: 'Part Time Work', label: 'Part Time Work / جز وقتی کام' },
+  { value: 'Driver', label: 'Driver / ڈرائیور' },
+  { value: 'Electrician', label: 'Electrician / الیکٹریشن' },
+  { value: 'Plumber', label: 'Plumber / پلمبر' },
+  { value: 'Mechanic', label: 'Mechanic / مکینک' },
+  { value: 'Carpenter', label: 'Carpenter / بڑھئی' },
+  { value: 'Tailor', label: 'Tailor / درزی' },
+  { value: 'Shopkeeper / Businessman', label: 'Shopkeeper / Businessman / دکاندار / کاروباری شخص' },
+  { value: 'Vendor / Hawker', label: 'Vendor / Hawker / ٹھیلے والا / خوانچہ فروش' },
+  { value: 'Farmer', label: 'Farmer / کسان' },
+  { value: 'Security Guard', label: 'Security Guard / سیکیورٹی گارڈ' },
+  { value: 'Factory Worker', label: 'Factory Worker / فیکٹری ورکر' },
+  { value: 'Office Employee', label: 'Office Employee / دفتری ملازم' },
+  { value: 'Teacher', label: 'Teacher / استاد' },
+  { value: 'Government Employee', label: 'Government Employee / سرکاری ملازم' },
+  { value: 'Private Employee', label: 'Private Employee / نجی ملازم' },
+  { value: 'Technician', label: 'Technician / ٹیکنیشن' },
+  { value: 'Imam / Muazzin / Madrasa Staff', label: 'Imam / Muazzin / Madrasa Staff / امام / مؤذن / مدرسہ اسٹاف' },
+  { value: 'Overseas Worker', label: 'Overseas Worker / بیرونِ ملک ملازمت کرنے والا' },
+  { value: 'Retired', label: 'Retired / ریٹائرڈ' },
+  { value: 'Disabled', label: 'Disabled / معذور' },
+  { value: 'Unable to Work', label: 'Unable to Work / کام کرنے سے قاصر' },
+  { value: 'Other', label: 'Other / دیگر' },
+];
+
 const FEMALE_OCCUPATION_OPTIONS = [
   { value: '', label: 'Select occupation' },
   { value: 'Housewife', label: 'Housewife / گھریلو خاتون' },
@@ -742,6 +771,12 @@ const MONTHLY_INCOME_OPTIONS = [
   { value: '45000', label: '35,001 - 45,000 PKR' },
   { value: '60000', label: '45,001 - 60,000 PKR' },
   { value: '60001', label: 'Above 60,000 PKR' },
+];
+
+const MONTHLY_INCOME_WITH_NO_INCOME_OPTIONS = [
+  MONTHLY_INCOME_OPTIONS[0],
+  { value: 'no_income', label: 'No Income / کوئی آمدنی نہیں' },
+  ...MONTHLY_INCOME_OPTIONS.slice(1),
 ];
 
 const RELATIVE_SUPPORT_OPTIONS = [
@@ -2169,6 +2204,12 @@ export default function OrphanApplicationWizard({
         }
         return true;
 
+      case 9: // Education & Skills
+        if ((formData.currentlyStudying || formData.enrolledInMadrasa) && formData.educationFree === 'no') {
+          return documents.some((document) => document.documentType === 'fee_voucher');
+        }
+        return true;
+
       case 11: // Documents
         const requiredTypes = documentTypes.map((d) => d.type);
         const uploadedTypes = documents.map((d) => d.documentType);
@@ -3030,7 +3071,7 @@ export default function OrphanApplicationWizard({
                         onChange={(event) => updateArrayItem<RelativeInput>('relatives', index, { monthlyIncome: event.target.value })}
                         className={`${fieldControlClass} w-full min-w-0`}
                       >
-                        {MONTHLY_INCOME_OPTIONS.map((option) => (
+                        {MONTHLY_INCOME_WITH_NO_INCOME_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>{option.label}</option>
                         ))}
                       </select>
@@ -3454,7 +3495,7 @@ export default function OrphanApplicationWizard({
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { occupation: event.target.value })}
                       className={fieldControlClass}
                     >
-                      {OCCUPATION_OPTIONS.map((option) => (
+                      {SIBLING_OCCUPATION_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>{option.label}</option>
                       ))}
                     </select>
@@ -3466,7 +3507,7 @@ export default function OrphanApplicationWizard({
                       onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { monthlyIncomeOrFee: event.target.value })}
                       className={fieldControlClass}
                     >
-                      {MONTHLY_INCOME_OPTIONS.map((option) => (
+                      {MONTHLY_INCOME_WITH_NO_INCOME_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>{option.label}</option>
                       ))}
                     </select>
@@ -3569,7 +3610,7 @@ export default function OrphanApplicationWizard({
                       onUpload={handleDocumentUpload}
                       onRemove={handleDocumentRemove}
                       existingDocument={documents.find((doc) => doc.documentType === 'fee_voucher')}
-                      label="Fee Voucher / فیس واؤچر (Optional)"
+                      label={<>{renderLocalizedLabel('Fee Voucher / فیس واؤچر')} <span className="text-rose-500">*</span></>}
                       accept="image/*,.pdf"
                       disabled={readOnly}
                     />
