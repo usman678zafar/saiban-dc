@@ -20,7 +20,7 @@ interface SupervisorApplicationPageProps {
 export default async function SupervisorApplicationPage({ params }: SupervisorApplicationPageProps) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect(`/signin?callbackUrl=/supervisor/applications/${params.id}`);
-  if (session.user.role !== 'supervisor' && session.user.role !== 'admin') redirect('/applications');
+  if (!['supervisor', 'admin', 'super_admin'].includes(session.user.role ?? '')) redirect('/applications');
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
@@ -49,7 +49,7 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
 
   if (!application) notFound();
   if (application.status === 'draft') notFound();
-  if (user?.role !== 'admin' && !projectMatchesReviewAssignment(application.collectorProject, user?.project)) notFound();
+  if (!['admin', 'super_admin'].includes(user?.role ?? '') && !projectMatchesReviewAssignment(application.collectorProject, user?.project)) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
 

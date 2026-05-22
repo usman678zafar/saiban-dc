@@ -17,11 +17,24 @@ type WorkflowAction = {
 interface ApplicationStatusActionsProps {
   applicationId: string;
   currentStatus: string;
-  actorRole?: 'admin' | 'reviewer' | 'supervisor' | 'field_worker';
+  actorRole?: 'super_admin' | 'admin' | 'reviewer' | 'supervisor' | 'field_worker';
   onUpdated?: () => void;
 }
 
-const actionButtons: Record<'admin' | 'reviewer' | 'supervisor' | 'field_worker', WorkflowAction[]> = {
+const adminWorkflowActions: WorkflowAction[] = [
+  { from: 'submitted', to: 'supervisor_approved', label: 'Approve for Reviewer', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
+  { from: 'submitted', to: 'needs_correction', label: 'Return with Comment', icon: ArrowRight, color: 'bg-amber-600 hover:bg-amber-500', requiresComment: true },
+  { from: 'submitted', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
+  { from: 'supervisor_approved', to: 'reviewer_approved', label: 'Approve for Admin', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
+  { from: 'supervisor_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
+  { from: 'reviewer_approved', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
+  { from: 'reviewer_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
+  { from: 'admin_approved', to: 'migrated', label: 'Migrate', icon: RotateCcw, color: 'bg-slate-800 hover:bg-slate-700' },
+  { from: 'validated', to: 'migrated', label: 'Migrate Legacy Validated', icon: RotateCcw, color: 'bg-slate-800 hover:bg-slate-700' },
+];
+
+const actionButtons: Record<'super_admin' | 'admin' | 'reviewer' | 'supervisor' | 'field_worker', WorkflowAction[]> = {
+  super_admin: adminWorkflowActions,
   supervisor: [
     { from: 'submitted', to: 'supervisor_approved', label: 'Approve for Reviewer', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
     { from: 'submitted', to: 'needs_correction', label: 'Return with Comment', icon: ArrowRight, color: 'bg-amber-600 hover:bg-amber-500', requiresComment: true },
@@ -31,18 +44,14 @@ const actionButtons: Record<'admin' | 'reviewer' | 'supervisor' | 'field_worker'
     { from: 'supervisor_approved', to: 'reviewer_approved', label: 'Approve for Admin', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
     { from: 'supervisor_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
   ],
-  admin: [
-    { from: 'reviewer_approved', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
-    { from: 'reviewer_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
-    { from: 'admin_approved', to: 'migrated', label: 'Migrate', icon: RotateCcw, color: 'bg-slate-800 hover:bg-slate-700' },
-    { from: 'validated', to: 'migrated', label: 'Migrate Legacy Validated', icon: RotateCcw, color: 'bg-slate-800 hover:bg-slate-700' },
-  ],
+  admin: [],
   field_worker: [
     { from: 'needs_correction', to: 'submitted', label: 'Resubmit Application', icon: ArrowRight, color: 'bg-blue-600 hover:bg-blue-500' },
   ],
 };
 
-const redirectAfterAction: Record<'admin' | 'reviewer' | 'supervisor' | 'field_worker', string> = {
+const redirectAfterAction: Record<'super_admin' | 'admin' | 'reviewer' | 'supervisor' | 'field_worker', string> = {
+  super_admin: '/admin/applications',
   admin: '/admin/applications',
   reviewer: '/reviewer',
   supervisor: '/supervisor',
@@ -95,7 +104,7 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
 
   return (
     <div className="min-w-0 space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-      <h3 className="text-lg font-semibold leading-7 text-slate-900">{actorRole === 'supervisor' ? 'Supervisor Actions' : actorRole === 'reviewer' ? 'Reviewer Actions' : actorRole === 'field_worker' ? 'Correction Actions' : 'Admin Actions'}</h3>
+      <h3 className="text-lg font-semibold leading-7 text-slate-900">{actorRole === 'supervisor' ? 'Supervisor Actions' : actorRole === 'reviewer' ? 'Reviewer Actions' : actorRole === 'field_worker' ? 'Correction Actions' : actorRole === 'super_admin' ? 'Super Admin Actions' : 'Admin Actions'}</h3>
       <p className="text-sm leading-6 text-slate-600">Current status: {applicationStatusLabel(currentStatus)}.</p>
       {availableActions.some((action) => action.requiresComment) ? (
         <label className="grid gap-2 text-sm text-slate-700">

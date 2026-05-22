@@ -93,7 +93,7 @@ async function loginAsAdmin(page) {
     throw new Error(`Admin login failed with HTTP ${authResponse.status()}: ${authBody}`);
   }
   const session = await page.evaluate(() => fetch('/api/auth/session').then((response) => response.json()));
-  if (session?.user?.role !== 'admin') {
+  if (!['admin', 'super_admin'].includes(session?.user?.role)) {
     const cookieNames = (await page.context().cookies()).map((cookie) => cookie.name);
     throw new Error(`Admin login did not create an admin session. Session: ${JSON.stringify(session)} Cookies: ${cookieNames.join(', ') || 'none'} Auth response: ${authBody}`);
   }

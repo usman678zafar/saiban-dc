@@ -26,7 +26,7 @@ export default async function DuplicateApplicationPage({ params }: DuplicateAppl
   });
 
   if (!application) notFound();
-  if (application.createdById !== session.user.id && session.user.role !== 'admin') notFound();
+  if (application.createdById !== session.user.id && !['admin', 'super_admin'].includes(session.user.role ?? '')) notFound();
 
   const initialData = buildDuplicateFamilyInitialData(application);
 

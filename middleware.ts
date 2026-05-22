@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
   const callbackPath = `${pathname}${search}`;
 
   if (pathname === '/admin/login') {
-    if (token?.role === 'admin') {
+    if (token?.role === 'admin' || token?.role === 'super_admin') {
       return redirectTo(request, '/admin');
     }
     return NextResponse.next();
@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
     if (!token) {
       return redirectTo(request, '/admin/login', callbackPath);
     }
-    if (token.role !== 'admin') {
+    if (token.role !== 'admin' && token.role !== 'super_admin') {
       return redirectTo(request, '/applications');
     }
     return NextResponse.next();
@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
     if (!token) {
       return redirectTo(request, '/signin', callbackPath);
     }
-    if (token.role !== 'supervisor' && token.role !== 'admin') {
+    if (token.role !== 'supervisor' && token.role !== 'admin' && token.role !== 'super_admin') {
       return redirectTo(request, '/applications');
     }
     return NextResponse.next();
@@ -44,7 +44,7 @@ export async function middleware(request: NextRequest) {
     if (!token) {
       return redirectTo(request, '/signin', callbackPath);
     }
-    if (token.role !== 'reviewer' && token.role !== 'admin') {
+    if (token.role !== 'reviewer' && token.role !== 'admin' && token.role !== 'super_admin') {
       return redirectTo(request, '/applications');
     }
     return NextResponse.next();

@@ -50,7 +50,7 @@ async function requireAdmin() {
     return { response: NextResponse.json({ message: 'Unauthorized' }, { status: 401 }) };
   }
 
-  if (session.user.role !== 'admin') {
+  if (!['admin', 'super_admin'].includes(session.user.role ?? '')) {
     return { response: NextResponse.json({ message: 'Admin access required' }, { status: 403 }) };
   }
 

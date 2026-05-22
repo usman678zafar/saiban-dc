@@ -49,15 +49,15 @@ export default async function SupervisorPage({
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/supervisor');
-  if (session.user.role !== 'supervisor' && session.user.role !== 'admin') redirect('/applications');
+  if (!['supervisor', 'admin', 'super_admin'].includes(session.user.role ?? '')) redirect('/applications');
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
     select: { project: true, role: true },
   });
 
-  const project = user?.role === 'admin' ? undefined : user?.project;
-  if (user?.role !== 'admin' && !project) {
+  const project = user?.role === 'admin' || user?.role === 'super_admin' ? undefined : user?.project;
+  if (!['admin', 'super_admin'].includes(user?.role ?? '') && !project) {
     return (
       <AppShell title="Supervisor Review" description="Your supervisor account needs a department assignment before applications can appear.">
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">

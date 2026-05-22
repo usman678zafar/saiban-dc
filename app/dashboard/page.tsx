@@ -29,7 +29,7 @@ export default async function DashboardPage() {
     redirect('/applications');
   }
 
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
   const stats = await getStats();
   const fieldWorkerStats: StatItem[] = [
     { label: 'Total collected', value: stats.total },
