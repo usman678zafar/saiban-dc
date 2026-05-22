@@ -17,7 +17,15 @@ function stringValue(value: unknown, fallback = '') {
 export function applicationToWizardData(application: any): Partial<FormData> {
   const householdAssets = application.householdAssets ?? [];
   const householdAssetSelection = householdAssetRowsToSelection(householdAssets);
-  if (application.status && application.status !== 'draft') {
+  const appearsPastAssetStep = Boolean(
+    application.childName ||
+    application.bFormNumber ||
+    application.dateOfBirth ||
+    application.healthStatus ||
+    application.householdHasMonthlyIncome ||
+    (application.siblings ?? []).length,
+  );
+  if ((application.status && application.status !== 'draft') || appearsPastAssetStep) {
     for (const key of HOUSEHOLD_ASSET_KEYS) {
       if (key !== 'other' && !householdAssetSelection[key].answered) {
         householdAssetSelection[key].answered = true;
@@ -106,7 +114,9 @@ export function applicationToWizardData(application: any): Partial<FormData> {
     longitude: stringValue(application.longitude),
     gpsAccuracyMeters: stringValue(application.gpsAccuracyMeters),
     gpsCapturedAt: dateTime(application.gpsCapturedAt),
-    houseOwnershipStatus: application.houseOwnershipStatus ?? '',
+    houseOwnershipStatus: application.houseOwnershipStatus === 'rented'
+      ? 'rent'
+      : application.houseOwnershipStatus || (application.monthlyRent != null || application.rentPaidBy ? 'rent' : ''),
     monthlyRent: stringValue(application.monthlyRent),
     rentPaidBy: application.rentPaidBy ?? '',
     houseOwner: application.houseOwner ?? '',

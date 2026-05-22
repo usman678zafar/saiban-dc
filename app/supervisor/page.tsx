@@ -6,17 +6,46 @@ import { Search, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
-import { applicationStatusLabel } from '@/lib/application-workflow';
+import { applicationStatusLabel, badgeClass } from '@/lib/application-workflow';
 import { collectorProjectReviewWhere } from '@/lib/field-workers';
 import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
 
 export const dynamic = 'force-dynamic';
 
+const supervisorViews = [
+  { value: 'pending', label: 'Pending Review' },
+  { value: 'resubmitted', label: 'Resubmitted' },
+  { value: 'returned', label: 'Returned' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'rejected', label: 'Rejected' },
+  { value: 'all', label: 'All' },
+] as const;
+
+type SupervisorView = (typeof supervisorViews)[number]['value'];
+
+function supervisorViewWhere(view: SupervisorView): Prisma.OrphanApplicationWhereInput {
+  switch (view) {
+    case 'resubmitted':
+      return { status: 'submitted', auditLogs: { some: { action: 'resubmitted' } } };
+    case 'returned':
+      return { status: 'needs_correction' };
+    case 'approved':
+      return { status: { in: ['supervisor_approved', 'reviewer_approved', 'admin_approved', 'validated', 'migrated'] } };
+    case 'rejected':
+      return { status: 'rejected' };
+    case 'all':
+      return { status: { not: 'draft' } };
+    case 'pending':
+    default:
+      return { status: 'submitted' };
+  }
+}
+
 export default async function SupervisorPage({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: { q?: string; status?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/supervisor');
@@ -39,27 +68,61 @@ export default async function SupervisorPage({
   }
 
   const search = searchParams.q?.trim() ?? '';
-  const whereParts: Prisma.OrphanApplicationWhereInput[] = [
-    { status: 'submitted' },
+  const currentView = supervisorViews.some((view) => view.value === searchParams.status)
+    ? searchParams.status as SupervisorView
+    : 'pending';
+  const baseWhereParts: Prisma.OrphanApplicationWhereInput[] = [
     ...(project ? [collectorProjectReviewWhere(project)] : []),
+  ];
+  const whereParts: Prisma.OrphanApplicationWhereInput[] = [
+    supervisorViewWhere(currentView),
+    ...baseWhereParts,
     ...(search ? [applicationSearchWhere(search)] : []),
   ];
 
-  const applications = await prisma.orphanApplication.findMany({
-    where: {
-      AND: whereParts,
-    },
-    orderBy: { updatedAt: 'asc' },
-    select: {
-      id: true,
-      registrationNumber: true,
-      childName: true,
-      collectorName: true,
-      collectorProject: true,
-      updatedAt: true,
-      status: true,
-    },
-  });
+  const supervisorHref = (view: SupervisorView) => {
+    const params = new URLSearchParams();
+    if (view !== 'pending') params.set('status', view);
+    if (search) params.set('q', search);
+    const query = params.toString();
+    return query ? `/supervisor?${query}` : '/supervisor';
+  };
+  const clearSearchHref = currentView !== 'pending' ? `/supervisor?status=${currentView}` : '/supervisor';
+
+  const [applications, viewCounts] = await Promise.all([
+    prisma.orphanApplication.findMany({
+      where: {
+        AND: whereParts,
+      },
+      orderBy: { updatedAt: currentView === 'pending' || currentView === 'resubmitted' ? 'asc' : 'desc' },
+      select: {
+        id: true,
+        registrationNumber: true,
+        childName: true,
+        collectorName: true,
+        collectorProject: true,
+        updatedAt: true,
+        status: true,
+        auditLogs: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { action: true, details: true, createdAt: true },
+        },
+      },
+    }),
+    Promise.all(supervisorViews.map(async (view) => ({
+      view: view.value,
+      count: await prisma.orphanApplication.count({
+        where: {
+          AND: [
+            supervisorViewWhere(view.value),
+            ...baseWhereParts,
+          ],
+        },
+      }),
+    }))),
+  ]);
+  const countsByView = new Map(viewCounts.map((item) => [item.view, item.count]));
 
   return (
     <AppShell
@@ -67,7 +130,21 @@ export default async function SupervisorPage({
       description={project ? `Applications submitted for ${project}.` : 'All submitted applications.'}
       maxWidth="max-w-6xl"
     >
+      <nav className="mb-4 flex gap-2 overflow-x-auto pb-1">
+        {supervisorViews.map((view) => (
+          <Link
+            key={view.value}
+            href={supervisorHref(view.value)}
+            className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold ${currentView === view.value ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}
+          >
+            <span>{view.label}</span>
+            <span className="rounded-full bg-white px-2 py-0.5 text-xs text-slate-600">{countsByView.get(view.value) ?? 0}</span>
+          </Link>
+        ))}
+      </nav>
+
       <form action="/supervisor" className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+        {currentView !== 'pending' ? <input type="hidden" name="status" value={currentView} /> : null}
         <div className="flex flex-col gap-2 sm:flex-row">
           <label className="relative min-w-0 flex-1">
             <span className="sr-only">Search applications</span>
@@ -84,7 +161,7 @@ export default async function SupervisorPage({
             Search
           </button>
           {search ? (
-            <Link href="/supervisor" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            <Link href={clearSearchHref} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
               <X className="h-4 w-4" aria-hidden="true" />
               Clear
             </Link>
@@ -108,26 +185,33 @@ export default async function SupervisorPage({
             <tbody>
               {applications.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">No submitted applications for review.</td>
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">No applications found.</td>
                 </tr>
               ) : (
-                applications.map((application) => (
-                  <tr key={application.id} className="border-t border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-4">
-                      <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
-                      <div className="mt-1 text-xs text-slate-500">{application.childName ?? 'No child name'}</div>
-                    </td>
-                    <td className="px-4 py-4">{application.collectorProject ?? '-'}</td>
-                    <td className="px-4 py-4">{application.collectorName ?? '-'}</td>
-                    <td className="px-4 py-4">{applicationStatusLabel(application.status)}</td>
-                    <td className="px-4 py-4 text-slate-500">{formatDate(application.updatedAt)}</td>
-                    <td className="px-4 py-4">
-                      <Link href={`/supervisor/applications/${application.id}`} className="rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100">
-                        Review
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                applications.map((application) => {
+                  const latestDetails = application.auditLogs[0]?.details as { comment?: unknown } | undefined;
+                  const latestComment = typeof latestDetails?.comment === 'string' && latestDetails.comment.trim() ? latestDetails.comment.trim() : null;
+                  return (
+                    <tr key={application.id} className="border-t border-slate-100 hover:bg-slate-50">
+                      <td className="px-4 py-4">
+                        <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
+                        <div className="mt-1 text-xs text-slate-500">{application.childName ?? 'No child name'}</div>
+                      </td>
+                      <td className="px-4 py-4">{application.collectorProject ?? '-'}</td>
+                      <td className="px-4 py-4">{application.collectorName ?? '-'}</td>
+                      <td className="px-4 py-4">
+                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass(application.status)}`}>{applicationStatusLabel(application.status)}</span>
+                        {latestComment ? <p className="mt-2 max-w-xs text-xs leading-5 text-amber-700">{latestComment}</p> : null}
+                      </td>
+                      <td className="px-4 py-4 text-slate-500">{formatDate(application.updatedAt)}</td>
+                      <td className="px-4 py-4">
+                        <Link href={`/supervisor/applications/${application.id}`} className="rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100">
+                          {application.status === 'submitted' ? 'Review' : 'View'}
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -135,18 +219,24 @@ export default async function SupervisorPage({
 
         <div className="grid gap-3 p-3 md:hidden">
           {applications.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-slate-500">No submitted applications for review.</p>
+            <p className="px-4 py-8 text-center text-sm text-slate-500">No applications found.</p>
           ) : (
-            applications.map((application) => (
-              <Link key={application.id} href={`/supervisor/applications/${application.id}`} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
-                <div className="mt-1 text-sm text-slate-600">{application.childName ?? 'No child name'}</div>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
-                  <span>{application.collectorProject ?? '-'}</span>
-                  <span>{formatDate(application.updatedAt)}</span>
-                </div>
-              </Link>
-            ))
+            applications.map((application) => {
+              const latestDetails = application.auditLogs[0]?.details as { comment?: unknown } | undefined;
+              const latestComment = typeof latestDetails?.comment === 'string' && latestDetails.comment.trim() ? latestDetails.comment.trim() : null;
+              return (
+                <Link key={application.id} href={`/supervisor/applications/${application.id}`} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
+                  <div className="mt-1 text-sm text-slate-600">{application.childName ?? 'No child name'}</div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                    <span className={`rounded-full px-2.5 py-1 font-semibold ${badgeClass(application.status)}`}>{applicationStatusLabel(application.status)}</span>
+                    <span>{application.collectorProject ?? '-'}</span>
+                    <span>{formatDate(application.updatedAt)}</span>
+                  </div>
+                  {latestComment ? <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">{latestComment}</p> : null}
+                </Link>
+              );
+            })
           )}
         </div>
       </div>

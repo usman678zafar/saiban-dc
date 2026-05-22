@@ -54,7 +54,7 @@ const draftStringFields = [
   'guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue',
   'guardianNativeArea', 'guardianContact', 'guardianZakatStatus', 'guardianOccupation', 'guardianFamilyHolder',
   'paternalGrandfatherName', 'paternalGrandfatherOccupation', 'maternalGrandfatherName', 'maternalGrandfatherOccupation',
-  'province', 'city', 'district', 'tehsil', 'residentialArea', 'fullAddress', 'rentPaidBy', 'houseOwner', 'houseCondition',
+  'province', 'city', 'district', 'tehsil', 'residentialArea', 'fullAddress', 'houseOwnershipStatus', 'rentPaidBy', 'houseOwner', 'houseCondition',
   'residenceStructureType', 'residenceCategory', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks',
   'childName', 'gender', 'caste', 'sect', 'religion', 'specifyReligion', 'syedStatus', 'nationality', 'specifyNationality',
   'bFormNumber', 'livingSituationNotes', 'healthStatus', 'disabilityDetails', 'disabilityType', 'disabilityCause',
@@ -667,6 +667,22 @@ export async function PATCH(request: NextRequest) {
             applicationId: id,
             details: {
               status: application.status,
+            },
+          },
+        });
+      }
+
+      if (user.role === 'field_worker' && application.status !== updateData.status && updateData.status === 'submitted') {
+        await tx.auditLog.create({
+          data: {
+            tableName: 'OrphanApplication',
+            recordId: id,
+            action: application.status === 'needs_correction' ? 'resubmitted' : 'submitted',
+            actorId: user.id,
+            applicationId: id,
+            details: {
+              from: application.status,
+              to: updateData.status,
             },
           },
         });

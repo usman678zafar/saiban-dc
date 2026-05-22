@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
+import ApplicationActivityTimeline from '@/components/application-activity-timeline';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import { getApplicationDocuments } from '@/lib/application-documents';
@@ -32,11 +33,22 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
       siblings: true,
       relatives: true,
       householdAssets: true,
+      createdBy: {
+        select: { name: true, fieldWorkerId: true },
+      },
+      auditLogs: {
+        orderBy: { createdAt: 'asc' },
+        include: {
+          actor: {
+            select: { name: true, role: true, fieldWorkerId: true },
+          },
+        },
+      },
     },
   });
 
   if (!application) notFound();
-  if (application.status !== 'submitted') notFound();
+  if (application.status === 'draft') notFound();
   if (user?.role !== 'admin' && !projectMatchesReviewAssignment(application.collectorProject, user?.project)) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
@@ -60,8 +72,15 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
           readOnly
         />
 
-        <aside>
+        <aside className="min-w-0 space-y-5">
           <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="supervisor" />
+          <ApplicationActivityTimeline
+            createdAt={application.createdAt}
+            updatedAt={application.updatedAt}
+            status={application.status}
+            createdByName={application.createdBy.name ?? application.createdBy.fieldWorkerId}
+            auditLogs={application.auditLogs}
+          />
         </aside>
       </div>
     </AppShell>
