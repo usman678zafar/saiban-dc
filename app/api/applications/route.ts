@@ -100,7 +100,11 @@ function cleanString(value: unknown) {
 
 function cleanNumber(value: unknown, integer = false) {
   if (value === undefined || value === null || value === '') return undefined;
-  const parsed = typeof value === 'number' ? value : Number(value);
+  const parsed = typeof value === 'number'
+    ? value
+    : String(value).trim() === 'no_income'
+      ? 0
+      : Number(value);
   if (!Number.isFinite(parsed)) return undefined;
   return integer ? Math.trunc(parsed) : parsed;
 }

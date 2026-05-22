@@ -775,7 +775,7 @@ const MONTHLY_INCOME_OPTIONS = [
 
 const MONTHLY_INCOME_WITH_NO_INCOME_OPTIONS = [
   MONTHLY_INCOME_OPTIONS[0],
-  { value: 'no_income', label: 'No Income / کوئی آمدنی نہیں' },
+  { value: '0', label: 'No Income / کوئی آمدنی نہیں' },
   ...MONTHLY_INCOME_OPTIONS.slice(1),
 ];
 
@@ -966,6 +966,10 @@ function normalizeInitialData(data: FormData): FormData {
   if (next.healthStatus === 'sick') {
     next.healthStatus = 'chronic_illness';
   }
+  next.siblings = next.siblings.map((sibling) => ({
+    ...sibling,
+    monthlyIncomeOrFee: sibling.monthlyIncomeOrFee === 'no_income' ? '0' : sibling.monthlyIncomeOrFee,
+  }));
   next.collectorCnic = formatCnic(next.collectorCnic);
   next.fatherCnic = formatCnic(next.fatherCnic);
   next.motherCnic = formatCnic(next.motherCnic);
