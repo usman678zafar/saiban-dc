@@ -33,7 +33,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
   }
 
   const canReviewerEdit = session.user.role === 'reviewer' && application.status === 'supervisor_approved';
-  const canAdminEdit = session.user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+  const canAdminEdit = ['admin', 'super_admin'].includes(session.user.role ?? '') && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
 
   if (application.createdById !== session.user.id && !canReviewerEdit && !canAdminEdit) {
     notFound();

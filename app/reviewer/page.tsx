@@ -19,7 +19,7 @@ export default async function ReviewerPage({
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/reviewer');
-  if (session.user.role !== 'reviewer' && session.user.role !== 'admin') redirect('/applications');
+  if (!['reviewer', 'admin', 'super_admin'].includes(session.user.role ?? '')) redirect('/applications');
 
   const search = searchParams.q?.trim() ?? '';
   const whereParts: Prisma.OrphanApplicationWhereInput[] = [

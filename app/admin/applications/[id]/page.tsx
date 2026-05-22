@@ -5,6 +5,7 @@ import { CopyPlus } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
+import ApplicationActivityTimeline from '@/components/application-activity-timeline';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
@@ -20,17 +21,29 @@ interface AdminApplicationDetailPageProps {
 export default async function AdminApplicationDetailPage({ params }: AdminApplicationDetailPageProps) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect(`/signin?callbackUrl=/admin/applications/${params.id}`);
-  if (session.user.role !== 'admin') redirect('/dashboard');
+  if (!['admin', 'super_admin'].includes(session.user.role ?? '')) redirect('/dashboard');
+  const isSuperAdmin = session.user.role === 'super_admin';
 
   const application = await prisma.orphanApplication.findFirst({
     where: {
       id: params.id,
-      status: { in: ['reviewer_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] },
+      ...(isSuperAdmin ? {} : { status: { in: ['reviewer_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] } }),
     },
     include: {
       siblings: true,
       relatives: true,
       householdAssets: true,
+      createdBy: {
+        select: { name: true, fieldWorkerId: true },
+      },
+      auditLogs: {
+        orderBy: { createdAt: 'asc' },
+        include: {
+          actor: {
+            select: { name: true, role: true, fieldWorkerId: true },
+          },
+        },
+      },
     },
   });
 
@@ -40,7 +53,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   const canEdit = ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
 
   return (
-    <AdminShell email={session.user.email}>
+    <AdminShell email={session.user.email} role={session.user.role}>
       <header className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{application.registrationNumber ?? application.id}</h1>
@@ -71,13 +84,24 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
         />
 
         <aside className="space-y-6">
-          <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="admin" />
-          <ApplicationMigrationFields
-            applicationId={application.id}
-            initialMigrationStatus={application.migrationStatus}
-            initialMainSaibanId={application.mainSaibanId ?? ''}
-            initialMigrationErrors={application.migrationErrors ?? ''}
+          <ApplicationActivityTimeline
+            createdAt={application.createdAt}
+            updatedAt={application.updatedAt}
+            status={application.status}
+            createdByName={application.createdBy.name ?? application.createdBy.fieldWorkerId}
+            auditLogs={application.auditLogs}
           />
+          {isSuperAdmin ? (
+            <>
+              <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="super_admin" />
+              <ApplicationMigrationFields
+                applicationId={application.id}
+                initialMigrationStatus={application.migrationStatus}
+                initialMainSaibanId={application.mainSaibanId ?? ''}
+                initialMigrationErrors={application.migrationErrors ?? ''}
+              />
+            </>
+          ) : null}
         </aside>
       </div>
     </AdminShell>

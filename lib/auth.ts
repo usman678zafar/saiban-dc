@@ -4,7 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { type NextAuthOptions } from 'next-auth';
 import { prisma } from './prisma';
 
-export type Role = 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer';
+export type Role = 'super_admin' | 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer';
 
 declare module 'next-auth' {
   interface Session {
@@ -25,8 +25,8 @@ declare module 'next-auth/jwt' {
 }
 
 async function ensureBootstrapAdmin(email: string, password: string) {
-  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminEmail = (process.env.SUPER_ADMIN_EMAIL ?? process.env.ADMIN_EMAIL)?.trim().toLowerCase();
+  const adminPassword = process.env.SUPER_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD;
 
   if (!adminEmail || !adminPassword || email.toLowerCase() !== adminEmail.toLowerCase() || password !== adminPassword) {
     return null;
@@ -39,10 +39,10 @@ async function ensureBootstrapAdmin(email: string, password: string) {
 
   return prisma.user.create({
     data: {
-      name: process.env.ADMIN_NAME ?? 'Admin User',
+      name: process.env.SUPER_ADMIN_NAME ?? process.env.ADMIN_NAME ?? 'Super Admin User',
       email: adminEmail,
       passwordHash,
-      role: 'admin',
+      role: 'super_admin',
     },
   });
 }
@@ -109,16 +109,18 @@ export const authOptions: NextAuthOptions = {
           }) ?? await ensureBootstrapAdmin(email, credentials.password);
 
         if (!user) return null;
-        if (loginRole && user.role !== loginRole) return null;
+        if (loginRole && (loginRole === 'admin' ? !['admin', 'super_admin'].includes(user.role) : user.role !== loginRole)) return null;
 
-        const isBootstrapLogin = process.env.ADMIN_EMAIL?.trim().toLowerCase() === email && process.env.ADMIN_PASSWORD === credentials.password;
+        const bootstrapEmail = (process.env.SUPER_ADMIN_EMAIL ?? process.env.ADMIN_EMAIL)?.trim().toLowerCase();
+        const bootstrapPassword = process.env.SUPER_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD;
+        const isBootstrapLogin = bootstrapEmail === email && bootstrapPassword === credentials.password;
         const isValid = isBootstrapLogin || await compare(credentials.password, user.passwordHash);
         if (!isValid) return null;
 
-        if (isBootstrapLogin && user.role !== 'admin') {
+        if (isBootstrapLogin && user.role !== 'super_admin') {
           await prisma.user.update({
             where: { id: user.id },
-            data: { role: 'admin' },
+            data: { role: 'super_admin' },
           });
         }
 
@@ -126,7 +128,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           name: user.name ?? undefined,
           email: user.email,
-          role: user.role,
+          role: isBootstrapLogin ? 'super_admin' : user.role,
         };
       },
     }),

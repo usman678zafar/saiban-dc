@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  if (session.user.role !== 'admin') {
+  if (!['admin', 'super_admin'].includes(session.user.role ?? '')) {
     return NextResponse.json({ message: 'Admin access required' }, { status: 403 });
   }
 

@@ -46,7 +46,7 @@ export default async function ApplicationsPage({
   searchParams: { page?: string; q?: string };
 }) {
   const session = await getServerSession(authOptions);
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
   const user = session?.user?.email
     ? await prisma.user.findUnique({
       where: { email: session.user.email },

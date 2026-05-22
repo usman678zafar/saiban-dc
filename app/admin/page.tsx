@@ -47,61 +47,68 @@ const adminVisibleApplicationWhere = {
   },
 };
 
-async function getAdminPortalData() {
-  const [
-    totalApplications,
-    reviewerApprovedApplications,
-    adminApprovedApplications,
-    migratedApplications,
-    rejectedApplications,
-    totalUsers,
-    adminUsers,
-    fieldWorkers,
-    recentApplications,
-  ] = await Promise.all([
-    prisma.orphanApplication.count({ where: adminVisibleApplicationWhere }),
-    prisma.orphanApplication.count({ where: { status: ApplicationStatus.reviewer_approved } }),
-    prisma.orphanApplication.count({
-      where: { status: { in: [ApplicationStatus.admin_approved, ApplicationStatus.validated] } },
-    }),
-    prisma.orphanApplication.count({ where: { status: ApplicationStatus.migrated } }),
-    prisma.orphanApplication.count({ where: { status: ApplicationStatus.rejected } }),
-    prisma.user.count(),
-    prisma.user.count({ where: { role: 'admin' } }),
-    prisma.user.findMany({
-      where: { role: 'field_worker' },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        fieldWorkerId: true,
-        name: true,
-        phoneNumber: true,
-        cnic: true,
-        address: true,
-        project: true,
-        createdAt: true,
-      },
-    }) as Promise<FieldWorker[]>,
-    prisma.orphanApplication.findMany({
-      where: adminVisibleApplicationWhere,
-      orderBy: { updatedAt: 'desc' },
-      take: 8,
-      select: {
-        id: true,
-        registrationNumber: true,
-        childName: true,
-        status: true,
-        migrationStatus: true,
-        updatedAt: true,
-      },
-    }) as Promise<RecentApplication[]>,
-  ]);
+function adminVisibleApplicationFilter(role?: string | null) {
+  return role === 'super_admin' ? {} : adminVisibleApplicationWhere;
+}
+
+async function getAdminPortalData(role?: string | null) {
+  const visibleApplicationWhere = adminVisibleApplicationFilter(role);
+  const applicationStatusCounts = await prisma.orphanApplication.groupBy({
+    by: ['status'],
+    where: visibleApplicationWhere,
+    _count: { _all: true },
+  });
+  const applicationCountByStatus = new Map(applicationStatusCounts.map((item) => [item.status, item._count._all]));
+  const totalApplications = applicationStatusCounts.reduce((total, item) => total + item._count._all, 0);
+  const reviewerApprovedApplications = applicationCountByStatus.get(ApplicationStatus.reviewer_approved) ?? 0;
+  const adminApprovedApplications =
+    (applicationCountByStatus.get(ApplicationStatus.admin_approved) ?? 0) +
+    (applicationCountByStatus.get(ApplicationStatus.validated) ?? 0);
+  const migratedApplications = applicationCountByStatus.get(ApplicationStatus.migrated) ?? 0;
+  const rejectedApplications = applicationCountByStatus.get(ApplicationStatus.rejected) ?? 0;
+
+  const userRoleCounts = await prisma.user.groupBy({
+    by: ['role'],
+    _count: { _all: true },
+  });
+  const userCountByRole = new Map(userRoleCounts.map((item) => [item.role, item._count._all]));
+  const totalUsers = userRoleCounts.reduce((total, item) => total + item._count._all, 0);
+  const adminUsers = (userCountByRole.get('admin') ?? 0) + (userCountByRole.get('super_admin') ?? 0);
+
+  const fieldWorkers = await prisma.user.findMany({
+    where: { role: 'field_worker' },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      fieldWorkerId: true,
+      name: true,
+      phoneNumber: true,
+      cnic: true,
+      address: true,
+      project: true,
+      createdAt: true,
+    },
+  }) as FieldWorker[];
+
+  const recentApplications = await prisma.orphanApplication.findMany({
+    where: visibleApplicationWhere,
+    orderBy: { updatedAt: 'desc' },
+    take: 8,
+    select: {
+      id: true,
+      registrationNumber: true,
+      childName: true,
+      status: true,
+      migrationStatus: true,
+      updatedAt: true,
+    },
+  }) as RecentApplication[];
 
   const metrics: AdminMetric[] = [
     { label: 'Total Applications', value: totalApplications, detail: 'All records', tone: 'blue' },
     { label: 'Reviewer Approved', value: reviewerApprovedApplications, detail: 'Awaiting final review', tone: 'violet' },
     { label: 'Final Approved', value: adminApprovedApplications, detail: 'Validated records', tone: 'emerald' },
-    { label: 'Migrated', value: migratedApplications, detail: 'Moved onward', tone: 'sky' },
+    ...(role === 'super_admin' ? [{ label: 'Migrated', value: migratedApplications, detail: 'Moved onward', tone: 'sky' } as AdminMetric] : []),
     { label: 'Rejected', value: rejectedApplications, detail: 'Needs attention', tone: 'red' },
     { label: 'Users', value: totalUsers, detail: 'Portal access', tone: 'orange' },
     { label: 'Admins', value: adminUsers, detail: 'Admin users', tone: 'slate' },
@@ -116,11 +123,12 @@ export default async function AdminPortalPage() {
     redirect('/signin?callbackUrl=/admin');
   }
 
-  if (session.user.role !== 'admin') {
+  if (!['admin', 'super_admin'].includes(session.user.role ?? '')) {
     redirect('/dashboard');
   }
 
-  const { metrics, fieldWorkers, recentApplications } = await getAdminPortalData();
+  const { metrics, fieldWorkers, recentApplications } = await getAdminPortalData(session.user.role);
+  const isSuperAdmin = session.user.role === 'super_admin';
   const metricStyles = {
     blue: { icon: ClipboardList, tile: 'bg-[#e8f1ff] text-[#3b82f6]', value: 'text-[#3b82f6]' },
     violet: { icon: FileText, tile: 'bg-[#f0e8ff] text-[#8357f4]', value: 'text-[#8357f4]' },
@@ -132,7 +140,7 @@ export default async function AdminPortalPage() {
   };
 
   return (
-    <AdminShell email={session.user.email}>
+    <AdminShell email={session.user.email} role={session.user.role}>
           <header className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Admin Overview</h1>
@@ -196,7 +204,7 @@ export default async function AdminPortalPage() {
                       </div>
                       <div className="flex flex-wrap gap-2 text-xs sm:justify-end lg:contents">
                         <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold capitalize text-[#2563eb] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium lg:text-[#506784]">{application.status}</span>
-                        <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium">{application.migrationStatus}</span>
+                        {isSuperAdmin ? <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium">{application.migrationStatus}</span> : null}
                         <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#8a9bb3] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium">{formatDate(application.updatedAt)}</span>
                         <Link href={`/admin/applications/${application.id}`} className="inline-flex min-h-9 items-center justify-center rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff] lg:justify-self-end">
                           Review

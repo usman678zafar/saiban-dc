@@ -6,7 +6,7 @@ declare module 'next-auth' {
       id: string;
       name?: string | null;
       email?: string | null;
-      role?: 'admin' | 'supervisor' | 'field_worker' | 'viewer';
+      role?: 'super_admin' | 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer';
     };
   }
 }

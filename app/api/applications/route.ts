@@ -476,13 +476,29 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
     action = status === 'reviewer_approved' ? 'approved_by_reviewer' : 'rejected_by_reviewer';
   }
 
-  if (user.role === 'admin') {
+  if (user.role === 'super_admin') {
     allowed = (
+      (application.status === 'submitted' && ['needs_correction', 'supervisor_approved', 'rejected'].includes(status)) ||
+      (application.status === 'supervisor_approved' && ['reviewer_approved', 'rejected'].includes(status)) ||
       (application.status === 'reviewer_approved' && ['admin_approved', 'rejected'].includes(status)) ||
       (application.status === 'admin_approved' && status === 'migrated') ||
       (application.status === 'validated' && status === 'migrated')
     );
-    action = status === 'admin_approved' ? 'approved_by_admin' : status === 'rejected' ? 'rejected_by_admin' : 'status_changed_by_admin';
+    action = status === 'needs_correction'
+      ? 'returned_by_super_admin'
+      : status === 'supervisor_approved'
+        ? 'supervisor_approved_by_super_admin'
+        : status === 'reviewer_approved'
+          ? 'reviewer_approved_by_super_admin'
+          : status === 'admin_approved'
+            ? 'approved_by_super_admin'
+            : status === 'rejected'
+              ? 'rejected_by_super_admin'
+              : 'status_changed_by_super_admin';
+
+    if (status === 'needs_correction' && !comment) {
+      return NextResponse.json({ message: 'Correction comment is required.' }, { status: 422 });
+    }
   }
 
   if (!allowed) {
@@ -599,7 +615,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const canReviewerEdit = user.role === 'reviewer' && application.status === 'supervisor_approved';
-    const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+    const canAdminEdit = ['admin', 'super_admin'].includes(user.role) && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
 
     if (application.createdById !== user.id && !canReviewerEdit && !canAdminEdit) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
@@ -612,7 +628,7 @@ export async function PATCH(request: NextRequest) {
     const updateData: any = {
       ...validated,
       updatedById: user.id,
-      status: user.role === 'reviewer' || user.role === 'admin' ? application.status : validated.status ?? application.status,
+      status: user.role === 'reviewer' || user.role === 'admin' || user.role === 'super_admin' ? application.status : validated.status ?? application.status,
     };
     await validateSubmittedAddress(updateData);
     await validateSubmittedDocuments(id, updateData);
@@ -629,6 +645,11 @@ export async function PATCH(request: NextRequest) {
     delete updateData.collectorCnic;
     delete updateData.collectorAddress;
     delete updateData.collectorContact;
+    if (user.role !== 'super_admin') {
+      delete updateData.migrationStatus;
+      delete updateData.mainSaibanId;
+      delete updateData.migrationErrors;
+    }
 
     if (body.siblings !== undefined) {
       updateData.siblings = {
@@ -657,12 +678,12 @@ export async function PATCH(request: NextRequest) {
         data: updateData,
       });
 
-      if (user.role === 'reviewer' || user.role === 'admin') {
+      if (user.role === 'reviewer' || user.role === 'admin' || user.role === 'super_admin') {
         await tx.auditLog.create({
           data: {
             tableName: 'OrphanApplication',
             recordId: id,
-            action: user.role === 'reviewer' ? 'edited_by_reviewer' : 'edited_by_admin',
+            action: user.role === 'reviewer' ? 'edited_by_reviewer' : user.role === 'super_admin' ? 'edited_by_super_admin' : 'edited_by_admin',
             actorId: user.id,
             applicationId: id,
             details: {
@@ -737,7 +758,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ message: 'Only draft applications can be deleted.' }, { status: 409 });
   }
 
-  if (application.createdById !== user.id && user.role !== 'admin') {
+  if (application.createdById !== user.id && !['admin', 'super_admin'].includes(user.role)) {
     return NextResponse.json({ message: 'Access denied' }, { status: 403 });
   }
 

@@ -13,7 +13,7 @@ const projectSchema = z.object({
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return { response: NextResponse.json({ message: 'Unauthorized' }, { status: 401 }) };
-  if (session.user.role !== 'admin') return { response: NextResponse.json({ message: 'Admin access required' }, { status: 403 }) };
+  if (!['admin', 'super_admin'].includes(session.user.role ?? '')) return { response: NextResponse.json({ message: 'Admin access required' }, { status: 403 }) };
   return { session };
 }
 

@@ -8,15 +8,13 @@ export async function GET(request: NextRequest) {
   if (!session?.user?.email) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
-  if (session.user.role !== 'admin') {
+  if (!['admin', 'super_admin'].includes(session.user.role ?? '')) {
     return NextResponse.json({ message: 'Admin access required' }, { status: 403 });
   }
 
   const format = new URL(request.url).searchParams.get('format') || 'csv';
   const applications = await prisma.orphanApplication.findMany({
-    where: {
-      status: { not: 'draft' },
-    },
+    where: session.user.role === 'super_admin' ? {} : { status: { not: 'draft' } },
     orderBy: { createdAt: 'desc' },
     include: {
       siblings: true,

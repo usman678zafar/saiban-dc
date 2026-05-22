@@ -45,7 +45,8 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
 
   if (!application) notFound();
 
-  const isAdmin = session.user.role === 'admin';
+  const isAdmin = session.user.role === 'admin' || session.user.role === 'super_admin';
+  const isSuperAdmin = session.user.role === 'super_admin';
   if (!isAdmin && application.createdById !== session.user.id) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
@@ -90,9 +91,9 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
             createdByName={application.createdBy.name ?? application.createdBy.fieldWorkerId}
             auditLogs={application.auditLogs}
           />
-          {isAdmin ? (
+          {isSuperAdmin ? (
             <>
-            <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="admin" />
+            <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="super_admin" />
             <ApplicationMigrationFields
               applicationId={application.id}
               initialMigrationStatus={application.migrationStatus}

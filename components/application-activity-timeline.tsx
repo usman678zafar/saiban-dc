@@ -48,25 +48,38 @@ function actionLabel(action: string, details: Record<string, unknown>) {
       return 'Resubmitted';
     case 'returned_by_supervisor':
       return 'Returned by supervisor';
+    case 'returned_by_super_admin':
+      return 'Returned by super admin';
     case 'approved_by_supervisor':
       return 'Approved by supervisor';
+    case 'supervisor_approved_by_super_admin':
+      return 'Approved by super admin';
     case 'rejected_by_supervisor':
       return 'Rejected by supervisor';
     case 'approved_by_reviewer':
       return 'Approved by reviewer';
+    case 'reviewer_approved_by_super_admin':
+      return 'Approved by super admin';
     case 'rejected_by_reviewer':
       return 'Rejected by reviewer';
     case 'approved_by_admin':
       return 'Approved by admin';
+    case 'approved_by_super_admin':
+      return 'Approved by super admin';
     case 'rejected_by_admin':
       return 'Rejected by admin';
+    case 'rejected_by_super_admin':
+      return 'Rejected by super admin';
     case 'status_changed_by_admin':
+    case 'status_changed_by_super_admin':
     case 'status_changed':
       return typeof details.to === 'string' ? `Moved to ${applicationStatusLabel(details.to)}` : 'Status changed';
     case 'edited_by_reviewer':
       return 'Edited by reviewer';
     case 'edited_by_admin':
       return 'Edited by admin';
+    case 'edited_by_super_admin':
+      return 'Edited by super admin';
     default:
       return action.replace(/_/g, ' ');
   }

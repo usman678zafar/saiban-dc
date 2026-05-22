@@ -23,6 +23,10 @@ const adminVisibleApplicationWhere = {
   },
 };
 
+function applicationWhereForRole(role?: string | null) {
+  return role === 'super_admin' ? {} : adminVisibleApplicationWhere;
+}
+
 type ApplicationListItem = {
   id: string;
   registrationNumber: string | null;
@@ -39,11 +43,12 @@ export default async function AdminApplicationsPage({
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications');
-  if (session.user.role !== 'admin') redirect('/dashboard');
+  if (!['admin', 'super_admin'].includes(session.user.role ?? '')) redirect('/dashboard');
+  const isSuperAdmin = session.user.role === 'super_admin';
 
   const search = searchParams.q?.trim() ?? '';
   const searchWhere = applicationSearchWhere(search);
-  const where = { ...adminVisibleApplicationWhere, ...searchWhere };
+  const where = { ...applicationWhereForRole(session.user.role), ...searchWhere };
   const page = Math.max(1, Number(searchParams.page) || 1);
   const skip = (page - 1) * PAGE_SIZE;
   const pageHref = (nextPage: number) => {
@@ -77,7 +82,7 @@ export default async function AdminApplicationsPage({
   const hasNext = page < totalPages;
 
   return (
-    <AdminShell email={session.user.email}>
+    <AdminShell email={session.user.email} role={session.user.role}>
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-[#0f1f33]">Application Review</h1>
@@ -124,7 +129,7 @@ export default async function AdminApplicationsPage({
                 <div className="mt-1 text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
                   <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
-                  <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784]">{application.migrationStatus}</span>
+                  {isSuperAdmin ? <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784]">{application.migrationStatus}</span> : null}
                 </div>
                 <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
               </Link>
@@ -138,7 +143,7 @@ export default async function AdminApplicationsPage({
               <tr>
                 <th className="px-4 py-3">Application</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Migration</th>
+                {isSuperAdmin ? <th className="px-4 py-3">Migration</th> : null}
                 <th className="px-4 py-3">Updated</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
@@ -146,7 +151,7 @@ export default async function AdminApplicationsPage({
             <tbody>
               {applications.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
+                  <td colSpan={isSuperAdmin ? 5 : 4} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
                 </tr>
               ) : (
                 applications.map((application: ApplicationListItem) => (
@@ -156,7 +161,7 @@ export default async function AdminApplicationsPage({
                       <div className="text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
                     </td>
                     <td className="px-4 py-4">{applicationStatusLabel(application.status)}</td>
-                    <td className="px-4 py-4 capitalize">{application.migrationStatus}</td>
+                    {isSuperAdmin ? <td className="px-4 py-4 capitalize">{application.migrationStatus}</td> : null}
                     <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(application.updatedAt)}</td>
                     <td className="px-4 py-4">
                       <Link href={`/admin/applications/${application.id}`} className="rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff]">

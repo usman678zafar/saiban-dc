@@ -16,7 +16,7 @@ interface AppShellProps {
 
 export default async function AppShell({ title, description, actions, maxWidth = 'max-w-7xl', children }: AppShellProps) {
   const session = await getServerSession(authOptions);
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
   const isFieldWorker = session?.user?.role === 'field_worker';
   const isSupervisor = session?.user?.role === 'supervisor';
   const isReviewer = session?.user?.role === 'reviewer';
