@@ -1102,7 +1102,7 @@ export default function OrphanApplicationWizard({
   }, [applicationId, readOnly]);
 
   useEffect(() => {
-    if (!message?.toLowerCase().includes('success')) return;
+    if (!message) return;
 
     const timer = setTimeout(() => {
       setMessage(null);
@@ -3563,6 +3563,7 @@ export default function OrphanApplicationWizard({
               <>
                 {renderSelectField('disabilityType', DISABILITY_TYPE_OPTIONS)}
                 {renderSelectField('disabilityCause', DISABILITY_CAUSE_OPTIONS)}
+                {renderTextareaField('disabilityDetails')}
                 {['accident', 'illness'].includes(formData.disabilityCause) ? renderTextareaField('disabilityCauseDetails') : null}
                 {['accident', 'illness'].includes(formData.disabilityCause) ? renderTextField('disabilitySince', 'date') : null}
                 {renderBooleanSelect('treatmentOngoing', (value) => handleTreatmentOngoingChange(value ? 'yes' : 'no'), 'Yes / ہاں', 'No / نہیں')}
