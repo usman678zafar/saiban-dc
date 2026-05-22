@@ -5,6 +5,7 @@ import { CopyPlus } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
+import ApplicationActivityTimeline from '@/components/application-activity-timeline';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
@@ -28,6 +29,17 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       siblings: true,
       relatives: true,
       householdAssets: true,
+      createdBy: {
+        select: { name: true, fieldWorkerId: true },
+      },
+      auditLogs: {
+        orderBy: { createdAt: 'asc' },
+        include: {
+          actor: {
+            select: { name: true, role: true, fieldWorkerId: true },
+          },
+        },
+      },
     },
   });
 
@@ -62,7 +74,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
         </>
       }
     >
-      <div className={`grid min-w-0 gap-5 ${isAdmin ? 'xl:grid-cols-[minmax(0,1fr)_360px]' : ''}`}>
+      <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <OrphanApplicationWizard
           initialData={applicationToWizardData(application)}
           initialDocuments={documentsToWizardDocuments(applicationDocuments)}
@@ -70,8 +82,16 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
           readOnly
         />
 
-        {isAdmin ? (
-          <aside className="min-w-0 space-y-5">
+        <aside className="min-w-0 space-y-5">
+          <ApplicationActivityTimeline
+            createdAt={application.createdAt}
+            updatedAt={application.updatedAt}
+            status={application.status}
+            createdByName={application.createdBy.name ?? application.createdBy.fieldWorkerId}
+            auditLogs={application.auditLogs}
+          />
+          {isAdmin ? (
+            <>
             <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="admin" />
             <ApplicationMigrationFields
               applicationId={application.id}
@@ -79,8 +99,9 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
               initialMainSaibanId={application.mainSaibanId ?? ''}
               initialMigrationErrors={application.migrationErrors ?? ''}
             />
-          </aside>
-        ) : null}
+            </>
+          ) : null}
+        </aside>
       </div>
     </AppShell>
   );

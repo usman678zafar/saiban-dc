@@ -672,6 +672,22 @@ export async function PATCH(request: NextRequest) {
         });
       }
 
+      if (user.role === 'field_worker' && application.status !== updateData.status && updateData.status === 'submitted') {
+        await tx.auditLog.create({
+          data: {
+            tableName: 'OrphanApplication',
+            recordId: id,
+            action: application.status === 'needs_correction' ? 'resubmitted' : 'submitted',
+            actorId: user.id,
+            applicationId: id,
+            details: {
+              from: application.status,
+              to: updateData.status,
+            },
+          },
+        });
+      }
+
       return next;
     });
 
