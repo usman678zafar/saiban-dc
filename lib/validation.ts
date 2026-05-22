@@ -14,7 +14,11 @@ const parseDate = z.preprocess((value) => {
 
 const nonNegativeNumber = z.preprocess((value) => {
   if (value === undefined || value === null || value === '') return undefined;
-  if (typeof value === 'string') return Number(value);
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed === 'no_income') return 0;
+    return Number(trimmed);
+  }
   return value;
 }, z.number().min(0).optional());
 
