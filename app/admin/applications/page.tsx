@@ -2,10 +2,11 @@ import Link from 'next/link';
 import { ApplicationStatus } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import { Search, X } from 'lucide-react';
+import { Pencil, Search, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
+import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
@@ -164,9 +165,29 @@ export default async function AdminApplicationsPage({
                     {isSuperAdmin ? <td className="px-4 py-4 capitalize">{application.migrationStatus}</td> : null}
                     <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(application.updatedAt)}</td>
                     <td className="px-4 py-4">
-                      <Link href={`/admin/applications/${application.id}`} className="rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff]">
-                        Review
-                      </Link>
+                      <div className="flex flex-wrap gap-2">
+                        <Link href={`/admin/applications/${application.id}`} className="rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff]">
+                          Review
+                        </Link>
+                        {isSuperAdmin ? (
+                          <>
+                            <Link
+                              href={`/applications/${application.id}/edit`}
+                              aria-label="Edit application"
+                              title="Edit application"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Link>
+                            <DeleteDraftApplicationButton
+                              applicationId={application.id}
+                              title="Delete application"
+                              confirmationText="Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone."
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            />
+                          </>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -9,6 +9,7 @@ import ApplicationActivityTimeline from '@/components/application-activity-timel
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
+import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 import { getApplicationDocuments } from '@/lib/application-documents';
 import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
 
@@ -50,7 +51,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   if (!application) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
-  const canEdit = ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+  const canEdit = isSuperAdmin || ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
 
   return (
     <AdminShell email={session.user.email} role={session.user.role}>
@@ -71,6 +72,15 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
             <Link href={`/applications/${application.id}/edit`} className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
               Edit
             </Link>
+          ) : null}
+          {isSuperAdmin ? (
+            <DeleteDraftApplicationButton
+              applicationId={application.id}
+              redirectTo="/admin/applications"
+              title="Delete application"
+              confirmationText="Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone."
+              className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-3 text-sm font-semibold text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
+            />
           ) : null}
         </div>
       </header>

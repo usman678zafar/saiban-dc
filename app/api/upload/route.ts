@@ -46,9 +46,10 @@ export async function POST(request: NextRequest) {
     }
 
     const canReviewerEdit = user.role === 'reviewer' && application.status === 'supervisor_approved';
-    const canAdminEdit = ['admin', 'super_admin'].includes(user.role) && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+    const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+    const canSuperAdminEdit = user.role === 'super_admin';
 
-    if (application.createdById !== user.id && !canReviewerEdit && !canAdminEdit) {
+    if (application.createdById !== user.id && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
@@ -119,9 +120,10 @@ export async function DELETE(request: NextRequest) {
   }
 
   const canReviewerEdit = user.role === 'reviewer' && document.application.status === 'supervisor_approved';
-  const canAdminEdit = ['admin', 'super_admin'].includes(user.role) && ['reviewer_approved', 'admin_approved', 'validated'].includes(document.application.status);
+  const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(document.application.status);
+  const canSuperAdminEdit = user.role === 'super_admin';
 
-  if (document.application.createdById !== user.id && !canReviewerEdit && !canAdminEdit) {
+  if (document.application.createdById !== user.id && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
     return NextResponse.json({ message: 'Access denied' }, { status: 403 });
   }
 
