@@ -78,6 +78,8 @@ type AssetRow = {
   value?: number | string | null;
 };
 
+const NO_ASSET_PREFIX = 'no:';
+
 const LEGACY_ASSET_TYPE_ALIASES: Record<string, HouseholdAssetKey> = {
   fridge: 'fridge',
   sewing_machine: 'sewing_machine',
@@ -118,11 +120,24 @@ function resolveAssetKey(raw: string): HouseholdAssetKey | null {
   return null;
 }
 
+function resolveNoAssetKey(raw: string): HouseholdAssetKey | null {
+  const trimmed = raw.trim().toLowerCase();
+  if (!trimmed.startsWith(NO_ASSET_PREFIX)) return null;
+  const key = trimmed.slice(NO_ASSET_PREFIX.length);
+  return HOUSEHOLD_ASSET_KEYS.includes(key as HouseholdAssetKey) && key !== 'other' ? key as HouseholdAssetKey : null;
+}
+
 export function householdAssetRowsToSelection(rows: AssetRow[]): HouseholdAssetSelection {
   const selection = createDefaultHouseholdAssetSelection();
   const unmatched: AssetRow[] = [];
 
   for (const row of rows) {
+    const noAssetKey = resolveNoAssetKey(row.assetType);
+    if (noAssetKey) {
+      selection[noAssetKey] = { has: false, answered: true, value: '', grams: '' };
+      continue;
+    }
+
     const key = resolveAssetKey(row.assetType);
     if (!key) {
       unmatched.push(row);
@@ -171,7 +186,7 @@ export type OtherHouseholdAssetInput = {
 
 export function householdAssetRowsToOtherItems(rows: AssetRow[]): OtherHouseholdAssetInput[] {
   return rows
-    .filter((row) => !resolveAssetKey(row.assetType))
+    .filter((row) => !resolveNoAssetKey(row.assetType) && !resolveAssetKey(row.assetType))
     .map((row) => ({
       item: row.assetType.trim(),
       value: row.value == null ? '' : String(row.value),
@@ -197,13 +212,21 @@ export function mergeHouseholdAssetSelection(partial?: Partial<HouseholdAssetSel
   return next;
 }
 
-export function householdSelectionToApiRows(selection: HouseholdAssetSelection): HouseholdAssetApiRow[] {
+export function householdSelectionToApiRows(selection: HouseholdAssetSelection, options: { includeNoAnswers?: boolean } = {}): HouseholdAssetApiRow[] {
   const rows: HouseholdAssetApiRow[] = [];
 
   for (const key of HOUSEHOLD_ASSET_KEYS) {
     if (key === 'other') continue;
     const entry = selection[key];
-    if (!entry.has) continue;
+    if (!entry.has) {
+      if (options.includeNoAnswers && entry.answered) {
+        rows.push({
+          assetType: `${NO_ASSET_PREFIX}${key}`,
+          value: 0,
+        });
+      }
+      continue;
+    }
 
     const value =
       entry.value.trim() === '' ? undefined : Number(entry.value);

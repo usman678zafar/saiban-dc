@@ -54,7 +54,7 @@ const draftStringFields = [
   'guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue',
   'guardianNativeArea', 'guardianContact', 'guardianZakatStatus', 'guardianOccupation', 'guardianFamilyHolder',
   'paternalGrandfatherName', 'paternalGrandfatherOccupation', 'maternalGrandfatherName', 'maternalGrandfatherOccupation',
-  'province', 'city', 'district', 'tehsil', 'residentialArea', 'fullAddress', 'rentPaidBy', 'houseOwner', 'houseCondition',
+  'province', 'city', 'district', 'tehsil', 'residentialArea', 'fullAddress', 'houseOwnershipStatus', 'rentPaidBy', 'houseOwner', 'houseCondition',
   'residenceStructureType', 'residenceCategory', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks',
   'childName', 'gender', 'caste', 'sect', 'religion', 'specifyReligion', 'syedStatus', 'nationality', 'specifyNationality',
   'bFormNumber', 'livingSituationNotes', 'healthStatus', 'disabilityDetails', 'disabilityType', 'disabilityCause',

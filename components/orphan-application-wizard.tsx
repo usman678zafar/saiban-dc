@@ -960,15 +960,25 @@ function hasOption(options: string[], value: string) {
   return options.some((option) => normalizeAddressOption(option).toLowerCase() === normalizedValue);
 }
 
+function siblingOccupationHasNoIncome(occupation: string) {
+  return ['Unemployed', 'Retired', 'Disabled', 'Unable to Work'].includes(occupation);
+}
+
 function normalizeInitialData(data: FormData): FormData {
   const next = { ...data };
   // Normalize legacy 'sick' healthStatus from old drafts to 'chronic_illness'
   if (next.healthStatus === 'sick') {
     next.healthStatus = 'chronic_illness';
   }
+  if (next.houseOwnershipStatus === 'rented') {
+    next.houseOwnershipStatus = 'rent';
+  }
+  if (!next.houseOwnershipStatus && (next.monthlyRent || next.rentPaidBy)) {
+    next.houseOwnershipStatus = 'rent';
+  }
   next.siblings = next.siblings.map((sibling) => ({
     ...sibling,
-    monthlyIncomeOrFee: sibling.monthlyIncomeOrFee === 'no_income' ? '0' : sibling.monthlyIncomeOrFee,
+    monthlyIncomeOrFee: sibling.monthlyIncomeOrFee === 'no_income' || (!sibling.monthlyIncomeOrFee && siblingOccupationHasNoIncome(sibling.occupation)) ? '0' : sibling.monthlyIncomeOrFee,
   }));
   next.collectorCnic = formatCnic(next.collectorCnic);
   next.fatherCnic = formatCnic(next.fatherCnic);
@@ -1747,7 +1757,7 @@ export default function OrphanApplicationWizard({
     const registeredBrothers = formFields.siblings.filter((sibling) => sibling.relation === 'brother' && sibling.currentlyStudying === 'yes').length;
     const registeredSisters = formFields.siblings.filter((sibling) => sibling.relation === 'sister' && sibling.currentlyStudying === 'yes').length;
     const householdAssets = [
-      ...householdSelectionToApiRows(householdAssetSelection),
+      ...householdSelectionToApiRows(householdAssetSelection, { includeNoAnswers: saveStatus !== 'submitted' }),
       ...otherHouseholdAssets
         .filter((asset) => asset.item.trim())
         .map((asset) => ({
@@ -2092,7 +2102,7 @@ export default function OrphanApplicationWizard({
       case 4:
         return [];
       case 5: {
-        const fields: Array<keyof FormData> = ['province', 'district', 'city', 'residentialArea', 'fullAddress', 'houseOwnershipStatus', 'houseCondition', 'residenceStructureType', 'residenceCategory', 'furnishingCondition'];
+        const fields: Array<keyof FormData> = ['province', 'district', 'city', 'houseOwnershipStatus', 'houseCondition', 'residenceStructureType', 'residenceCategory', 'furnishingCondition'];
         if (formData.houseOwnershipStatus === 'rent') fields.push('monthlyRent', 'rentPaidBy');
         return fields;
       }
@@ -2180,6 +2190,9 @@ export default function OrphanApplicationWizard({
           r.supportType !== '' &&
           (r.supportType !== 'other' || r.supportTypeOther.trim() !== '')
         );
+
+      case 5: // Home
+        return formData.residentialArea.trim() !== '' || formData.fullAddress.trim() !== '';
 
       case 6: // Household Assets
         if (HOUSEHOLD_ASSET_KEYS.some(k => k !== 'other' && !formData.householdAssetSelection[k].answered)) return false;
