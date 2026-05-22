@@ -10,6 +10,7 @@ import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import VolunteerApplicationStatus from '@/components/volunteer-application-status';
+import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 import { getApplicationDocuments } from '@/lib/application-documents';
 import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
 
@@ -50,7 +51,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
   if (!isAdmin && application.createdById !== session.user.id) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
-  const canEdit = application.status === 'draft' || application.status === 'needs_correction' || (isAdmin && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status));
+  const canEdit = isSuperAdmin || application.status === 'draft' || application.status === 'needs_correction' || (isAdmin && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status));
 
   return (
     <AppShell
@@ -71,6 +72,15 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
             <Link href={`/applications/${application.id}/edit`} className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500 sm:w-auto">
               {application.status === 'draft' ? 'Edit Draft' : application.status === 'needs_correction' ? 'Correct Application' : 'Edit'}
             </Link>
+          ) : null}
+          {isSuperAdmin ? (
+            <DeleteDraftApplicationButton
+              applicationId={application.id}
+              redirectTo="/applications"
+              title="Delete application"
+              confirmationText="Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone."
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-rose-600 px-4 py-3 text-sm font-semibold text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            />
           ) : null}
         </>
       }

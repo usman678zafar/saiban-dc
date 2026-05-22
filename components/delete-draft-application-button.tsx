@@ -7,9 +7,18 @@ import { Trash2 } from 'lucide-react';
 interface DeleteDraftApplicationButtonProps {
   applicationId: string;
   className?: string;
+  redirectTo?: string;
+  confirmationText?: string;
+  title?: string;
 }
 
-export default function DeleteDraftApplicationButton({ applicationId, className }: DeleteDraftApplicationButtonProps) {
+export default function DeleteDraftApplicationButton({
+  applicationId,
+  className,
+  redirectTo,
+  confirmationText = 'Are you sure you want to delete this draft application? This action cannot be undone.',
+  title = 'Delete draft',
+}: DeleteDraftApplicationButtonProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -29,7 +38,12 @@ export default function DeleteDraftApplicationButton({ applicationId, className 
       }
 
       setShowModal(false);
-      router.refresh();
+      if (redirectTo) {
+        router.push(redirectTo);
+        router.refresh();
+      } else {
+        router.refresh();
+      }
     } catch (error) {
       window.alert(error instanceof Error ? error.message : 'Unable to delete draft application.');
       setIsDeleting(false);
@@ -42,8 +56,8 @@ export default function DeleteDraftApplicationButton({ applicationId, className 
         type="button"
         onClick={() => setShowModal(true)}
         disabled={isDeleting}
-        aria-label="Delete draft"
-        title="Delete draft"
+        aria-label={title}
+        title={title}
         className={className ?? 'inline-flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60'}
       >
         <Trash2 className="h-4 w-4" />
@@ -54,7 +68,7 @@ export default function DeleteDraftApplicationButton({ applicationId, className 
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-slate-900">Delete Application</h3>
             <p className="mt-2 text-sm text-slate-600">
-              Are you sure you want to delete this draft application? This action cannot be undone.
+              {confirmationText}
             </p>
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button

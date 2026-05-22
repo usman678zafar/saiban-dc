@@ -615,9 +615,10 @@ export async function PATCH(request: NextRequest) {
     }
 
     const canReviewerEdit = user.role === 'reviewer' && application.status === 'supervisor_approved';
-    const canAdminEdit = ['admin', 'super_admin'].includes(user.role) && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+    const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+    const canSuperAdminEdit = user.role === 'super_admin';
 
-    if (application.createdById !== user.id && !canReviewerEdit && !canAdminEdit) {
+    if (application.createdById !== user.id && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
@@ -754,7 +755,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ message: 'Application not found' }, { status: 404 });
   }
 
-  if (application.status !== 'draft') {
+  if (application.status !== 'draft' && user.role !== 'super_admin') {
     return NextResponse.json({ message: 'Only draft applications can be deleted.' }, { status: 409 });
   }
 
@@ -773,6 +774,6 @@ export async function DELETE(request: NextRequest) {
     prisma.orphanApplication.delete({ where: { id } }),
   ]);
 
-  return NextResponse.json({ message: 'Draft application deleted successfully.' });
+  return NextResponse.json({ message: user.role === 'super_admin' ? 'Application deleted successfully.' : 'Draft application deleted successfully.' });
 }
 

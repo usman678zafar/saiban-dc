@@ -47,6 +47,7 @@ export default async function ApplicationsPage({
 }) {
   const session = await getServerSession(authOptions);
   const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
+  const isSuperAdmin = session?.user?.role === 'super_admin';
   const user = session?.user?.email
     ? await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -184,11 +185,11 @@ export default async function ApplicationsPage({
                 >
                   <Eye className="h-5 w-5" />
                 </Link>
-                {application.status === 'draft' || application.status === 'needs_correction' ? (
+                {isSuperAdmin || application.status === 'draft' || application.status === 'needs_correction' ? (
                   <Link
                     href={`/applications/${application.id}/edit`}
-                    aria-label="Edit draft"
-                    title="Edit draft"
+                    aria-label="Edit application"
+                    title="Edit application"
                     className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100"
                   >
                     <Pencil className="h-5 w-5" />
@@ -202,9 +203,11 @@ export default async function ApplicationsPage({
                     <Pencil className="h-5 w-5" />
                   </span>
                 )}
-                {application.status === 'draft' ? (
+                {isSuperAdmin || application.status === 'draft' ? (
                   <DeleteDraftApplicationButton
                     applicationId={application.id}
+                    title="Delete application"
+                    confirmationText={isSuperAdmin ? 'Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone.' : undefined}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 ) : null}
@@ -266,18 +269,22 @@ export default async function ApplicationsPage({
                     >
                       <Eye className="h-4 w-4" />
                     </Link>
-                    {application.status === 'draft' || application.status === 'needs_correction' ? (
+                    {isSuperAdmin || application.status === 'draft' || application.status === 'needs_correction' ? (
                       <Link
                         href={`/applications/${application.id}/edit`}
-                        aria-label="Edit draft"
-                        title="Edit draft"
+                        aria-label="Edit application"
+                        title="Edit application"
                         className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100"
                       >
                         <Pencil className="h-4 w-4" />
                       </Link>
                     ) : null}
-                    {application.status === 'draft' ? (
-                      <DeleteDraftApplicationButton applicationId={application.id} />
+                    {isSuperAdmin || application.status === 'draft' ? (
+                      <DeleteDraftApplicationButton
+                        applicationId={application.id}
+                        title="Delete application"
+                        confirmationText={isSuperAdmin ? 'Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone.' : undefined}
+                      />
                     ) : null}
                     {application.status === 'submitted' ? (
                       <Link
