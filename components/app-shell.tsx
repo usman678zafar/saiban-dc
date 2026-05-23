@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import SignOutButton from './sign-out-button';
 import logo from '@/assests/logo.png';
@@ -16,6 +17,8 @@ interface AppShellProps {
 
 export default async function AppShell({ title, description, actions, maxWidth = 'max-w-7xl', children }: AppShellProps) {
   const session = await getServerSession(authOptions);
+  if (!session?.user?.email) redirect('/signin');
+
   const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
   const isFieldWorker = session?.user?.role === 'field_worker';
   const isSupervisor = session?.user?.role === 'supervisor';

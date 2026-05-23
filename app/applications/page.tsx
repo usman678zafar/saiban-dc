@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
@@ -46,6 +47,8 @@ export default async function ApplicationsPage({
   searchParams: { page?: string; q?: string };
 }) {
   const session = await getServerSession(authOptions);
+  if (!session?.user?.email) redirect('/signin?callbackUrl=/applications');
+
   const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
   const isSuperAdmin = session?.user?.role === 'super_admin';
   const user = session?.user?.email

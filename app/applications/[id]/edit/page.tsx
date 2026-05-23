@@ -16,7 +16,7 @@ interface EditApplicationPageProps {
 export default async function EditApplicationPage({ params }: EditApplicationPageProps) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
-    notFound();
+    redirect(`/signin?callbackUrl=/applications/${params.id}/edit`);
   }
 
   const application = await prisma.orphanApplication.findUnique({
