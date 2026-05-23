@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -14,7 +14,7 @@ interface DuplicateApplicationPageProps {
 
 export default async function DuplicateApplicationPage({ params }: DuplicateApplicationPageProps) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) notFound();
+  if (!session?.user?.email) redirect(`/signin?callbackUrl=/applications/${params.id}/duplicate`);
 
   const application = await prisma.orphanApplication.findUnique({
     where: { id: params.id },

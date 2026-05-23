@@ -78,6 +78,7 @@ model User {
   supervisor     User?               @relation("SupervisorFieldWorkers", fields: [supervisorId], references: [id])
   fieldWorkers   User[]              @relation("SupervisorFieldWorkers")
   passwordHash   String
+  sessionVersion Int                 @default(0)
   role           UserRole            @default(field_worker)
   selfRegistered Boolean             @default(false)
   applications   OrphanApplication[] @relation("CreatedApplications")

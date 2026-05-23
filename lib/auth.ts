@@ -13,7 +13,13 @@ declare module 'next-auth' {
       name?: string | null;
       email?: string | null;
       role?: Role;
+      sessionVersion?: number;
     };
+  }
+
+  interface User {
+    role?: Role;
+    sessionVersion?: number;
   }
 }
 
@@ -21,6 +27,8 @@ declare module 'next-auth/jwt' {
   interface JWT {
     id?: string;
     role?: Role;
+    sessionVersion?: number;
+    sessionInvalid?: boolean;
   }
 }
 
@@ -129,6 +137,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name ?? undefined,
           email: user.email,
           role: isBootstrapLogin ? 'super_admin' : user.role,
+          sessionVersion: user.sessionVersion,
         };
       },
     }),
@@ -137,14 +146,37 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as { role?: Role }).role;
+        token.role = user.role;
+        token.sessionVersion = user.sessionVersion ?? 0;
+        token.sessionInvalid = false;
+        return token;
       }
+
+      if (token.id) {
+        const currentUser = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: { sessionVersion: true },
+        });
+
+        if (!currentUser || currentUser.sessionVersion !== (token.sessionVersion ?? 0)) {
+          token.sessionInvalid = true;
+          delete token.id;
+          delete token.role;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
+      if (token.sessionInvalid) {
+        delete session.user;
+        return session;
+      }
+
       if (session.user) {
         session.user.id = token.id ?? token.sub ?? '';
         session.user.role = token.role;
+        session.user.sessionVersion = token.sessionVersion;
       }
       return session;
     },

@@ -25,6 +25,8 @@ type StatItem = {
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
+  if (!session?.user?.email) redirect('/signin?callbackUrl=/dashboard');
+
   if (session?.user?.role === 'field_worker') {
     redirect('/applications');
   }

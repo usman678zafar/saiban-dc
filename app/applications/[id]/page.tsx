@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { CopyPlus } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
@@ -22,7 +22,7 @@ interface ApplicationDetailPageProps {
 
 export default async function ApplicationDetailPage({ params }: ApplicationDetailPageProps) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) notFound();
+  if (!session?.user?.email) redirect(`/signin?callbackUrl=/applications/${params.id}`);
 
   const application = await prisma.orphanApplication.findUnique({
     where: { id: params.id },
