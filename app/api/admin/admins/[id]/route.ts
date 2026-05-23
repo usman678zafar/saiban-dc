@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { UserRole } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getSessionVersionUpdateData } from '@/lib/session-version';
 
 const updateAdminSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -35,12 +36,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   try {
     const input = updateAdminSchema.parse(await request.json());
     const passwordHash = input.password ? await bcrypt.hash(input.password, 10) : undefined;
+    const sessionVersionUpdate = passwordHash ? await getSessionVersionUpdateData() : {};
     const admin = await prisma.user.update({
       where: { id: params.id, role: UserRole.admin },
       data: {
         name: input.name,
         ...(passwordHash ? { passwordHash } : {}),
-        ...(passwordHash ? { sessionVersion: { increment: 1 } } : {}),
+        ...sessionVersionUpdate,
       },
       select: {
         id: true,

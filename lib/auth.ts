@@ -2,9 +2,19 @@ import { compare } from 'bcryptjs';
 import bcrypt from 'bcryptjs';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { type NextAuthOptions } from 'next-auth';
+import type { Prisma } from '@prisma/client';
 import { prisma } from './prisma';
+import { getSessionVersion, getSessionVersionUpdateData, hasSessionVersionColumn } from './session-version';
 
 export type Role = 'super_admin' | 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer';
+
+const authUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  passwordHash: true,
+  role: true,
+} satisfies Prisma.UserSelect;
 
 declare module 'next-auth' {
   interface Session {
@@ -40,7 +50,10 @@ async function ensureBootstrapAdmin(email: string, password: string) {
     return null;
   }
 
-  const existingUser = await prisma.user.findUnique({ where: { email: adminEmail } });
+  const existingUser = await prisma.user.findUnique({
+    where: { email: adminEmail },
+    select: authUserSelect,
+  });
   if (existingUser) return existingUser;
 
   const passwordHash = await bcrypt.hash(adminPassword, 10);
@@ -52,6 +65,7 @@ async function ensureBootstrapAdmin(email: string, password: string) {
       passwordHash,
       role: 'super_admin',
     },
+    select: authUserSelect,
   });
 }
 
@@ -80,6 +94,9 @@ export const authOptions: NextAuthOptions = {
         const identifier = credentials.email.trim();
         const email = identifier.toLowerCase();
         const numericIdentifier = digitsOnly(identifier);
+        const bootstrapEmail = (process.env.SUPER_ADMIN_EMAIL ?? process.env.ADMIN_EMAIL)?.trim().toLowerCase();
+        const bootstrapPassword = process.env.SUPER_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD;
+        const isBootstrapLogin = bootstrapEmail === email && bootstrapPassword === credentials.password;
         const loginRole = credentials.loginRole === 'admin' || credentials.loginRole === 'reviewer' || credentials.loginRole === 'supervisor' || credentials.loginRole === 'field_worker' ? credentials.loginRole : undefined;
         const user = loginRole === 'field_worker'
           ? await prisma.user.findFirst({
@@ -91,6 +108,7 @@ export const authOptions: NextAuthOptions = {
                 { email },
               ],
             },
+            select: authUserSelect,
           })
           : loginRole === 'supervisor'
             ? await prisma.user.findFirst({
@@ -101,6 +119,7 @@ export const authOptions: NextAuthOptions = {
                   { email },
                 ],
               },
+              select: authUserSelect,
             })
           : loginRole === 'reviewer'
             ? await prisma.user.findFirst({
@@ -111,33 +130,48 @@ export const authOptions: NextAuthOptions = {
                   { email },
                 ],
               },
+              select: authUserSelect,
             })
           : await prisma.user.findUnique({
             where: { email },
+            select: authUserSelect,
           }) ?? await ensureBootstrapAdmin(email, credentials.password);
 
         if (!user) return null;
         if (loginRole && (loginRole === 'admin' ? !['admin', 'super_admin'].includes(user.role) : user.role !== loginRole)) return null;
+        let resolvedRole = user.role;
+        let resolvedSessionVersion = await getSessionVersion(user.id);
 
-        const bootstrapEmail = (process.env.SUPER_ADMIN_EMAIL ?? process.env.ADMIN_EMAIL)?.trim().toLowerCase();
-        const bootstrapPassword = process.env.SUPER_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD;
-        const isBootstrapLogin = bootstrapEmail === email && bootstrapPassword === credentials.password;
-        const isValid = await compare(credentials.password, user.passwordHash);
-        if (!isValid) return null;
-
-        if (isBootstrapLogin && user.role !== 'super_admin') {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { role: 'super_admin' },
-          });
+        if (isBootstrapLogin) {
+          const passwordMatchesHash = await compare(credentials.password, user.passwordHash);
+          if (!passwordMatchesHash || user.role !== 'super_admin') {
+            const updatedUser = await prisma.user.update({
+              where: { id: user.id },
+              data: {
+                passwordHash: await bcrypt.hash(credentials.password, 10),
+                role: 'super_admin',
+                ...(await getSessionVersionUpdateData()),
+              },
+              select: {
+                role: true,
+              },
+            });
+            resolvedRole = updatedUser.role;
+            resolvedSessionVersion = await getSessionVersion(user.id);
+          } else {
+            resolvedRole = 'super_admin';
+          }
+        } else {
+          const isValid = await compare(credentials.password, user.passwordHash);
+          if (!isValid) return null;
         }
 
         return {
           id: user.id,
           name: user.name ?? undefined,
           email: user.email,
-          role: isBootstrapLogin ? 'super_admin' : user.role,
-          sessionVersion: user.sessionVersion,
+          role: resolvedRole,
+          sessionVersion: resolvedSessionVersion,
         };
       },
     }),
@@ -153,12 +187,10 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (token.id) {
-        const currentUser = await prisma.user.findUnique({
-          where: { id: token.id },
-          select: { sessionVersion: true },
-        });
+        const sessionVersionEnabled = await hasSessionVersionColumn();
+        const currentSessionVersion = sessionVersionEnabled ? await getSessionVersion(token.id) : token.sessionVersion ?? 0;
 
-        if (!currentUser || currentUser.sessionVersion !== (token.sessionVersion ?? 0)) {
+        if (sessionVersionEnabled && currentSessionVersion !== (token.sessionVersion ?? 0)) {
           token.sessionInvalid = true;
           delete token.id;
           delete token.role;
