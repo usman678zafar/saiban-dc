@@ -1543,7 +1543,7 @@ export default function OrphanApplicationWizard({
   const handleTreatmentOngoingChange = (value: string) => {
     updateFields({
       treatmentOngoing: value,
-      ...(value === 'yes' ? {} : { treatmentPlace: '', monthlyMedicalExpenses: '' }),
+      ...(value === 'yes' ? {} : { treatmentPlace: '' }),
     });
   };
 
@@ -2117,7 +2117,10 @@ export default function OrphanApplicationWizard({
       }
       case 8: {
         const fields: Array<keyof FormData> = ['healthStatus'];
-        if (formData.healthStatus === 'disabled') fields.push('disabilityType', 'disabilityCause');
+        if (formData.healthStatus === 'disabled') {
+          fields.push('disabilityType', 'disabilityCause', 'disabilityDetails', 'treatmentOngoing', 'monthlyMedicalExpenses');
+          if (formData.treatmentOngoing === 'yes') fields.push('treatmentPlace');
+        }
         if (formData.healthStatus === 'chronic_illness') fields.push('chronicDisease', 'treatmentPlace', 'monthlyMedicalExpenses');
         return fields;
       }
@@ -3566,9 +3569,9 @@ export default function OrphanApplicationWizard({
                 {renderTextareaField('disabilityDetails')}
                 {['accident', 'illness'].includes(formData.disabilityCause) ? renderTextareaField('disabilityCauseDetails') : null}
                 {['accident', 'illness'].includes(formData.disabilityCause) ? renderTextField('disabilitySince', 'date') : null}
-                {renderBooleanSelect('treatmentOngoing', (value) => handleTreatmentOngoingChange(value ? 'yes' : 'no'), 'Yes / ہاں', 'No / نہیں')}
+                {renderSelectField('treatmentOngoing', [{ value: '', label: 'Select treatment status' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }], handleTreatmentOngoingChange)}
                 {formData.treatmentOngoing === 'yes' ? renderTextField('treatmentPlace') : null}
-                {formData.treatmentOngoing === 'yes' ? renderTextField('monthlyMedicalExpenses', 'number') : null}
+                {renderTextField('monthlyMedicalExpenses', 'number')}
               </>
             ) : null}
             {formData.healthStatus === 'chronic_illness' ? (
