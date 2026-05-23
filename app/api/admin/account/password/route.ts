@@ -43,6 +43,7 @@ export async function PATCH(request: NextRequest) {
         passwordHash: await hash(input.newPassword, 10),
         ...(await getSessionVersionUpdateData()),
       },
+      select: { id: true },
     });
 
     return NextResponse.json({ message: 'Password updated successfully.' });
