@@ -4,6 +4,7 @@ import { compare, hash } from 'bcryptjs';
 import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getSessionVersionUpdateData } from '@/lib/session-version';
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
@@ -40,7 +41,7 @@ export async function PATCH(request: NextRequest) {
       where: { id: user.id },
       data: {
         passwordHash: await hash(input.newPassword, 10),
-        sessionVersion: { increment: 1 },
+        ...(await getSessionVersionUpdateData()),
       },
     });
 
