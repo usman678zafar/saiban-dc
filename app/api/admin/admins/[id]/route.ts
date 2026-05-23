@@ -40,6 +40,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       data: {
         name: input.name,
         ...(passwordHash ? { passwordHash } : {}),
+        ...(passwordHash ? { sessionVersion: { increment: 1 } } : {}),
       },
       select: {
         id: true,
