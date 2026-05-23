@@ -122,7 +122,7 @@ export const authOptions: NextAuthOptions = {
         const bootstrapEmail = (process.env.SUPER_ADMIN_EMAIL ?? process.env.ADMIN_EMAIL)?.trim().toLowerCase();
         const bootstrapPassword = process.env.SUPER_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD;
         const isBootstrapLogin = bootstrapEmail === email && bootstrapPassword === credentials.password;
-        const isValid = isBootstrapLogin || await compare(credentials.password, user.passwordHash);
+        const isValid = await compare(credentials.password, user.passwordHash);
         if (!isValid) return null;
 
         if (isBootstrapLogin && user.role !== 'super_admin') {
