@@ -498,7 +498,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
             <form onSubmit={handleSubmit} className="grid gap-4 px-6 py-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm text-slate-700">
-                  <span>Name</span>
+                  <span>Name <span className="text-rose-500">*</span></span>
                   <input
                     value={form.name}
                     onChange={(event) => updateForm('name', event.target.value)}
@@ -507,7 +507,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                   />
                 </label>
                 <label className="grid gap-2 text-sm text-slate-700">
-                  <span>Phone Number</span>
+                  <span>Phone Number <span className="text-rose-500">*</span></span>
                   <input
                     value={form.phoneNumber}
                     onChange={(event) => updateForm('phoneNumber', event.target.value)}
@@ -525,12 +525,11 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>
                     CNIC
-                    {isEditingSelfRegistered ? <span className="ml-1 text-xs text-slate-400">(optional)</span> : null}
+                    <span className="ml-1 text-xs text-slate-400">(optional)</span>
                   </span>
                   <input
                     value={form.cnic}
                     onChange={(event) => updateForm('cnic', event.target.value)}
-                    required={!isEditingSelfRegistered}
                     inputMode="numeric"
                     placeholder="42101-0536155-7"
                     maxLength={15}
@@ -538,7 +537,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                   />
                 </label>
                 <label className="grid gap-2 text-sm text-slate-700">
-                    <span>Department/شعبہ</span>
+                    <span>Department/شعبہ <span className="text-rose-500">*</span></span>
                     <select
                       value={form.project}
                       onChange={(event) => updateForm('project', event.target.value)}
@@ -577,12 +576,11 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
               <label className="grid gap-2 text-sm text-slate-700">
                 <span>
                   Address/پتہ
-                  {isEditingSelfRegistered ? <span className="ml-1 text-xs text-slate-400">(optional)</span> : null}
+                  <span className="ml-1 text-xs text-slate-400">(optional)</span>
                 </span>
                 <textarea
                   value={form.address}
                   onChange={(event) => updateForm('address', event.target.value)}
-                  required={!isEditingSelfRegistered}
                   rows={3}
                   className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
@@ -598,7 +596,10 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
               </label>
 
               <label className="grid gap-2 text-sm text-slate-700">
-                <span>{modalMode === 'add' ? 'Password' : 'New Password'}</span>
+                <span>
+                  {modalMode === 'add' ? 'Password' : 'New Password'}
+                  {modalMode === 'add' ? <span className="text-rose-500"> *</span> : null}
+                </span>
                 <input
                   type="text"
                   value={form.password}

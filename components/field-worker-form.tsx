@@ -80,21 +80,19 @@ export default function FieldWorkerForm() {
         />
       </label>
       <label className="grid gap-2 text-sm text-slate-700">
-        <span>CNIC</span>
+        <span>CNIC <span className="text-xs text-slate-400">(optional)</span></span>
         <input
           value={cnic}
           onChange={(event) => setCnic(event.target.value)}
-          required
           inputMode="numeric"
           className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
       </label>
       <label className="grid gap-2 text-sm text-slate-700">
-        <span>Address/پتہ</span>
+        <span>Address/پتہ <span className="text-xs text-slate-400">(optional)</span></span>
         <textarea
           value={address}
           onChange={(event) => setAddress(event.target.value)}
-          required
           rows={3}
           className="resize-none rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />

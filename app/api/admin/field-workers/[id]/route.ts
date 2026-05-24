@@ -12,9 +12,10 @@ const updateAdminWorkerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
   cnic: z
     .string()
-    .transform(formatCnic)
-    .refine(isValidCnic, { message: 'CNIC must use the format 42101-0536155-7' }),
-  address: z.string().trim().min(1, 'Address is required'),
+    .optional()
+    .transform((v) => (v ? formatCnic(v) : ''))
+    .refine((v) => v.length === 0 || isValidCnic(v), { message: 'CNIC must use the format 42101-0536155-7' }),
+  address: z.string().trim().optional().default(''),
   reference: z.string().trim().optional().default(''),
   project: z.string().trim().min(1, 'Department is required'),
   supervisorId: z.string().uuid('Supervisor is required'),
@@ -178,9 +179,9 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
       where: { id: params.id },
       data: {
         name: input.name,
-        email: `${input.cnic}@field.saiban.local`,
-        cnic: input.cnic,
-        address: input.address,
+        email: `${input.cnic || worker.phoneNumber}@field.saiban.local`,
+        cnic: input.cnic || null,
+        address: input.address || null,
         reference: input.reference || null,
         project: input.project,
         supervisorId: input.supervisorId,

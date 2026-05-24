@@ -13,10 +13,10 @@ const createFieldWorkerSchema = z.object({
   phoneNumber: z.string().transform(normalizePakistanMobile).refine((value) => /^03\d{9}$/.test(value), {
     message: 'Phone number must use the format 03332101476',
   }),
-  cnic: z.string().transform(formatCnic).refine(isValidCnic, {
+  cnic: z.string().optional().transform((value) => (value ? formatCnic(value) : '')).refine((value) => value.length === 0 || isValidCnic(value), {
     message: 'CNIC must use the format 42101-0536155-7',
   }),
-  address: z.string().trim().min(1, 'Address is required'),
+  address: z.string().trim().optional().default(''),
   reference: z.string().trim().optional().default(''),
   project: z.string().trim().min(1, 'Department is required'),
   supervisorId: z.string().uuid('Supervisor is required'),
@@ -98,11 +98,11 @@ export async function POST(request: NextRequest) {
         user = await prisma.user.create({
           data: {
             name: input.name,
-            email: `${input.cnic}@field.saiban.local`,
+            email: `${input.cnic || input.phoneNumber}@field.saiban.local`,
             phoneNumber: input.phoneNumber,
-            cnic: input.cnic,
+            cnic: input.cnic || null,
             fieldWorkerId: await generateFieldWorkerId(),
-            address: input.address,
+            address: input.address || null,
             reference: input.reference || null,
             project: input.project,
             supervisorId: input.supervisorId,
