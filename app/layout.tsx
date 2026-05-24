@@ -1,9 +1,14 @@
 import './styles/globals.css';
 import { Providers } from './providers';
+import logo from '@/assests/logo.png';
 
 export const metadata = {
   title: 'Saiban Orphan Support Data Collector',
   description: 'Temporary data collection app for orphan registration data',
+  icons: {
+    icon: logo.src,
+    apple: logo.src,
+  },
 };
 
 export const viewport = {
