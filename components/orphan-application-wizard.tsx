@@ -2132,11 +2132,10 @@ export default function OrphanApplicationWizard({
           if (!isLegacySubmittedReview || formData.educationStartCondition.trim()) {
             fields.push('educationStartCondition');
           }
-        }
-        if (formData.currentlyStudying || formData.enrolledInMadrasa) {
-          fields.push('educationFree');
+          }
+          if (formData.currentlyStudying || formData.enrolledInMadrasa) {
           if (formData.educationFree === 'no') fields.push('monthlySchoolFee');
-        }
+          }
         if (formData.currentSkillLearning === 'yes') fields.push('currentSkill');
         if (formData.currentSkillLearning === 'no') {
           fields.push('technicalSkillInterest');
@@ -3621,7 +3620,7 @@ export default function OrphanApplicationWizard({
             {(formData.currentlyStudying || formData.enrolledInMadrasa) ? (
               <>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 sm:col-span-2">Mention fee only with valid fee voucher/proof. اگر واؤچر / ثبوت موجود نہ ہو تو فیس درج نہ کی جائے۔</div>
-                {renderSelectField('educationFree', [{ value: '', label: 'Select fee status' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }], handleEducationFreeChange)}
+                {renderSelectField('educationFree', [{ value: '', label: 'Select fee status' }, { value: 'yes', label: 'Yes / ہاں' }, { value: 'no', label: 'No / نہیں' }], handleEducationFreeChange, false)}
                 {formData.educationFree === 'no' ? renderTextField('monthlySchoolFee', 'number') : null}
                 {formData.educationFree === 'no' ? (
                   <div className="sm:col-span-2">
