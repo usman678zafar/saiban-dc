@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { ApplicationStatus } from '@prisma/client';
-import { ArrowRight, CheckCircle2, ClipboardList, Database, FileCheck2, FileText, ShieldCheck, UsersRound } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ClipboardList, Database, FileCheck2, FileText, Send, ShieldCheck, UsersRound } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
@@ -53,13 +53,28 @@ function adminVisibleApplicationFilter(role?: string | null) {
 
 async function getAdminPortalData(role?: string | null) {
   const visibleApplicationWhere = adminVisibleApplicationFilter(role);
-  const applicationStatusCounts = await prisma.orphanApplication.groupBy({
-    by: ['status'],
-    where: visibleApplicationWhere,
-    _count: { _all: true },
-  });
+  const [applicationStatusCounts, allApplicationStatusCounts, submittedByFieldWorkersCount] = await Promise.all([
+    prisma.orphanApplication.groupBy({
+      by: ['status'],
+      where: visibleApplicationWhere,
+      _count: { _all: true },
+    }),
+    prisma.orphanApplication.groupBy({
+      by: ['status'],
+      _count: { _all: true },
+    }),
+    prisma.orphanApplication.count({
+      where: {
+        status: ApplicationStatus.submitted,
+        createdBy: { role: 'field_worker' },
+      },
+    }),
+  ]);
+
   const applicationCountByStatus = new Map(applicationStatusCounts.map((item) => [item.status, item._count._all]));
-  const totalApplications = applicationStatusCounts.reduce((total, item) => total + item._count._all, 0);
+  const allApplicationCountByStatus = new Map(allApplicationStatusCounts.map((item) => [item.status, item._count._all]));
+  const totalApplications = allApplicationStatusCounts.reduce((total, item) => total + item._count._all, 0);
+  const draftApplications = allApplicationCountByStatus.get(ApplicationStatus.draft) ?? 0;
   const reviewerApprovedApplications = applicationCountByStatus.get(ApplicationStatus.reviewer_approved) ?? 0;
   const adminApprovedApplications =
     (applicationCountByStatus.get(ApplicationStatus.admin_approved) ?? 0) +
@@ -74,6 +89,7 @@ async function getAdminPortalData(role?: string | null) {
   const userCountByRole = new Map(userRoleCounts.map((item) => [item.role, item._count._all]));
   const totalUsers = userRoleCounts.reduce((total, item) => total + item._count._all, 0);
   const adminUsers = (userCountByRole.get('admin') ?? 0) + (userCountByRole.get('super_admin') ?? 0);
+  const fieldWorkerCount = userCountByRole.get('field_worker') ?? 0;
 
   const fieldWorkers = await prisma.user.findMany({
     where: { role: 'field_worker' },
@@ -106,10 +122,13 @@ async function getAdminPortalData(role?: string | null) {
 
   const metrics: AdminMetric[] = [
     { label: 'Total Applications', value: totalApplications, detail: 'All records', tone: 'blue' },
+    { label: 'Drafts', value: draftApplications, detail: 'Saved but not submitted', tone: 'slate' },
+    { label: 'Applications Submitted', value: submittedByFieldWorkersCount, detail: 'By field workers and volunteers', tone: 'violet' },
     { label: 'Reviewer Approved', value: reviewerApprovedApplications, detail: 'Awaiting final review', tone: 'violet' },
     { label: 'Final Approved', value: adminApprovedApplications, detail: 'Validated records', tone: 'emerald' },
     ...(role === 'super_admin' ? [{ label: 'Migrated', value: migratedApplications, detail: 'Moved onward', tone: 'sky' } as AdminMetric] : []),
     { label: 'Rejected', value: rejectedApplications, detail: 'Needs attention', tone: 'red' },
+    { label: 'Field Workers', value: fieldWorkerCount, detail: 'All volunteers', tone: 'orange' },
     { label: 'Users', value: totalUsers, detail: 'Portal access', tone: 'orange' },
     { label: 'Admins', value: adminUsers, detail: 'Admin users', tone: 'slate' },
   ];
@@ -131,12 +150,12 @@ export default async function AdminPortalPage() {
   const isSuperAdmin = session.user.role === 'super_admin';
   const metricStyles = {
     blue: { icon: ClipboardList, tile: 'bg-[#e8f1ff] text-[#3b82f6]', value: 'text-[#3b82f6]' },
-    violet: { icon: FileText, tile: 'bg-[#f0e8ff] text-[#8357f4]', value: 'text-[#8357f4]' },
+    violet: { icon: Send, tile: 'bg-[#f0e8ff] text-[#8357f4]', value: 'text-[#8357f4]' },
     emerald: { icon: CheckCircle2, tile: 'bg-[#e5f8f0] text-[#10b981]', value: 'text-[#10b981]' },
     orange: { icon: UsersRound, tile: 'bg-[#fff2dd] text-[#f59e0b]', value: 'text-[#f59e0b]' },
     red: { icon: FileCheck2, tile: 'bg-[#ffe8e8] text-[#ef4444]', value: 'text-[#ef4444]' },
     sky: { icon: Database, tile: 'bg-[#e6f7ff] text-[#0284c7]', value: 'text-[#0284c7]' },
-    slate: { icon: ShieldCheck, tile: 'bg-[#edf2f7] text-[#475569]', value: 'text-[#475569]' },
+    slate: { icon: FileText, tile: 'bg-[#edf2f7] text-[#475569]', value: 'text-[#475569]' },
   };
 
   return (
@@ -158,7 +177,7 @@ export default async function AdminPortalPage() {
             </div>
           </header>
 
-          <section className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
+          <section className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {metrics.map((metric: AdminMetric) => {
               const style = metricStyles[metric.tone];
               const Icon = style.icon;

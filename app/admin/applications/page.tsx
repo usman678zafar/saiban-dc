@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ApplicationStatus } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
+import type { Prisma } from '@prisma/client';
 import { Pencil, Search, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -28,6 +29,54 @@ function applicationWhereForRole(role?: string | null) {
   return role === 'super_admin' ? {} : adminVisibleApplicationWhere;
 }
 
+const superAdminStatusFilters = [
+  { key: 'all', label: 'All', detail: 'Everything visible' },
+  { key: 'pending', label: 'Pending', detail: 'Submitted by volunteers' },
+  { key: 'drafts', label: 'Drafts', detail: 'Saved but not submitted' },
+  { key: 'supervisor_approved', label: 'Supervisor Approved', detail: 'Ready for reviewer/admin flow' },
+  { key: 'final_approved', label: 'Final Approved', detail: 'Admin approved, validated, migrated' },
+  { key: 'others', label: 'Others', detail: 'Correction, reviewer, rejected, other submitted' },
+] as const;
+
+type SuperAdminStatusFilter = (typeof superAdminStatusFilters)[number]['key'];
+
+const submittedByFieldWorkerWhere: Prisma.OrphanApplicationWhereInput = {
+  status: ApplicationStatus.submitted,
+  createdBy: { role: 'field_worker' },
+};
+
+const finalApprovedWhere: Prisma.OrphanApplicationWhereInput = {
+  status: { in: [ApplicationStatus.admin_approved, ApplicationStatus.validated, ApplicationStatus.migrated] },
+};
+
+function isSuperAdminStatusFilter(value: string | undefined): value is SuperAdminStatusFilter {
+  return superAdminStatusFilters.some((filter) => filter.key === value);
+}
+
+function superAdminApplicationFilterWhere(filter: SuperAdminStatusFilter): Prisma.OrphanApplicationWhereInput {
+  switch (filter) {
+    case 'pending':
+      return submittedByFieldWorkerWhere;
+    case 'drafts':
+      return { status: ApplicationStatus.draft };
+    case 'supervisor_approved':
+      return { status: ApplicationStatus.supervisor_approved };
+    case 'final_approved':
+      return finalApprovedWhere;
+    case 'others':
+      return {
+        NOT: [
+          submittedByFieldWorkerWhere,
+          { status: ApplicationStatus.draft },
+          { status: ApplicationStatus.supervisor_approved },
+          finalApprovedWhere,
+        ],
+      };
+    default:
+      return {};
+  }
+}
+
 type ApplicationListItem = {
   id: string;
   registrationNumber: string | null;
@@ -40,7 +89,7 @@ type ApplicationListItem = {
 export default async function AdminApplicationsPage({
   searchParams,
 }: {
-  searchParams: { page?: string; q?: string };
+  searchParams: { page?: string; q?: string; status?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications');
@@ -49,18 +98,35 @@ export default async function AdminApplicationsPage({
 
   const search = searchParams.q?.trim() ?? '';
   const searchWhere = applicationSearchWhere(search);
-  const where = { ...applicationWhereForRole(session.user.role), ...searchWhere };
+  const selectedStatusFilter: SuperAdminStatusFilter = isSuperAdmin && isSuperAdminStatusFilter(searchParams.status)
+    ? searchParams.status
+    : 'all';
+  const whereParts: Prisma.OrphanApplicationWhereInput[] = [
+    applicationWhereForRole(session.user.role),
+    searchWhere,
+    isSuperAdmin ? superAdminApplicationFilterWhere(selectedStatusFilter) : {},
+  ].filter((part) => Object.keys(part).length > 0);
+  const where: Prisma.OrphanApplicationWhereInput = whereParts.length ? { AND: whereParts } : {};
   const page = Math.max(1, Number(searchParams.page) || 1);
   const skip = (page - 1) * PAGE_SIZE;
   const pageHref = (nextPage: number) => {
     const params = new URLSearchParams();
     if (search) params.set('q', search);
+    if (isSuperAdmin && selectedStatusFilter !== 'all') params.set('status', selectedStatusFilter);
     if (nextPage > 1) params.set('page', String(nextPage));
     const query = params.toString();
     return query ? `/admin/applications?${query}` : '/admin/applications';
   };
 
-  const [applications, total] = await Promise.all([
+  const filterHref = (status: SuperAdminStatusFilter) => {
+    const params = new URLSearchParams();
+    if (search) params.set('q', search);
+    if (status !== 'all') params.set('status', status);
+    const query = params.toString();
+    return query ? `/admin/applications?${query}` : '/admin/applications';
+  };
+
+  const [applications, total, superAdminFilterCounts] = await Promise.all([
     prisma.orphanApplication.findMany({
       where,
       orderBy: { updatedAt: 'desc' },
@@ -76,7 +142,18 @@ export default async function AdminApplicationsPage({
       },
     }) as Promise<ApplicationListItem[]>,
     prisma.orphanApplication.count({ where }),
+    isSuperAdmin
+      ? Promise.all(
+          superAdminStatusFilters.map(async (filter) => ({
+            key: filter.key,
+            count: await prisma.orphanApplication.count({
+              where: superAdminApplicationFilterWhere(filter.key),
+            }),
+          })),
+        )
+      : Promise.resolve([] as Array<{ key: SuperAdminStatusFilter; count: number }>),
   ]);
+  const superAdminCountByFilter = new Map(superAdminFilterCounts.map((entry) => [entry.key, entry.count]));
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasPrev = page > 1;
@@ -87,7 +164,11 @@ export default async function AdminApplicationsPage({
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-[#0f1f33]">Application Review</h1>
-          <p className="mt-2 text-sm text-[#5f718a]">Review applications approved by reviewers and complete final admin decisions.</p>
+          <p className="mt-2 text-sm text-[#5f718a]">
+            {isSuperAdmin
+              ? 'Monitor every application stage, switch between queue segments, and open records that need action.'
+              : 'Review applications approved by reviewers and complete final admin decisions.'}
+          </p>
         </div>
         <Link href="/admin/applications/new" className="rounded-xl bg-[#3b82f6] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-[#2563eb]">
           New Application
@@ -95,6 +176,7 @@ export default async function AdminApplicationsPage({
       </header>
 
       <form action="/admin/applications" className="mb-4 rounded-xl border border-[#dbe4ef] bg-white p-3">
+        {isSuperAdmin && selectedStatusFilter !== 'all' ? <input type="hidden" name="status" value={selectedStatusFilter} /> : null}
         <div className="flex flex-col gap-2 sm:flex-row">
           <label className="relative min-w-0 flex-1">
             <span className="sr-only">Search applications</span>
@@ -111,13 +193,46 @@ export default async function AdminApplicationsPage({
             Search
           </button>
           {search ? (
-            <Link href="/admin/applications" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-4 py-2 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd]">
+            <Link href={filterHref(selectedStatusFilter)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-4 py-2 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd]">
               <X className="h-4 w-4" aria-hidden="true" />
               Clear
             </Link>
           ) : null}
         </div>
       </form>
+
+      {isSuperAdmin ? (
+        <section className="mb-4 rounded-xl border border-[#dbe4ef] bg-white p-3 sm:p-4">
+          <div className="mb-3">
+            <h2 className="text-sm font-semibold text-[#0f1f33]">Application Filters</h2>
+            <p className="mt-1 text-xs text-[#8a9bb3]">Quickly switch between queue segments and see counts at a glance.</p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {superAdminStatusFilters.map((filter) => {
+              const isActive = selectedStatusFilter === filter.key;
+              const count = superAdminCountByFilter.get(filter.key) ?? 0;
+
+              return (
+                <Link
+                  key={filter.key}
+                  href={filterHref(filter.key)}
+                  className={`rounded-lg border px-3 py-3 transition ${isActive ? 'border-[#bfd7ff] bg-[#edf4ff]' : 'border-[#dbe4ef] bg-[#fbfdff] hover:bg-[#f6f9fd]'}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className={`text-sm font-semibold ${isActive ? 'text-[#2563eb]' : 'text-[#0f1f33]'}`}>{filter.label}</p>
+                      <p className="mt-1 text-xs text-[#8a9bb3]">{filter.detail}</p>
+                    </div>
+                    <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${isActive ? 'bg-white text-[#2563eb]' : 'bg-[#edf2f7] text-[#506784]'}`}>
+                      {count}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
 
       <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
         <div className="grid gap-3 p-3 md:hidden">
@@ -197,7 +312,7 @@ export default async function AdminApplicationsPage({
         </div>
 
         <div className="flex items-center justify-between border-t border-[#edf2f7] px-4 py-3 text-sm text-[#5f718a]">
-          <span>{total === 0 ? 'No records' : `Showing ${skip + 1}–${Math.min(skip + PAGE_SIZE, total)} of ${total}`}</span>
+          <span>{total === 0 ? 'No records' : `Showing ${skip + 1}-${Math.min(skip + PAGE_SIZE, total)} of ${total}`}</span>
           <div className="flex gap-2">
             {hasPrev ? (
               <Link href={pageHref(page - 1)} className="rounded-lg border border-[#dbe4ef] px-3 py-1.5 text-xs font-semibold hover:bg-[#f6f9fd]">
