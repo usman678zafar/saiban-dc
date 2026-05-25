@@ -46,7 +46,7 @@ export default function RoleLogin() {
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-sm items-center px-2 sm:px-0">
-      <div className="w-full min-h-[520px] rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:min-h-[540px] sm:p-4">
+      <div className="w-full min-h-[520px] rounded-lg border border-slate-200 bg-white p-3 shadow-[0_18px_60px_rgba(15,23,42,0.18)] sm:min-h-[540px] sm:p-4">
         <div className="flex min-h-20 items-center justify-between gap-6">
           <Image src={logo} alt="Saiban" width={150} height={110} className="h-16 w-auto object-contain sm:h-20" priority />
           <Image src={baitussalamLogo} alt="Baitussalam" width={132} height={96} className="h-16 w-auto object-contain sm:h-20" priority />
