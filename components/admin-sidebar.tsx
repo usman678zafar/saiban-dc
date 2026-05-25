@@ -38,7 +38,7 @@ export default function AdminSidebar({ email, role }: AdminSidebarProps) {
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-48 flex-col overflow-y-auto border-r border-[#2f3d52] bg-[#1f2b3d] text-white lg:flex">
+      <aside className="admin-sidebar-scrollbar fixed inset-y-0 left-0 z-40 hidden w-48 flex-col overflow-y-auto border-r border-[#2f3d52] bg-[#1f2b3d] text-white lg:flex">
         <div className="border-b border-white/10 px-3 pb-4 pt-4 text-center">
           <Image src={logo} alt="Saiban" width={140} height={110} className="mx-auto h-16 w-auto object-contain" priority />
           <p className="mt-1.5 text-xs font-medium text-[#b7c6db]">Data Collection System</p>

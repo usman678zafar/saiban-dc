@@ -36,6 +36,31 @@ body {
   background: #f8fafc;
 }
 
+.admin-sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184, 199, 219, 0.72) rgba(255, 255, 255, 0.06);
+  scrollbar-gutter: stable;
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(184, 199, 219, 0.9), rgba(137, 157, 184, 0.92));
+  border: 2px solid rgba(31, 43, 61, 0.92);
+  border-radius: 999px;
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(206, 216, 231, 0.96), rgba(160, 177, 201, 0.98));
+}
+
 :where([lang='ur'], [dir='rtl']) {
   font-family: var(--urdu-font-family);
 }
