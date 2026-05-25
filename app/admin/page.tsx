@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { ApplicationStatus } from '@prisma/client';
 import { ArrowRight, CheckCircle2, ClipboardList, Database, FileCheck2, FileText, Send, ShieldCheck, UsersRound } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
+import { applicationStatusLabel } from '@/lib/application-workflow';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import { formatDate } from '@/lib/date-format';
@@ -49,6 +50,10 @@ const adminVisibleApplicationWhere = {
 
 function adminVisibleApplicationFilter(role?: string | null) {
   return role === 'super_admin' ? {} : adminVisibleApplicationWhere;
+}
+
+function humanizeMigrationStatus(status: string) {
+  return status.replace(/_/g, ' ');
 }
 
 async function getAdminPortalData(role?: string | null) {
@@ -216,14 +221,20 @@ export default async function AdminPortalPage() {
                   <p className="px-4 py-10 text-center text-sm text-[#8a9bb3] sm:px-6">No applications found.</p>
                 ) : (
                   recentApplications.map((application: RecentApplication) => (
-                    <div key={application.id} className="grid gap-2 px-4 py-3 hover:bg-[#f8fbff] sm:grid-cols-[minmax(0,1.4fr)_auto] sm:items-center lg:grid-cols-[minmax(0,1.2fr)_minmax(74px,0.42fr)_minmax(72px,0.42fr)_minmax(76px,0.42fr)_auto]">
+                    <div key={application.id} className="grid gap-2 px-4 py-3 hover:bg-[#f8fbff] sm:grid-cols-[minmax(0,1.4fr)_auto] sm:items-center lg:grid-cols-[minmax(0,1.2fr)_minmax(132px,0.48fr)_minmax(110px,0.4fr)_minmax(96px,0.36fr)_auto]">
                       <div className="min-w-0">
                         <p className="break-words text-base font-semibold leading-6 text-[#0f1f33] sm:text-sm">{application.registrationNumber ?? application.id}</p>
                         <p className="mt-1 truncate text-sm text-[#8a9bb3] sm:text-xs">{application.childName ?? 'No child name'}</p>
                       </div>
                       <div className="flex flex-wrap gap-2 text-xs sm:justify-end lg:contents">
-                        <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold capitalize text-[#2563eb] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium lg:text-[#506784]">{application.status}</span>
-                        {isSuperAdmin ? <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium">{application.migrationStatus}</span> : null}
+                        <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb] lg:min-w-0 lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium lg:text-[#506784] lg:truncate">
+                          {applicationStatusLabel(application.status)}
+                        </span>
+                        {isSuperAdmin ? (
+                          <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784] lg:min-w-0 lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium lg:truncate">
+                            {humanizeMigrationStatus(application.migrationStatus)}
+                          </span>
+                        ) : null}
                         <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#8a9bb3] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium">{formatDate(application.updatedAt)}</span>
                         <Link href={`/admin/applications/${application.id}`} className="inline-flex min-h-9 items-center justify-center rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff] lg:justify-self-end">
                           Review
@@ -235,17 +246,23 @@ export default async function AdminPortalPage() {
               </div>
             </section>
 
-            <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
-              <div className="border-b border-[#edf2f7] px-4 py-3">
-                <h2 className="text-base font-semibold text-[#0f1f33]">Field Workers</h2>
-                <p className="mt-0.5 text-xs text-[#8a9bb3]">People with access to the field worker portal.</p>
+            <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white xl:self-start">
+              <div className="flex flex-col gap-2 border-b border-[#edf2f7] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-[#0f1f33]">Field Workers</h2>
+                  <p className="mt-0.5 text-xs text-[#8a9bb3]">People with access to the field worker portal.</p>
+                </div>
+                <Link href="/admin/field-workers" className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 py-2 text-xs font-semibold text-[#0f1f33] hover:bg-[#eef4fb] sm:w-auto">
+                  View All
+                  <ArrowRight size={16} />
+                </Link>
               </div>
               <div>
                 {fieldWorkers.length === 0 ? (
                   <p className="p-4 text-sm text-[#8a9bb3]">No field workers yet.</p>
                 ) : (
                   <div className="grid gap-2 p-3">
-                    {fieldWorkers.slice(0, 8).map((worker: FieldWorker) => (
+                    {fieldWorkers.slice(0, 5).map((worker: FieldWorker) => (
                       <article key={worker.id} className="rounded-lg border border-[#edf2f7] bg-[#fbfdff] p-3">
                         <div className="flex min-w-0 items-start justify-between gap-3">
                           <div className="min-w-0">
@@ -260,9 +277,9 @@ export default async function AdminPortalPage() {
                         </div>
                       </article>
                     ))}
-                    {fieldWorkers.length > 8 ? (
+                    {fieldWorkers.length > 5 ? (
                       <Link href="/admin/field-workers" className="rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 py-2 text-center text-xs font-semibold text-[#2563eb] hover:bg-[#eef4fb]">
-                        View all {fieldWorkers.length} field workers
+                        See all {fieldWorkers.length} field workers
                       </Link>
                     ) : null}
                   </div>
