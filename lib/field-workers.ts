@@ -28,6 +28,7 @@ export function collectorProjectReviewWhere(project: string): Prisma.OrphanAppli
   if (project === 'Self Registered') {
     return {
       OR: [
+        { createdBy: { is: { selfRegistered: true } } },
         { collectorProject: { in: projectReviewValues(project) } },
         { collectorProject: '' },
         { collectorProject: null },
@@ -42,9 +43,14 @@ export function collectorProjectReviewWhere(project: string): Prisma.OrphanAppli
   };
 }
 
-export function projectMatchesReviewAssignment(applicationProject: string | null | undefined, reviewerProject: string | null | undefined) {
+export function projectMatchesReviewAssignment(
+  applicationProject: string | null | undefined,
+  reviewerProject: string | null | undefined,
+  createdBySelfRegistered = false,
+) {
   if (!reviewerProject) return false;
 
+  if (reviewerProject === 'Self Registered' && createdBySelfRegistered) return true;
   if (reviewerProject === 'Self Registered' && !applicationProject) return true;
   if (!applicationProject) return false;
 

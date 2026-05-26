@@ -82,6 +82,17 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       },
     });
 
+    if (supervisor.project === 'Self Registered') {
+      await prisma.user.updateMany({
+        where: {
+          role: UserRole.field_worker,
+          selfRegistered: true,
+          supervisorId: null,
+        },
+        data: { supervisorId: supervisor.id },
+      });
+    }
+
     return NextResponse.json(supervisor);
   } catch (error) {
     if (error instanceof z.ZodError) {

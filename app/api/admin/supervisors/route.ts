@@ -76,6 +76,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    if (supervisor.project === 'Self Registered') {
+      await prisma.user.updateMany({
+        where: {
+          role: UserRole.field_worker,
+          selfRegistered: true,
+          supervisorId: null,
+        },
+        data: { supervisorId: supervisor.id },
+      });
+    }
+
     return NextResponse.json(supervisor, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -445,6 +445,9 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
       createdById: true,
       collectorProject: true,
       registrationNumber: true,
+      createdBy: {
+        select: { selfRegistered: true },
+      },
     },
   });
 
@@ -462,7 +465,7 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
   }
 
   if (user.role === 'supervisor') {
-    const projectMatches = projectMatchesReviewAssignment(application.collectorProject, user.project);
+    const projectMatches = projectMatchesReviewAssignment(application.collectorProject, user.project, application.createdBy.selfRegistered);
     allowed = projectMatches && application.status === 'submitted' && ['needs_correction', 'supervisor_approved', 'rejected'].includes(status);
     action = status === 'needs_correction' ? 'returned_by_supervisor' : status === 'supervisor_approved' ? 'approved_by_supervisor' : 'rejected_by_supervisor';
 

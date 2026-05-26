@@ -62,6 +62,14 @@ export async function POST(request: NextRequest) {
     const password = input.phoneNumber.slice(-4);
     const passwordHash = await bcrypt.hash(password, 10);
     const email = `${input.phoneNumber}@public.saiban.local`;
+    const selfRegisteredSupervisor = await prisma.user.findFirst({
+      where: {
+        role: 'supervisor',
+        project: 'Self Registered',
+      },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true },
+    });
 
     let user = null;
 
@@ -79,6 +87,7 @@ export async function POST(request: NextRequest) {
             role: 'field_worker',
             selfRegistered: true,
             project: 'Self Registered',
+            supervisorId: selfRegisteredSupervisor?.id,
           },
           select: {
             id: true,

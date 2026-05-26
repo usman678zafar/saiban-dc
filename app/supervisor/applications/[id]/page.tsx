@@ -34,7 +34,7 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
       relatives: true,
       householdAssets: true,
       createdBy: {
-        select: { name: true, fieldWorkerId: true },
+        select: { name: true, fieldWorkerId: true, selfRegistered: true },
       },
       auditLogs: {
         orderBy: { createdAt: 'asc' },
@@ -49,7 +49,7 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
 
   if (!application) notFound();
   if (application.status === 'draft') notFound();
-  if (!['admin', 'super_admin'].includes(user?.role ?? '') && !projectMatchesReviewAssignment(application.collectorProject, user?.project)) notFound();
+  if (!['admin', 'super_admin'].includes(user?.role ?? '') && !projectMatchesReviewAssignment(application.collectorProject, user?.project, application.createdBy.selfRegistered)) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
 

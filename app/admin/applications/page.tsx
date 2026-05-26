@@ -11,6 +11,8 @@ import DeleteDraftApplicationButton from '@/components/delete-draft-application-
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
+import { collectorProjectReviewWhere } from '@/lib/field-workers';
+import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 
 const PAGE_SIZE = 50;
 const adminVisibleApplicationWhere = {
@@ -81,6 +83,7 @@ type ApplicationListItem = {
   id: string;
   registrationNumber: string | null;
   childName: string | null;
+  collectorProject: string | null;
   status: string;
   migrationStatus: string;
   updatedAt: Date;
@@ -89,7 +92,7 @@ type ApplicationListItem = {
 export default async function AdminApplicationsPage({
   searchParams,
 }: {
-  searchParams: { page?: string; q?: string; status?: string };
+  searchParams: { page?: string; q?: string; status?: string; department?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications');
@@ -97,14 +100,20 @@ export default async function AdminApplicationsPage({
   const isSuperAdmin = session.user.role === 'super_admin';
 
   const search = searchParams.q?.trim() ?? '';
+  const projects = await getFieldWorkerProjectOptions();
+  const selectedDepartment = projects.includes(searchParams.department ?? '') ? searchParams.department ?? 'all' : 'all';
   const searchWhere = applicationSearchWhere(search);
   const selectedStatusFilter: SuperAdminStatusFilter = isSuperAdmin && isSuperAdminStatusFilter(searchParams.status)
     ? searchParams.status
     : 'all';
+  const roleWhere = applicationWhereForRole(session.user.role);
+  const statusWhere = isSuperAdmin ? superAdminApplicationFilterWhere(selectedStatusFilter) : {};
+  const departmentWhere = selectedDepartment !== 'all' ? collectorProjectReviewWhere(selectedDepartment) : {};
   const whereParts: Prisma.OrphanApplicationWhereInput[] = [
-    applicationWhereForRole(session.user.role),
+    roleWhere,
     searchWhere,
-    isSuperAdmin ? superAdminApplicationFilterWhere(selectedStatusFilter) : {},
+    statusWhere,
+    departmentWhere,
   ].filter((part) => Object.keys(part).length > 0);
   const where: Prisma.OrphanApplicationWhereInput = whereParts.length ? { AND: whereParts } : {};
   const page = Math.max(1, Number(searchParams.page) || 1);
@@ -113,20 +122,13 @@ export default async function AdminApplicationsPage({
     const params = new URLSearchParams();
     if (search) params.set('q', search);
     if (isSuperAdmin && selectedStatusFilter !== 'all') params.set('status', selectedStatusFilter);
+    if (selectedDepartment !== 'all') params.set('department', selectedDepartment);
     if (nextPage > 1) params.set('page', String(nextPage));
     const query = params.toString();
     return query ? `/admin/applications?${query}` : '/admin/applications';
   };
 
-  const filterHref = (status: SuperAdminStatusFilter) => {
-    const params = new URLSearchParams();
-    if (search) params.set('q', search);
-    if (status !== 'all') params.set('status', status);
-    const query = params.toString();
-    return query ? `/admin/applications?${query}` : '/admin/applications';
-  };
-
-  const [applications, total, superAdminFilterCounts] = await Promise.all([
+  const [applications, total] = await Promise.all([
     prisma.orphanApplication.findMany({
       where,
       orderBy: { updatedAt: 'desc' },
@@ -136,24 +138,14 @@ export default async function AdminApplicationsPage({
         id: true,
         registrationNumber: true,
         childName: true,
+        collectorProject: true,
         status: true,
         migrationStatus: true,
         updatedAt: true,
       },
     }) as Promise<ApplicationListItem[]>,
     prisma.orphanApplication.count({ where }),
-    isSuperAdmin
-      ? Promise.all(
-          superAdminStatusFilters.map(async (filter) => ({
-            key: filter.key,
-            count: await prisma.orphanApplication.count({
-              where: superAdminApplicationFilterWhere(filter.key),
-            }),
-          })),
-        )
-      : Promise.resolve([] as Array<{ key: SuperAdminStatusFilter; count: number }>),
   ]);
-  const superAdminCountByFilter = new Map(superAdminFilterCounts.map((entry) => [entry.key, entry.count]));
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasPrev = page > 1;
@@ -176,7 +168,6 @@ export default async function AdminApplicationsPage({
       </header>
 
       <form action="/admin/applications" className="mb-4 rounded-xl border border-[#dbe4ef] bg-white p-3">
-        {isSuperAdmin && selectedStatusFilter !== 'all' ? <input type="hidden" name="status" value={selectedStatusFilter} /> : null}
         <div className="flex flex-col gap-2 sm:flex-row">
           <label className="relative min-w-0 flex-1">
             <span className="sr-only">Search applications</span>
@@ -189,50 +180,44 @@ export default async function AdminApplicationsPage({
               className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] pl-10 pr-3 text-sm text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
             />
           </label>
+          <label className="min-w-0 sm:w-56">
+            <span className="sr-only">Filter by department</span>
+            <select
+              name="department"
+              defaultValue={selectedDepartment}
+              className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="all">All departments</option>
+              {projects.map((project) => (
+                <option key={project} value={project}>{project}</option>
+              ))}
+            </select>
+          </label>
+          {isSuperAdmin ? (
+            <label className="min-w-0 sm:w-56">
+              <span className="sr-only">Filter by application status</span>
+              <select
+                name="status"
+                defaultValue={selectedStatusFilter}
+                className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
+              >
+                {superAdminStatusFilters.map((filter) => (
+                  <option key={filter.key} value={filter.key}>{filter.label}</option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#3b82f6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2563eb]">
             Search
           </button>
-          {search ? (
-            <Link href={filterHref(selectedStatusFilter)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-4 py-2 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd]">
+          {search || selectedDepartment !== 'all' || (isSuperAdmin && selectedStatusFilter !== 'all') ? (
+            <Link href="/admin/applications" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-4 py-2 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd]">
               <X className="h-4 w-4" aria-hidden="true" />
               Clear
             </Link>
           ) : null}
         </div>
       </form>
-
-      {isSuperAdmin ? (
-        <section className="mb-4 rounded-xl border border-[#dbe4ef] bg-white p-3 sm:p-4">
-          <div className="mb-3">
-            <h2 className="text-sm font-semibold text-[#0f1f33]">Application Filters</h2>
-            <p className="mt-1 text-xs text-[#8a9bb3]">Quickly switch between queue segments and see counts at a glance.</p>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {superAdminStatusFilters.map((filter) => {
-              const isActive = selectedStatusFilter === filter.key;
-              const count = superAdminCountByFilter.get(filter.key) ?? 0;
-
-              return (
-                <Link
-                  key={filter.key}
-                  href={filterHref(filter.key)}
-                  className={`rounded-lg border px-3 py-3 transition ${isActive ? 'border-[#bfd7ff] bg-[#edf4ff]' : 'border-[#dbe4ef] bg-[#fbfdff] hover:bg-[#f6f9fd]'}`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className={`text-sm font-semibold ${isActive ? 'text-[#2563eb]' : 'text-[#0f1f33]'}`}>{filter.label}</p>
-                      <p className="mt-1 text-xs text-[#8a9bb3]">{filter.detail}</p>
-                    </div>
-                    <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${isActive ? 'bg-white text-[#2563eb]' : 'bg-[#edf2f7] text-[#506784]'}`}>
-                      {count}
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      ) : null}
 
       <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
         <div className="grid gap-3 p-3 md:hidden">
@@ -245,6 +230,7 @@ export default async function AdminApplicationsPage({
                 <div className="mt-1 text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
                   <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
+                  <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{application.collectorProject || 'No department'}</span>
                   {isSuperAdmin ? <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784]">{application.migrationStatus}</span> : null}
                 </div>
                 <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
@@ -258,6 +244,7 @@ export default async function AdminApplicationsPage({
             <thead className="bg-[#f6f9fd] text-xs uppercase tracking-[0.12em] text-[#7d8fa6]">
               <tr>
                 <th className="px-4 py-3">Application</th>
+                <th className="px-4 py-3">Department</th>
                 <th className="px-4 py-3">Status</th>
                 {isSuperAdmin ? <th className="px-4 py-3">Migration</th> : null}
                 <th className="px-4 py-3">Updated</th>
@@ -267,7 +254,7 @@ export default async function AdminApplicationsPage({
             <tbody>
               {applications.length === 0 ? (
                 <tr>
-                  <td colSpan={isSuperAdmin ? 5 : 4} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
+                  <td colSpan={isSuperAdmin ? 6 : 5} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
                 </tr>
               ) : (
                 applications.map((application: ApplicationListItem) => (
@@ -276,6 +263,7 @@ export default async function AdminApplicationsPage({
                       <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
                       <div className="text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
                     </td>
+                    <td className="px-4 py-4">{application.collectorProject || '-'}</td>
                     <td className="px-4 py-4">{applicationStatusLabel(application.status)}</td>
                     {isSuperAdmin ? <td className="px-4 py-4 capitalize">{application.migrationStatus}</td> : null}
                     <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(application.updatedAt)}</td>
