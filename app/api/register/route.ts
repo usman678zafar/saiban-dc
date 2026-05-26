@@ -4,6 +4,8 @@ import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { cnicVariants, formatCnic, isValidCnic, normalizePakistanMobile } from '@/lib/contact-format';
+import { rateLimit } from '@/lib/rate-limit';
+import { verifyCaptcha } from '@/lib/captcha';
 
 const registerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -14,6 +16,7 @@ const registerSchema = z.object({
     message: 'CNIC must use the format 42101-0536155-7',
   }).optional().default(''),
   address: z.string().trim().optional().default(''),
+  captchaToken: z.string().optional(),
 });
 
 async function generateFieldWorkerId() {
@@ -37,9 +40,21 @@ function isFieldWorkerIdCollision(error: unknown) {
 }
 
 export async function POST(request: NextRequest) {
+  const registerLimit = rateLimit(request, 'register', 5, 10 * 60 * 1000);
+  if (!registerLimit.allowed) {
+    return NextResponse.json(
+      { message: `Too many registration attempts. Please try again in ${registerLimit.retryAfter} seconds.` },
+      { status: 429 },
+    );
+  }
+
   try {
     const body = await request.json();
     const input = registerSchema.parse(body);
+    const captcha = await verifyCaptcha(request, input.captchaToken);
+    if (!captcha.success) {
+      return NextResponse.json({ message: captcha.message }, { status: 403 });
+    }
 
     const existing = await prisma.user.findFirst({
       where: {

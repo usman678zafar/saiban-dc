@@ -14,6 +14,8 @@ const authUserSelect = {
   email: true,
   passwordHash: true,
   role: true,
+  phoneNumber: true,
+  passwordChangeRequired: true,
 } satisfies Prisma.UserSelect;
 
 declare module 'next-auth' {
@@ -24,12 +26,14 @@ declare module 'next-auth' {
       email?: string | null;
       role?: Role;
       sessionVersion?: number;
+      passwordChangeRequired?: boolean;
     };
   }
 
   interface User {
     role?: Role;
     sessionVersion?: number;
+    passwordChangeRequired?: boolean;
   }
 }
 
@@ -38,6 +42,7 @@ declare module 'next-auth/jwt' {
     id?: string;
     role?: Role;
     sessionVersion?: number;
+    passwordChangeRequired?: boolean;
     sessionInvalid?: boolean;
   }
 }
@@ -64,6 +69,7 @@ async function ensureBootstrapAdmin(email: string, password: string) {
       email: adminEmail,
       passwordHash,
       role: 'super_admin',
+      passwordChangeRequired: false,
     },
     select: authUserSelect,
   });
@@ -141,6 +147,7 @@ export const authOptions: NextAuthOptions = {
         if (loginRole && (loginRole === 'admin' ? !['admin', 'super_admin'].includes(user.role) : user.role !== loginRole)) return null;
         let resolvedRole = user.role;
         let resolvedSessionVersion = await getSessionVersion(user.id);
+        let resolvedPasswordChangeRequired = user.passwordChangeRequired;
 
         if (isBootstrapLogin) {
           const passwordMatchesHash = await compare(credentials.password, user.passwordHash);
@@ -150,6 +157,7 @@ export const authOptions: NextAuthOptions = {
               data: {
                 passwordHash: await bcrypt.hash(credentials.password, 10),
                 role: 'super_admin',
+                passwordChangeRequired: false,
                 ...(await getSessionVersionUpdateData()),
               },
               select: {
@@ -164,6 +172,21 @@ export const authOptions: NextAuthOptions = {
         } else {
           const isValid = await compare(credentials.password, user.passwordHash);
           if (!isValid) return null;
+
+          const defaultPhonePassword = user.phoneNumber ? digitsOnly(user.phoneNumber).slice(-4) : '';
+          if (
+            ['admin', 'reviewer', 'supervisor'].includes(user.role) &&
+            defaultPhonePassword &&
+            credentials.password === defaultPhonePassword &&
+            !user.passwordChangeRequired
+          ) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { passwordChangeRequired: true },
+              select: { id: true },
+            });
+            resolvedPasswordChangeRequired = true;
+          }
         }
 
         return {
@@ -172,6 +195,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           role: resolvedRole,
           sessionVersion: resolvedSessionVersion,
+          passwordChangeRequired: resolvedPasswordChangeRequired,
         };
       },
     }),
@@ -182,6 +206,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.sessionVersion = user.sessionVersion ?? 0;
+        token.passwordChangeRequired = user.passwordChangeRequired ?? false;
         token.sessionInvalid = false;
         return token;
       }
@@ -189,11 +214,18 @@ export const authOptions: NextAuthOptions = {
       if (token.id) {
         const sessionVersionEnabled = await hasSessionVersionColumn();
         const currentSessionVersion = sessionVersionEnabled ? await getSessionVersion(token.id) : token.sessionVersion ?? 0;
+        const currentUser = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: { passwordChangeRequired: true },
+        });
 
         if (sessionVersionEnabled && currentSessionVersion !== (token.sessionVersion ?? 0)) {
           token.sessionInvalid = true;
           delete token.id;
           delete token.role;
+          delete token.passwordChangeRequired;
+        } else if (currentUser) {
+          token.passwordChangeRequired = currentUser.passwordChangeRequired;
         }
       }
 
@@ -209,6 +241,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id ?? token.sub ?? '';
         session.user.role = token.role;
         session.user.sessionVersion = token.sessionVersion;
+        session.user.passwordChangeRequired = token.passwordChangeRequired;
       }
       return session;
     },

@@ -1,7 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
+import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import logo from '@/assests/logo.png';
 import baitussalamLogo from '@/assests/baitussalam.webp';
@@ -15,7 +16,7 @@ type SuccessInfo = {
   password: string;
 };
 
-export default function SignupForm() {
+export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: string }) {
   const router = useRouter();
   const { startLoading } = useNavigationLoading();
   const [name, setName] = useState('');
@@ -25,6 +26,7 @@ export default function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState<SuccessInfo | null>(null);
+  const [captchaToken, setCaptchaToken] = useState('');
 
   const normalizedPhoneNumber = normalizePakistanMobile(phoneNumber);
   const derivedPassword = normalizedPhoneNumber.slice(-4);
@@ -43,7 +45,7 @@ export default function SignupForm() {
     const response = await fetch('/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phoneNumber: normalizedPhoneNumber, cnic, address }),
+      body: JSON.stringify({ name, phoneNumber: normalizedPhoneNumber, cnic, address, captchaToken }),
     });
 
     const result = await response.json();
@@ -126,6 +128,9 @@ export default function SignupForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-3 grid gap-2.5 sm:grid-cols-2">
+          {turnstileSiteKey ? (
+            <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" />
+          ) : null}
           <label className="grid gap-1.5 text-sm text-slate-700">
             <span>Full Name <span className="text-red-500">*</span></span>
             <input
@@ -190,9 +195,21 @@ export default function SignupForm() {
 
           {error ? <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2">{error}</p> : null}
 
+          {turnstileSiteKey ? (
+            <div className="min-h-[65px] sm:col-span-2">
+              <div
+                className="cf-turnstile"
+                data-sitekey={turnstileSiteKey}
+                data-callback="onTurnstileSuccess"
+                data-expired-callback="onTurnstileExpired"
+              />
+              <TurnstileCallbacks onToken={setCaptchaToken} />
+            </div>
+          ) : null}
+
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || Boolean(turnstileSiteKey && !captchaToken)}
             className="w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
           >
             {isSubmitting ? 'Registering...' : 'Register'}
@@ -225,5 +242,19 @@ function AuthFooter() {
       </a>
     </footer>
   );
+}
+
+function TurnstileCallbacks({ onToken }: { onToken: (token: string) => void }) {
+  useEffect(() => {
+    (window as any).onTurnstileSuccess = (token: string) => onToken(token);
+    (window as any).onTurnstileExpired = () => onToken('');
+
+    return () => {
+      delete (window as any).onTurnstileSuccess;
+      delete (window as any).onTurnstileExpired;
+    };
+  }, [onToken]);
+
+  return null;
 }
 

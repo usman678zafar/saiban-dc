@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
         cnic: input.cnic || null,
         address: input.address || null,
         passwordHash: await bcrypt.hash(password, 10),
+        passwordChangeRequired: true,
         role: UserRole.reviewer,
       },
       select: {

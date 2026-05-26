@@ -42,6 +42,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       data: {
         name: input.name,
         ...(passwordHash ? { passwordHash } : {}),
+        ...(passwordHash ? { passwordChangeRequired: true } : {}),
         ...sessionVersionUpdate,
       },
       select: {

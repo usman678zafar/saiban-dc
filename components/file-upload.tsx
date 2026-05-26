@@ -23,7 +23,7 @@ export default function FileUpload({
   onRemove,
   existingDocument,
   label,
-  accept = 'image/*,.pdf',
+  accept = 'image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf',
   disabled = false,
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -33,6 +33,12 @@ export default function FileUpload({
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || disabled) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File too large. Maximum size is 5MB.');
+      event.target.value = '';
+      return;
+    }
 
     setIsUploading(true);
     setError(null);

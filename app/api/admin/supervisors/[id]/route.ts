@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
 import { cnicVariants, formatCnic, isValidCnic } from '@/lib/contact-format';
+import { getSessionVersionUpdateData } from '@/lib/session-version';
 
 const updateSupervisorSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -61,6 +62,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     const passwordHash = input.password ? await bcrypt.hash(input.password, 10) : undefined;
+    const sessionVersionUpdate = passwordHash ? await getSessionVersionUpdateData() : {};
     const supervisor = await prisma.user.update({
       where: { id: params.id, role: UserRole.supervisor },
       data: {
@@ -69,6 +71,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         address: input.address || null,
         project: input.project,
         ...(passwordHash ? { passwordHash } : {}),
+        ...(passwordHash ? { passwordChangeRequired: true } : {}),
+        ...sessionVersionUpdate,
       },
       select: {
         id: true,

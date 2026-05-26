@@ -3,12 +3,19 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { uploadToR2, deleteFromR2, generateFileKey } from '@/lib/r2';
 import { prisma } from '@/lib/prisma';
+import { rateLimit } from '@/lib/rate-limit';
+import { detectAllowedFileType, isAllowedDocumentType, MAX_UPLOAD_SIZE, uploadTypeLabel } from '@/lib/upload-policy';
 import sharp from 'sharp';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
-
 export async function POST(request: NextRequest) {
+  const uploadLimit = rateLimit(request, 'upload', 30, 10 * 60 * 1000);
+  if (!uploadLimit.allowed) {
+    return NextResponse.json(
+      { message: `Too many uploads. Please try again in ${uploadLimit.retryAfter} seconds.` },
+      { status: 429 },
+    );
+  }
+
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -29,12 +36,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json({ message: 'Invalid file type' }, { status: 400 });
+    if (!isAllowedDocumentType(documentType)) {
+      return NextResponse.json({ message: 'Invalid document type' }, { status: 400 });
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ message: 'File too large' }, { status: 400 });
+    if (file.size > MAX_UPLOAD_SIZE) {
+      return NextResponse.json({ message: 'File too large. Maximum size is 5MB.' }, { status: 400 });
+    }
+
+    if (!await detectAllowedFileType(file)) {
+      return NextResponse.json({ message: `Invalid file type. Upload ${uploadTypeLabel()} only.` }, { status: 400 });
     }
 
     const application = await prisma.orphanApplication.findUnique({
@@ -83,7 +94,7 @@ export async function POST(request: NextRequest) {
         fileUrl,
         mimeType: finalMimeType,
         size,
-        documentType: documentType as any,
+        documentType,
       },
     });
 

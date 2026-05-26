@@ -6,6 +6,7 @@ import { UserRole } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { cnicVariants, formatCnic, isValidCnic } from '@/lib/contact-format';
+import { getSessionVersionUpdateData } from '@/lib/session-version';
 
 const updateReviewerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -55,6 +56,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     const passwordHash = input.password ? await bcrypt.hash(input.password, 10) : undefined;
+    const sessionVersionUpdate = passwordHash ? await getSessionVersionUpdateData() : {};
     const reviewer = await prisma.user.update({
       where: { id: params.id, role: UserRole.reviewer },
       data: {
@@ -62,6 +64,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         cnic: input.cnic || null,
         address: input.address || null,
         ...(passwordHash ? { passwordHash } : {}),
+        ...(passwordHash ? { passwordChangeRequired: true } : {}),
+        ...sessionVersionUpdate,
       },
       select: {
         id: true,

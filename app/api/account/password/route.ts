@@ -9,7 +9,12 @@ import { getSessionVersionUpdateData } from '@/lib/session-version';
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
   newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+}).refine((value) => value.currentPassword !== value.newPassword, {
+  path: ['newPassword'],
+  message: 'New password must be different from the current password.',
 });
+
+const passwordChangeRoles = ['admin', 'super_admin', 'reviewer', 'supervisor'];
 
 export async function PATCH(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -17,8 +22,8 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!['admin', 'super_admin'].includes(session.user.role ?? '')) {
-    return NextResponse.json({ message: 'Admin access required' }, { status: 403 });
+  if (!passwordChangeRoles.includes(session.user.role ?? '')) {
+    return NextResponse.json({ message: 'This account does not require this password flow.' }, { status: 403 });
   }
 
   try {
@@ -28,8 +33,8 @@ export async function PATCH(request: NextRequest) {
       select: { id: true, passwordHash: true, role: true },
     });
 
-    if (!user || !['admin', 'super_admin'].includes(user.role)) {
-      return NextResponse.json({ message: 'Admin account not found.' }, { status: 404 });
+    if (!user || !passwordChangeRoles.includes(user.role)) {
+      return NextResponse.json({ message: 'Account not found.' }, { status: 404 });
     }
 
     const isCurrentPasswordValid = await compare(input.currentPassword, user.passwordHash);
@@ -47,7 +52,7 @@ export async function PATCH(request: NextRequest) {
       select: { id: true },
     });
 
-    return NextResponse.json({ message: 'Password updated successfully.' });
+    return NextResponse.json({ message: 'Password updated successfully. Please sign in again.' });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: error.errors[0]?.message ?? 'Invalid input' }, { status: 422 });

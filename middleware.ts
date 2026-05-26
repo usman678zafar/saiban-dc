@@ -12,6 +12,17 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   const { pathname, search } = request.nextUrl;
   const callbackPath = `${pathname}${search}`;
+  const mustChangePassword = Boolean(token?.passwordChangeRequired) && ['admin', 'super_admin', 'reviewer', 'supervisor'].includes(String(token?.role ?? ''));
+
+  if (pathname === '/change-password') {
+    if (!token || token.sessionInvalid) {
+      return redirectTo(request, '/signin', callbackPath);
+    }
+    if (!mustChangePassword) {
+      return redirectTo(request, token.role === 'supervisor' ? '/supervisor' : token.role === 'reviewer' ? '/reviewer' : '/admin');
+    }
+    return NextResponse.next();
+  }
 
   if (pathname === '/admin/login') {
     if (!token?.sessionInvalid && (token?.role === 'admin' || token?.role === 'super_admin')) {
@@ -27,6 +38,9 @@ export async function middleware(request: NextRequest) {
     if (token.role !== 'admin' && token.role !== 'super_admin') {
       return redirectTo(request, '/applications');
     }
+    if (mustChangePassword) {
+      return redirectTo(request, '/change-password', callbackPath);
+    }
     return NextResponse.next();
   }
 
@@ -36,6 +50,9 @@ export async function middleware(request: NextRequest) {
     }
     if (token.role !== 'supervisor' && token.role !== 'admin' && token.role !== 'super_admin') {
       return redirectTo(request, '/applications');
+    }
+    if (mustChangePassword) {
+      return redirectTo(request, '/change-password', callbackPath);
     }
     return NextResponse.next();
   }
@@ -47,6 +64,9 @@ export async function middleware(request: NextRequest) {
     if (token.role !== 'reviewer' && token.role !== 'admin' && token.role !== 'super_admin') {
       return redirectTo(request, '/applications');
     }
+    if (mustChangePassword) {
+      return redirectTo(request, '/change-password', callbackPath);
+    }
     return NextResponse.next();
   }
 
@@ -54,9 +74,13 @@ export async function middleware(request: NextRequest) {
     return redirectTo(request, '/signin', callbackPath);
   }
 
+  if (mustChangePassword) {
+    return redirectTo(request, '/change-password', callbackPath);
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/supervisor/:path*', '/reviewer/:path*', '/dashboard', '/applications/:path*'],
+  matcher: ['/admin/:path*', '/supervisor/:path*', '/reviewer/:path*', '/dashboard', '/applications/:path*', '/change-password'],
 };
