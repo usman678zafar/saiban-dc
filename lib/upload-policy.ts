@@ -1,6 +1,6 @@
 import { DocumentType } from '@prisma/client';
 
-export const MAX_UPLOAD_SIZE = 5 * 1024 * 1024;
+export const MAX_UPLOAD_SIZE = 4 * 1024 * 1024;
 export const ALLOWED_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'] as const;
 
 const allowedDocumentTypes = new Set(Object.values(DocumentType));

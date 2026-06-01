@@ -3,6 +3,10 @@
 import { useRef, useState, type ReactNode } from 'react';
 import { ExternalLink, Upload, X } from 'lucide-react';
 
+const MAX_UPLOAD_SIZE = 4 * 1024 * 1024;
+const MAX_IMAGE_DIMENSION = 1600;
+const IMAGE_COMPRESSION_QUALITY = 0.82;
+
 interface FileUploadProps {
   documentType: string;
   applicationId?: string | null;
@@ -30,20 +34,52 @@ export default function FileUpload({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || disabled) return;
+  const prepareFileForUpload = async (file: File) => {
+    if (!file.type.startsWith('image/') || file.type === 'image/webp' && file.size <= MAX_UPLOAD_SIZE) return file;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File too large. Maximum size is 5MB.');
-      event.target.value = '';
-      return;
+    const imageUrl = URL.createObjectURL(file);
+    try {
+      const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Unable to prepare this image for upload.'));
+        img.src = imageUrl;
+      });
+
+      const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.width, image.height));
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d');
+      if (!context) return file;
+
+      context.drawImage(image, 0, 0, width, height);
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, 'image/webp', IMAGE_COMPRESSION_QUALITY);
+      });
+
+      if (!blob || blob.size >= file.size) return file;
+      return new File([blob], file.name.replace(/\.[^/.]+$/, '.webp'), { type: 'image/webp' });
+    } finally {
+      URL.revokeObjectURL(imageUrl);
     }
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (!selectedFile || disabled) return;
 
     setIsUploading(true);
     setError(null);
 
     try {
+      const file = await prepareFileForUpload(selectedFile);
+      if (file.size > MAX_UPLOAD_SIZE) {
+        throw new Error('File too large. Maximum upload size is 4MB. Please choose a smaller file or scan/photo at lower quality.');
+      }
+
       const uploadApplicationId = applicationId ?? await ensureApplicationId?.();
       if (!uploadApplicationId) {
         throw new Error('Save a draft before uploading this file.');
@@ -67,9 +103,13 @@ export default function FileUpload({
       const document = await response.json();
       onUpload(document);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Upload failed');
+      const message = error instanceof Error ? error.message : 'Upload failed';
+      setError(message === 'Failed to fetch'
+        ? 'Upload could not reach the server. Please check your connection and use a file under 4MB.'
+        : message);
     } finally {
       setIsUploading(false);
+      event.target.value = '';
     }
   };
 

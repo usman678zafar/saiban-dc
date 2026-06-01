@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (file.size > MAX_UPLOAD_SIZE) {
-      return NextResponse.json({ message: 'File too large. Maximum size is 5MB.' }, { status: 400 });
+      return NextResponse.json({ message: 'File too large. Maximum size is 4MB.' }, { status: 400 });
     }
 
     if (!await detectAllowedFileType(file)) {
