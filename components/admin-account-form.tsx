@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { KeyRound, Save } from 'lucide-react';
 import { signOut } from 'next-auth/react';
+import PasswordInput from './password-input';
 
 type FormState = {
   currentPassword: string;
@@ -70,8 +71,7 @@ export default function AdminAccountForm() {
       <form onSubmit={submit} className="grid max-w-xl gap-4">
         <label className="grid gap-2 text-sm text-slate-700">
           <span>Current Password <span className="text-rose-500">*</span></span>
-          <input
-            type="password"
+          <PasswordInput
             value={form.currentPassword}
             onChange={(event) => setForm({ ...form, currentPassword: event.target.value })}
             required
@@ -81,8 +81,7 @@ export default function AdminAccountForm() {
 
         <label className="grid gap-2 text-sm text-slate-700">
           <span>New Password <span className="text-rose-500">*</span></span>
-          <input
-            type="password"
+          <PasswordInput
             value={form.newPassword}
             onChange={(event) => setForm({ ...form, newPassword: event.target.value })}
             required
@@ -94,8 +93,7 @@ export default function AdminAccountForm() {
 
         <label className="grid gap-2 text-sm text-slate-700">
           <span>Confirm New Password <span className="text-rose-500">*</span></span>
-          <input
-            type="password"
+          <PasswordInput
             value={form.confirmPassword}
             onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })}
             required

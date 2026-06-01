@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/date-format';
 import { formatCnic, formatPakistanMobile } from '@/lib/contact-format';
 import { useNavigationLoading } from './navigation-loading';
+import PasswordInput from './password-input';
 
 export type FieldWorkerListItem = {
   id: string;
@@ -600,8 +601,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                   {modalMode === 'add' ? 'Password' : 'New Password'}
                   {modalMode === 'add' ? <span className="text-rose-500"> *</span> : null}
                 </span>
-                <input
-                  type="text"
+                <PasswordInput
                   value={form.password}
                   onChange={(event) => updateForm('password', event.target.value)}
                   minLength={form.password ? 4 : undefined}

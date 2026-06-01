@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { signOut } from 'next-auth/react';
+import PasswordInput from './password-input';
 
 export default function ForcePasswordChangeForm() {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -38,44 +39,41 @@ export default function ForcePasswordChangeForm() {
   };
 
   return (
-    <form onSubmit={submit} className="mt-5 grid gap-3">
-      <label className="grid gap-1.5 text-sm text-slate-700">
+    <form onSubmit={submit} className="mt-4 grid gap-2.5">
+      <label className="grid gap-1 text-xs font-medium text-slate-700">
         <span>Current password</span>
-        <input
-          type="password"
+        <PasswordInput
           value={currentPassword}
           onChange={(event) => setCurrentPassword(event.target.value)}
           required
-          className="min-h-11 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          className="min-h-10 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
       </label>
-      <label className="grid gap-1.5 text-sm text-slate-700">
+      <label className="grid gap-1 text-xs font-medium text-slate-700">
         <span>New password</span>
-        <input
-          type="password"
+        <PasswordInput
           value={newPassword}
           onChange={(event) => setNewPassword(event.target.value)}
           minLength={8}
           required
-          className="min-h-11 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          className="min-h-10 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
       </label>
-      <label className="grid gap-1.5 text-sm text-slate-700">
+      <label className="grid gap-1 text-xs font-medium text-slate-700">
         <span>Confirm new password</span>
-        <input
-          type="password"
+        <PasswordInput
           value={confirmPassword}
           onChange={(event) => setConfirmPassword(event.target.value)}
           minLength={8}
           required
-          className="min-h-11 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          className="min-h-10 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
       </label>
-      {message ? <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">{message}</p> : null}
+      {message ? <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{message}</p> : null}
       <button
         type="submit"
         disabled={isSubmitting}
-        className="min-h-11 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-1 min-h-10 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? 'Updating...' : 'Update password'}
       </button>

@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useNavigationLoading } from './navigation-loading';
+import PasswordInput from './password-input';
 
 interface LoginFormProps {
   title?: string;
@@ -77,8 +78,7 @@ export default function LoginForm({
         </label>
         <label className="grid gap-1.5 text-sm text-slate-700">
           <span>Password</span>
-          <input
-            type="password"
+          <PasswordInput
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required

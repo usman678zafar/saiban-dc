@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { fieldWorkerProjects } from '@/lib/field-workers';
+import PasswordInput, { PasswordValueReveal } from './password-input';
 
 function digitsOnly(value: string) {
   return value.replace(/\D/g, '');
@@ -139,16 +140,18 @@ export default function FieldWorkerForm() {
           </span>
         </label>
         {useCustomPassword ? (
-          <input
-            type="text"
+          <PasswordInput
             value={customPassword}
             onChange={(event) => setCustomPassword(event.target.value)}
             required
             minLength={4}
-            className="mt-4 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            wrapperClassName="mt-4"
+            className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         ) : (
-          <p className="mt-4 text-sm text-slate-700">Password: <span className="font-semibold text-slate-900">{autoPassword || 'Enter phone number'}</span></p>
+          <p className="mt-4 text-sm text-slate-700">
+            Password: <PasswordValueReveal value={autoPassword} fallback="Enter phone number" className="font-semibold text-slate-900" />
+          </p>
         )}
       </div>
 

@@ -8,6 +8,7 @@ import logo from '@/assests/logo.png';
 import baitussalamLogo from '@/assests/baitussalam.webp';
 import { formatCnic, formatPakistanMobile, isValidPakistanMobile, normalizePakistanMobile } from '@/lib/contact-format';
 import { useNavigationLoading } from './navigation-loading';
+import { PasswordValueReveal } from './password-input';
 
 type SuccessInfo = {
   fieldWorkerId: string;
@@ -91,7 +92,7 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
               </div>
               <div className="flex justify-between gap-4">
                 <span className="text-slate-500">Password</span>
-                <span className="font-mono font-semibold text-slate-900">{success.password}</span>
+                <PasswordValueReveal value={success.password} className="font-mono font-semibold text-slate-900" />
               </div>
             </div>
             <p className="mt-2 text-xs text-slate-500">
@@ -163,7 +164,7 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
                 <span className="text-red-600">Use a valid mobile number, for example 03XX-XXXXXXX.</span>
               ) : normalizedPhoneNumber.length >= 4 ? (
                 <span className="text-slate-500">
-                  Your password will be: <span className="font-semibold text-slate-700">{derivedPassword}</span>
+                  Your password will be: <PasswordValueReveal value={derivedPassword} className="font-semibold text-slate-700" />
                 </span>
               ) : null}
             </span>

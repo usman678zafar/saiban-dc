@@ -5,6 +5,7 @@ import { Edit2, Plus, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/date-format';
 import { formatCnic, formatPakistanMobile } from '@/lib/contact-format';
+import PasswordInput from './password-input';
 
 export type ReviewerListItem = {
   id: string;
@@ -209,7 +210,7 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
               {selected ? (
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>New Password <span className="text-xs text-slate-400">(optional)</span></span>
-                  <input value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} minLength={form.password ? 4 : undefined} placeholder="Leave blank to keep current password" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                  <PasswordInput value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} minLength={form.password ? 4 : undefined} placeholder="Leave blank to keep current password" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                 </label>
               ) : null}
 
