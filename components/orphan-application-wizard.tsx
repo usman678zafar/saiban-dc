@@ -1149,7 +1149,6 @@ export default function OrphanApplicationWizard({
   }, [autosaveStatus]);
 
   useEffect(() => {
-    if (readOnly) return;
     try {
       if (initialApplicationId) {
         const rawStep = window.localStorage.getItem(`saiban-orphan-application:step:${initialApplicationId}`);
@@ -1160,6 +1159,8 @@ export default function OrphanApplicationWizard({
         setHasLoadedPersistedState(true);
         return;
       }
+
+      if (readOnly) return;
 
       const raw = window.localStorage.getItem(storageKey);
       if (!raw) {
@@ -1256,7 +1257,6 @@ export default function OrphanApplicationWizard({
   }, [applicationId, documents, formData, hasLoadedPersistedState, initialApplicationId, readOnly, shouldPersistNewApplication, step, storageKey]);
 
   useEffect(() => {
-    if (readOnly) return;
     if (!applicationStepStorageKey || !hasLoadedPersistedState) return;
 
     window.localStorage.setItem(
@@ -1266,7 +1266,7 @@ export default function OrphanApplicationWizard({
         updatedAt: new Date().toISOString(),
       }),
     );
-  }, [applicationStepStorageKey, hasLoadedPersistedState, readOnly, step]);
+  }, [applicationStepStorageKey, hasLoadedPersistedState, step]);
 
   const updateField = (field: keyof FormData, value: FormData[keyof FormData]) => {
     if (readOnly) return;

@@ -39,7 +39,7 @@ export default async function DuplicateApplicationPage({ params }: DuplicateAppl
       <OrphanApplicationWizard
         initialData={initialData}
         initialStep={7}
-        storageScope={`duplicate:${application.id}`}
+        storageScope={`duplicate:${application.id}:${application.updatedAt.getTime()}`}
         showInstructionsOnStart={false}
       />
     </AppShell>

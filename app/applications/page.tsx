@@ -5,7 +5,8 @@ import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
 import { authOptions } from '@/lib/auth';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
-import { CopyPlus, Eye, Pencil, Search, X } from 'lucide-react';
+import DuplicateApplicationButton from '@/components/duplicate-application-button';
+import { Eye, Pencil, Search, X } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
 import VolunteerApplicationStatus from '@/components/volunteer-application-status';
@@ -216,14 +217,11 @@ export default async function ApplicationsPage({
                   />
                 ) : null}
                 {DUPLICABLE_STATUSES.has(application.status) ? (
-                  <Link
-                    href={`/applications/${application.id}/duplicate`}
-                    aria-label="Add child from same family"
-                    title="Add child from same family"
+                  <DuplicateApplicationButton
+                    applicationId={application.id}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                  >
-                    <CopyPlus className="h-5 w-5" />
-                  </Link>
+                    iconClassName="h-5 w-5"
+                  />
                 ) : null}
               </div>
             </article>
@@ -291,14 +289,10 @@ export default async function ApplicationsPage({
                       />
                     ) : null}
                     {DUPLICABLE_STATUSES.has(application.status) ? (
-                      <Link
-                        href={`/applications/${application.id}/duplicate`}
-                        aria-label="Add child from same family"
-                        title="Add child from same family"
+                      <DuplicateApplicationButton
+                        applicationId={application.id}
                         className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                      >
-                        <CopyPlus className="h-4 w-4" />
-                      </Link>
+                      />
                     ) : null}
                     </div>
                   </td>

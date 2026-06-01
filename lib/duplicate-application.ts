@@ -1,5 +1,5 @@
 import type { FormData } from '@/components/orphan-application-wizard';
-import { householdAssetRowsToOtherItems, householdAssetRowsToSelection } from '@/lib/household-assets';
+import { HOUSEHOLD_ASSET_KEYS, householdAssetRowsToOtherItems, householdAssetRowsToSelection } from '@/lib/household-assets';
 
 const childSpecificFields: Array<keyof FormData> = [
   'registrationNumber',
@@ -114,7 +114,23 @@ export function buildDuplicateFamilyInitialData(application: any): Partial<FormD
     quantity: asset.quantity,
     value: asset.value,
   }));
-  initialData.householdAssetSelection = householdAssetRowsToSelection(assetRows);
+  const householdAssetSelection = householdAssetRowsToSelection(assetRows);
+  const appearsPastAssetStep = Boolean(
+    application.childName ||
+    application.bFormNumber ||
+    application.dateOfBirth ||
+    application.healthStatus ||
+    application.householdHasMonthlyIncome ||
+    (application.siblings ?? []).length,
+  );
+  if ((application.status && application.status !== 'draft') || appearsPastAssetStep) {
+    for (const key of HOUSEHOLD_ASSET_KEYS) {
+      if (key !== 'other' && !householdAssetSelection[key].answered) {
+        householdAssetSelection[key].answered = true;
+      }
+    }
+  }
+  initialData.householdAssetSelection = householdAssetSelection;
   initialData.otherHouseholdAssets = householdAssetRowsToOtherItems(assetRows);
 
   return initialData as Partial<FormData>;
