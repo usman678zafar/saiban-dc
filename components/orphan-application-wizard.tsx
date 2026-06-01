@@ -525,6 +525,21 @@ const NEW_APPLICATION_INSTRUCTION_SLIDES = [
 ];
 
 const urduInstructionFont = 'var(--urdu-font-family)';
+const DOCUMENT_UPLOAD_INSTRUCTIONS = [
+  'یتیم بچے کی حالیہ، واضح اور صاف تصویر اپ لوڈ کریں، جس کا پس منظر سادہ ہو۔',
+  'تصویر یا دستاویز لیتے وقت مناسب روشنی کا انتظام کریں تاکہ تمام تفصیلات واضح نظر آئیں۔',
+  'اگر دستاویز پر پلاسٹک کوٹنگ (Lamination) ہو تو فلیش استعمال نہ کریں تاکہ چمک کی وجہ سے معلومات متاثر نہ ہوں۔',
+  'تمام دستاویزات مکمل طور پر اپ لوڈ کریں؛ کوئی حصہ کٹا ہوا یا چھپا ہوا نہ ہو۔',
+  'شناختی کارڈ کی تصویر اصل کارڈ یا واضح رنگین کاپی سے لی جائے۔',
+  'دھندلی، غیر واضح یا نامکمل تصاویر/دستاویزات قابلِ قبول نہیں ہوں گی۔',
+];
+const ATTESTATION_UPLOAD_INSTRUCTIONS = [
+  'واضح اور صاف تصویر اپ لوڈ کریں، جس کا پس منظر سادہ ہو۔',
+  'تصویر یا دستاویز لیتے وقت مناسب روشنی کا انتظام کریں تاکہ تمام تفصیلات واضح نظر آئیں۔',
+  'اگر دستاویز پر پلاسٹک کوٹنگ (Lamination) ہو تو فلیش استعمال نہ کریں تاکہ چمک کی وجہ سے معلومات متاثر نہ ہوں۔',
+  'تمام دستاویزات مکمل طور پر اپ لوڈ کریں؛ کوئی حصہ کٹا ہوا یا چھپا ہوا نہ ہو۔',
+  'دھندلی، غیر واضح یا نامکمل تصاویر/دستاویزات قابلِ قبول نہیں ہوں گی۔',
+];
 
 function clampWizardStep(value: unknown) {
   return Math.min(Math.max(Number(value) || 1, 1), TOTAL_STEPS);
@@ -1045,6 +1060,7 @@ export default function OrphanApplicationWizard({
   const [submittingAction, setSubmittingAction] = useState<'draft' | 'submitted' | null>(null);
   const [showSubmissionSuccessModal, setShowSubmissionSuccessModal] = useState(false);
   const [showNewApplicationInstructions, setShowNewApplicationInstructions] = useState(showInstructionsOnStart ?? !initialApplicationId);
+  const [showUploadInstructionsModal, setShowUploadInstructionsModal] = useState(false);
   const [instructionSlide, setInstructionSlide] = useState(0);
   const [submissionDoneLoading, setSubmissionDoneLoading] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(initialApplicationId ?? null);
@@ -1063,6 +1079,7 @@ export default function OrphanApplicationWizard({
   const lastAutosavedPayloadRef = useRef<string | null>(null);
   const latestApplicationIdRef = useRef<string | null>(initialApplicationId ?? null);
   const unsavedChangeVersionRef = useRef(0);
+  const uploadInstructionStepsShownRef = useRef<Set<number>>(new Set());
   const isSubmitting = submittingAction !== null;
   const currentInstructionSlide = NEW_APPLICATION_INSTRUCTION_SLIDES[instructionSlide] ?? NEW_APPLICATION_INSTRUCTION_SLIDES[0];
   const currentInstructionStartNumber = NEW_APPLICATION_INSTRUCTION_SLIDES
@@ -1102,6 +1119,14 @@ export default function OrphanApplicationWizard({
     if (readOnly) return;
     latestApplicationIdRef.current = applicationId;
   }, [applicationId, readOnly]);
+
+  useEffect(() => {
+    if (readOnly || !hasLoadedPersistedState) return;
+    if (step !== 11 && step !== 12) return;
+    if (uploadInstructionStepsShownRef.current.has(step)) return;
+    uploadInstructionStepsShownRef.current.add(step);
+    setShowUploadInstructionsModal(true);
+  }, [hasLoadedPersistedState, readOnly, step]);
 
   useEffect(() => {
     if (!message) return;
@@ -2077,8 +2102,8 @@ export default function OrphanApplicationWizard({
     'Health / صحت',
     'Education & Skills / تعلیم',
     'Income / آمدنی',
-    'Documents / دستاویزات',
     'Attestation/تصدیق',
+    'Documents / دستاویزات',
     'Review / جائزہ',
   ];
 
@@ -2235,13 +2260,13 @@ export default function OrphanApplicationWizard({
         }
         return true;
 
-      case 11: // Documents
+      case 11: // Attestation/تصدیق
+        return hasCompleteAttestation;
+
+      case 12: // Documents
         const requiredTypes = documentTypes.map((d) => d.type);
         const uploadedTypes = documents.map((d) => d.documentType);
         return requiredTypes.every((type) => uploadedTypes.includes(type));
-
-      case 12: // Attestation/تصدیق
-        return hasCompleteAttestation;
 
       case 13: // Review
         return formData.status === 'submitted';
@@ -2255,7 +2280,6 @@ export default function OrphanApplicationWizard({
 
   const canOpenStep = (stepNumber: number) => {
     if (readOnly) return true;
-    if (stepNumber === 11) return areIdentityDetailsComplete();
     if (stepNumber === 12) return areIdentityDetailsComplete();
     if (stepNumber === 13) return Array.from({ length: 12 }, (_, index) => index + 1).every((item) => isStepComplete(item));
     return true;
@@ -2271,11 +2295,9 @@ export default function OrphanApplicationWizard({
   const goToStep = (nextStep: number) => {
     const clampedStep = Math.min(Math.max(nextStep, 1), TOTAL_STEPS);
     if (!canOpenStep(clampedStep)) {
-      const message = clampedStep === 11
+      const message = clampedStep === 12
         ? 'Complete father, mother, guardian, and child details before opening documents.'
-        : clampedStep === 12
-          ? 'Complete father, mother, guardian, and child details before opening attestation.'
-          : 'Complete previous steps before opening review.';
+        : 'Complete previous steps before opening review.';
       showTemporaryMessage(message);
       return;
     }
@@ -2633,6 +2655,7 @@ export default function OrphanApplicationWizard({
 
   const steps = Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1);
   const currentStepTitle = stepTitles[step - 1] ?? '';
+  const currentUploadInstructions = step === 11 ? ATTESTATION_UPLOAD_INSTRUCTIONS : DOCUMENT_UPLOAD_INSTRUCTIONS;
   const progressPercentage = Math.round((step / TOTAL_STEPS) * 100);
   const attestationFormData = {
     applicationId,
@@ -2744,6 +2767,46 @@ export default function OrphanApplicationWizard({
                   type="button"
                   onClick={() => setShowNewApplicationInstructions(false)}
                   className="order-first col-span-2 inline-flex min-h-10 w-full items-center justify-center rounded-md bg-blue-700 px-3.5 py-2 text-sm font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:order-none sm:min-h-8 sm:w-auto sm:py-1 sm:text-xs"
+                >
+                  میں نے ہدایات پڑھ لی ہیں
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {showUploadInstructionsModal ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="upload-instructions-title"
+        >
+          <div
+            dir="rtl"
+            className="max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-lg border border-blue-100 bg-white shadow-2xl sm:max-w-2xl"
+            style={{ fontFamily: urduInstructionFont }}
+          >
+            <div className="border-b border-blue-100 bg-blue-50 px-4 py-3 text-right">
+              <p className="text-xs font-semibold text-blue-700">دستاویزات اور تصدیق</p>
+              <h2 id="upload-instructions-title" className="mt-1 text-lg font-bold leading-7 text-slate-950">
+                اہم ہدایات برائے اپلوڈ
+              </h2>
+            </div>
+            <div className="px-4 py-4">
+              <ul className="space-y-3 text-right text-sm leading-7 text-slate-900 sm:text-base sm:leading-8">
+                {currentUploadInstructions.map((instruction) => (
+                  <li key={instruction} className="grid grid-cols-[auto_1fr] gap-2">
+                    <span className="mt-0.5 text-blue-700">•</span>
+                    <span>{instruction}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-5 flex justify-start border-t border-slate-100 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowUploadInstructionsModal(false)}
+                  className="inline-flex min-h-10 w-full items-center justify-center rounded-md bg-blue-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
                 >
                   میں نے ہدایات پڑھ لی ہیں
                 </button>
@@ -3692,11 +3755,20 @@ export default function OrphanApplicationWizard({
         </div>
       )}
 
-      {step === 11 && (
+      {step === 12 && (
         <div className="space-y-6">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Documents Upload / دستاویزات اپ لوڈ')}</h2>
-            <p className="mt-1 text-sm text-slate-600">Every document shown here is required before attestation and submission.</p>
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-start">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Documents Upload / دستاویزات اپ لوڈ')}</h2>
+              <p className="mt-1 text-sm text-slate-600">Every document shown here is required before submission.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowUploadInstructionsModal(true)}
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+            >
+              Upload Instructions
+            </button>
           </div>
           {!applicationId ? (
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm leading-6 text-blue-900 sm:p-4">
@@ -3725,11 +3797,20 @@ export default function OrphanApplicationWizard({
         </div>
       )}
 
-      {step === 12 && (
+      {step === 11 && (
         <div className="space-y-6">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Attestation/تصدیق')}</h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>دو صفحات پر مشتمل تصدیقی فارم ڈاؤن لوڈ یا پرنٹ کریں۔ پہلے صفحے پر اسکول پرنسپل/ناظم اور امام مسجد سے تصدیق کروائیں، دوسرے صفحے پر اصول و ضوابط پڑھوا کر سرپرست کے دستخط/انگوٹھا لگوائیں، پھر مکمل فارم اپ لوڈ کریں۔</p>
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-start">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Attestation/تصدیق')}</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>دو صفحات پر مشتمل تصدیقی فارم ڈاؤن لوڈ یا پرنٹ کریں۔ پہلے صفحے پر اسکول پرنسپل/ناظم اور امام مسجد سے تصدیق کروائیں، دوسرے صفحے پر اصول و ضوابط پڑھوا کر سرپرست کے دستخط/انگوٹھا لگوائیں، پھر مکمل فارم اپ لوڈ کریں۔</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowUploadInstructionsModal(true)}
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+            >
+              Upload Instructions
+            </button>
           </div>
 
           <div className="space-y-4">

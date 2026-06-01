@@ -13,6 +13,7 @@ import VolunteerApplicationStatus from '@/components/volunteer-application-statu
 export const dynamic = 'force-dynamic';
 
 const PAGE_SIZE = 20;
+const DUPLICABLE_STATUSES = new Set(['draft', 'submitted']);
 
 const dateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
@@ -214,7 +215,7 @@ export default async function ApplicationsPage({
                     className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 ) : null}
-                {application.status === 'submitted' ? (
+                {DUPLICABLE_STATUSES.has(application.status) ? (
                   <Link
                     href={`/applications/${application.id}/duplicate`}
                     aria-label="Add child from same family"
@@ -289,7 +290,7 @@ export default async function ApplicationsPage({
                         confirmationText={isSuperAdmin ? 'Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone.' : undefined}
                       />
                     ) : null}
-                    {application.status === 'submitted' ? (
+                    {DUPLICABLE_STATUSES.has(application.status) ? (
                       <Link
                         href={`/applications/${application.id}/duplicate`}
                         aria-label="Add child from same family"
