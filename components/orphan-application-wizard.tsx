@@ -457,17 +457,7 @@ function hasUserEnteredDraftData(data: FormData) {
 }
 
 function hasAutosaveIdentifier(data: FormData) {
-  return [
-    data.childName,
-    data.bFormNumber,
-    data.fatherName,
-    data.fatherCnic,
-    data.motherName,
-    data.motherCnic,
-    data.guardianName,
-    data.guardianCnic,
-    data.fullAddress,
-  ].some((value) => value.trim().length > 0);
+  return hasUserEnteredDraftData(data);
 }
 
 interface OrphanApplicationWizardProps {
@@ -1809,6 +1799,66 @@ export default function OrphanApplicationWizard({
     } as any;
   };
 
+  const saveDraftImmediately = async () => {
+    if (readOnly) return true;
+    if (!hasLoadedPersistedState) return true;
+    if (!hasUserEnteredDraftData(formData)) return true;
+    if (!hasAutosaveIdentifier(formData)) return true;
+
+    const body = buildApplicationRequestBody('draft');
+    const currentApplicationId = latestApplicationIdRef.current;
+    const payloadSignature = JSON.stringify({
+      ...body,
+      id: currentApplicationId,
+      status: 'draft',
+    });
+
+    if (payloadSignature === lastAutosavedPayloadRef.current) {
+      setHasUnsavedChanges(false);
+      return true;
+    }
+
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+
+    setAutosaveStatus('saving');
+    try {
+      const response = await fetch('/api/applications', {
+        method: currentApplicationId ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...body,
+          id: currentApplicationId,
+          status: 'draft',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Autosave failed');
+      }
+
+      const application = await response.json();
+      latestApplicationIdRef.current = application.id;
+      setApplicationId(application.id);
+      setShouldPersistNewApplication(false);
+      window.localStorage.removeItem(storageKey);
+      lastAutosavedPayloadRef.current = JSON.stringify({
+        ...body,
+        id: application.id,
+        status: 'draft',
+      });
+      setHasUnsavedChanges(false);
+      setAutosaveStatus('saved');
+      router.refresh();
+      return true;
+    } catch (error) {
+      setAutosaveStatus('error');
+      return false;
+    }
+  };
+
   useEffect(() => {
     if (readOnly) return;
     if (!initialApplicationId || !hasLoadedPersistedState || lastAutosavedPayloadRef.current) return;
@@ -1885,11 +1935,12 @@ export default function OrphanApplicationWizard({
     if (readOnly) return;
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (!hasUnsavedChanges) return;
+      if (autosaveStatus !== 'error') return;
       event.preventDefault();
       event.returnValue = '';
     };
 
-    const handleDocumentClick = (event: MouseEvent) => {
+    const handleDocumentClick = async (event: MouseEvent) => {
       if (!hasUnsavedChanges) return;
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
@@ -1899,10 +1950,12 @@ export default function OrphanApplicationWizard({
       if (target.origin !== window.location.origin) return;
       if (target.pathname === window.location.pathname && target.search === window.location.search) return;
 
-      const shouldLeave = window.confirm('Your latest changes may not be saved yet. Leave this page anyway?');
-      if (!shouldLeave) {
-        event.preventDefault();
-        event.stopPropagation();
+      event.preventDefault();
+      event.stopPropagation();
+
+      const saved = await saveDraftImmediately();
+      if (saved || window.confirm('Autosave failed. Leave this page anyway?')) {
+        window.location.href = target.href;
       }
     };
 
@@ -1913,7 +1966,7 @@ export default function OrphanApplicationWizard({
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('click', handleDocumentClick, true);
     };
-  }, [hasUnsavedChanges, readOnly]);
+  }, [autosaveStatus, formData, hasLoadedPersistedState, hasUnsavedChanges, readOnly]);
 
   const ensureDraftApplication = async () => {
     if (readOnly) return null;
