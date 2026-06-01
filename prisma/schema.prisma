@@ -76,6 +76,7 @@ model User {
   address        String?
   reference      String?
   project        String?
+  supervisorDepartments SupervisorDepartment[] @relation("SupervisorDepartments")
   supervisorId   String?
   supervisor     User?               @relation("SupervisorFieldWorkers", fields: [supervisorId], references: [id])
   fieldWorkers   User[]              @relation("SupervisorFieldWorkers")
@@ -90,6 +91,17 @@ model User {
   addressOptions AddressOption[]
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
+}
+
+model SupervisorDepartment {
+  id           String   @id @default(uuid())
+  supervisor   User     @relation("SupervisorDepartments", fields: [supervisorId], references: [id], onDelete: Cascade)
+  supervisorId String
+  project      String
+  createdAt    DateTime @default(now())
+
+  @@unique([supervisorId, project])
+  @@index([project])
 }
 
 model OrphanApplication {

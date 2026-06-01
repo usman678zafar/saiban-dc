@@ -43,6 +43,16 @@ export function collectorProjectReviewWhere(project: string): Prisma.OrphanAppli
   };
 }
 
+export function collectorProjectsReviewWhere(projects: string[]): Prisma.OrphanApplicationWhereInput {
+  const uniqueProjects = Array.from(new Set(projects.filter(Boolean)));
+  if (uniqueProjects.length === 0) return { id: { equals: '__no_assigned_departments__' } };
+  if (uniqueProjects.length === 1) return collectorProjectReviewWhere(uniqueProjects[0]);
+
+  return {
+    OR: uniqueProjects.map((project) => collectorProjectReviewWhere(project)),
+  };
+}
+
 export function projectMatchesReviewAssignment(
   applicationProject: string | null | undefined,
   reviewerProject: string | null | undefined,
@@ -55,5 +65,13 @@ export function projectMatchesReviewAssignment(
   if (!applicationProject) return false;
 
   return projectReviewValues(reviewerProject).includes(applicationProject);
+}
+
+export function projectMatchesAnyReviewAssignment(
+  applicationProject: string | null | undefined,
+  reviewerProjects: string[],
+  createdBySelfRegistered = false,
+) {
+  return reviewerProjects.some((project) => projectMatchesReviewAssignment(applicationProject, project, createdBySelfRegistered));
 }
 

@@ -90,7 +90,10 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
         where: {
           id: input.supervisorId,
           role: 'supervisor',
-          project: input.project,
+          OR: [
+            { project: input.project },
+            { supervisorDepartments: { some: { project: input.project } } },
+          ],
         },
         select: { id: true },
       });
@@ -150,7 +153,10 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
       where: {
         id: input.supervisorId,
         role: 'supervisor',
-        project: input.project,
+        OR: [
+          { project: input.project },
+          { supervisorDepartments: { some: { project: input.project } } },
+        ],
       },
       select: { id: true },
     });

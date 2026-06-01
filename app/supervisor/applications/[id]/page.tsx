@@ -9,7 +9,7 @@ import ApplicationStatusActions from '@/components/application-status-actions';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import { getApplicationDocuments } from '@/lib/application-documents';
 import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
-import { projectMatchesReviewAssignment } from '@/lib/field-workers';
+import { projectMatchesAnyReviewAssignment } from '@/lib/field-workers';
 
 interface SupervisorApplicationPageProps {
   params: {
@@ -24,7 +24,14 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { project: true, role: true },
+    select: {
+      project: true,
+      role: true,
+      supervisorDepartments: {
+        orderBy: { project: 'asc' },
+        select: { project: true },
+      },
+    },
   });
 
   const application = await prisma.orphanApplication.findUnique({
@@ -49,7 +56,10 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
 
   if (!application) notFound();
   if (application.status === 'draft') notFound();
-  if (!['admin', 'super_admin'].includes(user?.role ?? '') && !projectMatchesReviewAssignment(application.collectorProject, user?.project, application.createdBy.selfRegistered)) notFound();
+  const assignedProjects = user?.supervisorDepartments.length
+    ? user.supervisorDepartments.map((department) => department.project)
+    : user?.project ? [user.project] : [];
+  if (!['admin', 'super_admin'].includes(user?.role ?? '') && !projectMatchesAnyReviewAssignment(application.collectorProject, assignedProjects, application.createdBy.selfRegistered)) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
 

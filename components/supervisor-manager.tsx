@@ -15,6 +15,7 @@ export type SupervisorListItem = {
   cnic: string | null;
   address: string | null;
   project: string | null;
+  projects: string[];
   createdAt: string;
 };
 
@@ -23,7 +24,7 @@ type FormState = {
   phoneNumber: string;
   cnic: string;
   address: string;
-  project: string;
+  projects: string[];
   password: string;
 };
 
@@ -32,7 +33,7 @@ const buildEmptyForm = (projects: string[]): FormState => ({
   phoneNumber: '',
   cnic: '',
   address: '',
-  project: projects[0] ?? '',
+  projects: projects[0] ? [projects[0]] : [],
   password: '',
 });
 
@@ -58,7 +59,9 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
       phoneNumber: formatPakistanMobile(supervisor.phoneNumber ?? ''),
       cnic: formatCnic(supervisor.cnic ?? ''),
       address: supervisor.address ?? '',
-      project: supervisor.project && projects.includes(supervisor.project) ? supervisor.project : projects[0] ?? '',
+      projects: supervisor.projects.length
+        ? supervisor.projects.filter((project) => projects.includes(project))
+        : supervisor.project && projects.includes(supervisor.project) ? [supervisor.project] : projects[0] ? [projects[0]] : [],
       password: '',
     });
     setMessage(null);
@@ -71,7 +74,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
     setMessage(null);
 
     const payload = selected
-      ? { name: form.name, cnic: form.cnic, address: form.address, project: form.project, password: form.password }
+      ? { name: form.name, cnic: form.cnic, address: form.address, projects: form.projects, password: form.password }
       : form;
     const response = await fetch(selected ? `/api/admin/supervisors/${selected.id}` : '/api/admin/supervisors', {
       method: selected ? 'PATCH' : 'POST',
@@ -109,7 +112,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-[#0f1f33]">Supervisor Accounts</h2>
-            <p className="mt-1 text-sm text-[#5f718a]">Assign each supervisor to the department they review.</p>
+            <p className="mt-1 text-sm text-[#5f718a]">Assign each supervisor to the departments they review.</p>
           </div>
           <button type="button" onClick={openAdd} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-4 py-3 text-sm font-semibold text-white hover:bg-[#2563eb]">
             <Plus size={18} />
@@ -143,7 +146,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
                     <p className="font-semibold text-[#0f1f33]">{supervisor.name ?? 'Unnamed supervisor'}</p>
                     <p className="mt-1 text-xs text-[#8a9bb3]">Login: {supervisor.phoneNumber ?? '-'}</p>
                   </td>
-                  <td className="px-4 py-4">{supervisor.project ?? '-'}</td>
+                  <td className="px-4 py-4">{supervisor.projects.length ? supervisor.projects.join(', ') : supervisor.project ?? '-'}</td>
                   <td className="px-4 py-4">{supervisor.phoneNumber ?? '-'}</td>
                   <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(supervisor.createdAt)}</td>
                   <td className="px-4 py-4">
@@ -165,8 +168,8 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
 
       {isOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4 py-6">
-          <div className="w-full max-w-2xl rounded-lg bg-white shadow-xl">
-            <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+          <div className="flex max-h-[calc(100dvh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-xl">
+            <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">{selected ? 'Edit Supervisor' : 'Add Supervisor'}</h2>
                 <p className="mt-1 text-sm text-slate-500">Default password is the last 4 digits of the phone number.</p>
@@ -176,7 +179,8 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
               </button>
             </div>
 
-            <form onSubmit={submit} className="grid gap-4 px-6 py-5">
+            <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+              <div className="grid gap-4 overflow-y-auto px-6 py-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>Name <span className="text-rose-500">*</span></span>
@@ -196,24 +200,38 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
                   {selected ? <span className="text-xs text-slate-500">Phone number cannot be changed after registration.</span> : null}
                 </label>
               </div>
+              <fieldset className="grid gap-2 text-sm text-slate-700">
+                <legend>Departments <span className="text-rose-500">*</span></legend>
+                <div className="grid gap-2 rounded-lg border border-slate-300 bg-slate-50 p-3 sm:grid-cols-3">
+                  {projects.map((project) => (
+                    <label key={project} className="flex min-h-10 items-center gap-2 rounded-md bg-white px-3 py-2 text-sm leading-5 shadow-sm">
+                      <input
+                        type="checkbox"
+                        checked={form.projects.includes(project)}
+                        onChange={() => setForm((current) => ({
+                          ...current,
+                          projects: current.projects.includes(project)
+                            ? current.projects.filter((item) => item !== project)
+                            : [...current.projects, project],
+                        }))}
+                        className="h-4 w-4 shrink-0"
+                      />
+                      <span className="min-w-0 break-words">{project}</span>
+                    </label>
+                  ))}
+                </div>
+                {form.projects.length === 0 ? <span className="text-xs text-rose-600">Select at least one department.</span> : null}
+              </fieldset>
               <div className="grid gap-4 sm:grid-cols-2">
-                <label className="grid gap-2 text-sm text-slate-700">
-                  <span>Department <span className="text-rose-500">*</span></span>
-                  <select value={form.project} onChange={(event) => setForm({ ...form, project: event.target.value })} required className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-                    {projects.map((project) => (
-                      <option key={project} value={project}>{project}</option>
-                    ))}
-                  </select>
-                </label>
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>CNIC <span className="text-xs text-slate-400">(optional)</span></span>
                   <input value={form.cnic} onChange={(event) => setForm({ ...form, cnic: formatCnic(event.target.value) })} inputMode="numeric" placeholder="42101-0536155-7" maxLength={15} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                 </label>
+                <label className="grid gap-2 text-sm text-slate-700">
+                  <span>Address <span className="text-xs text-slate-400">(optional)</span></span>
+                  <textarea value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} rows={3} className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                </label>
               </div>
-              <label className="grid gap-2 text-sm text-slate-700">
-                <span>Address <span className="text-xs text-slate-400">(optional)</span></span>
-                <textarea value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} rows={3} className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
-              </label>
               {selected ? (
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>New Password <span className="text-xs text-slate-400">(optional)</span></span>
@@ -225,12 +243,13 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
               </div>
 
               {message ? <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{message}</p> : null}
+              </div>
 
-              <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
+              <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-200 bg-white px-6 py-4 sm:flex-row sm:justify-end">
                 <button type="button" onClick={() => setIsOpen(false)} disabled={isSubmitting} className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60">
                   Cancel
                 </button>
-                <button type="submit" disabled={isSubmitting} className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-60">
+                <button type="submit" disabled={isSubmitting || form.projects.length === 0} className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-60">
                   {isSubmitting ? 'Saving...' : 'Save Supervisor'}
                 </button>
               </div>

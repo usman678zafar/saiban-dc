@@ -14,7 +14,7 @@ const createSupervisorSchema = z.object({
   phoneNumber: z.string().transform(normalizePakistanMobile).refine((value) => /^03\d{9}$/.test(value), {
     message: 'Phone number must use the format 03332101476',
   }),
-  project: z.string().trim().min(1, 'Department is required'),
+  projects: z.array(z.string().trim().min(1)).min(1, 'Select at least one department'),
   cnic: z.string().transform((value) => (value ? formatCnic(value) : '')).refine((value) => value.length === 0 || isValidCnic(value), {
     message: 'CNIC must use the format 42101-0536155-7',
   }).optional().default(''),
@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
   try {
     const input = createSupervisorSchema.parse(await request.json());
     const projects = await getFieldWorkerProjectOptions();
-    if (!projects.includes(input.project)) {
+    const selectedProjects = Array.from(new Set(input.projects));
+    if (!selectedProjects.every((project) => projects.includes(project))) {
       return NextResponse.json({ message: 'Department is required' }, { status: 422 });
     }
     const existing = await prisma.user.findFirst({
@@ -60,7 +61,10 @@ export async function POST(request: NextRequest) {
         phoneNumber: input.phoneNumber,
         cnic: input.cnic || null,
         address: input.address || null,
-        project: input.project,
+        project: selectedProjects[0],
+        supervisorDepartments: {
+          create: selectedProjects.map((project) => ({ project })),
+        },
         passwordHash: await bcrypt.hash(password, 10),
         passwordChangeRequired: true,
         role: UserRole.supervisor,
@@ -73,11 +77,15 @@ export async function POST(request: NextRequest) {
         cnic: true,
         address: true,
         project: true,
+        supervisorDepartments: {
+          orderBy: { project: 'asc' },
+          select: { project: true },
+        },
         createdAt: true,
       },
     });
 
-    if (supervisor.project === 'Self Registered') {
+    if (selectedProjects.includes('Self Registered')) {
       await prisma.user.updateMany({
         where: {
           role: UserRole.field_worker,

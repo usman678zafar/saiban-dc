@@ -126,15 +126,28 @@ async function main() {
     const allowedProjects = new Set([...BUILT_IN_PROJECTS, ...customProjects.map((project) => project.name)]);
     const supervisors = await prisma.user.findMany({
       where: { role: 'supervisor' },
-      select: { id: true, name: true, phoneNumber: true, project: true },
+      select: {
+        id: true,
+        name: true,
+        phoneNumber: true,
+        project: true,
+        supervisorDepartments: {
+          select: { project: true },
+        },
+      },
     });
     const supervisorByKey = new Map();
     const duplicateSupervisorKeys = new Set();
 
     for (const supervisor of supervisors) {
-      const key = matchKey(supervisor.name, supervisor.project);
-      if (supervisorByKey.has(key)) duplicateSupervisorKeys.add(key);
-      supervisorByKey.set(key, supervisor);
+      const projects = supervisor.supervisorDepartments.length
+        ? supervisor.supervisorDepartments.map((department) => department.project)
+        : supervisor.project ? [supervisor.project] : [];
+      for (const project of projects) {
+        const key = matchKey(supervisor.name, project);
+        if (supervisorByKey.has(key)) duplicateSupervisorKeys.add(key);
+        supervisorByKey.set(key, supervisor);
+      }
     }
 
     const phoneRows = new Map();

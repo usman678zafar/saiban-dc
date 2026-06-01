@@ -25,6 +25,7 @@ type FieldWorker = {
     name: string | null;
     phoneNumber: string | null;
     project: string | null;
+    supervisorDepartments: Array<{ project: string }>;
   } | null;
   selfRegistered: boolean;
   createdAt: Date;
@@ -118,6 +119,10 @@ export default async function AdminFieldWorkersPage({
             name: true,
             phoneNumber: true,
             project: true,
+            supervisorDepartments: {
+              orderBy: { project: 'asc' },
+              select: { project: true },
+            },
           },
         },
         selfRegistered: true,
@@ -132,6 +137,10 @@ export default async function AdminFieldWorkersPage({
         name: true,
         phoneNumber: true,
         project: true,
+        supervisorDepartments: {
+          orderBy: { project: 'asc' },
+          select: { project: true },
+        },
       },
     }),
     prisma.user.count({ where }),

@@ -48,6 +48,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
           where: { project: project.name },
           data: { project: input.name },
         });
+        await tx.supervisorDepartment.updateMany({
+          where: { project: project.name },
+          data: { project: input.name },
+        });
         await tx.orphanApplication.updateMany({
           where: { collectorProject: project.name },
           data: { collectorProject: input.name },
@@ -84,12 +88,13 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
     return NextResponse.json({ message: 'Department not found.' }, { status: 404 });
   }
 
-  const [users, applications] = await Promise.all([
+  const [users, supervisorDepartments, applications] = await Promise.all([
     prisma.user.count({ where: { project: project.name } }),
+    prisma.supervisorDepartment.count({ where: { project: project.name } }),
     prisma.orphanApplication.count({ where: { collectorProject: project.name } }),
   ]);
 
-  if (users > 0 || applications > 0) {
+  if (users > 0 || supervisorDepartments > 0 || applications > 0) {
     return NextResponse.json({ message: 'This department is already in use and cannot be deleted.' }, { status: 409 });
   }
 

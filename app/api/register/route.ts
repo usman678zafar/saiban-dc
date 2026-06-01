@@ -80,7 +80,10 @@ export async function POST(request: NextRequest) {
     const selfRegisteredSupervisor = await prisma.user.findFirst({
       where: {
         role: 'supervisor',
-        project: 'Self Registered',
+        OR: [
+          { project: 'Self Registered' },
+          { supervisorDepartments: { some: { project: 'Self Registered' } } },
+        ],
       },
       orderBy: { createdAt: 'asc' },
       select: { id: true },

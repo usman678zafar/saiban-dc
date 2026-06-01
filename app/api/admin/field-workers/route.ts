@@ -67,7 +67,10 @@ export async function POST(request: NextRequest) {
       where: {
         id: input.supervisorId,
         role: 'supervisor',
-        project: input.project,
+        OR: [
+          { project: input.project },
+          { supervisorDepartments: { some: { project: input.project } } },
+        ],
       },
       select: { id: true },
     });

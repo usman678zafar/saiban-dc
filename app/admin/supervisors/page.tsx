@@ -24,6 +24,10 @@ export default async function AdminSupervisorsPage() {
         cnic: true,
         address: true,
         project: true,
+        supervisorDepartments: {
+          orderBy: { project: 'asc' },
+          select: { project: true },
+        },
         createdAt: true,
       },
     }),
@@ -32,6 +36,9 @@ export default async function AdminSupervisorsPage() {
 
   const items: SupervisorListItem[] = supervisors.map((supervisor) => ({
     ...supervisor,
+    projects: supervisor.supervisorDepartments.length
+      ? supervisor.supervisorDepartments.map((department) => department.project)
+      : supervisor.project ? [supervisor.project] : [],
     createdAt: supervisor.createdAt.toISOString(),
   }));
 
@@ -40,7 +47,7 @@ export default async function AdminSupervisorsPage() {
       <header className="mb-6 flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Manage Supervisors</h1>
         <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
-          Add supervisors and assign each one to Link Road, Talagang, Makatib, Volunteer, or Self Registered.
+          Add supervisors and assign each one to one or more departments.
         </p>
       </header>
 

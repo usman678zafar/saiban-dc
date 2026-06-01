@@ -11,7 +11,7 @@ import { getSessionVersionUpdateData } from '@/lib/session-version';
 
 const updateSupervisorSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  project: z.string().trim().min(1, 'Department is required'),
+  projects: z.array(z.string().trim().min(1)).min(1, 'Select at least one department'),
   cnic: z.string().transform((value) => (value ? formatCnic(value) : '')).refine((value) => value.length === 0 || isValidCnic(value), {
     message: 'CNIC must use the format 42101-0536155-7',
   }).optional().default(''),
@@ -43,7 +43,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   try {
     const input = updateSupervisorSchema.parse(await request.json());
     const projects = await getFieldWorkerProjectOptions();
-    if (!projects.includes(input.project)) {
+    const selectedProjects = Array.from(new Set(input.projects));
+    if (!selectedProjects.every((project) => projects.includes(project))) {
       return NextResponse.json({ message: 'Department is required' }, { status: 422 });
     }
     const orConditions = cnicVariants(input.cnic).map((cnic) => ({ cnic }));
@@ -69,7 +70,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         name: input.name,
         cnic: input.cnic || null,
         address: input.address || null,
-        project: input.project,
+        project: selectedProjects[0],
+        supervisorDepartments: {
+          deleteMany: {},
+          create: selectedProjects.map((project) => ({ project })),
+        },
         ...(passwordHash ? { passwordHash } : {}),
         ...(passwordHash ? { passwordChangeRequired: true } : {}),
         ...sessionVersionUpdate,
@@ -82,11 +87,15 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         cnic: true,
         address: true,
         project: true,
+        supervisorDepartments: {
+          orderBy: { project: 'asc' },
+          select: { project: true },
+        },
         createdAt: true,
       },
     });
 
-    if (supervisor.project === 'Self Registered') {
+    if (selectedProjects.includes('Self Registered')) {
       await prisma.user.updateMany({
         where: {
           role: UserRole.field_worker,

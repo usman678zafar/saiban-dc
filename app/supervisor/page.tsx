@@ -7,7 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
 import { applicationStatusLabel, badgeClass } from '@/lib/application-workflow';
-import { collectorProjectReviewWhere } from '@/lib/field-workers';
+import { collectorProjectsReviewWhere } from '@/lib/field-workers';
 import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
 
@@ -53,11 +53,22 @@ export default async function SupervisorPage({
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { project: true, role: true },
+    select: {
+      project: true,
+      role: true,
+      supervisorDepartments: {
+        orderBy: { project: 'asc' },
+        select: { project: true },
+      },
+    },
   });
 
-  const project = user?.role === 'admin' || user?.role === 'super_admin' ? undefined : user?.project;
-  if (!['admin', 'super_admin'].includes(user?.role ?? '') && !project) {
+  const assignedProjects = user?.role === 'admin' || user?.role === 'super_admin'
+    ? []
+    : user?.supervisorDepartments.length
+      ? user.supervisorDepartments.map((department) => department.project)
+      : user?.project ? [user.project] : [];
+  if (!['admin', 'super_admin'].includes(user?.role ?? '') && assignedProjects.length === 0) {
     return (
       <AppShell title="Supervisor Review" description="Your supervisor account needs a department assignment before applications can appear.">
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -72,7 +83,7 @@ export default async function SupervisorPage({
     ? searchParams.status as SupervisorView
     : 'pending';
   const baseWhereParts: Prisma.OrphanApplicationWhereInput[] = [
-    ...(project ? [collectorProjectReviewWhere(project)] : []),
+    ...(assignedProjects.length ? [collectorProjectsReviewWhere(assignedProjects)] : []),
   ];
   const whereParts: Prisma.OrphanApplicationWhereInput[] = [
     supervisorViewWhere(currentView),
@@ -127,7 +138,7 @@ export default async function SupervisorPage({
   return (
     <AppShell
       title="Supervisor Review"
-      description={project ? `Applications submitted for ${project}.` : 'All submitted applications.'}
+      description={assignedProjects.length ? `Applications submitted for ${assignedProjects.join(', ')}.` : 'All submitted applications.'}
       maxWidth="max-w-6xl"
     >
       <nav className="mb-4 flex gap-2 overflow-x-auto pb-1">

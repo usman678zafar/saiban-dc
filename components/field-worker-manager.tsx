@@ -24,6 +24,7 @@ export type FieldWorkerListItem = {
     name: string | null;
     phoneNumber: string | null;
     project: string | null;
+    supervisorDepartments?: Array<{ project: string }>;
   } | null;
   selfRegistered: boolean;
   createdAt: string;
@@ -34,6 +35,7 @@ export type FieldWorkerSupervisorOption = {
   name: string | null;
   phoneNumber: string | null;
   project: string | null;
+  supervisorDepartments?: Array<{ project: string }>;
 };
 
 type ModalMode = 'add' | 'edit';
@@ -103,8 +105,13 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
   const [isDeleting, setIsDeleting] = useState(false);
 
   const isEditingSelfRegistered = modalMode === 'edit' && selectedWorker?.selfRegistered === true;
+  const supervisorProjects = (supervisor: FieldWorkerSupervisorOption) => (
+    supervisor.supervisorDepartments?.length
+      ? supervisor.supervisorDepartments.map((department) => department.project)
+      : supervisor.project ? [supervisor.project] : []
+  );
   const availableSupervisors = useMemo(
-    () => supervisors.filter((supervisor) => supervisor.project === form.project),
+    () => supervisors.filter((supervisor) => supervisorProjects(supervisor).includes(form.project)),
     [form.project, supervisors],
   );
 
@@ -148,7 +155,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
     setModalMode('add');
     setSelectedWorker(null);
     const firstproject = projects[0] ?? '';
-    const firstSupervisor = supervisors.find((supervisor) => supervisor.project === firstproject);
+    const firstSupervisor = supervisors.find((supervisor) => supervisorProjects(supervisor).includes(firstproject));
     setForm({ ...emptyForm, project: firstproject, supervisorId: firstSupervisor?.id ?? '' });
     setMessage(null);
     setIsModalOpen(true);
@@ -183,7 +190,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
       if (key === 'phoneNumber') return { ...current, phoneNumber: formatPakistanMobile(value) };
       if (key === 'cnic') return { ...current, cnic: formatCnic(value) };
       if (key !== 'project') return { ...current, [key]: value };
-      const firstSupervisor = supervisors.find((supervisor) => supervisor.project === value);
+      const firstSupervisor = supervisors.find((supervisor) => supervisorProjects(supervisor).includes(value));
       return { ...current, project: value, supervisorId: firstSupervisor?.id ?? '' };
     });
   };
@@ -306,10 +313,10 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
           >
             <option value="all">All supervisors</option>
             {supervisors
-              .filter((supervisor) => filters.project === 'all' || supervisor.project === filters.project)
+              .filter((supervisor) => filters.project === 'all' || supervisorProjects(supervisor).includes(filters.project))
               .map((supervisor) => (
                 <option key={supervisor.id} value={supervisor.id}>
-                  {supervisor.name ?? supervisor.phoneNumber ?? 'Unnamed supervisor'}{supervisor.project ? ` (${supervisor.project})` : ''}
+                  {supervisor.name ?? supervisor.phoneNumber ?? 'Unnamed supervisor'}{supervisorProjects(supervisor).length ? ` (${supervisorProjects(supervisor).join(', ')})` : ''}
                 </option>
               ))}
           </select>
