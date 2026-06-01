@@ -158,9 +158,7 @@ export default async function ApplicationsPage({
           {total === 0 ? 'No records' : `Showing ${skip + 1}-${Math.min(skip + PAGE_SIZE, total)} of ${total}`}
         </div>
         {applications.length === 0 ? (
-          <div className="rounded-lg border border-slate-200 bg-white p-6 text-center text-sm text-slate-500 shadow-sm">
-            No applications found.
-          </div>
+          <EmptyApplicationsState search={search} compact />
         ) : (
           applications.map((application: ApplicationListItem) => (
             <article key={application.id} className="min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
@@ -243,8 +241,8 @@ export default async function ApplicationsPage({
           <tbody>
             {applications.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
-                  No applications found.
+                <td colSpan={4} className="px-4 py-8">
+                  <EmptyApplicationsState search={search} />
                 </td>
               </tr>
             ) : (
@@ -323,6 +321,39 @@ export default async function ApplicationsPage({
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function EmptyApplicationsState({ search, compact = false }: { search: string; compact?: boolean }) {
+  const isSearchEmpty = Boolean(search);
+
+  return (
+    <div className={`mx-auto flex max-w-xl flex-col items-center text-center ${compact ? 'rounded-lg border border-slate-200 bg-white px-5 py-7 shadow-sm' : 'px-4 py-8'}`}>
+      <img
+        src="/empty-states/applications-empty.png"
+        alt=""
+        aria-hidden="true"
+        className="h-32 w-32 object-contain sm:h-40 sm:w-40"
+      />
+      <h2 className="mt-3 text-lg font-semibold text-slate-950">
+        {isSearchEmpty ? 'No matching applications' : 'No applications yet'}
+      </h2>
+      <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">
+        {isSearchEmpty
+          ? 'Try a different name, registration number, B-form, CNIC, or department.'
+          : 'Start the first orphan support application. You can save it as a draft and come back anytime.'}
+      </p>
+      <div className="mt-5 flex w-full flex-col items-center justify-center gap-2 sm:flex-row">
+        {isSearchEmpty ? (
+          <Link href="/applications" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:w-auto">
+            Clear Search
+          </Link>
+        ) : null}
+        <Link href="/applications/new" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 sm:w-auto">
+          New Application
+        </Link>
+      </div>
+    </div>
   );
 }
 
