@@ -347,7 +347,6 @@ function requiredDocumentTypesForApplication(data: any) {
     types.push('medical_report');
   }
 
-  types.push('attestation_confirmation');
   return types;
 }
 
@@ -360,9 +359,15 @@ async function validateSubmittedDocuments(applicationId: string, data: any) {
   });
   const uploadedTypes = new Set(uploadedDocuments.map((document) => document.documentType));
   const missingTypes = requiredDocumentTypesForApplication(data).filter((type) => !uploadedTypes.has(type as any));
+  const hasCombinedAttestation = uploadedTypes.has('attestation_confirmation' as any);
+  const hasSeparateAttestationPages = uploadedTypes.has('attestation_page_1' as any) && uploadedTypes.has('attestation_page_2' as any);
 
   if (missingTypes.length > 0) {
     throw new Error(`Upload required documents before submitting: ${missingTypes.map((type) => type.replace(/_/g, ' ')).join(', ')}`);
+  }
+
+  if (!hasCombinedAttestation && !hasSeparateAttestationPages) {
+    throw new Error('Upload attestation as one PDF containing both pages, or upload attestation page 1 and page 2 separately.');
   }
 }
 

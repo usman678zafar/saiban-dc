@@ -67,23 +67,23 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
 
   if (success) {
     return (
-      <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-md items-center px-2 sm:px-0">
-        <div className="w-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex min-h-24 items-center justify-between gap-6">
-            <Image src={logo} alt="Saiban" width={180} height={130} className="h-20 w-auto object-contain sm:h-24" priority />
-            <Image src={baitussalamLogo} alt="Baitussalam" width={156} height={114} className="h-20 w-auto object-contain sm:h-24" priority />
+      <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-sm items-center px-2 sm:px-0">
+        <div className="w-full rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <Image src={logo} alt="Saiban" width={180} height={130} className="h-14 w-auto object-contain sm:h-16" priority />
+            <Image src={baitussalamLogo} alt="Baitussalam" width={156} height={114} className="h-14 w-auto object-contain sm:h-16" priority />
           </div>
           <div className="flex flex-col items-center text-center">
-            <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+            <div className="mt-2 flex h-9 w-9 items-center justify-center rounded-full bg-green-100">
               <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="mt-2 text-lg font-semibold text-slate-900">Registration Successful</h2>
+            <h2 className="mt-2 text-base font-semibold text-slate-900">Registration Successful</h2>
             <p className="mt-1 text-sm text-slate-500">Welcome, {success.name}!</p>
           </div>
 
-          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
             <p className="font-semibold text-slate-900">Your login details</p>
             <div className="mt-2 space-y-1.5 text-slate-700">
               <div className="flex justify-between gap-4">
@@ -106,7 +106,7 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
               startLoading();
               router.push('/signin');
             }}
-            className="mt-4 w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+            className="mt-3 min-h-10 w-full rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800"
           >
             Go to Sign In
           </button>
@@ -117,22 +117,22 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
   }
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-xl items-center px-2 sm:px-0">
-      <div className="w-full rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-        <div className="flex min-h-24 items-center justify-between gap-6">
-          <Image src={logo} alt="Saiban" width={180} height={130} className="h-20 w-auto object-contain sm:h-24" priority />
-          <Image src={baitussalamLogo} alt="Baitussalam" width={156} height={114} className="h-20 w-auto object-contain sm:h-24" priority />
+    <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-lg items-center px-2 sm:px-0">
+      <div className="w-full rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <Image src={logo} alt="Saiban" width={180} height={130} className="h-14 w-auto object-contain sm:h-16" priority />
+          <Image src={baitussalamLogo} alt="Baitussalam" width={156} height={114} className="h-14 w-auto object-contain sm:h-16" priority />
         </div>
         <div className="mt-1 text-center">
-          <h1 className="text-lg font-semibold tracking-tight text-slate-950">Volunteer Registration</h1>
+          <h1 className="text-base font-semibold tracking-tight text-slate-950">Volunteer Registration</h1>
           <p className="mt-0.5 text-xs text-slate-500">Register to help collect orphan data for Saiban.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-3 grid gap-2.5 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="mt-2.5 grid gap-2 sm:grid-cols-2">
           {turnstileSiteKey ? (
             <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" />
           ) : null}
-          <label className="grid gap-1.5 text-sm text-slate-700">
+          <label className="grid gap-1 text-xs font-medium text-slate-700">
             <span>Full Name <span className="text-red-500">*</span></span>
             <input
               type="text"
@@ -140,14 +140,14 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
               onChange={(event) => setName(event.target.value)}
               required
               placeholder="Your full name"
-              className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="min-h-9 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm font-normal text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
-            <span className="min-h-4 text-xs text-transparent" aria-hidden="true">
+            <span className="min-h-3 text-[11px] text-transparent" aria-hidden="true">
               Helper text
             </span>
           </label>
 
-          <label className="grid gap-1.5 text-sm text-slate-700">
+          <label className="grid gap-1 text-xs font-medium text-slate-700">
             <span>Phone Number <span className="text-red-500">*</span></span>
             <input
               type="tel"
@@ -157,9 +157,9 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
               inputMode="tel"
               placeholder="03XX-XXXXXXX"
               aria-invalid={phoneNumber.length > 0 && !isValidPakistanMobile(phoneNumber)}
-              className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="min-h-9 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm font-normal text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
-            <span className="min-h-4 text-xs">
+            <span className="min-h-3 text-[11px]">
               {phoneNumber.length > 0 && !isValidPakistanMobile(phoneNumber) ? (
                 <span className="text-red-600">Use a valid mobile number, for example 03XX-XXXXXXX.</span>
               ) : normalizedPhoneNumber.length >= 4 ? (
@@ -170,7 +170,7 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
             </span>
           </label>
 
-          <label className="grid gap-1.5 text-sm text-slate-700">
+          <label className="grid gap-1 text-xs font-medium text-slate-700">
             <span>CNIC <span className="text-xs text-slate-400">(optional)</span></span>
             <input
               type="text"
@@ -179,22 +179,22 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
               inputMode="numeric"
               placeholder="XXXXX-XXXXXXX-X"
               maxLength={15}
-              className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="min-h-9 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm font-normal text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </label>
 
-          <label className="grid gap-1.5 text-sm text-slate-700 sm:col-span-2">
+          <label className="grid gap-1 text-xs font-medium text-slate-700 sm:col-span-2">
             <span>Address <span className="text-xs text-slate-400">(optional)</span></span>
             <textarea
               value={address}
               onChange={(event) => setAddress(event.target.value)}
               rows={1}
               placeholder="Your residential address"
-              className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="min-h-9 resize-none rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm font-normal text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </label>
 
-          {error ? <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2">{error}</p> : null}
+          {error ? <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 sm:col-span-2">{error}</p> : null}
 
           {turnstileSiteKey ? (
             <div className="min-h-[65px] sm:col-span-2">
@@ -211,7 +211,7 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
           <button
             type="submit"
             disabled={isSubmitting || Boolean(turnstileSiteKey && !captchaToken)}
-            className="w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
+            className="min-h-10 w-full rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
           >
             {isSubmitting ? 'Registering...' : 'Register'}
           </button>
@@ -231,7 +231,7 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
 
 function AuthFooter() {
   return (
-    <footer className="mt-3 border-t border-slate-200 pt-2 text-center text-[11px] leading-5 text-slate-500">
+    <footer className="mt-2 border-t border-slate-200 pt-2 text-center text-[10px] leading-4 text-slate-500">
       <a href="/privacy-policy" className="font-medium text-slate-600 hover:text-slate-900 hover:underline">
         Privacy Policy
       </a>

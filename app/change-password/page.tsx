@@ -21,7 +21,7 @@ export default async function ChangePasswordPage() {
           <div>
             <h1 className="text-base font-semibold text-slate-950">Change temporary password</h1>
             <p className="mt-1 text-xs leading-5 text-slate-600">
-              Set a new password before continuing.
+              Enter your current temporary password, usually the last 4 digits of your phone number, then set a new password.
             </p>
           </div>
         </div>

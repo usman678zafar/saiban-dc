@@ -45,17 +45,17 @@ export default function RoleLogin() {
   const selectedOption = loginOptions.find((option) => option.role === selectedRole) ?? loginOptions[0];
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-sm items-center px-2 sm:px-0">
-      <div className="w-full min-h-[520px] rounded-lg border border-slate-200 bg-white p-3 shadow-[0_18px_60px_rgba(15,23,42,0.18)] sm:min-h-[540px] sm:p-4">
-        <div className="flex min-h-20 items-center justify-between gap-6">
-          <Image src={logo} alt="Saiban" width={150} height={110} className="h-16 w-auto object-contain sm:h-20" priority />
-          <Image src={baitussalamLogo} alt="Baitussalam" width={132} height={96} className="h-16 w-auto object-contain sm:h-20" priority />
+    <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-xs items-center px-2 sm:max-w-sm sm:px-0">
+      <div className="w-full rounded-lg border border-slate-200 bg-white p-3 shadow-[0_18px_60px_rgba(15,23,42,0.18)]">
+        <div className="flex items-center justify-between gap-4">
+          <Image src={logo} alt="Saiban" width={150} height={110} className="h-14 w-auto object-contain sm:h-16" priority />
+          <Image src={baitussalamLogo} alt="Baitussalam" width={132} height={96} className="h-14 w-auto object-contain sm:h-16" priority />
         </div>
-        <div className="mt-3 text-center">
-          <h1 className="text-lg font-semibold tracking-tight text-slate-950">Saiban Login</h1>
+        <div className="mt-2 text-center">
+          <h1 className="text-base font-semibold tracking-tight text-slate-950">Saiban Login</h1>
         </div>
 
-        <div className="mt-3 grid h-9 grid-cols-4 gap-1 rounded-lg bg-slate-100 p-0.5">
+        <div className="mt-2 grid h-8 grid-cols-4 gap-1 rounded-lg bg-slate-100 p-0.5">
           {loginOptions.map((option) => {
             const isSelected = option.role === selectedRole;
             return (
@@ -63,7 +63,7 @@ export default function RoleLogin() {
                 key={option.role}
                 type="button"
                 onClick={() => setSelectedRole(option.role)}
-                className={`min-w-0 rounded-md px-1 text-center text-xs font-semibold leading-none transition ${
+                className={`min-w-0 rounded-md px-1 text-center text-[11px] font-semibold leading-none transition ${
                   isSelected ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -81,7 +81,7 @@ export default function RoleLogin() {
           compact
         />
 
-        <div className="mt-3 min-h-5 text-center text-xs leading-5">
+        <div className="mt-2 min-h-4 text-center text-xs leading-4">
           {selectedRole === 'field_worker' ? (
             <p className="text-slate-500">
               Want to volunteer?{' '}
@@ -99,7 +99,7 @@ export default function RoleLogin() {
 
 function AuthFooter() {
   return (
-    <footer className="mt-4 border-t border-slate-200 pt-3 text-center text-[11px] leading-5 text-slate-500">
+    <footer className="mt-3 border-t border-slate-200 pt-2 text-center text-[10px] leading-4 text-slate-500">
       <a href="/privacy-policy" className="font-medium text-slate-600 hover:text-slate-900 hover:underline">
         Privacy Policy
       </a>

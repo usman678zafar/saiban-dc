@@ -62,34 +62,34 @@ export default function LoginForm({
   const identifierType = loginRole ? 'text' : 'email';
 
   return (
-    <div className={compact ? 'mt-4' : 'mx-auto w-full max-w-md rounded-lg border border-slate-200 bg-white p-8 shadow-sm'}>
-      <h2 className="text-base font-semibold text-slate-900">{title}</h2>
-      {!compact && description ? <p className="mt-2 text-sm text-slate-600">{description}</p> : null}
-      <form onSubmit={handleSubmit} className="mt-3 space-y-3">
-        <label className="grid gap-1.5 text-sm text-slate-700">
+    <div className={compact ? 'mt-3' : 'mx-auto w-full max-w-sm rounded-lg border border-slate-200 bg-white p-4 shadow-sm'}>
+      <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+      {!compact && description ? <p className="mt-1 text-xs leading-5 text-slate-600">{description}</p> : null}
+      <form onSubmit={handleSubmit} className="mt-2.5 space-y-2.5">
+        <label className="grid gap-1 text-xs font-medium text-slate-700">
           <span>{identifierLabel}</span>
           <input
             type={identifierType}
             value={identifier}
             onChange={(event) => setIdentifier(event.target.value)}
             required
-            className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="min-h-10 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm font-normal text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </label>
-        <label className="grid gap-1.5 text-sm text-slate-700">
+        <label className="grid gap-1 text-xs font-medium text-slate-700">
           <span>Password</span>
           <PasswordInput
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
-            className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="min-h-10 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm font-normal text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </label>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? <p className="text-xs text-red-600">{error}</p> : null}
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-h-10 w-full rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? 'Signing in...' : 'Sign In'}
         </button>

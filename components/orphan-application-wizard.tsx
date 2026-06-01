@@ -489,6 +489,8 @@ type PersistedWizardState = {
 
 const TOTAL_STEPS = 13;
 const ATTESTATION_DOCUMENT_TYPE = 'attestation_confirmation';
+const ATTESTATION_PAGE_1_DOCUMENT_TYPE = 'attestation_page_1';
+const ATTESTATION_PAGE_2_DOCUMENT_TYPE = 'attestation_page_2';
 
 const NEW_APPLICATION_INSTRUCTIONS = [
   {
@@ -2061,6 +2063,9 @@ export default function OrphanApplicationWizard({
 
     return types;
   }, [formData.healthStatus, formData.motherAlive, guardianDetailsNeeded]);
+  const hasCombinedAttestation = documents.some((document) => document.documentType === ATTESTATION_DOCUMENT_TYPE);
+  const hasSeparateAttestationPages = documents.some((document) => document.documentType === ATTESTATION_PAGE_1_DOCUMENT_TYPE) && documents.some((document) => document.documentType === ATTESTATION_PAGE_2_DOCUMENT_TYPE);
+  const hasCompleteAttestation = hasCombinedAttestation || hasSeparateAttestationPages;
   const stepTitles = [
     'Father / والد',
     'Mother / والدہ',
@@ -2236,7 +2241,7 @@ export default function OrphanApplicationWizard({
         return requiredTypes.every((type) => uploadedTypes.includes(type));
 
       case 12: // Attestation/تصدیق
-        return documents.some((document) => document.documentType === ATTESTATION_DOCUMENT_TYPE);
+        return hasCompleteAttestation;
 
       case 13: // Review
         return formData.status === 'submitted';
@@ -3727,39 +3732,70 @@ export default function OrphanApplicationWizard({
             <p className="mt-1 text-sm leading-6 text-slate-600" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>دو صفحات پر مشتمل تصدیقی فارم ڈاؤن لوڈ یا پرنٹ کریں۔ پہلے صفحے پر اسکول پرنسپل/ناظم اور امام مسجد سے تصدیق کروائیں، دوسرے صفحے پر اصول و ضوابط پڑھوا کر سرپرست کے دستخط/انگوٹھا لگوائیں، پھر مکمل فارم اپ لوڈ کریں۔</p>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-            <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <h3 className="text-sm font-semibold text-slate-900" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>فارم ڈاؤن لوڈ / پرنٹ</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>
-                فارم حاصل کرنے کے لیے ڈاؤن لوڈ یا پرنٹ کا بٹن استعمال کریں۔ مکمل دستخط اور مہر کے بعد یہی فارم اپ لوڈ کرنا لازمی ہے۔
-              </p>
-              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={handleDownloadAttestation}
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto"
-                >
-                  Download Form
-                </button>
-                <button
-                  type="button"
-                  onClick={handlePrintAttestation}
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50 sm:w-auto"
-                >
-                  Print Form
-                </button>
+          <div className="space-y-4">
+            <section className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
+                <div>
+                  <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                    <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">1</span>
+                    <span>Step 1: Download or print the attestation form</span>
+                  </h3>
+                  <p className="mt-1 text-sm leading-6 text-slate-600" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>
+                    فارم حاصل کرنے کے لیے ڈاؤن لوڈ یا پرنٹ کا بٹن استعمال کریں۔ مکمل دستخط اور مہر کے بعد یہی فارم اپ لوڈ کرنا لازمی ہے۔
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={handleDownloadAttestation}
+                    className="inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto"
+                  >
+                    Download Form
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePrintAttestation}
+                    className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 hover:bg-slate-50 sm:w-auto"
+                  >
+                    Print Form
+                  </button>
+                </div>
               </div>
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-slate-900" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>دستخط شدہ تصدیقی فارم اپ لوڈ کریں</h3>
+            <section className="rounded-lg border border-slate-200 bg-white p-3">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">2</span>
+                <span>Step 2: Upload the signed attestation</span>
+              </h3>
               <p className="mt-2 text-sm leading-6 text-slate-600" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>اسکول، مسجد اور سرپرست کی تصدیق مکمل ہونے کے بعد اسکین شدہ PDF یا واضح تصویر اپ لوڈ کریں۔</p>
               {!applicationId ? (
                 <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm leading-6 text-blue-900" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>
                   فائل منتخب کرنے پر پہلے درخواست ڈرافٹ کے طور پر محفوظ ہوگی، پھر تصدیقی فارم اپ لوڈ ہوگا۔
                 </div>
               ) : null}
-              <div className="mt-4">
+              <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50 p-3">
+                <p className="text-sm font-semibold text-slate-900">Choose one upload method</p>
+                <div className="mt-2 grid gap-2 text-xs leading-5 text-slate-700 sm:grid-cols-2">
+                  <div className="rounded-md bg-white/70 p-2">
+                    <p className="font-semibold text-slate-900">Method 1</p>
+                    <p>Upload one PDF that contains both attestation pages.</p>
+                  </div>
+                  <div className="rounded-md bg-white/70 p-2">
+                    <p className="font-semibold text-slate-900">Method 2</p>
+                    <p>Upload page 1 and page 2 separately as photos or PDFs.</p>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-slate-700" dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>
+                  ایک طریقہ منتخب کریں: یا تو دونوں صفحات پر مشتمل ایک PDF اپ لوڈ کریں، یا صفحہ 1 اور صفحہ 2 الگ الگ تصویر یا PDF کی صورت میں اپ لوڈ کریں۔
+                </p>
+              </div>
+              <div className="mt-4 space-y-4">
+                <section className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <div className="mb-3">
+                    <h4 className="text-sm font-semibold text-slate-900">Method 1: Combined PDF</h4>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">Use this only when one PDF contains both pages.</p>
+                  </div>
                 <FileUpload
                   documentType={ATTESTATION_DOCUMENT_TYPE}
                   applicationId={applicationId}
@@ -3767,10 +3803,41 @@ export default function OrphanApplicationWizard({
                   onUpload={handleDocumentUpload}
                   onRemove={handleDocumentRemove}
                   existingDocument={documents.find((doc) => doc.documentType === ATTESTATION_DOCUMENT_TYPE)}
-                  label={<span dir="rtl" lang="ur" style={{ fontFamily: urduInstructionFont }}>مکمل شدہ تصدیقی فارم</span>}
-                  accept="image/*,.pdf"
+                  label={<span>Both attestation pages in one PDF / مکمل تصدیقی فارم ایک PDF میں</span>}
+                  accept="application/pdf,.pdf"
                   disabled={readOnly}
                 />
+                </section>
+                <section className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <div className="mb-3">
+                    <h4 className="text-sm font-semibold text-slate-900">Method 2: Separate pages</h4>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">Upload both files below. Do not leave page 2 empty.</p>
+                  </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FileUpload
+                    documentType={ATTESTATION_PAGE_1_DOCUMENT_TYPE}
+                    applicationId={applicationId}
+                    ensureApplicationId={ensureDraftApplication}
+                    onUpload={handleDocumentUpload}
+                    onRemove={handleDocumentRemove}
+                    existingDocument={documents.find((doc) => doc.documentType === ATTESTATION_PAGE_1_DOCUMENT_TYPE)}
+                    label={<span>Page 1 photo or PDF</span>}
+                    accept="image/*,.pdf"
+                    disabled={readOnly}
+                  />
+                  <FileUpload
+                    documentType={ATTESTATION_PAGE_2_DOCUMENT_TYPE}
+                    applicationId={applicationId}
+                    ensureApplicationId={ensureDraftApplication}
+                    onUpload={handleDocumentUpload}
+                    onRemove={handleDocumentRemove}
+                    existingDocument={documents.find((doc) => doc.documentType === ATTESTATION_PAGE_2_DOCUMENT_TYPE)}
+                    label={<span>Page 2 photo or PDF</span>}
+                    accept="image/*,.pdf"
+                    disabled={readOnly}
+                  />
+                </div>
+                </section>
               </div>
             </section>
           </div>

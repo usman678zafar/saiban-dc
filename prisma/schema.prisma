@@ -48,6 +48,8 @@ enum DocumentType {
   imam_verification
   principal_verification
   attestation_confirmation
+  attestation_page_1
+  attestation_page_2
   house_photo
   other
 }

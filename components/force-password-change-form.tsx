@@ -82,7 +82,7 @@ export default function ForcePasswordChangeForm() {
       </form>
 
       {successMessage ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 py-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-100 px-4 py-6">
           <div className="w-full max-w-sm rounded-lg bg-white p-5 text-center shadow-xl">
             <span className="mx-auto inline-flex size-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
               <CheckCircle2 size={28} aria-hidden="true" />
