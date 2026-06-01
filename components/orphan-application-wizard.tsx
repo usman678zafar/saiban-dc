@@ -938,15 +938,15 @@ const ASSISTANCE_SOURCE_OPTIONS = [
   { value: '', label: 'Select source' }, { value: 'relative', label: 'Relative Support / رشتہ داروں کی امداد' }, { value: 'ngo', label: 'NGO / Welfare Organization / فلاحی ادارہ' }, { value: 'government', label: 'Government Support / سرکاری امداد' }, { value: 'mosque_madrasa', label: 'Mosque / Madrasa Support / مسجد / مدرسہ امداد' }, { value: 'zakat', label: 'Zakat / زکوٰۃ' }, { value: 'sponsorship', label: 'Sponsorship Program / کفالت پروگرام' }, { value: 'community', label: 'Neighbours / Community / پڑوسی / محلہ' }, { value: 'other', label: 'Other / دیگر' },
 ];
 
-function formatCnic(value: string) {
-  const digits = value.replace(/\D/g, '').slice(0, 13);
+function formatCnic(value: unknown) {
+  const digits = String(value ?? '').replace(/\D/g, '').slice(0, 13);
   if (digits.length <= 5) return digits;
   if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
 }
 
-function formatBForm(value: string) {
-  const digits = value.replace(/\D/g, '').slice(0, 15);
+function formatBForm(value: unknown) {
+  const digits = String(value ?? '').replace(/\D/g, '').slice(0, 15);
   if (digits.length <= 5) return digits;
   if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
