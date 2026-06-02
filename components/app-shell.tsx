@@ -23,7 +23,7 @@ export default async function AppShell({ title, description, actions, maxWidth =
   const isFieldWorker = session?.user?.role === 'field_worker';
   const isSupervisor = session?.user?.role === 'supervisor';
   const isReviewer = session?.user?.role === 'reviewer';
-  const canCreateApplications = isFieldWorker || isAdmin;
+  const canCreateApplications = isFieldWorker || isAdmin || ((isSupervisor || isReviewer) && Boolean(session.user.canCreateApplications));
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">

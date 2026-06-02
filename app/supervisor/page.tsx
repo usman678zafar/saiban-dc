@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Prisma } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import { Search, X } from 'lucide-react';
+import { FilePlus2, Search, ShieldCheck, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
@@ -56,6 +56,8 @@ export default async function SupervisorPage({
     select: {
       project: true,
       role: true,
+      id: true,
+      canCreateApplications: true,
       supervisorDepartments: {
         orderBy: { project: 'asc' },
         select: { project: true },
@@ -84,6 +86,7 @@ export default async function SupervisorPage({
     : 'pending';
   const baseWhereParts: Prisma.OrphanApplicationWhereInput[] = [
     ...(assignedProjects.length ? [collectorProjectsReviewWhere(assignedProjects)] : []),
+    ...(!['admin', 'super_admin'].includes(user?.role ?? '') ? [{ createdById: { not: user?.id ?? '' } }] : []),
   ];
   const whereParts: Prisma.OrphanApplicationWhereInput[] = [
     supervisorViewWhere(currentView),
@@ -140,6 +143,20 @@ export default async function SupervisorPage({
       title="Supervisor Review"
       description={assignedProjects.length ? `Applications submitted for ${assignedProjects.join(', ')}.` : 'All submitted applications.'}
       maxWidth="max-w-6xl"
+      actions={
+        user?.canCreateApplications ? (
+          <>
+            <Link href="/supervisor" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              Supervise Applications
+            </Link>
+            <Link href="/applications/new" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+              <FilePlus2 className="h-4 w-4" aria-hidden="true" />
+              Create New Application
+            </Link>
+          </>
+        ) : null
+      }
     >
       <nav className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {supervisorViews.map((view) => (

@@ -16,6 +16,7 @@ export type SupervisorListItem = {
   address: string | null;
   project: string | null;
   projects: string[];
+  canCreateApplications: boolean;
   createdAt: string;
 };
 
@@ -26,6 +27,7 @@ type FormState = {
   address: string;
   projects: string[];
   password: string;
+  canCreateApplications: boolean;
 };
 
 const buildEmptyForm = (projects: string[]): FormState => ({
@@ -35,6 +37,7 @@ const buildEmptyForm = (projects: string[]): FormState => ({
   address: '',
   projects: projects[0] ? [projects[0]] : [],
   password: '',
+  canCreateApplications: false,
 });
 
 export default function SupervisorManager({ supervisors, projects }: { supervisors: SupervisorListItem[]; projects: string[] }) {
@@ -63,6 +66,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
         ? supervisor.projects.filter((project) => projects.includes(project))
         : supervisor.project && projects.includes(supervisor.project) ? [supervisor.project] : projects[0] ? [projects[0]] : [],
       password: '',
+      canCreateApplications: supervisor.canCreateApplications,
     });
     setMessage(null);
     setIsOpen(true);
@@ -74,7 +78,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
     setMessage(null);
 
     const payload = selected
-      ? { name: form.name, cnic: form.cnic, address: form.address, projects: form.projects, password: form.password }
+      ? { name: form.name, cnic: form.cnic, address: form.address, projects: form.projects, password: form.password, canCreateApplications: form.canCreateApplications }
       : form;
     const response = await fetch(selected ? `/api/admin/supervisors/${selected.id}` : '/api/admin/supervisors', {
       method: selected ? 'PATCH' : 'POST',
@@ -129,6 +133,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
             <tr>
               <th className="px-4 py-3">Supervisor</th>
               <th className="px-4 py-3">Department</th>
+              <th className="px-4 py-3">Create Access</th>
               <th className="px-4 py-3">Phone</th>
               <th className="px-4 py-3">Added</th>
               <th className="px-4 py-3 text-right">Actions</th>
@@ -137,7 +142,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
           <tbody>
             {supervisors.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-[#8a9bb3]">No supervisors yet.</td>
+                <td colSpan={6} className="px-4 py-10 text-center text-[#8a9bb3]">No supervisors yet.</td>
               </tr>
             ) : (
               supervisors.map((supervisor) => (
@@ -147,6 +152,11 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
                     <p className="mt-1 text-xs text-[#8a9bb3]">Login: {supervisor.phoneNumber ?? '-'}</p>
                   </td>
                   <td className="px-4 py-4">{supervisor.projects.length ? supervisor.projects.join(', ') : supervisor.project ?? '-'}</td>
+                  <td className="px-4 py-4">
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${supervisor.canCreateApplications ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                      {supervisor.canCreateApplications ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </td>
                   <td className="px-4 py-4">{supervisor.phoneNumber ?? '-'}</td>
                   <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(supervisor.createdAt)}</td>
                   <td className="px-4 py-4">
@@ -232,6 +242,18 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
                   <textarea value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} rows={3} className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                 </label>
               </div>
+              <label className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={form.canCreateApplications}
+                  onChange={(event) => setForm({ ...form, canCreateApplications: event.target.checked })}
+                  className="mt-1 h-4 w-4 shrink-0"
+                />
+                <span>
+                  <span className="block font-semibold text-slate-900">Can create applications</span>
+                  <span className="mt-1 block text-xs leading-5 text-slate-500">Allows this supervisor to create and submit their own application records.</span>
+                </span>
+              </label>
               {selected ? (
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>New Password <span className="text-xs text-slate-400">(optional)</span></span>

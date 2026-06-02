@@ -24,6 +24,7 @@ export default async function AdminSupervisorsPage() {
         cnic: true,
         address: true,
         project: true,
+        canCreateApplications: true,
         supervisorDepartments: {
           orderBy: { project: 'asc' },
           select: { project: true },

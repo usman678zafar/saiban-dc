@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import type { User } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { uploadToR2, deleteFromR2, generateFileKey } from '@/lib/r2';
 import { prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rate-limit';
 import { detectAllowedFileType, isAllowedDocumentType, MAX_UPLOAD_SIZE, uploadTypeLabel } from '@/lib/upload-policy';
 import sharp from 'sharp';
+
+function canCreateApplications(user: Pick<User, 'role' | 'canCreateApplications'>) {
+  return user.role === 'field_worker'
+    || user.role === 'admin'
+    || user.role === 'super_admin'
+    || ((user.role === 'supervisor' || user.role === 'reviewer') && user.canCreateApplications);
+}
 
 export async function POST(request: NextRequest) {
   const uploadLimit = rateLimit(request, 'upload', 30, 10 * 60 * 1000);
@@ -59,12 +67,13 @@ export async function POST(request: NextRequest) {
     const canReviewerEdit = user.role === 'reviewer' && application.status === 'supervisor_approved';
     const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
     const canSuperAdminEdit = user.role === 'super_admin';
+    const canOwnerEdit = application.createdById === user.id && canCreateApplications(user);
 
-    if (application.createdById !== user.id && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
+    if (!canOwnerEdit && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    if (user.role === 'field_worker' && !['draft', 'needs_correction'].includes(application.status)) {
+    if (canOwnerEdit && !['draft', 'needs_correction'].includes(application.status) && user.role !== 'super_admin') {
       return NextResponse.json({ message: 'Uploads are only allowed for draft or returned applications.' }, { status: 409 });
     }
 
@@ -133,12 +142,13 @@ export async function DELETE(request: NextRequest) {
   const canReviewerEdit = user.role === 'reviewer' && document.application.status === 'supervisor_approved';
   const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(document.application.status);
   const canSuperAdminEdit = user.role === 'super_admin';
+  const canOwnerEdit = document.application.createdById === user.id && canCreateApplications(user);
 
-  if (document.application.createdById !== user.id && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
+  if (!canOwnerEdit && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
     return NextResponse.json({ message: 'Access denied' }, { status: 403 });
   }
 
-  if (user.role === 'field_worker' && !['draft', 'needs_correction'].includes(document.application.status)) {
+  if (canOwnerEdit && !['draft', 'needs_correction'].includes(document.application.status) && user.role !== 'super_admin') {
     return NextResponse.json({ message: 'Documents can only be removed from draft or returned applications.' }, { status: 409 });
   }
 

@@ -26,6 +26,11 @@ export default async function DuplicateApplicationPage({ params }: DuplicateAppl
   });
 
   if (!application) notFound();
+  const canCreateApplications = session.user.role === 'field_worker'
+    || session.user.role === 'admin'
+    || session.user.role === 'super_admin'
+    || ((session.user.role === 'supervisor' || session.user.role === 'reviewer') && Boolean(session.user.canCreateApplications));
+  if (!canCreateApplications) notFound();
   if (application.createdById !== session.user.id && !['admin', 'super_admin'].includes(session.user.role ?? '')) notFound();
 
   const initialData = buildDuplicateFamilyInitialData(application);

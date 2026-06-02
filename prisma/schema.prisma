@@ -84,6 +84,7 @@ model User {
   passwordChangeRequired Boolean             @default(false)
   sessionVersion Int                 @default(0)
   role           UserRole            @default(field_worker)
+  canCreateApplications Boolean      @default(false)
   selfRegistered Boolean             @default(false)
   applications   OrphanApplication[] @relation("CreatedApplications")
   updatedApps    OrphanApplication[] @relation("UpdatedApplications")

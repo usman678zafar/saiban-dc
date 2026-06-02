@@ -27,6 +27,7 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
     select: {
       project: true,
       role: true,
+      id: true,
       supervisorDepartments: {
         orderBy: { project: 'asc' },
         select: { project: true },
@@ -56,6 +57,7 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
 
   if (!application) notFound();
   if (application.status === 'draft') notFound();
+  if (!['admin', 'super_admin'].includes(user?.role ?? '') && application.createdById === user?.id) notFound();
   const assignedProjects = user?.supervisorDepartments.length
     ? user.supervisorDepartments.map((department) => department.project)
     : user?.project ? [user.project] : [];
