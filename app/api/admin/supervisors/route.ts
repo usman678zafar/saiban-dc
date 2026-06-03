@@ -19,6 +19,7 @@ const createSupervisorSchema = z.object({
     message: 'CNIC must use the format 42101-0536155-7',
   }).optional().default(''),
   address: z.string().trim().optional().default(''),
+  canCreateApplications: z.boolean().optional().default(false),
 });
 
 export async function POST(request: NextRequest) {
@@ -68,6 +69,7 @@ export async function POST(request: NextRequest) {
         passwordHash: await bcrypt.hash(password, 10),
         passwordChangeRequired: true,
         role: UserRole.supervisor,
+        canCreateApplications: input.canCreateApplications,
       },
       select: {
         id: true,
@@ -77,6 +79,7 @@ export async function POST(request: NextRequest) {
         cnic: true,
         address: true,
         project: true,
+        canCreateApplications: true,
         supervisorDepartments: {
           orderBy: { project: 'asc' },
           select: { project: true },

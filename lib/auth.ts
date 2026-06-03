@@ -16,6 +16,7 @@ const authUserSelect = {
   role: true,
   phoneNumber: true,
   passwordChangeRequired: true,
+  canCreateApplications: true,
 } satisfies Prisma.UserSelect;
 
 declare module 'next-auth' {
@@ -27,6 +28,7 @@ declare module 'next-auth' {
       role?: Role;
       sessionVersion?: number;
       passwordChangeRequired?: boolean;
+      canCreateApplications?: boolean;
     };
   }
 
@@ -34,6 +36,7 @@ declare module 'next-auth' {
     role?: Role;
     sessionVersion?: number;
     passwordChangeRequired?: boolean;
+    canCreateApplications?: boolean;
   }
 }
 
@@ -43,6 +46,7 @@ declare module 'next-auth/jwt' {
     role?: Role;
     sessionVersion?: number;
     passwordChangeRequired?: boolean;
+    canCreateApplications?: boolean;
     sessionInvalid?: boolean;
   }
 }
@@ -196,6 +200,7 @@ export const authOptions: NextAuthOptions = {
           role: resolvedRole,
           sessionVersion: resolvedSessionVersion,
           passwordChangeRequired: resolvedPasswordChangeRequired,
+          canCreateApplications: user.canCreateApplications,
         };
       },
     }),
@@ -207,6 +212,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.sessionVersion = user.sessionVersion ?? 0;
         token.passwordChangeRequired = user.passwordChangeRequired ?? false;
+        token.canCreateApplications = user.canCreateApplications ?? false;
         token.sessionInvalid = false;
         return token;
       }
@@ -216,7 +222,7 @@ export const authOptions: NextAuthOptions = {
         const currentSessionVersion = sessionVersionEnabled ? await getSessionVersion(token.id) : token.sessionVersion ?? 0;
         const currentUser = await prisma.user.findUnique({
           where: { id: token.id },
-          select: { passwordChangeRequired: true },
+          select: { passwordChangeRequired: true, canCreateApplications: true },
         });
 
         if (sessionVersionEnabled && currentSessionVersion !== (token.sessionVersion ?? 0)) {
@@ -224,8 +230,10 @@ export const authOptions: NextAuthOptions = {
           delete token.id;
           delete token.role;
           delete token.passwordChangeRequired;
+          delete token.canCreateApplications;
         } else if (currentUser) {
           token.passwordChangeRequired = currentUser.passwordChangeRequired;
+          token.canCreateApplications = currentUser.canCreateApplications;
         }
       }
 
@@ -242,6 +250,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role;
         session.user.sessionVersion = token.sessionVersion;
         session.user.passwordChangeRequired = token.passwordChangeRequired;
+        session.user.canCreateApplications = token.canCreateApplications;
       }
       return session;
     },

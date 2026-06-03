@@ -14,6 +14,7 @@ export type ReviewerListItem = {
   phoneNumber: string | null;
   cnic: string | null;
   address: string | null;
+  canCreateApplications: boolean;
   createdAt: string;
 };
 
@@ -23,6 +24,7 @@ type FormState = {
   cnic: string;
   address: string;
   password: string;
+  canCreateApplications: boolean;
 };
 
 const emptyForm: FormState = {
@@ -31,6 +33,7 @@ const emptyForm: FormState = {
   cnic: '',
   address: '',
   password: '',
+  canCreateApplications: false,
 };
 
 export default function ReviewerManager({ reviewers }: { reviewers: ReviewerListItem[] }) {
@@ -56,6 +59,7 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
       cnic: formatCnic(reviewer.cnic ?? ''),
       address: reviewer.address ?? '',
       password: '',
+      canCreateApplications: reviewer.canCreateApplications,
     });
     setMessage(null);
     setIsOpen(true);
@@ -67,7 +71,7 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
     setMessage(null);
 
     const payload = selected
-      ? { name: form.name, cnic: form.cnic, address: form.address, password: form.password }
+      ? { name: form.name, cnic: form.cnic, address: form.address, password: form.password, canCreateApplications: form.canCreateApplications }
       : form;
     const response = await fetch(selected ? `/api/admin/reviewers/${selected.id}` : '/api/admin/reviewers', {
       method: selected ? 'PATCH' : 'POST',
@@ -123,6 +127,7 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
               <th className="px-4 py-3">Reviewer</th>
               <th className="px-4 py-3">Phone</th>
               <th className="px-4 py-3">CNIC</th>
+              <th className="px-4 py-3">Create Access</th>
               <th className="px-4 py-3">Address</th>
               <th className="px-4 py-3">Added</th>
               <th className="px-4 py-3 text-right">Actions</th>
@@ -131,7 +136,7 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
           <tbody>
             {reviewers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-[#8a9bb3]">No reviewers yet.</td>
+                <td colSpan={7} className="px-4 py-10 text-center text-[#8a9bb3]">No reviewers yet.</td>
               </tr>
             ) : (
               reviewers.map((reviewer) => (
@@ -142,6 +147,11 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
                   </td>
                   <td className="px-4 py-4">{reviewer.phoneNumber ?? '-'}</td>
                   <td className="px-4 py-4">{reviewer.cnic ? formatCnic(reviewer.cnic) : '-'}</td>
+                  <td className="px-4 py-4">
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${reviewer.canCreateApplications ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                      {reviewer.canCreateApplications ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </td>
                   <td className="max-w-[320px] px-4 py-4">{reviewer.address ?? '-'}</td>
                   <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(reviewer.createdAt)}</td>
                   <td className="px-4 py-4">
@@ -207,6 +217,18 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
               <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
                 Reviewer login uses this phone number. Password: last 4 digits of the phone number.
               </div>
+              <label className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={form.canCreateApplications}
+                  onChange={(event) => setForm({ ...form, canCreateApplications: event.target.checked })}
+                  className="mt-1 h-4 w-4 shrink-0"
+                />
+                <span>
+                  <span className="block font-semibold text-slate-900">Can create applications</span>
+                  <span className="mt-1 block text-xs leading-5 text-slate-500">Allows this reviewer to create and submit their own application records.</span>
+                </span>
+              </label>
               {selected ? (
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>New Password <span className="text-xs text-slate-400">(optional)</span></span>

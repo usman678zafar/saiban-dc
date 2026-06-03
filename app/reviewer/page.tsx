@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Prisma } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import { Search, X } from 'lucide-react';
+import { FilePlus2, Search, UserCheck, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
@@ -22,8 +22,13 @@ export default async function ReviewerPage({
   if (!['reviewer', 'admin', 'super_admin'].includes(session.user.role ?? '')) redirect('/applications');
 
   const search = searchParams.q?.trim() ?? '';
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, canCreateApplications: true },
+  });
   const whereParts: Prisma.OrphanApplicationWhereInput[] = [
     { status: 'supervisor_approved' },
+    { createdById: { not: user?.id ?? '' } },
     ...(search ? [applicationSearchWhere(search)] : []),
   ];
 
@@ -48,6 +53,20 @@ export default async function ReviewerPage({
       title="Reviewer Review"
       description="Applications approved by supervisors across all departments."
       maxWidth="max-w-6xl"
+      actions={
+        user?.canCreateApplications ? (
+          <>
+            <Link href="/reviewer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+              <UserCheck className="h-4 w-4" aria-hidden="true" />
+              Review Applications
+            </Link>
+            <Link href="/applications/new" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+              <FilePlus2 className="h-4 w-4" aria-hidden="true" />
+              Create New Application
+            </Link>
+          </>
+        ) : null
+      }
     >
       <form action="/reviewer" className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
         <div className="flex flex-col gap-2 sm:flex-row">

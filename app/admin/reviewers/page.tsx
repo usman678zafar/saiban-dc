@@ -21,6 +21,7 @@ export default async function AdminReviewersPage() {
       phoneNumber: true,
       cnic: true,
       address: true,
+      canCreateApplications: true,
       createdAt: true,
     },
   });

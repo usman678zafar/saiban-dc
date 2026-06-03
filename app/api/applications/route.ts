@@ -26,6 +26,13 @@ function collectorPayload(user: NonNullable<Awaited<ReturnType<typeof getUser>>>
   };
 }
 
+function canCreateApplications(user: NonNullable<Awaited<ReturnType<typeof getUser>>>) {
+  return user.role === 'field_worker'
+    || user.role === 'admin'
+    || user.role === 'super_admin'
+    || ((user.role === 'supervisor' || user.role === 'reviewer') && user.canCreateApplications);
+}
+
 function clearPayloadFields(payload: any, fields: string[]) {
   for (const field of fields) {
     if (typeof payload[field] === 'boolean') {
@@ -470,6 +477,10 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
   }
 
   if (user.role === 'supervisor') {
+    if (application.createdById === user.id) {
+      return NextResponse.json({ message: 'You cannot supervise an application you created.' }, { status: 403 });
+    }
+
     const projectMatches = projectMatchesReviewAssignment(application.collectorProject, user.project, application.createdBy.selfRegistered);
     allowed = projectMatches && application.status === 'submitted' && ['needs_correction', 'supervisor_approved', 'rejected'].includes(status);
     action = status === 'needs_correction' ? 'returned_by_supervisor' : status === 'supervisor_approved' ? 'approved_by_supervisor' : 'rejected_by_supervisor';
@@ -480,6 +491,10 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
   }
 
   if (user.role === 'reviewer') {
+    if (application.createdById === user.id) {
+      return NextResponse.json({ message: 'You cannot review an application you created.' }, { status: 403 });
+    }
+
     allowed = application.status === 'supervisor_approved' && ['reviewer_approved', 'rejected'].includes(status);
     action = status === 'reviewer_approved' ? 'approved_by_reviewer' : 'rejected_by_reviewer';
   }
@@ -547,6 +562,10 @@ export async function POST(request: NextRequest) {
   const user = await getUser(request);
   if (!user) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!canCreateApplications(user)) {
+    return NextResponse.json({ message: 'You do not have permission to create applications.' }, { status: 403 });
   }
 
   const body = await request.json();
@@ -625,19 +644,20 @@ export async function PATCH(request: NextRequest) {
     const canReviewerEdit = user.role === 'reviewer' && application.status === 'supervisor_approved';
     const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
     const canSuperAdminEdit = user.role === 'super_admin';
+    const canOwnerEdit = application.createdById === user.id && canCreateApplications(user);
 
-    if (application.createdById !== user.id && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
+    if (!canOwnerEdit && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    if (user.role === 'field_worker' && !['draft', 'needs_correction'].includes(application.status)) {
+    if (canOwnerEdit && !['draft', 'needs_correction'].includes(application.status) && user.role !== 'super_admin') {
       return NextResponse.json({ message: 'Only draft or returned applications can be edited.' }, { status: 409 });
     }
 
     const updateData: any = {
       ...validated,
       updatedById: user.id,
-      status: user.role === 'reviewer' || user.role === 'admin' || user.role === 'super_admin' ? application.status : validated.status ?? application.status,
+      status: canOwnerEdit ? validated.status ?? application.status : application.status,
     };
     await validateSubmittedAddress(updateData);
     await validateSubmittedDocuments(id, updateData);
@@ -702,7 +722,7 @@ export async function PATCH(request: NextRequest) {
         });
       }
 
-      if (user.role === 'field_worker' && application.status !== updateData.status && updateData.status === 'submitted') {
+      if (canOwnerEdit && application.status !== updateData.status && updateData.status === 'submitted') {
         await tx.auditLog.create({
           data: {
             tableName: 'OrphanApplication',
@@ -769,6 +789,9 @@ export async function DELETE(request: NextRequest) {
 
   if (application.createdById !== user.id && !['admin', 'super_admin'].includes(user.role)) {
     return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+  }
+  if (application.createdById === user.id && !canCreateApplications(user)) {
+    return NextResponse.json({ message: 'You do not have permission to manage application drafts.' }, { status: 403 });
   }
 
   await Promise.allSettled(application.documents.map((document) => deleteFromR2(document.fileKey)));

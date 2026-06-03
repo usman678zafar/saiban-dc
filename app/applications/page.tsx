@@ -53,6 +53,12 @@ export default async function ApplicationsPage({
 
   const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
   const isSuperAdmin = session?.user?.role === 'super_admin';
+  const canCreateApplications = session.user.role === 'field_worker'
+    || isAdmin
+    || ((session.user.role === 'supervisor' || session.user.role === 'reviewer') && Boolean(session.user.canCreateApplications));
+  if (!canCreateApplications) {
+    redirect(session.user.role === 'supervisor' ? '/supervisor' : session.user.role === 'reviewer' ? '/reviewer' : '/dashboard');
+  }
   const user = session?.user?.email
     ? await prisma.user.findUnique({
       where: { email: session.user.email },

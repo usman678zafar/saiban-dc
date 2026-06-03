@@ -17,6 +17,7 @@ const createReviewerSchema = z.object({
     message: 'CNIC must use the format 42101-0536155-7',
   }).optional().default(''),
   address: z.string().trim().optional().default(''),
+  canCreateApplications: z.boolean().optional().default(false),
 });
 
 export async function POST(request: NextRequest) {
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
         passwordHash: await bcrypt.hash(password, 10),
         passwordChangeRequired: true,
         role: UserRole.reviewer,
+        canCreateApplications: input.canCreateApplications,
       },
       select: {
         id: true,
@@ -65,6 +67,7 @@ export async function POST(request: NextRequest) {
         phoneNumber: true,
         cnic: true,
         address: true,
+        canCreateApplications: true,
         createdAt: true,
       },
     });

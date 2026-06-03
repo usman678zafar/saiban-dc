@@ -19,6 +19,7 @@ const updateReviewerSchema = z.object({
     .optional()
     .transform((v) => v?.trim() ?? '')
     .refine((v) => v.length === 0 || v.length >= 4, { message: 'Password must be at least 4 characters' }),
+  canCreateApplications: z.boolean().optional().default(false),
 });
 
 async function requireAdmin() {
@@ -63,6 +64,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         name: input.name,
         cnic: input.cnic || null,
         address: input.address || null,
+        canCreateApplications: input.canCreateApplications,
         ...(passwordHash ? { passwordHash } : {}),
         ...(passwordHash ? { passwordChangeRequired: true } : {}),
         ...sessionVersionUpdate,
@@ -74,6 +76,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         phoneNumber: true,
         cnic: true,
         address: true,
+        canCreateApplications: true,
         createdAt: true,
       },
     });

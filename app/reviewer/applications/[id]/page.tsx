@@ -20,6 +20,10 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect(`/signin?callbackUrl=/reviewer/applications/${params.id}`);
   if (!['reviewer', 'admin', 'super_admin'].includes(session.user.role ?? '')) redirect('/applications');
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true },
+  });
 
   const application = await prisma.orphanApplication.findUnique({
     where: { id: params.id },
@@ -32,6 +36,7 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
 
   if (!application) notFound();
   if (application.status !== 'supervisor_approved') notFound();
+  if (!['admin', 'super_admin'].includes(user?.role ?? '') && application.createdById === user?.id) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
 
