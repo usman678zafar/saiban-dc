@@ -60,9 +60,13 @@ const childSpecificFields: Array<keyof FormData> = [
 ];
 
 function toWizardValue(value: unknown) {
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10);
   if (typeof value === 'number') return String(value);
   return value;
+}
+
+function dateOnly(value: unknown) {
+  return value instanceof Date && !Number.isNaN(value.getTime()) ? value.toISOString().slice(0, 10) : '';
 }
 
 export function buildDuplicateFamilyInitialData(application: any): Partial<FormData> {
@@ -90,7 +94,7 @@ export function buildDuplicateFamilyInitialData(application: any): Partial<FormD
   initialData.siblings = application.siblings.map((sibling: any) => ({
     name: sibling.name ?? '',
     relation: sibling.relation ?? 'brother',
-    dob: sibling.dob ? sibling.dob.toISOString().slice(0, 10) : '',
+    dob: dateOnly(sibling.dob),
     age: sibling.age?.toString() ?? '',
     educationStatus: sibling.educationStatus ?? '',
     currentlyStudying: sibling.currentlyStudying === true ? 'yes' : sibling.currentlyStudying === false ? 'no' : '',

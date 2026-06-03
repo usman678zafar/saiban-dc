@@ -3,11 +3,11 @@ import { HOUSEHOLD_ASSET_KEYS, householdAssetRowsToOtherItems, householdAssetRow
 import type { ApplicationDocumentView } from '@/lib/application-documents';
 
 function dateOnly(value: unknown) {
-  return value instanceof Date ? value.toISOString().slice(0, 10) : '';
+  return value instanceof Date && !Number.isNaN(value.getTime()) ? value.toISOString().slice(0, 10) : '';
 }
 
 function dateTime(value: unknown) {
-  return value instanceof Date ? value.toISOString() : '';
+  return value instanceof Date && !Number.isNaN(value.getTime()) ? value.toISOString() : '';
 }
 
 function stringValue(value: unknown, fallback = '') {
