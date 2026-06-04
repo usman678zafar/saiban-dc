@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import SignOutButton from './sign-out-button';
+import HeaderHelpMenu from './header-help-menu';
 import logo from '@/assests/logo.png';
 
 interface AppShellProps {
@@ -70,6 +71,7 @@ export default async function AppShell({ title, description, actions, maxWidth =
                 Admin
               </Link>
             ) : null}
+            {isFieldWorker ? <HeaderHelpMenu className="snap-start" /> : null}
             <SignOutButton className="snap-start whitespace-nowrap rounded-lg bg-slate-100 px-2 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-200 sm:px-3 sm:py-2.5 sm:text-sm" />
           </nav>
         </div>
