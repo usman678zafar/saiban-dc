@@ -139,24 +139,24 @@ export default async function ApplicationsPage({
         ) : null
       }
     >
-      <form action="/applications" className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+      <form action="/applications" className="mb-3 rounded-lg border border-slate-200 bg-white p-2 shadow-sm sm:p-3">
         <div className="flex flex-col gap-2 sm:flex-row">
           <label className="relative min-w-0 flex-1">
             <span className="sr-only">Search applications</span>
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 sm:h-4 sm:w-4" aria-hidden="true" />
             <input
               type="search"
               name="q"
               defaultValue={search}
               placeholder="Search by name, registration, B-form, CNIC, department"
-              className="min-h-11 w-full rounded-lg border border-slate-300 bg-slate-50 pl-10 pr-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="h-9 w-full rounded-lg border border-slate-300 bg-slate-50 pl-9 pr-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:h-10 sm:pl-10"
             />
           </label>
-          <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
+          <button type="submit" className="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-500 sm:h-10">
             Search
           </button>
           {search ? (
-            <Link href="/applications" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            <Link href="/applications" className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:h-10">
               <X className="h-4 w-4" aria-hidden="true" />
               Clear
             </Link>
@@ -164,8 +164,8 @@ export default async function ApplicationsPage({
         </div>
       </form>
 
-      <div className="grid min-w-0 gap-3 md:hidden">
-        <div className="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-600 shadow-sm">
+      <div className="grid min-w-0 gap-2 md:hidden">
+        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm">
           {total === 0 ? 'No records' : `Showing ${skip + 1}-${Math.min(skip + PAGE_SIZE, total)} of ${total}`}
         </div>
         {applications.length === 0 ? (
