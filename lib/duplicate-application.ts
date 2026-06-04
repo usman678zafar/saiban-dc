@@ -1,5 +1,6 @@
 import type { FormData } from '@/components/orphan-application-wizard';
 import { HOUSEHOLD_ASSET_KEYS, householdAssetRowsToOtherItems, householdAssetRowsToSelection } from '@/lib/household-assets';
+import { toDateInputValue } from '@/lib/safe-date';
 
 const childSpecificFields: Array<keyof FormData> = [
   'registrationNumber',
@@ -60,13 +61,13 @@ const childSpecificFields: Array<keyof FormData> = [
 ];
 
 function toWizardValue(value: unknown) {
-  if (value instanceof Date) return Number.isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10);
+  if (value instanceof Date) return toDateInputValue(value);
   if (typeof value === 'number') return String(value);
   return value;
 }
 
 function dateOnly(value: unknown) {
-  return value instanceof Date && !Number.isNaN(value.getTime()) ? value.toISOString().slice(0, 10) : '';
+  return toDateInputValue(value);
 }
 
 export function buildDuplicateFamilyInitialData(application: any): Partial<FormData> {

@@ -10,6 +10,7 @@ import { Eye, Pencil, Search, X } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
 import VolunteerApplicationStatus from '@/components/volunteer-application-status';
+import { isValidDate } from '@/lib/safe-date';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,10 @@ const dateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
   minute: '2-digit',
   hour12: true,
 });
+
+function formatApplicationDateTime(value: Date) {
+  return isValidDate(value) ? dateTimeFormatter.format(value) : '';
+}
 
 type ApplicationListRecord = {
   id: string;
@@ -108,7 +113,7 @@ export default async function ApplicationsPage({
     registrationNumber: application.registrationNumber ?? application.id,
     childName: application.childName ?? 'No child name',
     status: application.status,
-    updatedAt: dateTimeFormatter.format(application.updatedAt),
+    updatedAt: formatApplicationDateTime(application.updatedAt),
     correctionComment: typeof (application.auditLogs?.[0]?.details as any)?.comment === 'string' ? (application.auditLogs?.[0]?.details as any).comment : null,
   }));
 

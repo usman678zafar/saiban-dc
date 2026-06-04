@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { toIsoString } from '@/lib/safe-date';
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
         const value = application[header];
         if (typeof value === 'string') return JSON.stringify(value);
         if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-        if (value instanceof Date) return JSON.stringify(value.toISOString());
+        if (value instanceof Date) return JSON.stringify(toIsoString(value));
         return '';
       });
       const nestedValues = nestedHeaders.map((header) =>

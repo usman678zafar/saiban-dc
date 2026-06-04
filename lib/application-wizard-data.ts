@@ -1,13 +1,14 @@
 import type { FormData } from '@/components/orphan-application-wizard';
 import { HOUSEHOLD_ASSET_KEYS, householdAssetRowsToOtherItems, householdAssetRowsToSelection } from '@/lib/household-assets';
 import type { ApplicationDocumentView } from '@/lib/application-documents';
+import { toDateInputValue, toIsoString } from '@/lib/safe-date';
 
 function dateOnly(value: unknown) {
-  return value instanceof Date && !Number.isNaN(value.getTime()) ? value.toISOString().slice(0, 10) : '';
+  return toDateInputValue(value);
 }
 
 function dateTime(value: unknown) {
-  return value instanceof Date && !Number.isNaN(value.getTime()) ? value.toISOString() : '';
+  return toIsoString(value);
 }
 
 function stringValue(value: unknown, fallback = '') {
