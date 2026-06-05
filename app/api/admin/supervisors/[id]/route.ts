@@ -8,6 +8,7 @@ import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
 import { cnicVariants, formatCnic, isValidCnic } from '@/lib/contact-format';
 import { getSessionVersionUpdateData } from '@/lib/session-version';
+import { logSystemAudit } from '@/lib/system-audit';
 
 const updateSupervisorSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -22,6 +23,7 @@ const updateSupervisorSchema = z.object({
     .transform((v) => v?.trim() ?? '')
     .refine((v) => v.length === 0 || v.length >= 4, { message: 'Password must be at least 4 characters' }),
   canCreateApplications: z.boolean().optional().default(false),
+  canManageFieldWorkers: z.boolean().optional().default(false),
 });
 
 async function requireAdmin() {
@@ -73,6 +75,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         address: input.address || null,
         project: selectedProjects[0],
         canCreateApplications: input.canCreateApplications,
+        canManageFieldWorkers: input.canManageFieldWorkers,
         supervisorDepartments: {
           deleteMany: {},
           create: selectedProjects.map((project) => ({ project })),
@@ -90,6 +93,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         address: true,
         project: true,
         canCreateApplications: true,
+        canManageFieldWorkers: true,
         supervisorDepartments: {
           orderBy: { project: 'asc' },
           select: { project: true },
@@ -108,6 +112,20 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         data: { supervisorId: supervisor.id },
       });
     }
+
+    await logSystemAudit({
+      action: 'supervisor_updated',
+      entityType: 'supervisor',
+      entityId: supervisor.id,
+      entityLabel: supervisor.name ?? supervisor.phoneNumber ?? supervisor.email,
+      actorId: auth.session.user?.id ?? null,
+      details: {
+        projects: selectedProjects,
+        canCreateApplications: input.canCreateApplications,
+        canManageFieldWorkers: input.canManageFieldWorkers,
+        passwordChanged: Boolean(passwordHash),
+      },
+    });
 
     return NextResponse.json(supervisor);
   } catch (error) {
@@ -150,6 +168,12 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
   }
 
   await prisma.user.delete({ where: { id: params.id } });
+  await logSystemAudit({
+    action: 'supervisor_deleted',
+    entityType: 'supervisor',
+    entityId: params.id,
+    actorId: auth.session.user?.id ?? null,
+  });
   return NextResponse.json({ message: 'Supervisor deleted successfully.' });
 }
 

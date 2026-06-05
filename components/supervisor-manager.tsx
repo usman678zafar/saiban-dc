@@ -17,6 +17,7 @@ export type SupervisorListItem = {
   project: string | null;
   projects: string[];
   canCreateApplications: boolean;
+  canManageFieldWorkers: boolean;
   createdAt: string;
 };
 
@@ -28,6 +29,7 @@ type FormState = {
   projects: string[];
   password: string;
   canCreateApplications: boolean;
+  canManageFieldWorkers: boolean;
 };
 
 const buildEmptyForm = (projects: string[]): FormState => ({
@@ -38,6 +40,7 @@ const buildEmptyForm = (projects: string[]): FormState => ({
   projects: projects[0] ? [projects[0]] : [],
   password: '',
   canCreateApplications: false,
+  canManageFieldWorkers: false,
 });
 
 export default function SupervisorManager({ supervisors, projects }: { supervisors: SupervisorListItem[]; projects: string[] }) {
@@ -67,6 +70,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
         : supervisor.project && projects.includes(supervisor.project) ? [supervisor.project] : projects[0] ? [projects[0]] : [],
       password: '',
       canCreateApplications: supervisor.canCreateApplications,
+      canManageFieldWorkers: supervisor.canManageFieldWorkers,
     });
     setMessage(null);
     setIsOpen(true);
@@ -78,7 +82,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
     setMessage(null);
 
     const payload = selected
-      ? { name: form.name, cnic: form.cnic, address: form.address, projects: form.projects, password: form.password, canCreateApplications: form.canCreateApplications }
+      ? { name: form.name, cnic: form.cnic, address: form.address, projects: form.projects, password: form.password, canCreateApplications: form.canCreateApplications, canManageFieldWorkers: form.canManageFieldWorkers }
       : form;
     const response = await fetch(selected ? `/api/admin/supervisors/${selected.id}` : '/api/admin/supervisors', {
       method: selected ? 'PATCH' : 'POST',
@@ -134,6 +138,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
               <th className="px-4 py-3">Supervisor</th>
               <th className="px-4 py-3">Department</th>
               <th className="px-4 py-3">Create Access</th>
+              <th className="px-4 py-3">Worker Access</th>
               <th className="px-4 py-3">Phone</th>
               <th className="px-4 py-3">Added</th>
               <th className="px-4 py-3 text-right">Actions</th>
@@ -142,7 +147,7 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
           <tbody>
             {supervisors.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-[#8a9bb3]">No supervisors yet.</td>
+                <td colSpan={7} className="px-4 py-10 text-center text-[#8a9bb3]">No supervisors yet.</td>
               </tr>
             ) : (
               supervisors.map((supervisor) => (
@@ -155,6 +160,11 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
                   <td className="px-4 py-4">
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${supervisor.canCreateApplications ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                       {supervisor.canCreateApplications ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4">
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${supervisor.canManageFieldWorkers ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                      {supervisor.canManageFieldWorkers ? 'Enabled' : 'Disabled'}
                     </span>
                   </td>
                   <td className="px-4 py-4">{supervisor.phoneNumber ?? '-'}</td>
@@ -252,6 +262,18 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
                 <span>
                   <span className="block font-semibold text-slate-900">Can create applications</span>
                   <span className="mt-1 block text-xs leading-5 text-slate-500">Allows this supervisor to create and submit their own application records.</span>
+                </span>
+              </label>
+              <label className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={form.canManageFieldWorkers}
+                  onChange={(event) => setForm({ ...form, canManageFieldWorkers: event.target.checked })}
+                  className="mt-1 h-4 w-4 shrink-0"
+                />
+                <span>
+                  <span className="block font-semibold text-slate-900">Can manage field workers</span>
+                  <span className="mt-1 block text-xs leading-5 text-slate-500">Allows this supervisor to add and manage field workers assigned to their own departments.</span>
                 </span>
               </label>
               {selected ? (

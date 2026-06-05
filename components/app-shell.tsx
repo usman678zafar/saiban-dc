@@ -26,6 +26,7 @@ export default async function AppShell({ title, description, actions, maxWidth =
   const isSupervisor = session?.user?.role === 'supervisor';
   const isReviewer = session?.user?.role === 'reviewer';
   const canCreateApplications = isFieldWorker || isAdmin || ((isSupervisor || isReviewer) && Boolean(session.user.canCreateApplications));
+  const canManageFieldWorkers = isSupervisor && Boolean(session.user.canManageFieldWorkers);
   const navLinkClass = 'inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-lg px-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 min-[361px]:px-2.5 sm:h-10 sm:px-3 sm:text-sm';
   const primaryNavLinkClass = 'inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-blue-600 px-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-500 min-[361px]:px-2.5 sm:h-10 sm:px-3 sm:text-sm';
   const signOutClass = 'inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:h-12 sm:w-12 sm:rounded-2xl';
@@ -57,6 +58,11 @@ export default async function AppShell({ title, description, actions, maxWidth =
             {isReviewer || isAdmin ? (
               <Link href="/reviewer" className={navLinkClass}>
                 Reviewer
+              </Link>
+            ) : null}
+            {canManageFieldWorkers ? (
+              <Link href="/supervisor/field-workers" className={navLinkClass}>
+                Field Workers
               </Link>
             ) : null}
             {canCreateApplications ? (

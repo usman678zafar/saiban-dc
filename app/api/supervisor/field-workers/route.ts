@@ -4,7 +4,6 @@ import bcrypt from 'bcryptjs';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
-import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
 import { cnicVariants, formatCnic, isValidCnic, normalizePakistanMobile } from '@/lib/contact-format';
 import { logSystemAudit } from '@/lib/system-audit';
@@ -20,9 +19,46 @@ const createFieldWorkerSchema = z.object({
   address: z.string().trim().optional().default(''),
   reference: z.string().trim().optional().default(''),
   project: z.string().trim().min(1, 'Department is required'),
-  supervisorId: z.string().uuid('Supervisor is required'),
+  supervisorId: z.string().uuid().optional(),
   password: z.string().min(4, 'Password must be at least 4 characters'),
 });
+
+async function requireSupervisorManager() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return { response: NextResponse.json({ message: 'Unauthorized' }, { status: 401 }) };
+  }
+
+  if (session.user.role !== 'supervisor') {
+    return { response: NextResponse.json({ message: 'Supervisor access required' }, { status: 403 }) };
+  }
+
+  const supervisor = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: {
+      id: true,
+      project: true,
+      canManageFieldWorkers: true,
+      supervisorDepartments: {
+        select: { project: true },
+      },
+    },
+  });
+
+  if (!supervisor?.canManageFieldWorkers) {
+    return { response: NextResponse.json({ message: 'Field worker management access is not enabled for this supervisor.' }, { status: 403 }) };
+  }
+
+  const projects = supervisor.supervisorDepartments.length
+    ? supervisor.supervisorDepartments.map((department) => department.project)
+    : supervisor.project ? [supervisor.project] : [];
+
+  if (projects.length === 0) {
+    return { response: NextResponse.json({ message: 'No department is assigned to this supervisor.' }, { status: 403 }) };
+  }
+
+  return { supervisor, projects };
+}
 
 async function generateFieldWorkerId() {
   const latestWorker = await prisma.user.findFirst({
@@ -48,36 +84,17 @@ function isFieldWorkerIdCollision(error: unknown) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
-
-  if (!['admin', 'super_admin'].includes(session.user.role ?? '')) {
-    return NextResponse.json({ message: 'Admin access required' }, { status: 403 });
-  }
+  const auth = await requireSupervisorManager();
+  if ('response' in auth) return auth.response;
 
   try {
-    const body = await request.json();
-    const input = createFieldWorkerSchema.parse(body);
-    const projects = await getFieldWorkerProjectOptions();
-    if (!projects.includes(input.project)) {
-      return NextResponse.json({ message: 'Department is required' }, { status: 422 });
+    const input = createFieldWorkerSchema.parse(await request.json());
+    if (input.supervisorId && input.supervisorId !== auth.supervisor.id) {
+      return NextResponse.json({ message: 'You can only assign field workers to yourself.' }, { status: 403 });
     }
-    const supervisor = await prisma.user.findFirst({
-      where: {
-        id: input.supervisorId,
-        role: 'supervisor',
-        OR: [
-          { project: input.project },
-          { supervisorDepartments: { some: { project: input.project } } },
-        ],
-      },
-      select: { id: true },
-    });
 
-    if (!supervisor) {
-      return NextResponse.json({ message: 'Select a supervisor from the same department.' }, { status: 422 });
+    if (!auth.projects.includes(input.project)) {
+      return NextResponse.json({ message: 'You can only add field workers in your assigned departments.' }, { status: 422 });
     }
 
     const existingUser = await prisma.user.findFirst({
@@ -109,7 +126,7 @@ export async function POST(request: NextRequest) {
             address: input.address || null,
             reference: input.reference || null,
             project: input.project,
-            supervisorId: input.supervisorId,
+            supervisorId: auth.supervisor.id,
             passwordHash,
             role: 'field_worker',
           },
@@ -128,10 +145,7 @@ export async function POST(request: NextRequest) {
         });
         break;
       } catch (error) {
-        if (isFieldWorkerIdCollision(error) && attempt < 4) {
-          continue;
-        }
-
+        if (isFieldWorkerIdCollision(error) && attempt < 4) continue;
         throw error;
       }
     }
@@ -141,11 +155,11 @@ export async function POST(request: NextRequest) {
     }
 
     await logSystemAudit({
-      action: 'field_worker_created_by_admin',
+      action: 'field_worker_created_by_supervisor',
       entityType: 'field_worker',
       entityId: user.id,
       entityLabel: user.name ?? user.fieldWorkerId ?? user.phoneNumber,
-      actorId: session.user.id,
+      actorId: auth.supervisor.id,
       details: {
         fieldWorkerId: user.fieldWorkerId,
         project: user.project,
@@ -162,8 +176,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: error instanceof Error ? error.message : 'Unable to create field worker' }, { status: 500 });
   }
 }
-
-
-
-
-

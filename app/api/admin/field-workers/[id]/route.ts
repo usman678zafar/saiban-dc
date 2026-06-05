@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
 import { cnicVariants, formatCnic, isValidCnic } from '@/lib/contact-format';
+import { logSystemAudit } from '@/lib/system-audit';
 
 const updateAdminWorkerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -141,6 +142,19 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
         },
       });
 
+      await logSystemAudit({
+        action: 'self_registered_field_worker_updated_by_admin',
+        entityType: 'field_worker',
+        entityId: updatedWorker.id,
+        entityLabel: updatedWorker.name ?? updatedWorker.fieldWorkerId ?? updatedWorker.phoneNumber,
+        actorId: auth.session.user?.id ?? null,
+        details: {
+          project: updatedWorker.project,
+          supervisorId: updatedWorker.supervisorId,
+          passwordChanged: Boolean(passwordHash),
+        },
+      });
+
       return NextResponse.json(updatedWorker);
     }
 
@@ -207,6 +221,19 @@ export async function PATCH(request: NextRequest, { params }: FieldWorkerRouteCo
       },
     });
 
+    await logSystemAudit({
+      action: 'field_worker_updated_by_admin',
+      entityType: 'field_worker',
+      entityId: updatedWorker.id,
+      entityLabel: updatedWorker.name ?? updatedWorker.fieldWorkerId ?? updatedWorker.phoneNumber,
+      actorId: auth.session.user?.id ?? null,
+      details: {
+        project: updatedWorker.project,
+        supervisorId: updatedWorker.supervisorId,
+        passwordChanged: Boolean(passwordHash),
+      },
+    });
+
     return NextResponse.json(updatedWorker);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -246,6 +273,12 @@ export async function DELETE(_request: NextRequest, { params }: FieldWorkerRoute
     }
 
     await prisma.user.delete({ where: { id: params.id } });
+    await logSystemAudit({
+      action: 'field_worker_deleted_by_admin',
+      entityType: 'field_worker',
+      entityId: params.id,
+      actorId: auth.session.user?.id ?? null,
+    });
     return NextResponse.json({ message: 'Field worker deleted successfully.' });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {

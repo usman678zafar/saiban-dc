@@ -17,6 +17,7 @@ const authUserSelect = {
   phoneNumber: true,
   passwordChangeRequired: true,
   canCreateApplications: true,
+  canManageFieldWorkers: true,
 } satisfies Prisma.UserSelect;
 
 declare module 'next-auth' {
@@ -29,6 +30,7 @@ declare module 'next-auth' {
       sessionVersion?: number;
       passwordChangeRequired?: boolean;
       canCreateApplications?: boolean;
+      canManageFieldWorkers?: boolean;
     };
   }
 
@@ -37,6 +39,7 @@ declare module 'next-auth' {
     sessionVersion?: number;
     passwordChangeRequired?: boolean;
     canCreateApplications?: boolean;
+    canManageFieldWorkers?: boolean;
   }
 }
 
@@ -47,6 +50,7 @@ declare module 'next-auth/jwt' {
     sessionVersion?: number;
     passwordChangeRequired?: boolean;
     canCreateApplications?: boolean;
+    canManageFieldWorkers?: boolean;
     sessionInvalid?: boolean;
   }
 }
@@ -201,6 +205,7 @@ export const authOptions: NextAuthOptions = {
           sessionVersion: resolvedSessionVersion,
           passwordChangeRequired: resolvedPasswordChangeRequired,
           canCreateApplications: user.canCreateApplications,
+          canManageFieldWorkers: user.canManageFieldWorkers,
         };
       },
     }),
@@ -213,6 +218,7 @@ export const authOptions: NextAuthOptions = {
         token.sessionVersion = user.sessionVersion ?? 0;
         token.passwordChangeRequired = user.passwordChangeRequired ?? false;
         token.canCreateApplications = user.canCreateApplications ?? false;
+        token.canManageFieldWorkers = user.canManageFieldWorkers ?? false;
         token.sessionInvalid = false;
         return token;
       }
@@ -222,7 +228,7 @@ export const authOptions: NextAuthOptions = {
         const currentSessionVersion = sessionVersionEnabled ? await getSessionVersion(token.id) : token.sessionVersion ?? 0;
         const currentUser = await prisma.user.findUnique({
           where: { id: token.id },
-          select: { passwordChangeRequired: true, canCreateApplications: true },
+          select: { passwordChangeRequired: true, canCreateApplications: true, canManageFieldWorkers: true },
         });
 
         if (sessionVersionEnabled && currentSessionVersion !== (token.sessionVersion ?? 0)) {
@@ -231,9 +237,11 @@ export const authOptions: NextAuthOptions = {
           delete token.role;
           delete token.passwordChangeRequired;
           delete token.canCreateApplications;
+          delete token.canManageFieldWorkers;
         } else if (currentUser) {
           token.passwordChangeRequired = currentUser.passwordChangeRequired;
           token.canCreateApplications = currentUser.canCreateApplications;
+          token.canManageFieldWorkers = currentUser.canManageFieldWorkers;
         }
       }
 
@@ -251,6 +259,7 @@ export const authOptions: NextAuthOptions = {
         session.user.sessionVersion = token.sessionVersion;
         session.user.passwordChangeRequired = token.passwordChangeRequired;
         session.user.canCreateApplications = token.canCreateApplications;
+        session.user.canManageFieldWorkers = token.canManageFieldWorkers;
       }
       return session;
     },

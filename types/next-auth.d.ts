@@ -10,6 +10,7 @@ declare module 'next-auth' {
       sessionVersion?: number;
       passwordChangeRequired?: boolean;
       canCreateApplications?: boolean;
+      canManageFieldWorkers?: boolean;
     };
   }
 }

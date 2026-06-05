@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Prisma } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import { FilePlus2, Search, ShieldCheck, X } from 'lucide-react';
+import { FilePlus2, Search, ShieldCheck, UsersRound, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
@@ -23,6 +23,27 @@ const supervisorViews = [
 ] as const;
 
 type SupervisorView = (typeof supervisorViews)[number]['value'];
+
+function isTransientDatabaseError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /connection terminated|connection closed|ECONNRESET|ECONNREFUSED|timeout/i.test(message);
+}
+
+async function withDatabaseRetry<T>(operation: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (!isTransientDatabaseError(error) || attempt === attempts) break;
+      await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
+    }
+  }
+
+  throw lastError;
+}
 
 function supervisorViewWhere(view: SupervisorView): Prisma.OrphanApplicationWhereInput {
   switch (view) {
@@ -58,6 +79,7 @@ export default async function SupervisorPage({
       role: true,
       id: true,
       canCreateApplications: true,
+      canManageFieldWorkers: true,
       supervisorDepartments: {
         orderBy: { project: 'asc' },
         select: { project: true },
@@ -103,8 +125,7 @@ export default async function SupervisorPage({
   };
   const clearSearchHref = currentView !== 'pending' ? `/supervisor?status=${currentView}` : '/supervisor';
 
-  const [applications, viewCounts] = await Promise.all([
-    prisma.orphanApplication.findMany({
+  const applications = await withDatabaseRetry(() => prisma.orphanApplication.findMany({
       where: {
         AND: whereParts,
       },
@@ -123,19 +144,21 @@ export default async function SupervisorPage({
           select: { action: true, details: true, createdAt: true },
         },
       },
-    }),
-    Promise.all(supervisorViews.map(async (view) => ({
+    }));
+  const viewCounts = [];
+  for (const view of supervisorViews) {
+    viewCounts.push({
       view: view.value,
-      count: await prisma.orphanApplication.count({
+      count: await withDatabaseRetry(() => prisma.orphanApplication.count({
         where: {
           AND: [
             supervisorViewWhere(view.value),
             ...baseWhereParts,
           ],
         },
-      }),
-    }))),
-  ]);
+      })),
+    });
+  }
   const countsByView = new Map(viewCounts.map((item) => [item.view, item.count]));
 
   return (
@@ -150,11 +173,22 @@ export default async function SupervisorPage({
               <ShieldCheck className="h-4 w-4" aria-hidden="true" />
               Supervise Applications
             </Link>
+            {user?.canManageFieldWorkers ? (
+              <Link href="/supervisor/field-workers" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-500">
+                <UsersRound className="h-4 w-4" aria-hidden="true" />
+                Manage Field Workers
+              </Link>
+            ) : null}
             <Link href="/applications/new" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
               <FilePlus2 className="h-4 w-4" aria-hidden="true" />
               Create New Application
             </Link>
           </>
+        ) : user?.canManageFieldWorkers ? (
+          <Link href="/supervisor/field-workers" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-500">
+            <UsersRound className="h-4 w-4" aria-hidden="true" />
+            Manage Field Workers
+          </Link>
         ) : null
       }
     >

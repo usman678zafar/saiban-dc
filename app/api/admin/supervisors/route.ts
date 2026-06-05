@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import { prisma } from '@/lib/prisma';
 import { cnicVariants, digitsOnly, formatCnic, isValidCnic, normalizePakistanMobile } from '@/lib/contact-format';
+import { logSystemAudit } from '@/lib/system-audit';
 const supervisorEmailForPhone = (phoneNumber: string) => `${phoneNumber.replace(/[^a-zA-Z0-9]+/g, '')}@supervisor.saiban.local`;
 
 const createSupervisorSchema = z.object({
@@ -20,6 +21,7 @@ const createSupervisorSchema = z.object({
   }).optional().default(''),
   address: z.string().trim().optional().default(''),
   canCreateApplications: z.boolean().optional().default(false),
+  canManageFieldWorkers: z.boolean().optional().default(false),
 });
 
 export async function POST(request: NextRequest) {
@@ -70,6 +72,7 @@ export async function POST(request: NextRequest) {
         passwordChangeRequired: true,
         role: UserRole.supervisor,
         canCreateApplications: input.canCreateApplications,
+        canManageFieldWorkers: input.canManageFieldWorkers,
       },
       select: {
         id: true,
@@ -80,6 +83,7 @@ export async function POST(request: NextRequest) {
         address: true,
         project: true,
         canCreateApplications: true,
+        canManageFieldWorkers: true,
         supervisorDepartments: {
           orderBy: { project: 'asc' },
           select: { project: true },
@@ -98,6 +102,19 @@ export async function POST(request: NextRequest) {
         data: { supervisorId: supervisor.id },
       });
     }
+
+    await logSystemAudit({
+      action: 'supervisor_created',
+      entityType: 'supervisor',
+      entityId: supervisor.id,
+      entityLabel: supervisor.name ?? supervisor.phoneNumber ?? supervisor.email,
+      actorId: session.user.id,
+      details: {
+        projects: selectedProjects,
+        canCreateApplications: input.canCreateApplications,
+        canManageFieldWorkers: input.canManageFieldWorkers,
+      },
+    });
 
     return NextResponse.json(supervisor, { status: 201 });
   } catch (error) {

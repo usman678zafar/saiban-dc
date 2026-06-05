@@ -56,6 +56,13 @@ interface FieldWorkerManagerProps {
   initialWorkers: FieldWorkerListItem[];
   supervisors: FieldWorkerSupervisorOption[];
   projects: string[];
+  pagePath?: string;
+  apiPath?: string;
+  showSupervisorFilter?: boolean;
+  showSourceFilters?: boolean;
+  lockedSupervisorId?: string;
+  heading?: string;
+  description?: string;
   pagination: {
     page: number;
     pageSize: number;
@@ -91,7 +98,21 @@ function digitsOnly(value: string) {
   return value.replace(/\D/g, '');
 }
 
-export default function FieldWorkerManager({ initialWorkers, supervisors, projects, pagination, filters, counts }: FieldWorkerManagerProps) {
+export default function FieldWorkerManager({
+  initialWorkers,
+  supervisors,
+  projects,
+  pagePath = '/admin/field-workers',
+  apiPath = '/api/admin/field-workers',
+  showSupervisorFilter = true,
+  showSourceFilters = true,
+  lockedSupervisorId,
+  heading = 'Field Workers Listed',
+  description,
+  pagination,
+  filters,
+  counts,
+}: FieldWorkerManagerProps) {
   const router = useRouter();
   const { startLoading } = useNavigationLoading();
   const [searchTerm, setSearchTerm] = useState(filters.search);
@@ -125,12 +146,12 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
 
     if (nextQ.trim()) params.set('q', nextQ.trim());
     if (nextproject && nextproject !== 'all') params.set('project', nextproject);
-    if (nextSupervisor && nextSupervisor !== 'all') params.set('supervisor', nextSupervisor);
-    if (nextSource && nextSource !== 'all') params.set('source', nextSource);
+    if (showSupervisorFilter && nextSupervisor && nextSupervisor !== 'all') params.set('supervisor', nextSupervisor);
+    if (showSourceFilters && nextSource && nextSource !== 'all') params.set('source', nextSource);
     if (nextPage > 1) params.set('page', String(nextPage));
 
     const query = params.toString();
-    return query ? `/admin/field-workers?${query}` : '/admin/field-workers';
+    return query ? `${pagePath}?${query}` : pagePath;
   };
 
   const applySearch = (event: FormEvent<HTMLFormElement>) => {
@@ -156,7 +177,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
     setSelectedWorker(null);
     const firstproject = projects[0] ?? '';
     const firstSupervisor = supervisors.find((supervisor) => supervisorProjects(supervisor).includes(firstproject));
-    setForm({ ...emptyForm, project: firstproject, supervisorId: firstSupervisor?.id ?? '' });
+    setForm({ ...emptyForm, project: firstproject, supervisorId: lockedSupervisorId ?? firstSupervisor?.id ?? '' });
     setMessage(null);
     setIsModalOpen(true);
   };
@@ -171,7 +192,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
       address: worker.address ?? '',
       reference: worker.reference ?? '',
       project: worker.project && projects.includes(worker.project) ? worker.project : projects[0] ?? '',
-      supervisorId: worker.supervisorId ?? '',
+      supervisorId: lockedSupervisorId ?? worker.supervisorId ?? '',
       password: '',
     });
     setMessage(null);
@@ -191,7 +212,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
       if (key === 'cnic') return { ...current, cnic: formatCnic(value) };
       if (key !== 'project') return { ...current, [key]: value };
       const firstSupervisor = supervisors.find((supervisor) => supervisorProjects(supervisor).includes(value));
-      return { ...current, project: value, supervisorId: firstSupervisor?.id ?? '' };
+      return { ...current, project: value, supervisorId: lockedSupervisorId ?? firstSupervisor?.id ?? '' };
     });
   };
 
@@ -206,14 +227,14 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
       address: form.address,
       reference: form.reference,
       project: form.project,
-      supervisorId: form.supervisorId,
+      supervisorId: lockedSupervisorId ?? form.supervisorId,
       password: modalMode === 'add' ? form.password || defaultPassword : form.password,
     };
     if (modalMode === 'add') {
       payload.phoneNumber = form.phoneNumber;
     }
 
-    const response = await fetch(modalMode === 'add' ? '/api/admin/field-workers' : `/api/admin/field-workers/${selectedWorker?.id}`, {
+    const response = await fetch(modalMode === 'add' ? apiPath : `${apiPath}/${selectedWorker?.id}`, {
       method: modalMode === 'add' ? 'POST' : 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -239,7 +260,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
     setIsDeleting(true);
     setMessage(null);
 
-    const response = await fetch(`/api/admin/field-workers/${deleteTarget.id}`, {
+    const response = await fetch(`${apiPath}/${deleteTarget.id}`, {
       method: 'DELETE',
     });
 
@@ -261,11 +282,11 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
       <section className="rounded-xl border border-[#dbe4ef] bg-white p-4 sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-[#0f1f33]">Field Workers Listed</h2>
+            <h2 className="text-lg font-semibold text-[#0f1f33]">{heading}</h2>
             <p className="mt-1 text-sm text-[#5f718a]">
-              {pagination.total === 0
+              {description ?? (pagination.total === 0
                 ? 'No workers found'
-                : `Showing ${(pagination.page - 1) * pagination.pageSize + 1}-${Math.min(pagination.page * pagination.pageSize, pagination.total)} of ${pagination.total} workers`}
+                : `Showing ${(pagination.page - 1) * pagination.pageSize + 1}-${Math.min(pagination.page * pagination.pageSize, pagination.total)} of ${pagination.total} workers`)}
             </p>
           </div>
           <button
@@ -278,7 +299,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
           </button>
         </div>
 
-        <form onSubmit={applySearch} className="mt-5 grid gap-3 lg:grid-cols-[1fr_auto_220px_260px]">
+        <form onSubmit={applySearch} className={`mt-5 grid gap-3 ${showSupervisorFilter ? 'lg:grid-cols-[1fr_auto_220px_260px]' : 'lg:grid-cols-[1fr_auto_220px]'}`}>
           <label className="relative block min-w-0">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8a9bb3]" size={18} />
             <input
@@ -306,23 +327,27 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
               </option>
             ))}
           </select>
-          <select
-            value={filters.supervisor}
-            onChange={(event) => navigateTo(buildHref({ supervisor: event.target.value, page: 1 }))}
-            className="rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
-          >
-            <option value="all">All supervisors</option>
-            {supervisors
-              .filter((supervisor) => filters.project === 'all' || supervisorProjects(supervisor).includes(filters.project))
-              .map((supervisor) => (
-                <option key={supervisor.id} value={supervisor.id}>
-                  {supervisor.name ?? supervisor.phoneNumber ?? 'Unnamed supervisor'}{supervisorProjects(supervisor).length ? ` (${supervisorProjects(supervisor).join(', ')})` : ''}
-                </option>
-              ))}
-          </select>
+          {showSupervisorFilter ? (
+            <select
+              value={filters.supervisor}
+              onChange={(event) => navigateTo(buildHref({ supervisor: event.target.value, page: 1 }))}
+              className="rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
+            >
+              <option value="all">All supervisors</option>
+              {supervisors
+                .filter((supervisor) => filters.project === 'all' || supervisorProjects(supervisor).includes(filters.project))
+                .map((supervisor) => (
+                  <option key={supervisor.id} value={supervisor.id}>
+                    {supervisor.name ?? supervisor.phoneNumber ?? 'Unnamed supervisor'}{supervisorProjects(supervisor).length ? ` (${supervisorProjects(supervisor).join(', ')})` : ''}
+                  </option>
+                ))}
+            </select>
+          ) : null}
         </form>
 
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+        {showSourceFilters || counts.projects.some(({ count }) => count > 0) ? <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+          {showSourceFilters ? (
+            <>
           <button
             type="button"
             onClick={() => navigateTo(buildHref({ source: 'all', page: 1 }))}
@@ -345,6 +370,8 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
             Self Registered {counts.self}
           </button>
           <span className="mx-1 my-auto h-4 w-px bg-[#dbe4ef]" />
+            </>
+          ) : null}
           {counts.projects
             .filter(({ count }) => count > 0)
             .map(({ project, count }) => (
@@ -357,7 +384,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                 {project} {count}
               </button>
             ))}
-        </div>
+        </div> : null}
       </section>
 
       {message ? <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{message}</p> : null}
@@ -561,7 +588,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                 </label>
               </div>
 
-              <label className="grid gap-2 text-sm text-slate-700">
+              {lockedSupervisorId ? null : <label className="grid gap-2 text-sm text-slate-700">
                 <span>Supervisor <span className="text-rose-500">*</span></span>
                 <select
                   value={form.supervisorId}
@@ -579,7 +606,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                 {availableSupervisors.length === 0 ? (
                   <span className="text-xs text-rose-600">Add a supervisor for {form.project} before assigning this worker.</span>
                 ) : null}
-              </label>
+              </label>}
 
               <label className="grid gap-2 text-sm text-slate-700">
                 <span>
@@ -630,7 +657,7 @@ export default function FieldWorkerManager({ initialWorkers, supervisors, projec
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || !form.supervisorId || (modalMode === 'add' && !form.password && defaultPassword.length < 4)}
+                  disabled={isSubmitting || !(lockedSupervisorId ?? form.supervisorId) || (modalMode === 'add' && !form.password && defaultPassword.length < 4)}
                   className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSubmitting ? 'Saving...' : modalMode === 'add' ? 'Add Field Worker' : 'Save Changes'}
