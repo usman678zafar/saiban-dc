@@ -197,9 +197,9 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
           {error ? <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 sm:col-span-2">{error}</p> : null}
 
           {turnstileSiteKey ? (
-            <div className="min-h-[65px] sm:col-span-2">
+            <div className="flex min-h-[65px] justify-center sm:col-span-2">
               <div
-                className="cf-turnstile"
+                className="cf-turnstile w-full max-w-[300px] overflow-hidden rounded-lg"
                 data-sitekey={turnstileSiteKey}
                 data-callback="onTurnstileSuccess"
                 data-expired-callback="onTurnstileExpired"
