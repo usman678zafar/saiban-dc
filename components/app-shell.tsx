@@ -74,6 +74,13 @@ export default async function AppShell({ title, description, actions, maxWidth =
                 Admin
               </Link>
             ) : null}
+            <span className="ml-1 hidden items-center gap-2 sm:flex">
+              {isFieldWorker ? <HeaderHelpMenu iconOnly popoverClassName="sm:right-20 sm:top-20" /> : null}
+              <SignOutButton ariaLabel="Sign out" className={signOutClass}>
+                <LogOut className="h-5 w-5" aria-hidden="true" />
+                <span className="sr-only">Sign out</span>
+              </SignOutButton>
+            </span>
           </nav>
         </div>
       </header>
@@ -90,7 +97,7 @@ export default async function AppShell({ title, description, actions, maxWidth =
         {children}
       </div>
 
-      <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur sm:inset-x-auto sm:bottom-auto sm:right-4 sm:top-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:border sm:shadow-2xl">
+      <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur sm:hidden">
         <div className="mx-auto flex w-full items-center justify-center gap-2 px-4 py-1.5 sm:flex-col sm:gap-3 sm:px-2 sm:py-3">
           {isFieldWorker ? <HeaderHelpMenu iconOnly popoverClassName="bottom-16 top-auto sm:bottom-auto sm:right-20 sm:top-1/2 sm:-translate-y-1/2" /> : null}
           <SignOutButton ariaLabel="Sign out" className={signOutClass}>
