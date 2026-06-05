@@ -32,8 +32,8 @@ export default async function AppShell({ title, description, actions, maxWidth =
   return (
     <main className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className={`mx-auto flex flex-col gap-2 ${maxWidth} px-4 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-3`}>
-          <div className="flex min-w-0 items-center justify-between gap-2 sm:justify-start">
+        <div className={`mx-auto flex items-center justify-between gap-2 ${maxWidth} px-4 py-2 sm:px-6 sm:py-3`}>
+          <div className="flex min-w-0 shrink items-center gap-2">
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <Image src={logo} alt="Saiban" width={112} height={88} className="h-8 w-auto shrink-0 object-contain sm:h-11" priority />
               <div className="min-w-0">
@@ -42,7 +42,7 @@ export default async function AppShell({ title, description, actions, maxWidth =
             </div>
           </div>
 
-          <nav className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:flex-nowrap sm:gap-1">
+          <nav className="flex min-w-0 flex-1 items-center justify-end gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-none sm:overflow-visible">
             {isAdmin ? (
               <Link href="/dashboard" className={navLinkClass}>
                 Dashboard
