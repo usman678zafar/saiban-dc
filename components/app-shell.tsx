@@ -65,7 +65,7 @@ export default async function AppShell({ title, description, actions, maxWidth =
                   Applications
                 </Link>
                 <Link href="/applications/new" className={primaryNavLinkClass}>
-                  New Application
+                  + Application
                 </Link>
               </>
             ) : null}

@@ -2750,7 +2750,7 @@ export default function OrphanApplicationWizard({
   }
 
   return (
-    <div ref={wizardRef} className="min-w-0 scroll-mt-24 space-y-5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm [&_h2]:text-lg [&_h2]:leading-7 [&_h3]:break-words sm:space-y-6 sm:p-8 sm:[&_h2]:text-xl">
+    <div ref={wizardRef} className="min-w-0 scroll-mt-24 space-y-5 rounded-lg border border-slate-200 bg-white p-3 pb-24 shadow-sm [&_h2]:text-lg [&_h2]:leading-7 [&_h3]:break-words sm:space-y-6 sm:p-8 sm:[&_h2]:text-xl">
       {!initialApplicationId && hasLoadedPersistedState && showNewApplicationInstructions ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 p-3 sm:p-4"
@@ -4021,13 +4021,13 @@ export default function OrphanApplicationWizard({
 
       </fieldset>
 
-      <div className="sticky bottom-[var(--mobile-nav-offset)] z-20 -mx-3 border-t border-slate-200 bg-white/95 px-3 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:static lg:mx-0 lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none">
-        <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:justify-end sm:gap-3">
+      <div className="fixed inset-x-0 bottom-[3rem] z-30 border-t border-slate-200 bg-white/95 px-8 py-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:static lg:mx-0 lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none">
+        <div className="mx-auto grid w-full max-w-md grid-cols-3 gap-2 lg:max-w-none lg:flex lg:justify-end lg:gap-3">
           <button
             type="button"
             onClick={goBack}
             disabled={step === 1}
-            className="min-h-12 min-w-0 rounded-lg border border-slate-300 bg-white px-2 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5"
+            className="h-10 min-w-0 rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50 lg:h-12 lg:px-5"
           >
             Back
           </button>
@@ -4035,7 +4035,7 @@ export default function OrphanApplicationWizard({
             <button
               type="button"
               onClick={goNext}
-              className="min-h-12 min-w-0 rounded-lg bg-slate-900 px-2 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 sm:px-5"
+              className="h-10 min-w-0 rounded-lg bg-slate-900 px-2 text-sm font-semibold text-white transition hover:bg-slate-800 lg:h-12 lg:px-5"
             >
               Next
             </button>
@@ -4045,7 +4045,7 @@ export default function OrphanApplicationWizard({
             type="button"
             onClick={() => submit('draft')}
             disabled={isSubmitting}
-            className="min-h-12 min-w-0 rounded-lg bg-slate-600 px-2 py-3 text-sm font-semibold text-white transition hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5"
+            className="h-10 min-w-0 rounded-lg bg-slate-600 px-2 text-sm font-semibold text-white transition hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-60 lg:h-12 lg:px-5"
           >
             {submittingAction === 'draft' ? 'Saving…' : 'Save Draft'}
           </button>
@@ -4055,7 +4055,7 @@ export default function OrphanApplicationWizard({
               type="button"
               onClick={() => submit('submitted')}
               disabled={isSubmitting}
-              className="min-h-12 min-w-0 rounded-lg bg-blue-600 px-2 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5"
+              className="h-10 min-w-0 rounded-lg bg-blue-600 px-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60 lg:h-12 lg:px-5"
             >
               {submittingAction === 'submitted' ? (
                 'Submitting…'
