@@ -11,9 +11,10 @@ const whatsappHref = `https://wa.me/${whatsappPhone}?text=${whatsappMessage}`;
 interface HeaderHelpMenuProps {
   className?: string;
   popoverClassName?: string;
+  iconOnly?: boolean;
 }
 
-export default function HeaderHelpMenu({ className, popoverClassName = 'top-[6.75rem] sm:top-20' }: HeaderHelpMenuProps) {
+export default function HeaderHelpMenu({ className, popoverClassName = 'top-[6.75rem] sm:top-20', iconOnly = false }: HeaderHelpMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -22,13 +23,15 @@ export default function HeaderHelpMenu({ className, popoverClassName = 'top-[6.7
         type="button"
         aria-expanded={isOpen}
         aria-controls="field-worker-help-menu"
+        aria-label="Need help?"
+        title="Need help?"
         onClick={() => setIsOpen((current) => !current)}
-        className="group inline-flex h-8 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-600 to-teal-600 px-2.5 text-xs font-semibold text-white shadow-md shadow-emerald-600/20 transition hover:-translate-y-0.5 hover:from-emerald-500 hover:to-teal-500 hover:shadow-emerald-600/30 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 sm:h-10 sm:px-3.5 sm:text-sm"
+        className={`${iconOnly ? 'h-9 w-9 rounded-xl px-0 sm:h-12 sm:w-12 sm:rounded-2xl' : 'h-8 rounded-lg px-2.5 sm:h-10 sm:px-3.5'} group inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap border border-emerald-500/20 bg-gradient-to-r from-emerald-600 to-teal-600 text-xs font-semibold text-white shadow-md shadow-emerald-600/20 transition hover:-translate-y-0.5 hover:from-emerald-500 hover:to-teal-500 hover:shadow-emerald-600/30 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 sm:text-sm`}
       >
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/18 ring-1 ring-white/25 transition group-hover:bg-white/24">
-          <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
+        <span className={`${iconOnly ? 'h-6 w-6 sm:h-8 sm:w-8' : 'h-5 w-5'} flex items-center justify-center rounded-full bg-white/18 ring-1 ring-white/25 transition group-hover:bg-white/24`}>
+          <HelpCircle className={iconOnly ? 'h-4 w-4 sm:h-5 sm:w-5' : 'h-3.5 w-3.5'} aria-hidden="true" />
         </span>
-        Need help?
+        {iconOnly ? <span className="sr-only">Need help?</span> : 'Need help?'}
       </button>
 
       {isOpen ? (

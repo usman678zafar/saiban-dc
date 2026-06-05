@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import { LogOut } from 'lucide-react';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
@@ -25,18 +26,18 @@ export default async function AppShell({ title, description, actions, maxWidth =
   const isSupervisor = session?.user?.role === 'supervisor';
   const isReviewer = session?.user?.role === 'reviewer';
   const canCreateApplications = isFieldWorker || isAdmin || ((isSupervisor || isReviewer) && Boolean(session.user.canCreateApplications));
-  const navLinkClass = 'inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 sm:h-10 sm:px-3 sm:text-sm';
-  const primaryNavLinkClass = 'inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-blue-600 px-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-500 sm:h-10 sm:px-3 sm:text-sm';
-  const signOutClass = 'inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg bg-slate-100 px-3 text-xs font-semibold text-slate-800 transition hover:bg-slate-200 sm:h-10 sm:px-4 sm:text-sm';
+  const navLinkClass = 'inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-lg px-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 min-[361px]:px-2.5 sm:h-10 sm:px-3 sm:text-sm';
+  const primaryNavLinkClass = 'inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-blue-600 px-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-500 min-[361px]:px-2.5 sm:h-10 sm:px-3 sm:text-sm';
+  const signOutClass = 'inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:h-12 sm:w-12 sm:rounded-2xl';
 
   return (
     <main className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className={`mx-auto flex items-center justify-between gap-2 ${maxWidth} px-4 py-2 sm:px-6 sm:py-3`}>
+        <div className={`mx-auto flex items-center justify-between gap-1.5 ${maxWidth} px-3 py-2 min-[361px]:gap-2 min-[361px]:px-4 sm:px-6 sm:py-3`}>
           <div className="flex min-w-0 shrink items-center gap-2">
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-              <Image src={logo} alt="Saiban" width={112} height={88} className="h-8 w-auto shrink-0 object-contain sm:h-11" priority />
-              <div className="min-w-0">
+              <Image src={logo} alt="Saiban" width={112} height={88} className="h-7 w-auto shrink-0 object-contain min-[361px]:h-8 sm:h-11" priority />
+              <div className="hidden min-w-0 min-[361px]:block">
                 <p className="truncate text-[11px] leading-4 text-slate-500 sm:text-xs">{session?.user?.name ?? session?.user?.email ?? 'Signed in'}</p>
               </div>
             </div>
@@ -77,7 +78,7 @@ export default async function AppShell({ title, description, actions, maxWidth =
         </div>
       </header>
 
-      <div className={`mx-auto w-full flex-1 ${maxWidth} px-4 pb-24 pt-4 sm:px-8 sm:pb-24 sm:pt-6`}>
+      <div className={`mx-auto w-full flex-1 ${maxWidth} px-4 pb-16 pt-4 sm:px-8 sm:pb-8 sm:pr-24 sm:pt-6`}>
         <section className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{title}</h1>
@@ -89,15 +90,13 @@ export default async function AppShell({ title, description, actions, maxWidth =
         {children}
       </div>
 
-      <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur">
-        <div className={`mx-auto flex w-full flex-col gap-2 ${maxWidth} px-4 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-8`}>
-          <p className="text-xs leading-5 text-slate-500">
-            {isFieldWorker ? 'Need assistance with the volunteer portal?' : 'You are signed in to Saiban Orphan Support.'}
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            {isFieldWorker ? <HeaderHelpMenu popoverClassName="bottom-16 top-auto sm:bottom-20 sm:top-auto" /> : null}
-            <SignOutButton className={signOutClass} />
-          </div>
+      <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur sm:inset-x-auto sm:bottom-auto sm:right-4 sm:top-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:border sm:shadow-2xl">
+        <div className="mx-auto flex w-full items-center justify-center gap-2 px-4 py-1.5 sm:flex-col sm:gap-3 sm:px-2 sm:py-3">
+          {isFieldWorker ? <HeaderHelpMenu iconOnly popoverClassName="bottom-16 top-auto sm:bottom-auto sm:right-20 sm:top-1/2 sm:-translate-y-1/2" /> : null}
+          <SignOutButton ariaLabel="Sign out" className={signOutClass}>
+            <LogOut className="h-5 w-5" aria-hidden="true" />
+            <span className="sr-only">Sign out</span>
+          </SignOutButton>
         </div>
       </footer>
     </main>
