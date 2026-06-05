@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ClipboardCheck, ClipboardList, FilePlus2, KeyRound, LogOut, UsersRound } from 'lucide-react';
+import { ClipboardCheck, ClipboardList, KeyRound, LogOut, UsersRound } from 'lucide-react';
 import clsx from 'clsx';
 import SignOutButton from './sign-out-button';
 import logo from '@/assests/logo.png';
@@ -17,9 +17,8 @@ interface SupervisorSidebarProps {
 
 const baseNavItems = [
   { href: '/supervisor', label: 'Review Applications', mobileLabel: 'Review', icon: ClipboardCheck, exact: true },
+  { href: '/applications', label: 'Your Applications', mobileLabel: 'Apps', icon: ClipboardList, requiresCreateAccess: true },
   { href: '/supervisor/field-workers', label: 'Field Workers', mobileLabel: 'Workers', icon: UsersRound, requiresFieldWorkerAccess: true },
-  { href: '/applications', label: 'Applications', mobileLabel: 'Apps', icon: ClipboardList, requiresCreateAccess: true },
-  { href: '/applications/new', label: '+ Application', mobileLabel: 'New', icon: FilePlus2, requiresCreateAccess: true },
   { href: '/supervisor/account', label: 'Account', mobileLabel: 'Acct', icon: KeyRound },
 ];
 

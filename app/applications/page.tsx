@@ -328,9 +328,17 @@ export default async function ApplicationsPage({
         canCreateApplications={user?.canCreateApplications}
         canManageFieldWorkers={user?.canManageFieldWorkers}
       >
-        <header className="mb-5 flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Applications</h1>
-          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">Browse recent submissions, continue drafts, and open records for review.</p>
+        <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Your Applications</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a]">Browse recent submissions, continue drafts, and open records for review.</p>
+          </div>
+          <Link
+            href="/applications/new"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(37,99,235,0.22)] transition hover:bg-blue-500 sm:min-w-36"
+          >
+            + Application
+          </Link>
         </header>
         {content}
       </SupervisorShell>
