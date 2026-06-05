@@ -1,5 +1,6 @@
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import AppShell from '@/components/app-shell';
+import SupervisorShell from '@/components/supervisor-shell';
 import { authOptions } from '@/lib/auth';
 import { getApplicationCollectorPrefill } from '@/lib/application-prefill';
 import { getServerSession } from 'next-auth';
@@ -18,6 +19,24 @@ export default async function NewApplicationPage() {
   }
 
   const collectorPrefill = await getApplicationCollectorPrefill(session);
+  const content = <OrphanApplicationWizard initialData={collectorPrefill} />;
+
+  if (session.user.role === 'supervisor') {
+    return (
+      <SupervisorShell
+        email={session.user.email}
+        name={session.user.name}
+        canCreateApplications={Boolean(session.user.canCreateApplications)}
+        canManageFieldWorkers={Boolean(session.user.canManageFieldWorkers)}
+      >
+        <header className="mb-5 flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">+ Application</h1>
+          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">Follow the numbered steps through review and submission.</p>
+        </header>
+        {content}
+      </SupervisorShell>
+    );
+  }
 
   return (
     <AppShell
@@ -25,7 +44,7 @@ export default async function NewApplicationPage() {
       description="Follow the numbered steps through review and submission."
       maxWidth="max-w-5xl"
     >
-      <OrphanApplicationWizard initialData={collectorPrefill} />
+      {content}
     </AppShell>
   );
 }

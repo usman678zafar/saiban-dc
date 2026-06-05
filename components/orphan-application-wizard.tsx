@@ -4021,7 +4021,7 @@ export default function OrphanApplicationWizard({
 
       </fieldset>
 
-      <div className="fixed inset-x-0 bottom-[3rem] z-30 border-t border-slate-200 bg-white/95 px-8 py-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:static lg:mx-0 lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none">
+      <div className="fixed inset-x-0 bottom-[var(--mobile-nav-offset)] z-30 border-t border-slate-200 bg-white/95 px-8 py-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:static lg:mx-0 lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none">
         <div className="mx-auto grid w-full max-w-md grid-cols-3 gap-2 lg:max-w-none lg:flex lg:justify-end lg:gap-3">
           <button
             type="button"

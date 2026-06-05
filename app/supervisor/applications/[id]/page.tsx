@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import AppShell from '@/components/app-shell';
+import SupervisorShell from '@/components/supervisor-shell';
 import ApplicationActivityTimeline from '@/components/application-activity-timeline';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
@@ -28,6 +28,10 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
       project: true,
       role: true,
       id: true,
+      name: true,
+      email: true,
+      canCreateApplications: true,
+      canManageFieldWorkers: true,
       supervisorDepartments: {
         orderBy: { project: 'asc' },
         select: { project: true },
@@ -66,16 +70,16 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
   const applicationDocuments = await getApplicationDocuments(application.id);
 
   return (
-    <AppShell
-      title={application.registrationNumber ?? application.id}
-      description="Review the submitted record in the same step-by-step format used during form entry."
-      maxWidth="max-w-7xl"
-      actions={
+    <SupervisorShell email={session.user.email} name={user?.name} canCreateApplications={user?.canCreateApplications} canManageFieldWorkers={user?.canManageFieldWorkers}>
+      <header className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="break-words text-2xl font-semibold tracking-tight text-[#0f1f33] [overflow-wrap:anywhere] sm:text-3xl">{application.registrationNumber ?? application.id}</h1>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-[#5f718a]">Review the submitted record in the same step-by-step format used during form entry.</p>
+        </div>
         <Link href="/supervisor" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
           Back
         </Link>
-      }
-    >
+      </header>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <OrphanApplicationWizard
           initialData={applicationToWizardData(application)}
@@ -95,7 +99,7 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
           />
         </aside>
       </div>
-    </AppShell>
+    </SupervisorShell>
   );
 }
 

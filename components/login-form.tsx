@@ -49,7 +49,7 @@ export default function LoginForm({
       }
 
       const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl');
-      router.push(callbackUrl ?? defaultRedirect);
+      router.push(loginRole === 'supervisor' ? defaultRedirect : callbackUrl ?? defaultRedirect);
       router.refresh();
     } catch {
       setError('Unable to sign in. Please try again.');

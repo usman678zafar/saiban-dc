@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import type { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import AppShell from '@/components/app-shell';
+import SupervisorShell from '@/components/supervisor-shell';
 import FieldWorkerManager, { FieldWorkerListItem } from '@/components/field-worker-manager';
 import { projectReviewValues } from '@/lib/field-workers';
 
@@ -65,8 +65,10 @@ export default async function SupervisorFieldWorkersPage({
     select: {
       id: true,
       name: true,
+      email: true,
       phoneNumber: true,
       project: true,
+      canCreateApplications: true,
       canManageFieldWorkers: true,
       supervisorDepartments: {
         orderBy: { project: 'asc' },
@@ -77,11 +79,15 @@ export default async function SupervisorFieldWorkersPage({
 
   if (!supervisor?.canManageFieldWorkers) {
     return (
-      <AppShell title="Field Workers" description="Your account does not have field worker management access.">
+      <SupervisorShell email={session.user.email} name={supervisor?.name} canCreateApplications={supervisor?.canCreateApplications} canManageFieldWorkers={false}>
+        <header className="mb-5 flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Field Workers</h1>
+          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">Your account does not have field worker management access.</p>
+        </header>
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Ask an admin to enable field worker management for your supervisor account.
         </div>
-      </AppShell>
+      </SupervisorShell>
     );
   }
 
@@ -91,11 +97,15 @@ export default async function SupervisorFieldWorkersPage({
 
   if (projects.length === 0) {
     return (
-      <AppShell title="Field Workers" description="Your supervisor account needs a department assignment before field workers can be managed.">
+      <SupervisorShell email={session.user.email} name={supervisor.name} canCreateApplications={supervisor.canCreateApplications} canManageFieldWorkers={supervisor.canManageFieldWorkers}>
+        <header className="mb-5 flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Field Workers</h1>
+          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">Your supervisor account needs a department assignment before field workers can be managed.</p>
+        </header>
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Ask an admin to assign your supervisor account to a department.
         </div>
-      </AppShell>
+      </SupervisorShell>
     );
   }
 
@@ -182,11 +192,11 @@ export default async function SupervisorFieldWorkersPage({
   };
 
   return (
-    <AppShell
-      title="Field Workers"
-      description={`Manage field workers assigned to ${projects.join(', ')}.`}
-      maxWidth="max-w-6xl"
-    >
+    <SupervisorShell email={session.user.email} name={supervisor.name} canCreateApplications={supervisor.canCreateApplications} canManageFieldWorkers={supervisor.canManageFieldWorkers}>
+      <header className="mb-5 flex flex-col gap-2">
+        <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Field Workers</h1>
+        <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">Manage field workers assigned to {projects.join(', ')}.</p>
+      </header>
       <FieldWorkerManager
         initialWorkers={workers}
         supervisors={[supervisorOption]}
@@ -206,6 +216,6 @@ export default async function SupervisorFieldWorkersPage({
         filters={{ search, project, supervisor: 'all', source: 'all' as SourceFilter }}
         counts={{ totalAll: total, admin: 0, self: 0, projects: projectCounts }}
       />
-    </AppShell>
+    </SupervisorShell>
   );
 }

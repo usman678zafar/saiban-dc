@@ -32,7 +32,7 @@ export default async function AppShell({ title, description, actions, maxWidth =
   const signOutClass = 'inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:h-12 sm:w-12 sm:rounded-2xl';
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+    <main className="flex min-h-screen flex-col bg-slate-50 text-slate-900 [--mobile-nav-offset:3rem] sm:[--mobile-nav-offset:0px]">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className={`mx-auto flex items-center justify-between gap-1.5 ${maxWidth} px-3 py-2 min-[361px]:gap-2 min-[361px]:px-4 sm:px-6 sm:py-3`}>
           <div className="flex min-w-0 shrink items-center gap-2">

@@ -2,10 +2,10 @@ import Link from 'next/link';
 import type { Prisma } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import { FilePlus2, Search, ShieldCheck, UsersRound, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import AppShell from '@/components/app-shell';
+import SupervisorShell from '@/components/supervisor-shell';
 import { applicationStatusLabel, badgeClass } from '@/lib/application-workflow';
 import { collectorProjectsReviewWhere } from '@/lib/field-workers';
 import { applicationSearchWhere } from '@/lib/application-search';
@@ -78,6 +78,8 @@ export default async function SupervisorPage({
       project: true,
       role: true,
       id: true,
+      name: true,
+      email: true,
       canCreateApplications: true,
       canManageFieldWorkers: true,
       supervisorDepartments: {
@@ -94,11 +96,15 @@ export default async function SupervisorPage({
       : user?.project ? [user.project] : [];
   if (!['admin', 'super_admin'].includes(user?.role ?? '') && assignedProjects.length === 0) {
     return (
-      <AppShell title="Supervisor Review" description="Your supervisor account needs a department assignment before applications can appear.">
+      <SupervisorShell email={session.user.email} name={user?.name} canCreateApplications={user?.canCreateApplications} canManageFieldWorkers={user?.canManageFieldWorkers}>
+        <header className="mb-5 flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Supervisor Review</h1>
+          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">Your supervisor account needs a department assignment before applications can appear.</p>
+        </header>
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Ask an admin to assign your supervisor account to a department.
         </div>
-      </AppShell>
+      </SupervisorShell>
     );
   }
 
@@ -162,36 +168,13 @@ export default async function SupervisorPage({
   const countsByView = new Map(viewCounts.map((item) => [item.view, item.count]));
 
   return (
-    <AppShell
-      title="Supervisor Review"
-      description={assignedProjects.length ? `Applications submitted for ${assignedProjects.join(', ')}.` : 'All submitted applications.'}
-      maxWidth="max-w-6xl"
-      actions={
-        user?.canCreateApplications ? (
-          <>
-            <Link href="/supervisor" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
-              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-              Supervise Applications
-            </Link>
-            {user?.canManageFieldWorkers ? (
-              <Link href="/supervisor/field-workers" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-500">
-                <UsersRound className="h-4 w-4" aria-hidden="true" />
-                Manage Field Workers
-              </Link>
-            ) : null}
-            <Link href="/applications/new" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
-              <FilePlus2 className="h-4 w-4" aria-hidden="true" />
-              Create New Application
-            </Link>
-          </>
-        ) : user?.canManageFieldWorkers ? (
-          <Link href="/supervisor/field-workers" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-500">
-            <UsersRound className="h-4 w-4" aria-hidden="true" />
-            Manage Field Workers
-          </Link>
-        ) : null
-      }
-    >
+    <SupervisorShell email={session.user.email} name={user?.name} canCreateApplications={user?.canCreateApplications} canManageFieldWorkers={user?.canManageFieldWorkers}>
+      <header className="mb-5 flex flex-col gap-2">
+        <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Supervisor Review</h1>
+        <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
+          {assignedProjects.length ? `Applications submitted for ${assignedProjects.join(', ')}.` : 'All submitted applications.'}
+        </p>
+      </header>
       <nav className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {supervisorViews.map((view) => (
           <Link
@@ -302,7 +285,7 @@ export default async function SupervisorPage({
           )}
         </div>
       </div>
-    </AppShell>
+    </SupervisorShell>
   );
 }
 

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import AppShell from '@/components/app-shell';
+import SupervisorShell from '@/components/supervisor-shell';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import { getApplicationDocuments } from '@/lib/application-documents';
 import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
@@ -52,6 +53,32 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
   const applicationDocuments = await getApplicationDocuments(application.id);
   const initialData = applicationToWizardData(application);
   const initialDocuments = documentsToWizardDocuments(applicationDocuments);
+  const content = (
+    <OrphanApplicationWizard
+      initialData={initialData}
+      initialDocuments={initialDocuments}
+      initialApplicationId={application.id}
+    />
+  );
+
+  if (session.user.role === 'supervisor') {
+    return (
+      <SupervisorShell
+        email={session.user.email}
+        name={session.user.name}
+        canCreateApplications={Boolean(session.user.canCreateApplications)}
+        canManageFieldWorkers={Boolean(session.user.canManageFieldWorkers)}
+      >
+        <header className="mb-5 flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Edit Orphan Application</h1>
+          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
+            Update draft information and save changes for application {application.registrationNumber ?? application.id}.
+          </p>
+        </header>
+        {content}
+      </SupervisorShell>
+    );
+  }
 
   return (
     <AppShell
@@ -59,11 +86,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       description={`Update draft information and save changes for application ${application.registrationNumber ?? application.id}.`}
       maxWidth="max-w-6xl"
     >
-      <OrphanApplicationWizard
-        initialData={initialData}
-        initialDocuments={initialDocuments}
-        initialApplicationId={application.id}
-      />
+      {content}
     </AppShell>
   );
 }

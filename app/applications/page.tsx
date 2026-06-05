@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
+import SupervisorShell from '@/components/supervisor-shell';
 import { authOptions } from '@/lib/auth';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 import DuplicateApplicationButton from '@/components/duplicate-application-button';
@@ -58,6 +59,7 @@ export default async function ApplicationsPage({
 
   const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
   const isSuperAdmin = session?.user?.role === 'super_admin';
+  const isSupervisor = session.user.role === 'supervisor';
   const canCreateApplications = session.user.role === 'field_worker'
     || isAdmin
     || ((session.user.role === 'supervisor' || session.user.role === 'reviewer') && Boolean(session.user.canCreateApplications));
@@ -67,7 +69,7 @@ export default async function ApplicationsPage({
   const user = session?.user?.email
     ? await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true },
+      select: { id: true, name: true, canCreateApplications: true, canManageFieldWorkers: true },
     })
     : null;
   const search = searchParams.q?.trim() ?? '';
@@ -121,24 +123,8 @@ export default async function ApplicationsPage({
   const hasPrev = page > 1;
   const hasNext = page < totalPages;
 
-  return (
-    <AppShell
-      title="Applications"
-      description="Browse recent submissions, continue drafts, and open records for review."
-      maxWidth="max-w-6xl"
-      actions={
-        isAdmin ? (
-          <>
-            <Link href="/api/applications/export?format=csv" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto">
-              Export CSV
-            </Link>
-            <Link href="/api/applications/export?format=json" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-300 sm:w-auto">
-              Export JSON
-            </Link>
-          </>
-        ) : null
-      }
-    >
+  const content = (
+    <>
       <form action="/applications" className="mb-3 rounded-lg border border-slate-200 bg-white p-2 shadow-sm sm:p-3">
         <div className="flex flex-col gap-2 sm:flex-row">
           <label className="relative min-w-0 flex-1">
@@ -331,6 +317,45 @@ export default async function ApplicationsPage({
           </div>
         </div>
       </div>
+    </>
+  );
+
+  if (isSupervisor) {
+    return (
+      <SupervisorShell
+        email={session.user.email}
+        name={user?.name}
+        canCreateApplications={user?.canCreateApplications}
+        canManageFieldWorkers={user?.canManageFieldWorkers}
+      >
+        <header className="mb-5 flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Applications</h1>
+          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">Browse recent submissions, continue drafts, and open records for review.</p>
+        </header>
+        {content}
+      </SupervisorShell>
+    );
+  }
+
+  return (
+    <AppShell
+      title="Applications"
+      description="Browse recent submissions, continue drafts, and open records for review."
+      maxWidth="max-w-6xl"
+      actions={
+        isAdmin ? (
+          <>
+            <Link href="/api/applications/export?format=csv" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto">
+              Export CSV
+            </Link>
+            <Link href="/api/applications/export?format=json" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-300 sm:w-auto">
+              Export JSON
+            </Link>
+          </>
+        ) : null
+      }
+    >
+      {content}
     </AppShell>
   );
 }
@@ -361,7 +386,7 @@ function EmptyApplicationsState({ search, compact = false }: { search: string; c
           </Link>
         ) : null}
         <Link href="/applications/new" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 sm:w-auto">
-          New Application
+          + Application
         </Link>
       </div>
     </div>
