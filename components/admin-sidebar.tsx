@@ -17,14 +17,14 @@ const navItems = [
   { href: '/admin', label: 'Overview', mobileLabel: 'Home', icon: LayoutDashboard, exact: true },
   { href: '/admin/applications', label: 'Applications', mobileLabel: 'Apps', icon: ClipboardList },
   { href: '/admin/applications/new', label: 'New Application', mobileLabel: 'New', icon: PlusCircle, exact: true },
+  { href: '/admin/projects', label: 'Departments', mobileLabel: 'Depts', icon: FolderKanban },
   { href: '/admin/supervisors', label: 'Supervisors', mobileLabel: 'Supers', icon: ShieldCheck },
   { href: '/admin/reviewers', label: 'Reviewers', mobileLabel: 'Review', icon: UserCheck },
   { href: '/admin/field-workers', label: 'Field Workers', mobileLabel: 'Workers', icon: UsersRound },
-  { href: '/admin/audit', label: 'Audit Trail', mobileLabel: 'Audit', icon: ScrollText },
-  { href: '/admin/projects', label: 'Departments', mobileLabel: 'Depts', icon: FolderKanban },
   { href: '/admin/admins', label: 'Admins', mobileLabel: 'Admins', icon: UserCog, superAdminOnly: true },
-  { href: '/admin/account', label: 'Account', mobileLabel: 'Acct', icon: KeyRound },
   { href: '/dashboard', label: 'Field Dashboard', mobileLabel: 'Field', icon: BarChart3, exact: true },
+  { href: '/admin/audit', label: 'Audit Trail', mobileLabel: 'Audit', icon: ScrollText },
+  { href: '/admin/account', label: 'Account', mobileLabel: 'Acct', icon: KeyRound },
 ];
 
 function isActivePath(pathname: string, href: string, exact?: boolean) {
