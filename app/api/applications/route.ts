@@ -18,7 +18,7 @@ async function getUser(request: NextRequest) {
 
 function collectorPayload(user: NonNullable<Awaited<ReturnType<typeof getUser>>>) {
   return {
-    collectorId: user.fieldWorkerId ?? user.id,
+    collectorId: user.fieldWorkerId ?? '',
     collectorName: user.name ?? '',
     collectorProject: user.project ?? '',
     collectorCnic: user.cnic ?? '',

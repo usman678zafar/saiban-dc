@@ -1059,6 +1059,10 @@ export default function OrphanApplicationWizard({
     () => (applicationId ? `saiban-orphan-application:step:${applicationId}` : null),
     [applicationId],
   );
+  const editStorageKey = useMemo(
+    () => (initialApplicationId ? `saiban-orphan-application:edit:${initialApplicationId}` : null),
+    [initialApplicationId],
+  );
   const [documents, setDocuments] = useState<DocumentInput[]>(initialDocuments ?? []);
   const [addressOptions, setAddressOptions] = useState<AddressOptionInput[]>([]);
   const [hasLoadedPersistedState, setHasLoadedPersistedState] = useState(readOnly);
@@ -1147,6 +1151,27 @@ export default function OrphanApplicationWizard({
           const persistedStep = JSON.parse(rawStep) as { step?: number };
           setStep(clampWizardStep(persistedStep.step));
         }
+        if (!readOnly && editStorageKey) {
+          const rawEditState = window.localStorage.getItem(editStorageKey);
+          if (rawEditState) {
+            const persisted = JSON.parse(rawEditState) as PersistedWizardState;
+            const persistedFormData = persisted.formData ?? {};
+            setFormData(normalizeInitialData({
+              ...defaultData,
+              ...mergedData,
+              ...persistedFormData,
+              collectorId: mergedData.collectorId,
+              collectorName: mergedData.collectorName,
+              collectorProject: mergedData.collectorProject,
+              collectorCnic: mergedData.collectorCnic,
+              collectorAddress: mergedData.collectorAddress,
+              collectorContact: mergedData.collectorContact,
+            }));
+            setStep(clampWizardStep(persisted.step));
+            setDocuments(Array.isArray(persisted.documents) ? persisted.documents : initialDocuments ?? []);
+            setHasUnsavedChanges(true);
+          }
+        }
         setHasLoadedPersistedState(true);
         return;
       }
@@ -1210,7 +1235,7 @@ export default function OrphanApplicationWizard({
       }
       setHasLoadedPersistedState(true);
     }
-  }, [initialApplicationId, mergedData, readOnly, storageKey]);
+  }, [editStorageKey, initialApplicationId, initialDocuments, mergedData, readOnly, storageKey]);
 
   useEffect(() => {
     if (readOnly) return;
@@ -1246,6 +1271,21 @@ export default function OrphanApplicationWizard({
 
     window.localStorage.setItem(storageKey, JSON.stringify(persisted));
   }, [applicationId, documents, formData, hasLoadedPersistedState, initialApplicationId, readOnly, shouldPersistNewApplication, step, storageKey]);
+
+  useEffect(() => {
+    if (readOnly) return;
+    if (!initialApplicationId || !editStorageKey || !hasLoadedPersistedState) return;
+
+    const persisted: PersistedWizardState & { updatedAt: string } = {
+      step,
+      formData,
+      applicationId,
+      documents,
+      updatedAt: new Date().toISOString(),
+    };
+
+    window.localStorage.setItem(editStorageKey, JSON.stringify(persisted));
+  }, [applicationId, documents, editStorageKey, formData, hasLoadedPersistedState, initialApplicationId, readOnly, step]);
 
   useEffect(() => {
     if (!applicationStepStorageKey || !hasLoadedPersistedState) return;
@@ -1845,6 +1885,7 @@ export default function OrphanApplicationWizard({
       setApplicationId(application.id);
       setShouldPersistNewApplication(false);
       window.localStorage.removeItem(storageKey);
+      if (editStorageKey) window.localStorage.removeItem(editStorageKey);
       lastAutosavedPayloadRef.current = JSON.stringify({
         ...body,
         id: application.id,
@@ -1910,6 +1951,7 @@ export default function OrphanApplicationWizard({
         setApplicationId(application.id);
         setShouldPersistNewApplication(false);
         window.localStorage.removeItem(storageKey);
+        if (editStorageKey) window.localStorage.removeItem(editStorageKey);
         lastAutosavedPayloadRef.current = JSON.stringify({
           ...body,
           id: application.id,
@@ -1999,6 +2041,7 @@ export default function OrphanApplicationWizard({
 
       const application = await response.json();
       window.localStorage.removeItem(storageKey);
+      if (editStorageKey) window.localStorage.removeItem(editStorageKey);
       setShouldPersistNewApplication(false);
       setApplicationId(application.id);
       latestApplicationIdRef.current = application.id;
@@ -2076,6 +2119,7 @@ export default function OrphanApplicationWizard({
       setAutosaveStatus(saveStatus === 'draft' ? 'saved' : null);
       if (saveStatus === 'submitted') {
         window.localStorage.removeItem(`saiban-orphan-application:step:${application.id}`);
+        if (editStorageKey) window.localStorage.removeItem(editStorageKey);
       }
       if (saveStatus === 'submitted') {
         setShowSubmissionSuccessModal(true);
@@ -2085,6 +2129,9 @@ export default function OrphanApplicationWizard({
       if (!initialApplicationId) {
         window.localStorage.removeItem(storageKey);
         setShouldPersistNewApplication(false);
+      }
+      if (saveStatus === 'draft' && editStorageKey) {
+        window.localStorage.removeItem(editStorageKey);
       }
       if (!applicationId) {
         setStep(TOTAL_STEPS);
@@ -2331,9 +2378,18 @@ export default function OrphanApplicationWizard({
   };
 
   const areIdentityDetailsComplete = () => [1, 2, 3, 7].every((item) => isStepComplete(item));
+  const missingAttestationPrerequisites = () => {
+    const missing: string[] = [];
+    if (!formData.childName.trim()) missing.push('Orphan name');
+    if (!formData.fatherName.trim()) missing.push('Father name');
+    if (!formData.bFormNumber.trim()) missing.push('B-form number');
+    return missing;
+  };
+  const areAttestationPrerequisitesComplete = () => missingAttestationPrerequisites().length === 0;
 
   const canOpenStep = (stepNumber: number) => {
     if (readOnly) return true;
+    if (stepNumber === 11) return areAttestationPrerequisitesComplete();
     if (stepNumber === 12) return areIdentityDetailsComplete();
     if (stepNumber === 13) return Array.from({ length: 12 }, (_, index) => index + 1).every((item) => isStepComplete(item));
     return true;
@@ -2349,10 +2405,16 @@ export default function OrphanApplicationWizard({
   const goToStep = (nextStep: number) => {
     const clampedStep = Math.min(Math.max(nextStep, 1), TOTAL_STEPS);
     if (!canOpenStep(clampedStep)) {
-      const message = clampedStep === 12
-        ? 'Complete father, mother, guardian, and child details before opening documents.'
-        : 'Complete previous steps before opening review.';
+      const missingAttestationFields = clampedStep === 11 ? missingAttestationPrerequisites() : [];
+      const message = clampedStep === 11
+        ? `Fill ${missingAttestationFields.join(', ')} before opening Attestation.`
+        : clampedStep === 12
+          ? 'Complete father, mother, guardian, and child details before opening documents.'
+          : 'Complete previous steps before opening review.';
       showTemporaryMessage(message);
+      if (clampedStep === 11) {
+        setStep(!formData.fatherName.trim() ? 1 : 7);
+      }
       return;
     }
 

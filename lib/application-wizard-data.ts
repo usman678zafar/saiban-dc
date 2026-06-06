@@ -15,6 +15,11 @@ function stringValue(value: unknown, fallback = '') {
   return value === null || value === undefined ? fallback : String(value);
 }
 
+function collectorIdValue(value: unknown) {
+  const next = stringValue(value);
+  return /^FW-\d+$/i.test(next) ? next : '';
+}
+
 export function applicationToWizardData(application: any): Partial<FormData> {
   const householdAssets = application.householdAssets ?? [];
   const householdAssetSelection = householdAssetRowsToSelection(householdAssets);
@@ -36,7 +41,7 @@ export function applicationToWizardData(application: any): Partial<FormData> {
 
   return {
     registrationNumber: application.registrationNumber ?? '',
-    collectorId: application.collectorId ?? '',
+    collectorId: collectorIdValue(application.collectorId),
     collectorName: application.collectorName ?? '',
     collectorProject: application.collectorProject ?? '',
     collectorCnic: application.collectorCnic ?? '',

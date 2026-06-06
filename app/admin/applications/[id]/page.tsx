@@ -5,6 +5,7 @@ import { CopyPlus } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
+import BackButton from '@/components/back-button';
 import ApplicationActivityTimeline from '@/components/application-activity-timeline';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
@@ -58,9 +59,9 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
           <p className="mt-2 text-sm text-slate-600">Open the full application record, activity history, and available review actions.</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link href="/admin/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+          <BackButton fallbackHref="/admin/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
             Back
-          </Link>
+          </BackButton>
           <Link href={`/applications/${application.id}/duplicate`} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-100">
             <CopyPlus className="h-4 w-4" aria-hidden="true" />
             Add Child Same Family

@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import AppShell from '@/components/app-shell';
 import AdminShell from '@/components/admin-shell';
 import SupervisorShell from '@/components/supervisor-shell';
+import BackButton from '@/components/back-button';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import { getApplicationDocuments } from '@/lib/application-documents';
 import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
@@ -60,6 +61,21 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       initialApplicationId={application.id}
     />
   );
+  const backFallbackHref = session.user.role === 'admin' || session.user.role === 'super_admin'
+    ? `/admin/applications/${application.id}`
+    : session.user.role === 'reviewer'
+      ? `/reviewer/applications/${application.id}`
+      : session.user.role === 'supervisor'
+        ? `/applications/${application.id}`
+        : `/applications/${application.id}`;
+  const backButton = (
+    <BackButton
+      fallbackHref={backFallbackHref}
+      className="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+    >
+      Back
+    </BackButton>
+  );
 
   if (session.user.role === 'supervisor') {
     return (
@@ -69,11 +85,14 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
         canCreateApplications={Boolean(session.user.canCreateApplications)}
         canManageFieldWorkers={Boolean(session.user.canManageFieldWorkers)}
       >
-        <header className="mb-5 flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Edit Orphan Application</h1>
-          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
-            Update draft information and save changes for application {application.registrationNumber ?? application.id}.
-          </p>
+        <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Edit Orphan Application</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a]">
+              Update draft information and save changes for application {application.registrationNumber ?? application.id}.
+            </p>
+          </div>
+          {backButton}
         </header>
         {content}
       </SupervisorShell>
@@ -83,11 +102,14 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
   if (session.user.role === 'admin' || session.user.role === 'super_admin') {
     return (
       <AdminShell email={session.user.email} role={session.user.role}>
-        <header className="mb-5 flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Edit Orphan Application</h1>
-          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
-            Update draft information and save changes for application {application.registrationNumber ?? application.id}.
-          </p>
+        <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Edit Orphan Application</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a]">
+              Update draft information and save changes for application {application.registrationNumber ?? application.id}.
+            </p>
+          </div>
+          {backButton}
         </header>
         {content}
       </AdminShell>
@@ -99,6 +121,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       title="Edit Orphan Application"
       description={`Update draft information and save changes for application ${application.registrationNumber ?? application.id}.`}
       maxWidth="max-w-6xl"
+      actions={backButton}
     >
       {content}
     </AppShell>
