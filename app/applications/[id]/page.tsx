@@ -52,7 +52,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
   if (!isAdmin && application.createdById !== session.user.id) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
-  const canEdit = isSuperAdmin || application.status === 'draft' || application.status === 'needs_correction' || (isAdmin && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status));
+  const canEdit = isSuperAdmin || (!isAdmin && (application.status === 'draft' || application.status === 'needs_correction'));
   const actions = (
     <>
       {!isAdmin ? <VolunteerApplicationStatus status={application.status} /> : null}

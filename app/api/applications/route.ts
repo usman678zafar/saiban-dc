@@ -499,6 +499,11 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
     action = status === 'reviewer_approved' ? 'approved_by_reviewer' : 'rejected_by_reviewer';
   }
 
+  if (user.role === 'admin') {
+    allowed = application.status === 'reviewer_approved' && ['admin_approved', 'rejected'].includes(status);
+    action = status === 'admin_approved' ? 'approved_by_admin' : 'rejected_by_admin';
+  }
+
   if (user.role === 'super_admin') {
     allowed = (
       (application.status === 'submitted' && ['needs_correction', 'supervisor_approved', 'rejected'].includes(status)) ||
@@ -642,11 +647,10 @@ export async function PATCH(request: NextRequest) {
     }
 
     const canReviewerEdit = user.role === 'reviewer' && application.status === 'supervisor_approved';
-    const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
     const canSuperAdminEdit = user.role === 'super_admin';
-    const canOwnerEdit = application.createdById === user.id && canCreateApplications(user);
+    const canOwnerEdit = user.role !== 'admin' && application.createdById === user.id && canCreateApplications(user);
 
-    if (!canOwnerEdit && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
+    if (!canOwnerEdit && !canReviewerEdit && !canSuperAdminEdit) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 

@@ -15,65 +15,52 @@ import { collectorProjectReviewWhere } from '@/lib/field-workers';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 
 const PAGE_SIZE = 50;
-const adminVisibleApplicationWhere = {
-  status: {
-    in: [
-      ApplicationStatus.reviewer_approved,
-      ApplicationStatus.admin_approved,
-      ApplicationStatus.validated,
-      ApplicationStatus.rejected,
-      ApplicationStatus.migrated,
-    ],
-  },
-};
-
-function applicationWhereForRole(role?: string | null) {
-  return role === 'super_admin' ? {} : adminVisibleApplicationWhere;
-}
-
-const superAdminStatusFilters = [
-  { key: 'all', label: 'All', detail: 'Everything visible' },
-  { key: 'pending', label: 'Pending', detail: 'Submitted by volunteers' },
+const statusFilters = [
+  { key: 'pending_admin_review', label: 'Pending Admin Review', detail: 'Approved by reviewers and ready for admin decision' },
+  { key: 'all', label: 'All', detail: 'Every application stage' },
   { key: 'drafts', label: 'Drafts', detail: 'Saved but not submitted' },
-  { key: 'supervisor_approved', label: 'Supervisor Approved', detail: 'Ready for reviewer/admin flow' },
+  { key: 'submitted', label: 'Submitted', detail: 'Waiting for supervisor review' },
+  { key: 'needs_correction', label: 'Needs Correction', detail: 'Returned for volunteer correction' },
+  { key: 'supervisor_approved', label: 'Supervisor Approved', detail: 'Ready for reviewer flow' },
+  { key: 'admin_approved', label: 'Admin Approved', detail: 'Final admin approval completed' },
+  { key: 'validated', label: 'Validated', detail: 'Validated records' },
+  { key: 'rejected', label: 'Rejected', detail: 'Rejected records' },
+  { key: 'migrated', label: 'Migrated', detail: 'Migrated records' },
   { key: 'final_approved', label: 'Final Approved', detail: 'Admin approved, validated, migrated' },
-  { key: 'others', label: 'Others', detail: 'Correction, reviewer, rejected, other submitted' },
 ] as const;
 
-type SuperAdminStatusFilter = (typeof superAdminStatusFilters)[number]['key'];
-
-const submittedByFieldWorkerWhere: Prisma.OrphanApplicationWhereInput = {
-  status: ApplicationStatus.submitted,
-  createdBy: { role: 'field_worker' },
-};
+type StatusFilter = (typeof statusFilters)[number]['key'];
 
 const finalApprovedWhere: Prisma.OrphanApplicationWhereInput = {
   status: { in: [ApplicationStatus.admin_approved, ApplicationStatus.validated, ApplicationStatus.migrated] },
 };
 
-function isSuperAdminStatusFilter(value: string | undefined): value is SuperAdminStatusFilter {
-  return superAdminStatusFilters.some((filter) => filter.key === value);
+function isStatusFilter(value: string | undefined): value is StatusFilter {
+  return statusFilters.some((filter) => filter.key === value);
 }
 
-function superAdminApplicationFilterWhere(filter: SuperAdminStatusFilter): Prisma.OrphanApplicationWhereInput {
+function applicationFilterWhere(filter: StatusFilter): Prisma.OrphanApplicationWhereInput {
   switch (filter) {
-    case 'pending':
-      return submittedByFieldWorkerWhere;
+    case 'pending_admin_review':
+      return { status: ApplicationStatus.reviewer_approved };
     case 'drafts':
       return { status: ApplicationStatus.draft };
+    case 'submitted':
+      return { status: ApplicationStatus.submitted };
+    case 'needs_correction':
+      return { status: ApplicationStatus.needs_correction };
     case 'supervisor_approved':
       return { status: ApplicationStatus.supervisor_approved };
+    case 'admin_approved':
+      return { status: ApplicationStatus.admin_approved };
+    case 'validated':
+      return { status: ApplicationStatus.validated };
+    case 'rejected':
+      return { status: ApplicationStatus.rejected };
+    case 'migrated':
+      return { status: ApplicationStatus.migrated };
     case 'final_approved':
       return finalApprovedWhere;
-    case 'others':
-      return {
-        NOT: [
-          submittedByFieldWorkerWhere,
-          { status: ApplicationStatus.draft },
-          { status: ApplicationStatus.supervisor_approved },
-          finalApprovedWhere,
-        ],
-      };
     default:
       return {};
   }
@@ -98,19 +85,19 @@ export default async function AdminApplicationsPage({
   if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications');
   if (!['admin', 'super_admin'].includes(session.user.role ?? '')) redirect('/dashboard');
   const isSuperAdmin = session.user.role === 'super_admin';
+  const showMigration = true;
 
   const search = searchParams.q?.trim() ?? '';
   const projects = await getFieldWorkerProjectOptions();
   const selectedDepartment = projects.includes(searchParams.department ?? '') ? searchParams.department ?? 'all' : 'all';
   const searchWhere = applicationSearchWhere(search);
-  const selectedStatusFilter: SuperAdminStatusFilter = isSuperAdmin && isSuperAdminStatusFilter(searchParams.status)
+  const defaultStatusFilter: StatusFilter = isSuperAdmin ? 'all' : 'pending_admin_review';
+  const selectedStatusFilter: StatusFilter = isStatusFilter(searchParams.status)
     ? searchParams.status
-    : 'all';
-  const roleWhere = applicationWhereForRole(session.user.role);
-  const statusWhere = isSuperAdmin ? superAdminApplicationFilterWhere(selectedStatusFilter) : {};
+    : defaultStatusFilter;
+  const statusWhere = applicationFilterWhere(selectedStatusFilter);
   const departmentWhere = selectedDepartment !== 'all' ? collectorProjectReviewWhere(selectedDepartment) : {};
   const whereParts: Prisma.OrphanApplicationWhereInput[] = [
-    roleWhere,
     searchWhere,
     statusWhere,
     departmentWhere,
@@ -121,7 +108,7 @@ export default async function AdminApplicationsPage({
   const pageHref = (nextPage: number) => {
     const params = new URLSearchParams();
     if (search) params.set('q', search);
-    if (isSuperAdmin && selectedStatusFilter !== 'all') params.set('status', selectedStatusFilter);
+    if (selectedStatusFilter !== defaultStatusFilter) params.set('status', selectedStatusFilter);
     if (selectedDepartment !== 'all') params.set('department', selectedDepartment);
     if (nextPage > 1) params.set('page', String(nextPage));
     const query = params.toString();
@@ -201,24 +188,22 @@ export default async function AdminApplicationsPage({
               ))}
             </select>
           </label>
-          {isSuperAdmin ? (
-            <label className="min-w-0 sm:w-56">
-              <span className="sr-only">Filter by application status</span>
-              <select
-                name="status"
-                defaultValue={selectedStatusFilter}
-                className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
-              >
-                {superAdminStatusFilters.map((filter) => (
-                  <option key={filter.key} value={filter.key}>{filter.label}</option>
-                ))}
-              </select>
-            </label>
-          ) : null}
+          <label className="min-w-0 sm:w-60">
+            <span className="sr-only">Filter by application status</span>
+            <select
+              name="status"
+              defaultValue={selectedStatusFilter}
+              className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
+            >
+              {statusFilters.map((filter) => (
+                <option key={filter.key} value={filter.key}>{filter.label}</option>
+              ))}
+            </select>
+          </label>
           <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#3b82f6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2563eb]">
             Search
           </button>
-          {search || selectedDepartment !== 'all' || (isSuperAdmin && selectedStatusFilter !== 'all') ? (
+          {search || selectedDepartment !== 'all' || selectedStatusFilter !== defaultStatusFilter ? (
             <Link href="/admin/applications" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-4 py-2 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd]">
               <X className="h-4 w-4" aria-hidden="true" />
               Clear
@@ -239,7 +224,7 @@ export default async function AdminApplicationsPage({
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
                   <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
                   <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{application.collectorProject || 'No department'}</span>
-                  {isSuperAdmin ? <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784]">{application.migrationStatus}</span> : null}
+                  {showMigration ? <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784]">{application.migrationStatus}</span> : null}
                 </div>
                 <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
               </Link>
@@ -254,7 +239,7 @@ export default async function AdminApplicationsPage({
                 <th className="px-4 py-3">Application</th>
                 <th className="px-4 py-3">Department</th>
                 <th className="px-4 py-3">Status</th>
-                {isSuperAdmin ? <th className="px-4 py-3">Migration</th> : null}
+                {showMigration ? <th className="px-4 py-3">Migration</th> : null}
                 <th className="px-4 py-3">Updated</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
@@ -262,7 +247,7 @@ export default async function AdminApplicationsPage({
             <tbody>
               {applications.length === 0 ? (
                 <tr>
-                  <td colSpan={isSuperAdmin ? 6 : 5} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
+                  <td colSpan={showMigration ? 6 : 5} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
                 </tr>
               ) : (
                 applications.map((application: ApplicationListItem) => (
@@ -273,7 +258,7 @@ export default async function AdminApplicationsPage({
                     </td>
                     <td className="px-4 py-4">{application.collectorProject || '-'}</td>
                     <td className="px-4 py-4">{applicationStatusLabel(application.status)}</td>
-                    {isSuperAdmin ? <td className="px-4 py-4 capitalize">{application.migrationStatus}</td> : null}
+                    {showMigration ? <td className="px-4 py-4 capitalize">{application.migrationStatus}</td> : null}
                     <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(application.updatedAt)}</td>
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-2">

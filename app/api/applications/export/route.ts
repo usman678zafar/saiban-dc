@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
   const format = new URL(request.url).searchParams.get('format') || 'csv';
   const applications = await prisma.orphanApplication.findMany({
-    where: session.user.role === 'super_admin' ? {} : { status: { not: 'draft' } },
+    where: {},
     orderBy: { createdAt: 'desc' },
     include: {
       siblings: true,

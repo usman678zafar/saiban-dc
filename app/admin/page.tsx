@@ -36,32 +36,14 @@ type FieldWorker = {
   createdAt: Date;
 };
 
-const adminVisibleApplicationWhere = {
-  status: {
-    in: [
-      ApplicationStatus.reviewer_approved,
-      ApplicationStatus.admin_approved,
-      ApplicationStatus.validated,
-      ApplicationStatus.rejected,
-      ApplicationStatus.migrated,
-    ],
-  },
-};
-
-function adminVisibleApplicationFilter(role?: string | null) {
-  return role === 'super_admin' ? {} : adminVisibleApplicationWhere;
-}
-
 function humanizeMigrationStatus(status: string) {
   return status.replace(/_/g, ' ');
 }
 
-async function getAdminPortalData(role?: string | null) {
-  const visibleApplicationWhere = adminVisibleApplicationFilter(role);
+async function getAdminPortalData() {
   const [applicationStatusCounts, allApplicationStatusCounts, submittedByFieldWorkersCount] = await Promise.all([
     prisma.orphanApplication.groupBy({
       by: ['status'],
-      where: visibleApplicationWhere,
       _count: { _all: true },
     }),
     prisma.orphanApplication.groupBy({
@@ -112,7 +94,6 @@ async function getAdminPortalData(role?: string | null) {
   }) as FieldWorker[];
 
   const recentApplications = await prisma.orphanApplication.findMany({
-    where: visibleApplicationWhere,
     orderBy: { updatedAt: 'desc' },
     take: 8,
     select: {
@@ -131,7 +112,7 @@ async function getAdminPortalData(role?: string | null) {
     { label: 'Applications Submitted', value: submittedByFieldWorkersCount, detail: 'By field workers and volunteers', tone: 'violet' },
     { label: 'Reviewer Approved', value: reviewerApprovedApplications, detail: 'Awaiting final review', tone: 'violet' },
     { label: 'Final Approved', value: adminApprovedApplications, detail: 'Validated records', tone: 'emerald' },
-    ...(role === 'super_admin' ? [{ label: 'Migrated', value: migratedApplications, detail: 'Moved onward', tone: 'sky' } as AdminMetric] : []),
+    { label: 'Migrated', value: migratedApplications, detail: 'Moved onward', tone: 'sky' },
     { label: 'Rejected', value: rejectedApplications, detail: 'Needs attention', tone: 'red' },
     { label: 'Field Workers', value: fieldWorkerCount, detail: 'All volunteers', tone: 'orange' },
     { label: 'Users', value: totalUsers, detail: 'Portal access', tone: 'orange' },
@@ -151,8 +132,7 @@ export default async function AdminPortalPage() {
     redirect('/dashboard');
   }
 
-  const { metrics, fieldWorkers, recentApplications } = await getAdminPortalData(session.user.role);
-  const isSuperAdmin = session.user.role === 'super_admin';
+  const { metrics, fieldWorkers, recentApplications } = await getAdminPortalData();
   const metricStyles = {
     blue: { icon: ClipboardList, tile: 'bg-[#e8f1ff] text-[#3b82f6]', value: 'text-[#3b82f6]' },
     violet: { icon: Send, tile: 'bg-[#f0e8ff] text-[#8357f4]', value: 'text-[#8357f4]' },
@@ -176,7 +156,7 @@ export default async function AdminPortalPage() {
               <Link href="/admin/applications/new" className="rounded-lg bg-[#3b82f6] px-3 py-2 text-center text-xs font-semibold text-white shadow-[0_10px_20px_rgba(59,130,246,0.18)] hover:bg-[#2563eb]">
                 New Application
               </Link>
-              <Link href="/admin/applications" className="rounded-lg border border-[#dbe4ef] bg-white px-3 py-2 text-center text-xs font-semibold text-[#0f1f33] hover:bg-[#f6f9fd]">
+              <Link href="/admin/applications?status=all" className="rounded-lg border border-[#dbe4ef] bg-white px-3 py-2 text-center text-xs font-semibold text-[#0f1f33] hover:bg-[#f6f9fd]">
                 View All
               </Link>
             </div>
@@ -211,7 +191,7 @@ export default async function AdminPortalPage() {
                   <h2 className="text-base font-semibold text-[#0f1f33]">Recent Applications</h2>
                   <p className="mt-0.5 text-xs text-[#8a9bb3]">Latest records sorted by update time.</p>
                 </div>
-                <Link href="/admin/applications" className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 py-2 text-xs font-semibold text-[#0f1f33] hover:bg-[#eef4fb] sm:w-auto">
+                <Link href="/admin/applications?status=all" className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 py-2 text-xs font-semibold text-[#0f1f33] hover:bg-[#eef4fb] sm:w-auto">
                   View All
                   <ArrowRight size={16} />
                 </Link>
@@ -230,11 +210,9 @@ export default async function AdminPortalPage() {
                         <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb] lg:min-w-0 lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium lg:text-[#506784] lg:truncate">
                           {applicationStatusLabel(application.status)}
                         </span>
-                        {isSuperAdmin ? (
-                          <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784] lg:min-w-0 lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium lg:truncate">
-                            {humanizeMigrationStatus(application.migrationStatus)}
-                          </span>
-                        ) : null}
+                        <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784] lg:min-w-0 lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium lg:truncate">
+                          {humanizeMigrationStatus(application.migrationStatus)}
+                        </span>
                         <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#8a9bb3] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium">{formatDate(application.updatedAt)}</span>
                         <Link href={`/admin/applications/${application.id}`} className="inline-flex min-h-9 items-center justify-center rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff] lg:justify-self-end">
                           Review

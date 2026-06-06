@@ -26,10 +26,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   const isSuperAdmin = session.user.role === 'super_admin';
 
   const application = await prisma.orphanApplication.findFirst({
-    where: {
-      id: params.id,
-      ...(isSuperAdmin ? {} : { status: { in: ['reviewer_approved', 'admin_approved', 'validated', 'rejected', 'migrated'] } }),
-    },
+    where: { id: params.id },
     include: {
       siblings: true,
       relatives: true,
@@ -51,14 +48,14 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   if (!application) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
-  const canEdit = isSuperAdmin || ['reviewer_approved', 'admin_approved', 'validated'].includes(application.status);
+  const canEdit = isSuperAdmin;
 
   return (
     <AdminShell email={session.user.email} role={session.user.role}>
       <header className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{application.registrationNumber ?? application.id}</h1>
-          <p className="mt-2 text-sm text-slate-600">Final review after supervisor and reviewer approval.</p>
+          <p className="mt-2 text-sm text-slate-600">Open the full application record, activity history, and available review actions.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Link href="/admin/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
@@ -101,16 +98,18 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
             createdByName={application.createdBy.name ?? application.createdBy.fieldWorkerId}
             auditLogs={application.auditLogs}
           />
+          <ApplicationStatusActions
+            applicationId={application.id}
+            currentStatus={application.status}
+            actorRole={isSuperAdmin ? 'super_admin' : 'admin'}
+          />
           {isSuperAdmin ? (
-            <>
-              <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="super_admin" />
-              <ApplicationMigrationFields
-                applicationId={application.id}
-                initialMigrationStatus={application.migrationStatus}
-                initialMainSaibanId={application.mainSaibanId ?? ''}
-                initialMigrationErrors={application.migrationErrors ?? ''}
-              />
-            </>
+            <ApplicationMigrationFields
+              applicationId={application.id}
+              initialMigrationStatus={application.migrationStatus}
+              initialMainSaibanId={application.mainSaibanId ?? ''}
+              initialMigrationErrors={application.migrationErrors ?? ''}
+            />
           ) : null}
         </aside>
       </div>

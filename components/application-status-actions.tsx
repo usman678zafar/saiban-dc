@@ -44,7 +44,10 @@ const actionButtons: Record<'super_admin' | 'admin' | 'reviewer' | 'supervisor' 
     { from: 'supervisor_approved', to: 'reviewer_approved', label: 'Approve for Admin', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
     { from: 'supervisor_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
   ],
-  admin: [],
+  admin: [
+    { from: 'reviewer_approved', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
+    { from: 'reviewer_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
+  ],
   field_worker: [
     { from: 'needs_correction', to: 'submitted', label: 'Resubmit Application', icon: ArrowRight, color: 'bg-blue-600 hover:bg-blue-500' },
   ],
