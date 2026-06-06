@@ -8,6 +8,7 @@ import { isValidDistrictForProvince, isValidTehsilForDistrict } from '@/lib/addr
 import { deleteFromR2 } from '@/lib/r2';
 import { applicationStatuses } from '@/lib/application-workflow';
 import { projectMatchesReviewAssignment } from '@/lib/field-workers';
+import { logSystemAudit } from '@/lib/system-audit';
 
 async function getUser(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -333,7 +334,6 @@ function requiredDocumentTypesForApplication(data: any) {
   const types = [
     'child_photo',
     'child_b_form',
-    'father_cnic',
     'father_death_certificate',
   ];
 
@@ -775,6 +775,10 @@ export async function DELETE(request: NextRequest) {
       id: true,
       status: true,
       createdById: true,
+      registrationNumber: true,
+      childName: true,
+      collectorName: true,
+      collectorProject: true,
       documents: {
         select: {
           fileKey: true,
@@ -808,6 +812,20 @@ export async function DELETE(request: NextRequest) {
     prisma.auditLog.deleteMany({ where: { applicationId: id } }),
     prisma.orphanApplication.delete({ where: { id } }),
   ]);
+
+  await logSystemAudit({
+    action: user.role === 'super_admin' ? 'application_deleted_by_super_admin' : 'draft_application_deleted',
+    entityType: 'application',
+    entityId: application.id,
+    entityLabel: application.registrationNumber ?? application.childName ?? application.id,
+    actorId: user.id,
+    details: {
+      status: application.status,
+      childName: application.childName,
+      collectorName: application.collectorName,
+      collectorProject: application.collectorProject,
+    },
+  });
 
   return NextResponse.json({ message: user.role === 'super_admin' ? 'Application deleted successfully.' : 'Draft application deleted successfully.' });
 }

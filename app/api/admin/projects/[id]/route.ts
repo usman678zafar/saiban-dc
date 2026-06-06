@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { fieldWorkerProjects } from '@/lib/field-workers';
+import { logSystemAudit } from '@/lib/system-audit';
 
 const projectSchema = z.object({
   name: z.string().trim().min(1, 'Department name is required').max(80, 'Department name is too long'),
@@ -61,6 +62,18 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return updated;
     });
 
+    await logSystemAudit({
+      action: 'department_updated',
+      entityType: 'department',
+      entityId: updatedProject.id,
+      entityLabel: updatedProject.name,
+      actorId: auth.session.user?.id,
+      details: {
+        from: project.name,
+        to: updatedProject.name,
+      },
+    });
+
     return NextResponse.json(updatedProject);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -99,6 +112,13 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
   }
 
   await prisma.projectOption.delete({ where: { id: project.id } });
+  await logSystemAudit({
+    action: 'department_deleted',
+    entityType: 'department',
+    entityId: project.id,
+    entityLabel: project.name,
+    actorId: auth.session.user?.id,
+  });
   return NextResponse.json({ message: 'Department deleted successfully.' });
 }
 

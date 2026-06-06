@@ -6,6 +6,7 @@ import { UserRole } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getSessionVersionUpdateData } from '@/lib/session-version';
+import { logSystemAudit } from '@/lib/system-audit';
 
 const updateAdminSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -53,6 +54,19 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       },
     });
 
+    await logSystemAudit({
+      action: 'admin_updated',
+      entityType: 'admin',
+      entityId: admin.id,
+      entityLabel: admin.name ?? admin.email,
+      actorId: auth.session.user?.id,
+      details: {
+        name: admin.name,
+        email: admin.email,
+        passwordChanged: Boolean(passwordHash),
+      },
+    });
+
     return NextResponse.json(admin);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -71,6 +85,8 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     where: { id: params.id, role: UserRole.admin },
     select: {
       id: true,
+      name: true,
+      email: true,
       _count: {
         select: {
           updatedApps: true,
@@ -89,5 +105,12 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
   }
 
   await prisma.user.delete({ where: { id: params.id } });
+  await logSystemAudit({
+    action: 'admin_deleted',
+    entityType: 'admin',
+    entityId: admin.id,
+    entityLabel: admin.name ?? admin.email,
+    actorId: auth.session.user?.id,
+  });
   return NextResponse.json({ message: 'Admin deleted successfully.' });
 }

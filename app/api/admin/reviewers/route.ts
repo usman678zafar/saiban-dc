@@ -6,6 +6,7 @@ import { UserRole } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { cnicVariants, digitsOnly, formatCnic, isValidCnic, normalizePakistanMobile } from '@/lib/contact-format';
+import { logSystemAudit } from '@/lib/system-audit';
 const reviewerEmailForPhone = (phoneNumber: string) => `${phoneNumber.replace(/[^a-zA-Z0-9]+/g, '')}@reviewer.saiban.local`;
 
 const createReviewerSchema = z.object({
@@ -69,6 +70,20 @@ export async function POST(request: NextRequest) {
         address: true,
         canCreateApplications: true,
         createdAt: true,
+      },
+    });
+
+    await logSystemAudit({
+      action: 'reviewer_created',
+      entityType: 'reviewer',
+      entityId: reviewer.id,
+      entityLabel: reviewer.name ?? reviewer.phoneNumber ?? reviewer.email,
+      actorId: session.user.id,
+      details: {
+        name: reviewer.name,
+        phoneNumber: reviewer.phoneNumber,
+        cnic: reviewer.cnic,
+        canCreateApplications: reviewer.canCreateApplications,
       },
     });
 

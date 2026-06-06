@@ -571,6 +571,7 @@ const DEATH_CAUSE_OPTIONS = [
   { value: 'Suicide', label: 'Suicide / خودکشی' },
   { value: 'Violence / Murder', label: 'Violence / Murder / تشدد / قتل' },
   { value: 'War / Conflict', label: 'War / Conflict / جنگ / مسلح جھگڑا' },
+  { value: 'Martyred', label: 'شہید / Martyred' },
   { value: 'Infectious Disease', label: 'Infectious Disease / متعدی بیماری' },
   { value: 'COVID-19', label: 'COVID-19 / کووڈ-19' },
   { value: 'Surgery Complications', label: 'Surgery Complications / آپریشن کی پیچیدگیاں' },
@@ -2119,7 +2120,7 @@ export default function OrphanApplicationWizard({
     const types = [
       { type: 'child_photo', label: "Orphan's Picture / یتیم بچے کی تصویر" },
       { type: 'child_b_form', label: "Orphan's B form / یتیم بچے کا ب فارم" },
-      { type: 'father_cnic', label: "Father's CNIC Copy / والد کے شناختی کارڈ کی کاپی" },
+      { type: 'father_cnic', label: "Father's CNIC Copy / والد کے شناختی کارڈ کی کاپی", optional: true },
       { type: 'father_death_certificate', label: "Father's Death Certificate Copy / والد کے ڈیتھ سرٹیفکیٹ کی کاپی" },
     ];
 
@@ -2317,7 +2318,7 @@ export default function OrphanApplicationWizard({
         return hasCompleteAttestation;
 
       case 12: // Documents
-        const requiredTypes = documentTypes.map((d) => d.type);
+        const requiredTypes = documentTypes.filter((d) => !d.optional).map((d) => d.type);
         const uploadedTypes = documents.map((d) => d.documentType);
         return requiredTypes.every((type) => uploadedTypes.includes(type));
 
@@ -3846,7 +3847,7 @@ export default function OrphanApplicationWizard({
                   onUpload={handleDocumentUpload}
                   onRemove={handleDocumentRemove}
                   existingDocument={existingDocument}
-                  label={<>{renderLocalizedLabel(documentType.label)} <span className="text-rose-500">*</span></>}
+                  label={<>{renderLocalizedLabel(documentType.label)} {documentType.optional ? <span className="text-xs font-medium text-slate-400">(optional)</span> : <span className="text-rose-500">*</span>}</>}
                   accept="image/*,.pdf"
                   disabled={readOnly}
                 />

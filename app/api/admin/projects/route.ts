@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { fieldWorkerProjects } from '@/lib/field-workers';
+import { logSystemAudit } from '@/lib/system-audit';
 
 const projectSchema = z.object({
   name: z.string().trim().min(1, 'Department name is required').max(80, 'Department name is too long'),
@@ -30,6 +31,15 @@ export async function POST(request: NextRequest) {
     const project = await prisma.projectOption.create({
       data: { name: input.name },
       select: { id: true, name: true, createdAt: true },
+    });
+
+    await logSystemAudit({
+      action: 'department_created',
+      entityType: 'department',
+      entityId: project.id,
+      entityLabel: project.name,
+      actorId: auth.session.user?.id,
+      details: { name: project.name },
     });
 
     return NextResponse.json(project, { status: 201 });

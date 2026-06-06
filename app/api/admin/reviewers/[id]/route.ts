@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { cnicVariants, formatCnic, isValidCnic } from '@/lib/contact-format';
 import { getSessionVersionUpdateData } from '@/lib/session-version';
+import { logSystemAudit } from '@/lib/system-audit';
 
 const updateReviewerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -81,6 +82,21 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       },
     });
 
+    await logSystemAudit({
+      action: 'reviewer_updated',
+      entityType: 'reviewer',
+      entityId: reviewer.id,
+      entityLabel: reviewer.name ?? reviewer.phoneNumber ?? reviewer.email,
+      actorId: auth.session.user?.id,
+      details: {
+        name: reviewer.name,
+        cnic: reviewer.cnic,
+        address: reviewer.address,
+        canCreateApplications: reviewer.canCreateApplications,
+        passwordChanged: Boolean(passwordHash),
+      },
+    });
+
     return NextResponse.json(reviewer);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -99,6 +115,9 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     where: { id: params.id, role: UserRole.reviewer },
     select: {
       id: true,
+      name: true,
+      email: true,
+      phoneNumber: true,
       _count: {
         select: {
           updatedApps: true,
@@ -117,5 +136,12 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
   }
 
   await prisma.user.delete({ where: { id: params.id } });
+  await logSystemAudit({
+    action: 'reviewer_deleted',
+    entityType: 'reviewer',
+    entityId: reviewer.id,
+    entityLabel: reviewer.name ?? reviewer.phoneNumber ?? reviewer.email,
+    actorId: auth.session.user?.id,
+  });
   return NextResponse.json({ message: 'Reviewer deleted successfully.' });
 }

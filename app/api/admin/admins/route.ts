@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { UserRole } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logSystemAudit } from '@/lib/system-audit';
 
 const createAdminSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -53,6 +54,18 @@ export async function POST(request: NextRequest) {
         name: true,
         email: true,
         createdAt: true,
+      },
+    });
+
+    await logSystemAudit({
+      action: 'admin_created',
+      entityType: 'admin',
+      entityId: admin.id,
+      entityLabel: admin.name ?? admin.email,
+      actorId: auth.session.user?.id,
+      details: {
+        name: admin.name,
+        email: admin.email,
       },
     });
 
