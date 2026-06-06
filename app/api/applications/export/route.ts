@@ -4,6 +4,12 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { toIsoString } from '@/lib/safe-date';
 
+function csvEscape(value: unknown) {
+  if (value === null || value === undefined) return '';
+  const stringValue = value instanceof Date ? toIsoString(value) : String(value);
+  return `"${stringValue.replace(/"/g, '""')}"`;
+}
+
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -66,24 +72,21 @@ export async function GET(request: NextRequest) {
   const nestedHeaders = ['siblings', 'relatives', 'householdAssets'] as const;
   const allHeaders = [...scalarHeaders, ...nestedHeaders];
 
-  const csvRows = [allHeaders.join(',')];
+  const csvRows = [allHeaders.map(csvEscape).join(',')];
   const csvBody = applications
     .map((application: ApplicationRow) => {
       const scalarValues = scalarHeaders.map((header) => {
         const value = application[header];
-        if (typeof value === 'string') return JSON.stringify(value);
-        if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-        if (value instanceof Date) return JSON.stringify(toIsoString(value));
-        return '';
+        return csvEscape(value);
       });
       const nestedValues = nestedHeaders.map((header) =>
-        JSON.stringify(JSON.stringify(application[header]))
+        csvEscape(JSON.stringify(application[header]))
       );
       return [...scalarValues, ...nestedValues].join(',');
     })
     .join('\n');
 
-  return new Response(csvRows.concat(csvBody ? [csvBody] : []).join('\n'), {
+  return new Response(`\uFEFF${csvRows.concat(csvBody ? [csvBody] : []).join('\n')}`, {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
       'Content-Disposition': 'attachment; filename="applications.csv"',
