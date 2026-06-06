@@ -482,6 +482,16 @@ const ATTESTATION_DOCUMENT_TYPE = 'attestation_confirmation';
 const ATTESTATION_PAGE_1_DOCUMENT_TYPE = 'attestation_page_1';
 const ATTESTATION_PAGE_2_DOCUMENT_TYPE = 'attestation_page_2';
 
+type CnicDocumentGroup = {
+  key: 'father' | 'mother' | 'guardian';
+  title: string;
+  note: string;
+  combinedType: string;
+  frontType: string;
+  backType: string;
+  required: boolean;
+};
+
 const NEW_APPLICATION_INSTRUCTIONS = [
   {
     text: 'یتیم بچے سے مراد وہ بچہ ہے جس کے والد کا انتقال ہوچکا ہو اور رجسٹریشن کے وقت اس کی عمر 12 سال سے کم ہو۔',
@@ -2167,20 +2177,11 @@ export default function OrphanApplicationWizard({
     const types = [
       { type: 'child_photo', label: "Orphan's Picture / یتیم بچے کی تصویر" },
       { type: 'child_b_form', label: "Orphan's B form / یتیم بچے کا ب فارم" },
-      { type: 'father_cnic', label: "Father's CNIC Copy / والد کے شناختی کارڈ کی کاپی", optional: true },
       { type: 'father_death_certificate', label: "Father's Death Certificate Copy / والد کے ڈیتھ سرٹیفکیٹ کی کاپی" },
     ];
 
-    if (formData.motherAlive !== 'no') {
-      types.push({ type: 'mother_cnic', label: "Mother's CNIC Copy / والدہ کے شناختی کارڈ کی کاپی" });
-    }
-
     if (formData.motherAlive === 'no') {
       types.push({ type: 'mother_death_certificate', label: "Mother's Death Certificate Copy / والدہ کے ڈیتھ سرٹیفکیٹ کی کاپی" });
-    }
-
-    if (guardianDetailsNeeded) {
-      types.push({ type: 'guardian_cnic', label: "Guardian's CNIC Copy / سرپرست کے شناختی کارڈ کی کاپی" });
     }
 
     if (formData.healthStatus === 'chronic_illness' || formData.healthStatus === 'disabled') {
@@ -2188,7 +2189,53 @@ export default function OrphanApplicationWizard({
     }
 
     return types;
-  }, [formData.healthStatus, formData.motherAlive, guardianDetailsNeeded]);
+  }, [formData.healthStatus, formData.motherAlive]);
+  const cnicDocumentGroups = useMemo<CnicDocumentGroup[]>(() => {
+    const groups: CnicDocumentGroup[] = [
+      {
+        key: 'father',
+        title: "Father's CNIC",
+        note: 'Optional. Upload one combined CNIC file, or upload front and back separately. / اختیاری: ایک مکمل فائل اپ لوڈ کریں یا سامنے اور پیچھے کی الگ تصاویر اپ لوڈ کریں۔',
+        combinedType: 'father_cnic',
+        frontType: 'father_cnic_front',
+        backType: 'father_cnic_back',
+        required: false,
+      },
+    ];
+
+    if (formData.motherAlive !== 'no') {
+      groups.push({
+        key: 'mother',
+        title: "Mother's CNIC",
+        note: 'Required. Upload one combined CNIC file, or upload front and back separately. / لازمی: ایک مکمل فائل اپ لوڈ کریں یا سامنے اور پیچھے کی الگ تصاویر اپ لوڈ کریں۔',
+        combinedType: 'mother_cnic',
+        frontType: 'mother_cnic_front',
+        backType: 'mother_cnic_back',
+        required: true,
+      });
+    }
+
+    if (guardianDetailsNeeded) {
+      groups.push({
+        key: 'guardian',
+        title: "Guardian's CNIC",
+        note: 'Required. Upload one combined CNIC file, or upload front and back separately. / لازمی: ایک مکمل فائل اپ لوڈ کریں یا سامنے اور پیچھے کی الگ تصاویر اپ لوڈ کریں۔',
+        combinedType: 'guardian_cnic',
+        frontType: 'guardian_cnic_front',
+        backType: 'guardian_cnic_back',
+        required: true,
+      });
+    }
+
+    return groups;
+  }, [formData.motherAlive, guardianDetailsNeeded]);
+  const hasDocumentType = (documentType: string) => documents.some((document) => document.documentType === documentType);
+  const isCnicDocumentGroupComplete = (group: CnicDocumentGroup) => {
+    const hasCombined = hasDocumentType(group.combinedType);
+    const hasBothSides = hasDocumentType(group.frontType) && hasDocumentType(group.backType);
+    if (hasCombined || hasBothSides) return true;
+    return !group.required && !hasDocumentType(group.frontType) && !hasDocumentType(group.backType);
+  };
   const hasCombinedAttestation = documents.some((document) => document.documentType === ATTESTATION_DOCUMENT_TYPE);
   const hasSeparateAttestationPages = documents.some((document) => document.documentType === ATTESTATION_PAGE_1_DOCUMENT_TYPE) && documents.some((document) => document.documentType === ATTESTATION_PAGE_2_DOCUMENT_TYPE);
   const hasCompleteAttestation = hasCombinedAttestation || hasSeparateAttestationPages;
@@ -2365,9 +2412,10 @@ export default function OrphanApplicationWizard({
         return hasCompleteAttestation;
 
       case 12: // Documents
-        const requiredTypes = documentTypes.filter((d) => !d.optional).map((d) => d.type);
+        const requiredTypes = documentTypes.map((d) => d.type);
         const uploadedTypes = documents.map((d) => d.documentType);
-        return requiredTypes.every((type) => uploadedTypes.includes(type));
+        return requiredTypes.every((type) => uploadedTypes.includes(type))
+          && cnicDocumentGroups.every((group) => isCnicDocumentGroupComplete(group));
 
       case 13: // Review
         return formData.status === 'submitted';
@@ -3882,7 +3930,7 @@ export default function OrphanApplicationWizard({
           <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-start">
             <div>
               <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Documents Upload / دستاویزات اپ لوڈ')}</h2>
-              <p className="mt-1 text-sm text-slate-600">Every document shown here is required before submission.</p>
+              <p className="mt-1 text-sm text-slate-600">Upload the required documents before submission. Father's CNIC is optional.</p>
             </div>
             <button
               type="button"
@@ -3897,24 +3945,105 @@ export default function OrphanApplicationWizard({
               Selecting a file will save this application as a draft first, then upload the document.
             </div>
           ) : null}
-          <div className="grid gap-4 sm:grid-cols-2">
-            {documentTypes.map((documentType) => {
-              const existingDocument = documents.find((doc) => doc.documentType === documentType.type);
-              return (
-                <FileUpload
-                  key={documentType.type}
-                  documentType={documentType.type}
-                  applicationId={applicationId}
-                  ensureApplicationId={ensureDraftApplication}
-                  onUpload={handleDocumentUpload}
-                  onRemove={handleDocumentRemove}
-                  existingDocument={existingDocument}
-                  label={<>{renderLocalizedLabel(documentType.label)} {documentType.optional ? <span className="text-xs font-medium text-slate-400">(optional)</span> : <span className="text-rose-500">*</span>}</>}
-                  accept="image/*,.pdf"
-                  disabled={readOnly}
-                />
-              );
-            })}
+          <div className="space-y-4">
+            <div className="grid gap-3 lg:grid-cols-3">
+              {cnicDocumentGroups.map((group) => {
+                const complete = isCnicDocumentGroupComplete(group);
+                const hasStarted = [group.combinedType, group.frontType, group.backType].some((type) => hasDocumentType(type));
+                const badgeText = !group.required && !hasStarted ? 'Optional' : complete ? 'Ready' : 'Needed';
+                const badgeClass = !group.required && !hasStarted
+                  ? 'bg-slate-100 text-slate-600'
+                  : complete
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-amber-50 text-amber-700';
+                return (
+                  <section key={group.key} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold text-slate-900">
+                          {group.title} {group.required ? <span className="text-rose-500">*</span> : <span className="text-xs font-medium text-slate-400">(optional)</span>}
+                        </h3>
+                        <p className="mt-1 text-xs leading-5 text-slate-600">{group.note}</p>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass}`}>
+                        {badgeText}
+                      </span>
+                    </div>
+                    <div className="mt-3 space-y-3">
+                      <FileUpload
+                        documentType={group.combinedType}
+                        applicationId={applicationId}
+                        ensureApplicationId={ensureDraftApplication}
+                        onUpload={handleDocumentUpload}
+                        onRemove={handleDocumentRemove}
+                        existingDocument={documents.find((doc) => doc.documentType === group.combinedType)}
+                        label={<span>Combined CNIC file</span>}
+                        accept="image/*,.pdf"
+                        disabled={readOnly}
+                        compact
+                      />
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                        <FileUpload
+                          documentType={group.frontType}
+                          applicationId={applicationId}
+                          ensureApplicationId={ensureDraftApplication}
+                          onUpload={handleDocumentUpload}
+                          onRemove={handleDocumentRemove}
+                          existingDocument={documents.find((doc) => doc.documentType === group.frontType)}
+                          label={<span>Front side</span>}
+                          accept="image/*,.pdf"
+                          disabled={readOnly}
+                          compact
+                        />
+                        <FileUpload
+                          documentType={group.backType}
+                          applicationId={applicationId}
+                          ensureApplicationId={ensureDraftApplication}
+                          onUpload={handleDocumentUpload}
+                          onRemove={handleDocumentRemove}
+                          existingDocument={documents.find((doc) => doc.documentType === group.backType)}
+                          label={<span>Back side</span>}
+                          accept="image/*,.pdf"
+                          disabled={readOnly}
+                          compact
+                        />
+                      </div>
+                    </div>
+                    {!complete && hasStarted ? (
+                      <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                        Upload both front and back sides, or remove them and use one combined CNIC file.
+                      </p>
+                    ) : null}
+                  </section>
+                );
+              })}
+            </div>
+
+            <section className="space-y-3">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900">Required documents</h3>
+                <p className="mt-1 text-xs leading-5 text-slate-600">Upload the remaining documents needed for this application.</p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {documentTypes.map((documentType) => {
+                  const existingDocument = documents.find((doc) => doc.documentType === documentType.type);
+                  return (
+                    <FileUpload
+                      key={documentType.type}
+                      documentType={documentType.type}
+                      applicationId={applicationId}
+                      ensureApplicationId={ensureDraftApplication}
+                      onUpload={handleDocumentUpload}
+                      onRemove={handleDocumentRemove}
+                      existingDocument={existingDocument}
+                      label={<>{renderLocalizedLabel(documentType.label)} <span className="text-rose-500">*</span></>}
+                      accept="image/*,.pdf"
+                      disabled={readOnly}
+                    />
+                  );
+                })}
+              </div>
+            </section>
           </div>
         </div>
       )}

@@ -17,6 +17,7 @@ interface FileUploadProps {
   label: ReactNode;
   accept?: string;
   disabled?: boolean;
+  compact?: boolean;
 }
 
 export default function FileUpload({
@@ -29,6 +30,7 @@ export default function FileUpload({
   label,
   accept = 'image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf',
   disabled = false,
+  compact = false,
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -125,10 +127,10 @@ export default function FileUpload({
 
   return (
     <div className="min-w-0 space-y-2">
-      <label className="block min-w-0 break-words text-sm font-medium leading-6 text-slate-700">{label}</label>
+      <label className={`block min-w-0 break-words font-medium text-slate-700 ${compact ? 'text-xs leading-5' : 'text-sm leading-6'}`}>{label}</label>
 
       {existingDocument ? (
-        <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
+        <div className={`flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 ${compact ? 'p-2' : 'p-3 sm:p-4'}`}>
           <a
             href={existingDocument.fileUrl ?? '#'}
             target={existingDocument.fileUrl ? '_blank' : undefined}
@@ -170,7 +172,7 @@ export default function FileUpload({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0 sm:flex-row sm:gap-3 sm:py-8"
+            className={`flex w-full items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-center text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 ${compact ? 'min-h-12 flex-row gap-2 px-3 py-3' : 'min-h-24 flex-col gap-2 px-4 py-6 sm:min-h-0 sm:flex-row sm:gap-3 sm:py-8'}`}
           >
             <Upload className="h-5 w-5" />
             {isUploading ? 'Uploading...' : 'Choose file'}

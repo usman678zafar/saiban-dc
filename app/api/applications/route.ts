@@ -337,17 +337,8 @@ function requiredDocumentTypesForApplication(data: any) {
     'father_death_certificate',
   ];
 
-  if (data.motherAlive !== 'no') {
-    types.push('mother_cnic');
-  }
-
   if (data.motherAlive === 'no') {
     types.push('mother_death_certificate');
-  }
-
-  const guardianDetailsNeeded = data.motherAlive !== 'yes' || data.motherIsGuardian !== 'yes';
-  if (guardianDetailsNeeded) {
-    types.push('guardian_cnic');
   }
 
   if (data.healthStatus === 'chronic_illness' || data.healthStatus === 'disabled') {
@@ -355,6 +346,63 @@ function requiredDocumentTypesForApplication(data: any) {
   }
 
   return types;
+}
+
+function requiredCnicDocumentGroupsForApplication(data: any) {
+  const groups = [];
+
+  if (data.motherAlive !== 'no') {
+    groups.push({
+      label: "Mother's CNIC",
+      combinedType: 'mother_cnic',
+      frontType: 'mother_cnic_front',
+      backType: 'mother_cnic_back',
+      required: true,
+    });
+  }
+
+  const guardianDetailsNeeded = data.motherAlive !== 'yes' || data.motherIsGuardian !== 'yes';
+  if (guardianDetailsNeeded) {
+    groups.push({
+      label: "Guardian's CNIC",
+      combinedType: 'guardian_cnic',
+      frontType: 'guardian_cnic_front',
+      backType: 'guardian_cnic_back',
+      required: true,
+    });
+  }
+
+  groups.push({
+    label: "Father's CNIC",
+    combinedType: 'father_cnic',
+    frontType: 'father_cnic_front',
+    backType: 'father_cnic_back',
+    required: false,
+  });
+
+  return groups;
+}
+
+function validateCnicDocumentGroups(uploadedTypes: Set<string>, data: any) {
+  const errors: string[] = [];
+
+  for (const group of requiredCnicDocumentGroupsForApplication(data)) {
+    const hasCombined = uploadedTypes.has(group.combinedType);
+    const hasFront = uploadedTypes.has(group.frontType);
+    const hasBack = uploadedTypes.has(group.backType);
+    const hasBothSides = hasFront && hasBack;
+
+    if (hasCombined || hasBothSides) continue;
+    if (!group.required && !hasFront && !hasBack) continue;
+
+    if (hasFront || hasBack) {
+      errors.push(`${group.label}: upload both front and back sides, or upload one combined CNIC file.`);
+    } else {
+      errors.push(`${group.label}: upload one combined CNIC file, or upload front and back sides.`);
+    }
+  }
+
+  return errors;
 }
 
 async function validateSubmittedDocuments(applicationId: string, data: any) {
@@ -366,11 +414,16 @@ async function validateSubmittedDocuments(applicationId: string, data: any) {
   });
   const uploadedTypes = new Set(uploadedDocuments.map((document) => document.documentType));
   const missingTypes = requiredDocumentTypesForApplication(data).filter((type) => !uploadedTypes.has(type as any));
+  const cnicErrors = validateCnicDocumentGroups(uploadedTypes, data);
   const hasCombinedAttestation = uploadedTypes.has('attestation_confirmation' as any);
   const hasSeparateAttestationPages = uploadedTypes.has('attestation_page_1' as any) && uploadedTypes.has('attestation_page_2' as any);
 
   if (missingTypes.length > 0) {
     throw new Error(`Upload required documents before submitting: ${missingTypes.map((type) => type.replace(/_/g, ' ')).join(', ')}`);
+  }
+
+  if (cnicErrors.length > 0) {
+    throw new Error(cnicErrors.join(' '));
   }
 
   if (!hasCombinedAttestation && !hasSeparateAttestationPages) {

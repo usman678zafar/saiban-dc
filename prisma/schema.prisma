@@ -38,10 +38,16 @@ enum DocumentType {
   child_photo
   child_b_form
   father_cnic
+  father_cnic_front
+  father_cnic_back
   father_death_certificate
   mother_cnic
+  mother_cnic_front
+  mother_cnic_back
   mother_death_certificate
   guardian_cnic
+  guardian_cnic_front
+  guardian_cnic_back
   school_letter
   fee_voucher
   medical_report
