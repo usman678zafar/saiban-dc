@@ -27,19 +27,33 @@ export async function GET(request: NextRequest) {
       siblings: true,
       relatives: true,
       householdAssets: true,
+      createdBy: {
+        select: {
+          phoneNumber: true,
+          cnic: true,
+        },
+      },
     },
   });
 
   if (format === 'json') {
-    return NextResponse.json(applications);
+    return NextResponse.json(applications.map((application) => ({
+      ...application,
+      createdByPhoneNumber: application.createdBy.phoneNumber,
+      createdByCnic: application.createdBy.cnic,
+    })));
   }
 
   type ApplicationRow = (typeof applications)[number];
+  type ComputedHeader = 'createdByPhoneNumber' | 'createdByCnic';
 
   const scalarHeaders: Array<keyof ApplicationRow> = [
     'id',
     'registrationNumber',
     'collectorId',
+    'collectorContact',
+    'collectorCnic',
+    'collectorAddress',
     'status',
     'migrationStatus',
     'mainSaibanId',
@@ -69,8 +83,9 @@ export async function GET(request: NextRequest) {
     'updatedAt',
   ];
 
+  const computedHeaders: ComputedHeader[] = ['createdByPhoneNumber', 'createdByCnic'];
   const nestedHeaders = ['siblings', 'relatives', 'householdAssets'] as const;
-  const allHeaders = [...scalarHeaders, ...nestedHeaders];
+  const allHeaders = [...scalarHeaders, ...computedHeaders, ...nestedHeaders];
 
   const csvRows = [allHeaders.map(csvEscape).join(',')];
   const csvBody = applications
@@ -79,10 +94,16 @@ export async function GET(request: NextRequest) {
         const value = application[header];
         return csvEscape(value);
       });
+      const computedValues = computedHeaders.map((header) => {
+        const value = header === 'createdByPhoneNumber'
+          ? application.createdBy.phoneNumber
+          : application.createdBy.cnic;
+        return csvEscape(value);
+      });
       const nestedValues = nestedHeaders.map((header) =>
         csvEscape(JSON.stringify(application[header]))
       );
-      return [...scalarValues, ...nestedValues].join(',');
+      return [...scalarValues, ...computedValues, ...nestedValues].join(',');
     })
     .join('\n');
 
