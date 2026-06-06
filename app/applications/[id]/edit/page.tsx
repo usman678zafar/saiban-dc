@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import AppShell from '@/components/app-shell';
+import AdminShell from '@/components/admin-shell';
 import SupervisorShell from '@/components/supervisor-shell';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import { getApplicationDocuments } from '@/lib/application-documents';
@@ -76,6 +77,20 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
         </header>
         {content}
       </SupervisorShell>
+    );
+  }
+
+  if (session.user.role === 'admin' || session.user.role === 'super_admin') {
+    return (
+      <AdminShell email={session.user.email} role={session.user.role}>
+        <header className="mb-5 flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Edit Orphan Application</h1>
+          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
+            Update draft information and save changes for application {application.registrationNumber ?? application.id}.
+          </p>
+        </header>
+        {content}
+      </AdminShell>
     );
   }
 
