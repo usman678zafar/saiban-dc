@@ -12,8 +12,7 @@ import { formatDate } from '@/lib/date-format';
 type AdminMetric = {
   label: string;
   value: number;
-  detail: string;
-  tone: 'blue' | 'violet' | 'emerald' | 'orange' | 'red' | 'sky' | 'slate';
+  tone: 'blue' | 'steel' | 'violet' | 'indigo' | 'emerald' | 'sky' | 'red' | 'orange' | 'amber' | 'charcoal';
 };
 
 type RecentApplication = {
@@ -107,16 +106,16 @@ async function getAdminPortalData() {
   }) as RecentApplication[];
 
   const metrics: AdminMetric[] = [
-    { label: 'Total Applications', value: totalApplications, detail: 'All records', tone: 'blue' },
-    { label: 'Drafts', value: draftApplications, detail: 'Saved but not submitted', tone: 'slate' },
-    { label: 'Applications Submitted', value: submittedByFieldWorkersCount, detail: 'By field workers and volunteers', tone: 'violet' },
-    { label: 'Reviewer Approved', value: reviewerApprovedApplications, detail: 'Awaiting final review', tone: 'violet' },
-    { label: 'Final Approved', value: adminApprovedApplications, detail: 'Validated records', tone: 'emerald' },
-    { label: 'Migrated', value: migratedApplications, detail: 'Moved onward', tone: 'sky' },
-    { label: 'Rejected', value: rejectedApplications, detail: 'Needs attention', tone: 'red' },
-    { label: 'Field Workers', value: fieldWorkerCount, detail: 'All volunteers', tone: 'orange' },
-    { label: 'Users', value: totalUsers, detail: 'Portal access', tone: 'orange' },
-    { label: 'Admins', value: adminUsers, detail: 'Admin users', tone: 'slate' },
+    { label: 'Total Applications', value: totalApplications, tone: 'blue' },
+    { label: 'Drafts', value: draftApplications, tone: 'steel' },
+    { label: 'Applications Submitted', value: submittedByFieldWorkersCount, tone: 'violet' },
+    { label: 'Reviewer Approved', value: reviewerApprovedApplications, tone: 'indigo' },
+    { label: 'Final Approved', value: adminApprovedApplications, tone: 'emerald' },
+    { label: 'Migrated', value: migratedApplications, tone: 'sky' },
+    { label: 'Rejected', value: rejectedApplications, tone: 'red' },
+    { label: 'Field Workers', value: fieldWorkerCount, tone: 'orange' },
+    { label: 'Users', value: totalUsers, tone: 'amber' },
+    { label: 'Admins', value: adminUsers, tone: 'charcoal' },
   ];
 
   return { metrics, fieldWorkers, recentApplications };
@@ -134,13 +133,16 @@ export default async function AdminPortalPage() {
 
   const { metrics, fieldWorkers, recentApplications } = await getAdminPortalData();
   const metricStyles = {
-    blue: { icon: ClipboardList, tile: 'bg-[#e8f1ff] text-[#3b82f6]', value: 'text-[#3b82f6]' },
-    violet: { icon: Send, tile: 'bg-[#f0e8ff] text-[#8357f4]', value: 'text-[#8357f4]' },
-    emerald: { icon: CheckCircle2, tile: 'bg-[#e5f8f0] text-[#10b981]', value: 'text-[#10b981]' },
-    orange: { icon: UsersRound, tile: 'bg-[#fff2dd] text-[#f59e0b]', value: 'text-[#f59e0b]' },
-    red: { icon: FileCheck2, tile: 'bg-[#ffe8e8] text-[#ef4444]', value: 'text-[#ef4444]' },
-    sky: { icon: Database, tile: 'bg-[#e6f7ff] text-[#0284c7]', value: 'text-[#0284c7]' },
-    slate: { icon: FileText, tile: 'bg-[#edf2f7] text-[#475569]', value: 'text-[#475569]' },
+    blue: { icon: ClipboardList, card: 'bg-[#2563eb]' },
+    steel: { icon: FileText, card: 'bg-[#64748b]' },
+    violet: { icon: Send, card: 'bg-[#8b5cf6]' },
+    indigo: { icon: Send, card: 'bg-[#6366f1]' },
+    emerald: { icon: CheckCircle2, card: 'bg-[#54cc59]' },
+    sky: { icon: Database, card: 'bg-[#20b8d8]' },
+    red: { icon: FileCheck2, card: 'bg-[#ff5f6d]' },
+    orange: { icon: UsersRound, card: 'bg-[#ffad47]' },
+    amber: { icon: UsersRound, card: 'bg-[#f59e0b]' },
+    charcoal: { icon: FileText, card: 'bg-[#475569]' },
   };
 
   return (
@@ -162,21 +164,20 @@ export default async function AdminPortalPage() {
             </div>
           </header>
 
-          <section className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {metrics.map((metric: AdminMetric) => {
               const style = metricStyles[metric.tone];
               const Icon = style.icon;
 
               return (
-              <div key={metric.label} className="rounded-lg border border-[#dbe4ef] bg-white p-2.5">
-                <div className="flex items-center gap-2.5">
-                  <div className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${style.tile}`}>
-                    <Icon size={17} strokeWidth={2.2} />
+              <div key={metric.label} className={`min-h-[132px] rounded-lg px-5 py-7 text-white shadow-[0_18px_32px_rgba(15,31,51,0.10)] 2xl:px-8 ${style.card}`}>
+                <div className="flex h-full items-center gap-5 2xl:gap-8">
+                  <div className="flex size-16 shrink-0 items-center justify-center text-white/95">
+                    <Icon size={52} strokeWidth={1.9} />
                   </div>
-                  <div className="min-w-0">
-                    <p className={`text-xl font-semibold leading-none ${style.value}`}>{metric.value}</p>
-                    <p className="mt-1.5 truncate text-xs font-medium text-[#506784]">{metric.label}</p>
-                    <p className="mt-0.5 truncate text-[11px] text-[#8a9bb3]">{metric.detail}</p>
+                  <div className="min-w-0 flex-1 text-left">
+                    <p className="break-words text-xl font-medium leading-6 text-white">{metric.label}</p>
+                    <p className="mt-2 truncate text-3xl font-semibold leading-none text-white">{metric.value.toLocaleString()}</p>
                   </div>
                 </div>
               </div>

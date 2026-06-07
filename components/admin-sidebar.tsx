@@ -45,7 +45,7 @@ export default function AdminSidebar({ email, role }: AdminSidebarProps) {
           <p className="mt-1.5 text-xs font-medium text-[#b7c6db]">Data Collection System</p>
         </div>
 
-        <nav className="grid gap-1 px-2 py-4">
+        <nav className="grid gap-1 py-4">
           {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActivePath(pathname, item.href, item.exact);
@@ -55,7 +55,7 @@ export default function AdminSidebar({ email, role }: AdminSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={clsx(
-                  'flex items-center gap-2 rounded-lg px-2.5 py-2.5 text-xs font-semibold transition',
+                  'flex items-center gap-2 px-4 py-2.5 text-xs font-semibold transition',
                   active
                     ? 'bg-[#3b82f6] text-white shadow-[0_12px_28px_rgba(59,130,246,0.28)]'
                     : 'text-[#c9d4e2] hover:bg-white/10 hover:text-white',
