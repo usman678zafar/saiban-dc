@@ -14,7 +14,7 @@ const changePasswordSchema = z.object({
   message: 'New password must be different from the current password.',
 });
 
-const passwordChangeRoles = ['admin', 'super_admin', 'reviewer', 'supervisor'];
+const passwordChangeRoles = ['reviewer', 'supervisor'];
 
 export async function PATCH(request: NextRequest) {
   const session = await getServerSession(authOptions);

@@ -7,7 +7,8 @@ import ForcePasswordChangeForm from '@/components/force-password-change-form';
 export default async function ChangePasswordPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin');
-  if (!session.user.passwordChangeRequired) {
+  const canUseForcedPasswordFlow = ['reviewer', 'supervisor'].includes(session.user.role ?? '');
+  if (!session.user.passwordChangeRequired || !canUseForcedPasswordFlow) {
     redirect(session.user.role === 'supervisor' ? '/supervisor' : session.user.role === 'reviewer' ? '/reviewer' : '/admin');
   }
 

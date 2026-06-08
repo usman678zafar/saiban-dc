@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   const { pathname, search } = request.nextUrl;
   const callbackPath = `${pathname}${search}`;
-  const mustChangePassword = Boolean(token?.passwordChangeRequired) && ['admin', 'super_admin', 'reviewer', 'supervisor'].includes(String(token?.role ?? ''));
+  const mustChangePassword = Boolean(token?.passwordChangeRequired) && ['reviewer', 'supervisor'].includes(String(token?.role ?? ''));
 
   if (pathname === '/change-password') {
     if (!token || token.sessionInvalid) {

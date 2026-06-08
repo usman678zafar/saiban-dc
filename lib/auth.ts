@@ -183,7 +183,7 @@ export const authOptions: NextAuthOptions = {
 
           const defaultPhonePassword = user.phoneNumber ? digitsOnly(user.phoneNumber).slice(-4) : '';
           if (
-            ['admin', 'reviewer', 'supervisor'].includes(user.role) &&
+            ['reviewer', 'supervisor'].includes(user.role) &&
             defaultPhonePassword &&
             credentials.password === defaultPhonePassword &&
             !user.passwordChangeRequired

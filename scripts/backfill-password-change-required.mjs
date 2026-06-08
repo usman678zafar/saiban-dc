@@ -10,7 +10,7 @@ try {
   const result = await prisma.user.updateMany({
     where: {
       role: {
-        in: [UserRole.admin, UserRole.reviewer, UserRole.supervisor],
+        in: [UserRole.reviewer, UserRole.supervisor],
       },
     },
     data: {
@@ -18,7 +18,7 @@ try {
     },
   });
 
-  console.log(`Marked ${result.count} admin/reviewer/supervisor accounts for password change.`);
+  console.log(`Marked ${result.count} reviewer/supervisor accounts for password change.`);
 } finally {
   await prisma.$disconnect();
   await pool.end();

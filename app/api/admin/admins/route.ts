@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         name: input.name,
         email: input.email,
         passwordHash: await bcrypt.hash(input.password, 10),
-        passwordChangeRequired: true,
+        passwordChangeRequired: false,
         role: UserRole.admin,
       },
       select: {
