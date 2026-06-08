@@ -7,7 +7,7 @@ import { getOrphanApplicationSchema } from '@/lib/validation';
 import { isValidDistrictForProvince, isValidTehsilForDistrict } from '@/lib/address-utils';
 import { deleteFromR2 } from '@/lib/r2';
 import { applicationStatuses } from '@/lib/application-workflow';
-import { projectMatchesReviewAssignment } from '@/lib/field-workers';
+import { projectMatchesAnyReviewAssignment } from '@/lib/field-workers';
 import { logSystemAudit } from '@/lib/system-audit';
 
 async function getUser(request: NextRequest) {
@@ -496,6 +496,16 @@ function isStatusOnlyRequest(body: any) {
   return keys.every((key) => ['id', 'status', 'reviewComment'].includes(key));
 }
 
+async function getSupervisorReviewProjects(user: NonNullable<Awaited<ReturnType<typeof getUser>>>) {
+  const departments = await prisma.supervisorDepartment.findMany({
+    where: { supervisorId: user.id },
+    select: { project: true },
+  });
+  const assignedProjects = departments.map((department) => department.project);
+
+  return assignedProjects.length ? assignedProjects : user.project ? [user.project] : [];
+}
+
 async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<typeof getUser>>>, body: any) {
   const { id, status, reviewComment } = body;
   if (!applicationStatuses.includes(status)) {
@@ -534,7 +544,8 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
       return NextResponse.json({ message: 'You cannot supervise an application you created.' }, { status: 403 });
     }
 
-    const projectMatches = projectMatchesReviewAssignment(application.collectorProject, user.project, application.createdBy.selfRegistered);
+    const assignedProjects = await getSupervisorReviewProjects(user);
+    const projectMatches = projectMatchesAnyReviewAssignment(application.collectorProject, assignedProjects, application.createdBy.selfRegistered);
     allowed = projectMatches && application.status === 'submitted' && ['needs_correction', 'supervisor_approved', 'rejected'].includes(status);
     action = status === 'needs_correction' ? 'returned_by_supervisor' : status === 'supervisor_approved' ? 'approved_by_supervisor' : 'rejected_by_supervisor';
 
