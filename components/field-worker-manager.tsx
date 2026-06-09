@@ -63,6 +63,7 @@ interface FieldWorkerManagerProps {
   lockedSupervisorId?: string;
   heading?: string;
   description?: string;
+  canModifyExistingWorkers?: boolean;
   pagination: {
     page: number;
     pageSize: number;
@@ -109,6 +110,7 @@ export default function FieldWorkerManager({
   lockedSupervisorId,
   heading = 'Field Workers Listed',
   description,
+  canModifyExistingWorkers = true,
   pagination,
   filters,
   counts,
@@ -404,24 +406,26 @@ export default function FieldWorkerManager({
                       {worker.selfRegistered ? 'Self Registered' : 'Admin Added'}
                     </span>
                   </div>
-                  <div className="flex shrink-0 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => openEditModal(worker)}
-                      className="inline-flex size-9 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white text-[#506784]"
-                      aria-label={`Edit ${worker.name ?? 'field worker'}`}
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget(worker)}
-                      className="inline-flex size-9 items-center justify-center rounded-lg border border-red-100 bg-white text-red-600"
-                      aria-label={`Delete ${worker.name ?? 'field worker'}`}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                  {canModifyExistingWorkers ? (
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(worker)}
+                        className="inline-flex size-9 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white text-[#506784]"
+                        aria-label={`Edit ${worker.name ?? 'field worker'}`}
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(worker)}
+                        className="inline-flex size-9 items-center justify-center rounded-lg border border-red-100 bg-white text-red-600"
+                        aria-label={`Delete ${worker.name ?? 'field worker'}`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="mt-4 grid gap-2 text-sm text-[#5f718a]">
                   <p><span className="font-semibold text-[#0f1f33]">Department:</span> {worker.project ?? '-'}</p>
@@ -448,13 +452,13 @@ export default function FieldWorkerManager({
                 <th className="px-4 py-3">Reference</th>
                 <th className="px-4 py-3">Address</th>
                 <th className="px-4 py-3">Added</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                {canModifyExistingWorkers ? <th className="px-4 py-3 text-right">Actions</th> : null}
               </tr>
             </thead>
             <tbody>
               {initialWorkers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-[#8a9bb3]">No field workers match these filters.</td>
+                  <td colSpan={canModifyExistingWorkers ? 8 : 7} className="px-4 py-10 text-center text-[#8a9bb3]">No field workers match these filters.</td>
                 </tr>
               ) : (
                 initialWorkers.map((worker) => (
@@ -478,28 +482,30 @@ export default function FieldWorkerManager({
                     <td className="max-w-[220px] px-4 py-4 text-[#5f718a]">{worker.reference ?? '-'}</td>
                     <td className="max-w-[320px] px-4 py-4 text-[#5f718a]">{worker.address ?? '-'}</td>
                     <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(worker.createdAt)}</td>
-                    <td className="px-4 py-4">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openEditModal(worker)}
-                          className="inline-flex size-9 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white text-[#506784] hover:bg-[#f6f9fd]"
-                          aria-label={`Edit ${worker.name ?? 'field worker'}`}
-                          title="Edit"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(worker)}
-                          className="inline-flex size-9 items-center justify-center rounded-lg border border-red-100 bg-white text-red-600 hover:bg-red-50"
-                          aria-label={`Delete ${worker.name ?? 'field worker'}`}
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+                    {canModifyExistingWorkers ? (
+                      <td className="px-4 py-4">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(worker)}
+                            className="inline-flex size-9 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white text-[#506784] hover:bg-[#f6f9fd]"
+                            aria-label={`Edit ${worker.name ?? 'field worker'}`}
+                            title="Edit"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(worker)}
+                            className="inline-flex size-9 items-center justify-center rounded-lg border border-red-100 bg-white text-red-600 hover:bg-red-50"
+                            aria-label={`Delete ${worker.name ?? 'field worker'}`}
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    ) : null}
                   </tr>
                 ))
               )}

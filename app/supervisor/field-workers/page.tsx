@@ -195,7 +195,7 @@ export default async function SupervisorFieldWorkersPage({
     <SupervisorShell email={session.user.email} name={supervisor.name} canCreateApplications={supervisor.canCreateApplications} canManageFieldWorkers={supervisor.canManageFieldWorkers}>
       <header className="mb-5 flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Field Workers</h1>
-        <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">Manage field workers assigned to {projects.join(', ')}.</p>
+        <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">View field workers assigned to {projects.join(', ')}. Existing field worker records can only be edited or deleted by admins.</p>
       </header>
       <FieldWorkerManager
         initialWorkers={workers}
@@ -207,6 +207,7 @@ export default async function SupervisorFieldWorkersPage({
         showSourceFilters={false}
         lockedSupervisorId={supervisor.id}
         heading="My Field Workers"
+        canModifyExistingWorkers={false}
         pagination={{
           page,
           pageSize: PAGE_SIZE,
