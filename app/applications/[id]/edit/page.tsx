@@ -36,6 +36,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
   }
 
   const canReviewerEdit = session.user.role === 'reviewer' && application.status === 'supervisor_approved';
+  const canAdminEdit = session.user.role === 'admin' && application.status === 'reviewer_approved';
   const canSuperAdminEdit = session.user.role === 'super_admin';
   const canCreateApplications = session.user.role === 'field_worker'
     || session.user.role === 'admin'
@@ -43,7 +44,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
     || ((session.user.role === 'supervisor' || session.user.role === 'reviewer') && Boolean(session.user.canCreateApplications));
   const canOwnerEdit = session.user.role !== 'admin' && application.createdById === session.user.id && canCreateApplications;
 
-  if (!canOwnerEdit && !canReviewerEdit && !canSuperAdminEdit) {
+  if (!canOwnerEdit && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
     notFound();
   }
 
@@ -59,6 +60,7 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       initialData={initialData}
       initialDocuments={initialDocuments}
       initialApplicationId={application.id}
+      editCommentRequired={canAdminEdit}
     />
   );
   const backFallbackHref = session.user.role === 'admin' || session.user.role === 'super_admin'
@@ -89,7 +91,9 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
           <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Edit Orphan Application</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a]">
-              Update draft information and save changes for application {application.registrationNumber ?? application.id}.
+              {canAdminEdit
+                ? `Update this pending admin review application and add a compulsory edit comment for ${application.registrationNumber ?? application.id}.`
+                : `Update draft information and save changes for application ${application.registrationNumber ?? application.id}.`}
             </p>
           </div>
           {backButton}

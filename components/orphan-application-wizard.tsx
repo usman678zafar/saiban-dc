@@ -468,6 +468,7 @@ interface OrphanApplicationWizardProps {
   storageScope?: string;
   showInstructionsOnStart?: boolean;
   readOnly?: boolean;
+  editCommentRequired?: boolean;
 }
 
 type PersistedWizardState = {
@@ -1043,6 +1044,7 @@ export default function OrphanApplicationWizard({
   storageScope,
   showInstructionsOnStart,
   readOnly = false,
+  editCommentRequired = false,
 }: OrphanApplicationWizardProps) {
   const router = useRouter();
   const { startLoading } = useNavigationLoading();
@@ -1055,6 +1057,7 @@ export default function OrphanApplicationWizard({
   const [step, setStep] = useState(clampWizardStep(initialStep));
   const [formData, setFormData] = useState<FormData>(mergedData);
   const [message, setMessage] = useState<string | null>(null);
+  const [editComment, setEditComment] = useState('');
   const [gpsMessage, setGpsMessage] = useState<string | null>(null);
   const [gpsWarning, setGpsWarning] = useState<string | null>(null);
   const [isCapturingGps, setIsCapturingGps] = useState(false);
@@ -1086,6 +1089,8 @@ export default function OrphanApplicationWizard({
   const unsavedChangeVersionRef = useRef(0);
   const uploadInstructionStepsShownRef = useRef<Set<number>>(new Set());
   const isSubmitting = submittingAction !== null;
+  const trimmedEditComment = editComment.trim();
+  const isSaveBlockedByComment = editCommentRequired && !trimmedEditComment;
   const currentInstructionSlide = NEW_APPLICATION_INSTRUCTION_SLIDES[instructionSlide] ?? NEW_APPLICATION_INSTRUCTION_SLIDES[0];
   const currentInstructionStartNumber = NEW_APPLICATION_INSTRUCTION_SLIDES
     .slice(0, instructionSlide)
@@ -1834,7 +1839,7 @@ export default function OrphanApplicationWizard({
         })),
     ];
 
-    return {
+    const body = {
       ...formFields,
       relativeInformationDisclosed,
       totalBrothers,
@@ -1848,10 +1853,17 @@ export default function OrphanApplicationWizard({
       status: saveStatus,
       id: applicationId,
     } as any;
+
+    if (editCommentRequired) {
+      body.reviewComment = trimmedEditComment;
+    }
+
+    return body;
   };
 
   const saveDraftImmediately = async () => {
     if (readOnly) return true;
+    if (editCommentRequired) return true;
     if (!hasLoadedPersistedState) return true;
     if (!hasUserEnteredDraftData(formData)) return true;
     if (!hasAutosaveIdentifier(formData)) return true;
@@ -1913,13 +1925,15 @@ export default function OrphanApplicationWizard({
 
   useEffect(() => {
     if (readOnly) return;
+    if (editCommentRequired) return;
     if (!initialApplicationId || !hasLoadedPersistedState || lastAutosavedPayloadRef.current) return;
 
     lastAutosavedPayloadRef.current = JSON.stringify(buildApplicationRequestBody('draft'));
-  }, [hasLoadedPersistedState, initialApplicationId, readOnly]);
+  }, [editCommentRequired, hasLoadedPersistedState, initialApplicationId, readOnly]);
 
   useEffect(() => {
     if (readOnly) return;
+    if (editCommentRequired) return;
     if (!hasLoadedPersistedState || submittingAction !== null || showSubmissionSuccessModal) return;
     if (!hasUnsavedChanges) return;
     if (!hasUserEnteredDraftData(formData)) return;
@@ -1982,7 +1996,7 @@ export default function OrphanApplicationWizard({
         clearTimeout(autosaveTimerRef.current);
       }
     };
-  }, [applicationId, formData, hasLoadedPersistedState, hasUnsavedChanges, readOnly, showSubmissionSuccessModal, storageKey, submittingAction, router]);
+  }, [applicationId, editCommentRequired, formData, hasLoadedPersistedState, hasUnsavedChanges, readOnly, showSubmissionSuccessModal, storageKey, submittingAction, router]);
 
   useEffect(() => {
     if (readOnly) return;
@@ -2078,6 +2092,10 @@ export default function OrphanApplicationWizard({
 
   const submit = async (saveStatus: 'draft' | 'submitted') => {
     if (readOnly) return;
+    if (editCommentRequired && !trimmedEditComment) {
+      setMessage('Edit comment is required.');
+      return;
+    }
     setSubmittingAction(saveStatus);
     setMessage(null);
     if (saveStatus === 'submitted') {
@@ -4213,6 +4231,23 @@ export default function OrphanApplicationWizard({
 
       </fieldset>
 
+      {!readOnly && editCommentRequired ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <label className="grid gap-2 text-sm font-semibold text-amber-950">
+            <span>Edit comment <span className="text-rose-600">*</span></span>
+            <textarea
+              value={editComment}
+              onChange={(event) => setEditComment(event.target.value)}
+              rows={3}
+              required
+              className="resize-none rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-normal text-slate-950 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              placeholder="Explain why this admin-review application was edited."
+            />
+          </label>
+          <p className="mt-2 text-xs leading-5 text-amber-800">This comment will be saved in the application activity history.</p>
+        </div>
+      ) : null}
+
       <div className="fixed inset-x-0 bottom-[var(--mobile-nav-offset)] z-30 border-t border-slate-200 bg-white/95 px-8 py-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:static lg:mx-0 lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none">
         <div className="mx-auto grid w-full max-w-md grid-cols-3 gap-2 lg:max-w-none lg:flex lg:justify-end lg:gap-3">
           <button
@@ -4236,7 +4271,7 @@ export default function OrphanApplicationWizard({
           <button
             type="button"
             onClick={() => submit('draft')}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isSaveBlockedByComment}
             className="h-10 min-w-0 rounded-lg bg-slate-600 px-2 text-sm font-semibold text-white transition hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-60 lg:h-12 lg:px-5"
           >
             {submittingAction === 'draft' ? 'Saving…' : 'Save Draft'}
@@ -4246,7 +4281,7 @@ export default function OrphanApplicationWizard({
             <button
               type="button"
               onClick={() => submit('submitted')}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isSaveBlockedByComment}
               className="h-10 min-w-0 rounded-lg bg-blue-600 px-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60 lg:h-12 lg:px-5"
             >
               {submittingAction === 'submitted' ? (

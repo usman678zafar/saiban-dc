@@ -218,16 +218,29 @@ export default async function AdminApplicationsPage({
             <p className="px-4 py-10 text-center text-sm text-[#8a9bb3]">No applications found.</p>
           ) : (
             applications.map((application: ApplicationListItem) => (
-              <Link key={application.id} href={`/admin/applications/${application.id}`} className="rounded-xl border border-[#edf2f7] bg-white p-4 hover:bg-[#f8fbff]">
-                <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
-                <div className="mt-1 text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
-                  <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{application.collectorProject || 'No department'}</span>
-                  {showMigration ? <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784]">{application.migrationStatus}</span> : null}
-                </div>
-                <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
-              </Link>
+              <div key={application.id} className="rounded-xl border border-[#edf2f7] bg-white p-4">
+                <Link href={`/admin/applications/${application.id}`} className="block hover:bg-[#f8fbff]">
+                  <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
+                  <div className="mt-1 text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
+                    <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{application.collectorProject || 'No department'}</span>
+                    {showMigration ? <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784]">{application.migrationStatus}</span> : null}
+                  </div>
+                  <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
+                </Link>
+                {(isSuperAdmin || application.status === ApplicationStatus.reviewer_approved) ? (
+                  <div className="mt-3 flex gap-2">
+                    <Link
+                      href={`/applications/${application.id}/edit`}
+                      className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                    >
+                      <Pencil className="h-4 w-4" aria-hidden="true" />
+                      Edit
+                    </Link>
+                  </div>
+                ) : null}
+              </div>
             ))
           )}
         </div>
@@ -265,7 +278,7 @@ export default async function AdminApplicationsPage({
                         <Link href={`/admin/applications/${application.id}`} className="rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff]">
                           Review
                         </Link>
-                        {isSuperAdmin ? (
+                        {(isSuperAdmin || application.status === ApplicationStatus.reviewer_approved) ? (
                           <>
                             <Link
                               href={`/applications/${application.id}/edit`}
@@ -275,12 +288,14 @@ export default async function AdminApplicationsPage({
                             >
                               <Pencil className="h-4 w-4" />
                             </Link>
+                            {isSuperAdmin ? (
                             <DeleteDraftApplicationButton
                               applicationId={application.id}
                               title="Delete application"
                               confirmationText="Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone."
                               className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
                             />
+                            ) : null}
                           </>
                         ) : null}
                       </div>

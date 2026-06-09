@@ -711,15 +711,21 @@ export async function PATCH(request: NextRequest) {
     }
 
     const canReviewerEdit = user.role === 'reviewer' && application.status === 'supervisor_approved';
+    const canAdminEdit = user.role === 'admin' && application.status === 'reviewer_approved';
     const canSuperAdminEdit = user.role === 'super_admin';
     const canOwnerEdit = user.role !== 'admin' && application.createdById === user.id && canCreateApplications(user);
+    const comment = typeof body.reviewComment === 'string' ? body.reviewComment.trim() : '';
 
-    if (!canOwnerEdit && !canReviewerEdit && !canSuperAdminEdit) {
+    if (!canOwnerEdit && !canReviewerEdit && !canAdminEdit && !canSuperAdminEdit) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
     if (canOwnerEdit && !['draft', 'needs_correction'].includes(application.status) && user.role !== 'super_admin') {
       return NextResponse.json({ message: 'Only draft or returned applications can be edited.' }, { status: 409 });
+    }
+
+    if (canAdminEdit && !comment) {
+      return NextResponse.json({ message: 'Edit comment is required.' }, { status: 422 });
     }
 
     const updateData: any = {
@@ -785,6 +791,7 @@ export async function PATCH(request: NextRequest) {
             applicationId: id,
             details: {
               status: application.status,
+              comment,
             },
           },
         });
