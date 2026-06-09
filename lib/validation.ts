@@ -156,6 +156,14 @@ const baseOrphanApplicationSchema = z.object({
   guardianName: optionalString,
   guardianRelationship: optionalString,
   guardianGender: optionalEnum(['male', 'female']),
+  guardianDob: parseDate.optional().refine((date) => !date || date <= new Date(), {
+    message: 'Guardian DOB cannot be in the future',
+  }).optional(),
+  guardianAge: z.preprocess((value) => {
+    if (value === undefined || value === null || value === '') return undefined;
+    if (typeof value === 'string') return Number(value);
+    return value;
+  }, z.number().int().nonnegative().optional()),
   guardianCnic: z.string().transform((value) => value.replace(/\D/g, '')).refine((value) => value === '' || cnicRegex.test(value), {
     message: 'Guardian CNIC must contain 13 digits',
   }).optional(),
@@ -421,6 +429,22 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
         path: ['guardianRelationship'],
         code: z.ZodIssueCode.custom,
         message: 'Guardian relationship is required',
+      });
+    }
+
+    if (!data.guardianDob) {
+      ctx.addIssue({
+        path: ['guardianDob'],
+        code: z.ZodIssueCode.custom,
+        message: 'Guardian DOB is required',
+      });
+    }
+
+    if (data.guardianAge === undefined) {
+      ctx.addIssue({
+        path: ['guardianAge'],
+        code: z.ZodIssueCode.custom,
+        message: 'Guardian age is required',
       });
     }
 

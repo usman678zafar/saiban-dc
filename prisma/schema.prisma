@@ -153,6 +153,8 @@ model OrphanApplication {
   guardianName                  String?
   guardianRelationship          String?
   guardianGender                String?
+  guardianDob                   DateTime?
+  guardianAge                   Int?
   guardianCnic                  String?
   guardianEducation             String?
   guardianMotherTongue          String?

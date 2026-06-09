@@ -75,7 +75,7 @@ const draftStringFields = [
 ] as const;
 
 const draftIntFields = [
-  'fatherAge', 'motherAge', 'guardianFamilyMembersCount', 'paternalGrandfatherAge', 'maternalGrandfatherAge',
+  'fatherAge', 'motherAge', 'guardianAge', 'guardianFamilyMembersCount', 'paternalGrandfatherAge', 'maternalGrandfatherAge',
   'age', 'totalSiblings', 'totalBrothers', 'totalSisters', 'registeredBrothers', 'registeredSisters',
   'siblingsUnder12', 'totalFamilyMembers', 'householdEarnersCount',
 ] as const;
@@ -93,7 +93,7 @@ const draftBooleanFields = [
 ] as const;
 
 const draftDateFields = [
-  'fatherDob', 'fatherDateOfDeath', 'motherDob', 'motherDeathDate', 'gpsCapturedAt', 'dateOfBirth',
+  'fatherDob', 'fatherDateOfDeath', 'motherDob', 'motherDeathDate', 'guardianDob', 'gpsCapturedAt', 'dateOfBirth',
   'illnessSince', 'schoolStudyingSince', 'termsAcceptedAt',
 ] as const;
 
@@ -248,6 +248,8 @@ function normalizeConditionalPayload(payload: any) {
       'guardianName',
       'guardianRelationship',
       'guardianGender',
+      'guardianDob',
+      'guardianAge',
       'guardianCnic',
       'guardianEducation',
       'guardianMotherTongue',

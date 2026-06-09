@@ -103,6 +103,8 @@ export type FormData = {
   guardianName: string;
   guardianRelationship: string;
   guardianGender: string;
+  guardianDob: string;
+  guardianAge: string;
   guardianCnic: string;
   guardianEducation: string;
   guardianMotherTongue: string;
@@ -264,6 +266,8 @@ const defaultData: FormData = {
   guardianName: '',
   guardianRelationship: '',
   guardianGender: '',
+  guardianDob: '',
+  guardianAge: '',
   guardianCnic: '',
   guardianEducation: '',
   guardianMotherTongue: '',
@@ -1031,6 +1035,10 @@ function normalizeInitialData(data: FormData): FormData {
     next.motherAge = calculateAgeFromDate(next.motherDob, next.motherDeathDate);
   }
 
+  if (next.guardianDob) {
+    next.guardianAge = calculateAgeFromDate(next.guardianDob);
+  }
+
   next.householdAssetSelection = mergeHouseholdAssetSelection(next.householdAssetSelection);
 
   return next;
@@ -1462,6 +1470,8 @@ export default function OrphanApplicationWizard({
             guardianName: '',
             guardianRelationship: '',
             guardianGender: '',
+            guardianDob: '',
+            guardianAge: '',
             guardianCnic: '',
             guardianEducation: '',
             guardianMotherTongue: '',
@@ -1476,6 +1486,13 @@ export default function OrphanApplicationWizard({
             guardianSignatureFileKey: '',
           }
         : {}),
+    });
+  };
+
+  const handleGuardianDobChange = (value: string) => {
+    updateFields({
+      guardianDob: value,
+      guardianAge: calculateAgeFromDate(value),
     });
   };
 
@@ -2292,7 +2309,7 @@ export default function OrphanApplicationWizard({
       case 3: {
         if (formData.motherAlive === 'yes' && formData.motherIsGuardian === 'yes') return [];
         if (!guardianDetailsNeeded) return [];
-        const fields: Array<keyof FormData> = ['guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianContact', 'guardianMonthlyIncome'];
+        const fields: Array<keyof FormData> = ['guardianName', 'guardianDob', 'guardianAge', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianContact', 'guardianMonthlyIncome'];
         if (formData.guardianFamilyHolder === 'yes') fields.push('guardianFamilyMembersCount');
         return fields;
       }
@@ -2778,7 +2795,7 @@ export default function OrphanApplicationWizard({
     if (field === 'motherRemarried') return motherIsLiving;
     if (field === 'motherMonthlyIncome') return formData.motherAlive === 'yes' && motherOccupationNeedsIncome(formData.motherOccupation);
     if (field === 'guardianOccupation') return guardianDetailsNeeded && Boolean(formData.guardianGender);
-    if (['guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianFamilyHolder', 'guardianMonthlyIncome'].includes(field)) return guardianDetailsNeeded;
+    if (['guardianName', 'guardianRelationship', 'guardianGender', 'guardianDob', 'guardianAge', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianFamilyHolder', 'guardianMonthlyIncome'].includes(field)) return guardianDetailsNeeded;
     if (field === 'guardianFamilyMembersCount') return guardianDetailsNeeded && formData.guardianFamilyHolder === 'yes';
     if (['monthlyRent', 'rentPaidBy'].includes(field)) return formData.houseOwnershipStatus === 'rent';
     if (field === 'disabilityDetails') return formData.healthStatus === 'disabled';
@@ -2823,7 +2840,7 @@ export default function OrphanApplicationWizard({
 
   const reviewSections: Array<{ title: string; fields: Array<keyof FormData> }> = [
     { title: 'Mother', fields: ['motherName', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherSeparationReason', 'motherContact', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
-    { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianRelationship', 'guardianGender', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
+    { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianDob', 'guardianAge', 'guardianRelationship', 'guardianGender', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
     { title: 'Address', fields: ['province', 'district', 'tehsil', 'city', 'residentialArea', 'fullAddress'] },
     { title: 'GPS', fields: ['latitude', 'longitude', 'gpsAccuracyMeters', 'gpsCapturedAt'] },
     { title: 'Home', fields: ['houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'residenceStructureType', 'residenceCategory', 'houseConditionRemarks', 'electricityAvailable', 'gasAvailable', 'waterAvailable', 'furnishingCondition', 'furnishingConditionRemarks'] },
@@ -3211,9 +3228,13 @@ export default function OrphanApplicationWizard({
           <div className="grid gap-4 sm:grid-cols-2">
             {guardianDetailsNeeded ? (
               <>
-                {['guardianName', 'guardianGender', 'guardianRelationship', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact'].map((field) =>
+                {['guardianName', 'guardianDob', 'guardianAge', 'guardianGender', 'guardianRelationship', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact'].map((field) =>
                   field === 'guardianEducation'
                     ? renderEducationSelect(field as keyof FormData)
+                    : field === 'guardianDob'
+                      ? renderTextField('guardianDob', 'date', false, handleGuardianDobChange)
+                    : field === 'guardianAge'
+                      ? renderTextField('guardianAge', 'number', true)
                     : field === 'guardianRelationship'
                       ? renderGuardianRelationshipField()
                     : field === 'guardianGender'

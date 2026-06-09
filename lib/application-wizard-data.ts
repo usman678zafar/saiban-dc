@@ -90,6 +90,8 @@ export function applicationToWizardData(application: any): Partial<FormData> {
     guardianName: application.guardianName ?? '',
     guardianRelationship: application.guardianRelationship ?? '',
     guardianGender: application.guardianGender ?? '',
+    guardianDob: dateOnly(application.guardianDob),
+    guardianAge: stringValue(application.guardianAge),
     guardianCnic: application.guardianCnic ?? '',
     guardianEducation: application.guardianEducation ?? '',
     guardianMotherTongue: application.guardianMotherTongue ?? '',
