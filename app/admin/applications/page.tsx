@@ -8,11 +8,14 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
+import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
 import { collectorProjectReviewWhere } from '@/lib/field-workers';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
+import { applicationToWizardData } from '@/lib/application-wizard-data';
+import { calculateApplicationCompletion } from '@/lib/application-review';
 
 const PAGE_SIZE = 50;
 const statusFilters = [
@@ -66,15 +69,45 @@ function applicationFilterWhere(filter: StatusFilter): Prisma.OrphanApplicationW
   }
 }
 
-type ApplicationListItem = {
-  id: string;
-  registrationNumber: string | null;
-  childName: string | null;
-  collectorProject: string | null;
-  status: string;
-  migrationStatus: string;
-  updatedAt: Date;
+type ApplicationListRecord = Prisma.OrphanApplicationGetPayload<{
+  include: {
+    siblings: true;
+    relatives: true;
+    householdAssets: true;
+    createdBy: {
+      select: {
+        name: true;
+        fieldWorkerId: true;
+        project: true;
+        selfRegistered: true;
+      };
+    };
+    documents: {
+      select: {
+        documentType: true;
+      };
+    };
+  };
+}>;
+
+type ApplicationListItem = ApplicationListRecord & {
+  completionPercentage: number;
 };
+
+function fieldWorkerLabel(application: ApplicationListItem) {
+  return application.createdBy.name
+    ?? application.createdBy.fieldWorkerId
+    ?? application.collectorName
+    ?? application.collectorId
+    ?? (application.createdBy.selfRegistered ? 'Self Registered' : null)
+    ?? '-';
+}
+
+function departmentLabel(application: ApplicationListItem) {
+  return application.collectorProject
+    ?? application.createdBy.project
+    ?? '-';
+}
 
 export default async function AdminApplicationsPage({
   searchParams,
@@ -85,7 +118,6 @@ export default async function AdminApplicationsPage({
   if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications');
   if (!['admin', 'super_admin'].includes(session.user.role ?? '')) redirect('/dashboard');
   const isSuperAdmin = session.user.role === 'super_admin';
-  const showMigration = true;
 
   const search = searchParams.q?.trim() ?? '';
   const projects = await getFieldWorkerProjectOptions();
@@ -115,24 +147,37 @@ export default async function AdminApplicationsPage({
     return query ? `/admin/applications?${query}` : '/admin/applications';
   };
 
-  const [applications, total] = await Promise.all([
+  const [applicationRecords, total] = await Promise.all([
     prisma.orphanApplication.findMany({
       where,
       orderBy: { updatedAt: 'desc' },
       skip,
       take: PAGE_SIZE,
-      select: {
-        id: true,
-        registrationNumber: true,
-        childName: true,
-        collectorProject: true,
-        status: true,
-        migrationStatus: true,
-        updatedAt: true,
+      include: {
+        siblings: true,
+        relatives: true,
+        householdAssets: true,
+        createdBy: {
+          select: {
+            name: true,
+            fieldWorkerId: true,
+            project: true,
+            selfRegistered: true,
+          },
+        },
+        documents: {
+          select: {
+            documentType: true,
+          },
+        },
       },
-    }) as Promise<ApplicationListItem[]>,
+    }) as Promise<ApplicationListRecord[]>,
     prisma.orphanApplication.count({ where }),
   ]);
+  const applications: ApplicationListItem[] = applicationRecords.map((application) => ({
+    ...application,
+    completionPercentage: calculateApplicationCompletion(applicationToWizardData(application), application.documents).percentage,
+  }));
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasPrev = page > 1;
@@ -224,13 +269,20 @@ export default async function AdminApplicationsPage({
                   <div className="mt-1 text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs">
                     <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
-                    <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{application.collectorProject || 'No department'}</span>
-                    {showMigration ? <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784]">{application.migrationStatus}</span> : null}
+                    <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{departmentLabel(application) === '-' ? 'No department' : departmentLabel(application)}</span>
+                    <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{fieldWorkerLabel(application)}</span>
+                    <span className="rounded-lg bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">{application.completionPercentage}% complete</span>
                   </div>
                   <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
                 </Link>
-                {(isSuperAdmin || application.status === ApplicationStatus.reviewer_approved) ? (
-                  <div className="mt-3 flex gap-2">
+                <div className="mt-3 flex gap-2">
+                  <ApplicationReviewDownloadButton
+                    applicationId={application.id}
+                    fileName={application.registrationNumber ?? application.id}
+                    label="Download"
+                    className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-70"
+                  />
+                  {(isSuperAdmin || application.status === ApplicationStatus.reviewer_approved) ? (
                     <Link
                       href={`/applications/${application.id}/edit`}
                       className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100"
@@ -238,8 +290,8 @@ export default async function AdminApplicationsPage({
                       <Pencil className="h-4 w-4" aria-hidden="true" />
                       Edit
                     </Link>
-                  </div>
-                ) : null}
+                  ) : null}
+                </div>
               </div>
             ))
           )}
@@ -250,9 +302,10 @@ export default async function AdminApplicationsPage({
             <thead className="bg-[#f6f9fd] text-xs uppercase tracking-[0.12em] text-[#7d8fa6]">
               <tr>
                 <th className="px-4 py-3">Application</th>
+                <th className="px-4 py-3">Field Worker</th>
                 <th className="px-4 py-3">Department</th>
                 <th className="px-4 py-3">Status</th>
-                {showMigration ? <th className="px-4 py-3">Migration</th> : null}
+                <th className="px-4 py-3">Complete</th>
                 <th className="px-4 py-3">Updated</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
@@ -260,7 +313,7 @@ export default async function AdminApplicationsPage({
             <tbody>
               {applications.length === 0 ? (
                 <tr>
-                  <td colSpan={showMigration ? 6 : 5} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
+                  <td colSpan={7} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
                 </tr>
               ) : (
                 applications.map((application: ApplicationListItem) => (
@@ -269,15 +322,25 @@ export default async function AdminApplicationsPage({
                       <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
                       <div className="text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
                     </td>
-                    <td className="px-4 py-4">{application.collectorProject || '-'}</td>
+                    <td className="px-4 py-4">{fieldWorkerLabel(application)}</td>
+                    <td className="px-4 py-4">{departmentLabel(application)}</td>
                     <td className="px-4 py-4">{applicationStatusLabel(application.status)}</td>
-                    {showMigration ? <td className="px-4 py-4 capitalize">{application.migrationStatus}</td> : null}
+                    <td className="px-4 py-4">
+                      <span className="inline-flex min-w-14 justify-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                        {application.completionPercentage}%
+                      </span>
+                    </td>
                     <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(application.updatedAt)}</td>
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-2">
                         <Link href={`/admin/applications/${application.id}`} className="rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff]">
                           Review
                         </Link>
+                        <ApplicationReviewDownloadButton
+                          applicationId={application.id}
+                          fileName={application.registrationNumber ?? application.id}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-70"
+                        />
                         {(isSuperAdmin || application.status === ApplicationStatus.reviewer_approved) ? (
                           <>
                             <Link

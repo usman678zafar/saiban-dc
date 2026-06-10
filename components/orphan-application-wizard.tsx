@@ -21,6 +21,7 @@ import {
 import FileUpload from './file-upload';
 import { useNavigationLoading } from './navigation-loading';
 import { downloadAttestationPdf, printAttestationForm } from './attestation-form';
+import { buildApplicationReview } from '@/lib/application-review';
 
 type SiblingInput = {
   id?: string;
@@ -2781,72 +2782,9 @@ export default function OrphanApplicationWizard({
     </label>
   );
 
-  const shouldShowField = (field: keyof FormData) => {
-    if (['motherDeathDate', 'motherDeathCause'].includes(field)) return formData.motherAlive === 'no';
-    if (field === 'motherSeparationReason') return formData.motherAlive === 'separated';
-    if (['motherContact', 'motherOccupation'].includes(field)) return formData.motherAlive === 'yes';
-    if (field === 'motherRemarried') return motherIsLiving;
-    if (field === 'motherMonthlyIncome') return formData.motherAlive === 'yes' && motherOccupationNeedsIncome(formData.motherOccupation);
-    if (field === 'guardianOccupation') return guardianDetailsNeeded && Boolean(formData.guardianGender);
-    if (['guardianName', 'guardianRelationship', 'guardianGender', 'guardianDob', 'guardianAge', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianFamilyHolder', 'guardianMonthlyIncome'].includes(field)) return guardianDetailsNeeded;
-    if (field === 'guardianFamilyMembersCount') return guardianDetailsNeeded && formData.guardianFamilyHolder === 'yes';
-    if (['monthlyRent', 'rentPaidBy'].includes(field)) return formData.houseOwnershipStatus === 'rent';
-    if (field === 'disabilityDetails') return formData.healthStatus === 'disabled';
-    if (field === 'treatmentPlace') return formData.healthStatus === 'chronic_illness';
-    if (field === 'specifyNationality') return formData.nationality === 'Other';
-    if (field === 'specifyReligion') return formData.religion === 'Other';
-    if (field === 'monthlyMedicalExpenses') return formData.healthStatus === 'chronic_illness' || formData.healthStatus === 'disabled';
-    if (['currentClass', 'schoolName', 'schoolAddress', 'educationFeeStatus'].includes(field)) return formData.currentlyStudying;
-    if (field === 'notStudyingReason') return !formData.currentlyStudying;
-    if (field === 'educationStartCondition') return formData.enrolledInMadrasa;
-    if (field === 'monthlySchoolFee') {
-      return (formData.currentlyStudying || formData.enrolledInMadrasa)
-        && (formData.educationFree === 'no' || formData.educationFeeStatus === 'paid');
-    }
-    if (['madrasaName', 'madrasaEducationDetails'].includes(field)) return formData.enrolledInMadrasa;
-    if (['otherAidSource', 'monthlyAidAmount'].includes(field)) return formData.receivingOtherAid;
-    return true;
-  };
-
-  const formatReviewValue = (field: keyof FormData): string => {
-    if (field === 'householdAssetSelection') {
-      const selected = HOUSEHOLD_ASSET_KEYS
-        .filter((key) => formData.householdAssetSelection[key].has)
-        .map((key) => {
-          const entry = formData.householdAssetSelection[key];
-          const grams = assetUsesGrams(key) && entry.grams ? `, ${entry.grams} grams` : '';
-          const amount = entry.value ? `${entry.value} PKR` : 'value missing';
-          return `${householdAssetDisplayLabel(key)}: ${amount}${grams}`;
-        });
-
-      return selected.length ? selected.join('; ') : '-';
-    }
-
-    const value = formData[field];
-    if (field === 'tehsil' && (!value || value === 'unknown')) return 'Not Available / Unknown';
-    if (field === 'gpsAccuracyMeters' && value) return `${value} m`;
-    if (field === 'gpsCapturedAt' && value) {
-      const date = new Date(value as string);
-      return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
-    }
-    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-    if (Array.isArray(value)) return value.length ? `${value.length} record(s)` : '-';
-    return typeof value === 'string' ? value || '-' : '-';
-  };
-
-  const reviewSections: Array<{ title: string; fields: Array<keyof FormData> }> = [
-    { title: 'Mother', fields: ['motherName', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherSeparationReason', 'motherContact', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause'] },
-    { title: 'Guardian', fields: ['motherIsGuardian', 'guardianName', 'guardianDob', 'guardianAge', 'guardianRelationship', 'guardianGender', 'guardianContact', 'guardianCnic', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome'] },
-    { title: 'Address', fields: ['province', 'district', 'tehsil', 'city', 'residentialArea', 'fullAddress'] },
-    { title: 'GPS', fields: ['latitude', 'longitude', 'gpsAccuracyMeters', 'gpsCapturedAt'] },
-    { title: 'Home', fields: ['houseOwnershipStatus', 'monthlyRent', 'rentPaidBy', 'houseCondition', 'residenceStructureType', 'residenceCategory', 'houseConditionRemarks', 'electricityAvailable', 'gasAvailable', 'waterAvailable', 'furnishingCondition', 'furnishingConditionRemarks'] },
-    { title: 'Relatives', fields: ['relativeInformationDisclosed', 'relatives'] },
-    { title: 'Household Assets', fields: ['householdAssetSelection'] },
-    { title: 'Child', fields: ['childName', 'gender', 'religion', 'specifyReligion', 'syedStatus', 'nationality', 'specifyNationality', 'bFormNumber', 'dateOfBirth', 'age', 'totalSiblings', 'siblings'] },
-    { title: 'Health', fields: ['healthStatus', 'disabilityType', 'disabilityCause', 'disabilityDetails', 'disabilityCauseDetails', 'disabilitySince', 'treatmentOngoing', 'chronicDisease', 'specifyDisease', 'illnessSince', 'treatmentPlace', 'monthlyMedicalExpenses'] as Array<keyof FormData> },
-    { title: 'Education and Skills', fields: ['currentlyStudying', 'notStudyingReason', 'currentClass', 'schoolName', 'schoolAddress', 'schoolDistanceKm', 'schoolTransportMode', 'schoolStudyingSince', 'enrolledInMadrasa', 'madrasaName', 'madrasaEducationDetails', 'educationStartCondition', 'educationUndertakingAccepted', 'educationFree', 'monthlySchoolFee', 'currentSkillLearning', 'currentSkill', 'childHobbies', 'technicalSkillInterest', 'technicalSkill'] as Array<keyof FormData> },
-    { title: 'Income and Aid', fields: ['totalFamilyMembers', 'householdHasMonthlyIncome', 'householdEarnersCount', 'totalHouseholdIncome', 'childEarnsIncome', 'childWorkNature', 'childMonthlyIncome', 'receivingOtherAid', 'otherAidSource', 'monthlyAidAmount', 'assistanceApplied', 'assistanceAppliedWhere'] as Array<keyof FormData> },
-  ];
+  const reviewSteps = useMemo(() => buildApplicationReview(formData, documents), [documents, formData]);
+  const isExpandedReviewItem = (item: { label: string; value: string }) =>
+    item.value.includes('\n') || item.value.length > 180 || ['Siblings', 'Relatives', 'Household Assets'].includes(item.label);
 
   const steps = Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1);
   const currentStepTitle = stepTitles[step - 1] ?? '';
@@ -4213,31 +4151,46 @@ export default function OrphanApplicationWizard({
 
       {step === 13 && (
         <div className="space-y-6">
-          <div className="space-y-4">
-            {reviewSections.map((section) => {
-              const fields = section.fields.filter((field) => shouldShowField(field));
-              if (fields.length === 0) return null;
-
-              return (
-                <section key={section.title} className="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
-                  <h3 className="text-sm font-semibold text-slate-900">{section.title}</h3>
-                  {section.title === 'GPS' && !formData.latitude && !formData.longitude ? (
-                    <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-                      GPS was not captured. Address was entered manually.
-                    </p>
-                  ) : (
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                      {fields.map((field) => (
-                        <div key={field} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                          <p className="text-xs font-semibold text-slate-500">{renderLocalizedLabel(fieldLabel(field))}</p>
-                          <p className="mt-1 break-words text-sm text-slate-900">{formatReviewValue(field)}</p>
-                        </div>
-                      ))}
+          <div className="space-y-5">
+            {reviewSteps.map((reviewStep) => (
+              <section key={reviewStep.number ?? 'application-info'} className="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  {reviewStep.number ? (
+                    <span className="inline-flex size-7 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">
+                      {reviewStep.number}
+                    </span>
+                  ) : null}
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    {reviewStep.number ? `Step ${reviewStep.number}: ${reviewStep.title}` : reviewStep.title}
+                  </h3>
+                </div>
+                <div className="mt-3 space-y-4">
+                  {reviewStep.sections.map((section) => (
+                    <div key={section.title}>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{section.title}</p>
+                      <div className="mt-2 grid items-start gap-3 sm:grid-cols-2">
+                        {section.items.map((item) => (
+                          <div
+                            key={`${section.title}-${item.label}`}
+                            className={`self-start rounded-lg border border-slate-200 bg-slate-50 p-3 ${isExpandedReviewItem(item) ? 'sm:col-span-2' : ''}`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <p className="min-w-0 text-xs font-semibold text-slate-500">{item.label}</p>
+                              {!item.filled ? (
+                                <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                                  Missing
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="mt-1 whitespace-pre-line break-words text-sm text-slate-900">{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  )}
-                </section>
-              );
-            })}
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-700 sm:p-4">
             <p className="font-semibold text-slate-900">Important</p>
