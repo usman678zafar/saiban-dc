@@ -1659,13 +1659,6 @@ export default function OrphanApplicationWizard({
     updateFields({ childEarnsIncome: value, ...(value === 'yes' ? {} : { childWorkNature: '', childMonthlyIncome: '' }) });
   };
 
-  const handleEducationFeeStatusChange = (value: string) => {
-    updateFields({
-      educationFeeStatus: value,
-      ...(value === 'paid' ? {} : { monthlySchoolFee: '' }),
-    });
-  };
-
   const handleMadrasaChange = (value: boolean) => {
     updateFields({
       enrolledInMadrasa: value,
@@ -2806,7 +2799,10 @@ export default function OrphanApplicationWizard({
     if (['currentClass', 'schoolName', 'schoolAddress', 'educationFeeStatus'].includes(field)) return formData.currentlyStudying;
     if (field === 'notStudyingReason') return !formData.currentlyStudying;
     if (field === 'educationStartCondition') return formData.enrolledInMadrasa;
-    if (field === 'monthlySchoolFee') return formData.currentlyStudying && formData.educationFeeStatus === 'paid';
+    if (field === 'monthlySchoolFee') {
+      return (formData.currentlyStudying || formData.enrolledInMadrasa)
+        && (formData.educationFree === 'no' || formData.educationFeeStatus === 'paid');
+    }
     if (['madrasaName', 'madrasaEducationDetails'].includes(field)) return formData.enrolledInMadrasa;
     if (['otherAidSource', 'monthlyAidAmount'].includes(field)) return formData.receivingOtherAid;
     return true;

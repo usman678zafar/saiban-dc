@@ -598,13 +598,14 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
       });
     }
 
-    if (data.educationFeeStatus === 'paid' && data.monthlySchoolFee === undefined) {
-      ctx.addIssue({
-        path: ['monthlySchoolFee'],
-        code: z.ZodIssueCode.custom,
-        message: 'Monthly school fee is required when education fee is paid',
-      });
-    }
+  }
+
+  if ((data.currentlyStudying || data.enrolledInMadrasa) && (data.educationFree === 'no' || data.educationFeeStatus === 'paid') && data.monthlySchoolFee === undefined) {
+    ctx.addIssue({
+      path: ['monthlySchoolFee'],
+      code: z.ZodIssueCode.custom,
+      message: 'Monthly school fee is required when education is not free',
+    });
   }
 
   if (data.enrolledInMadrasa) {

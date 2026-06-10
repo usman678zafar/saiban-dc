@@ -309,15 +309,19 @@ function normalizeConditionalPayload(payload: any) {
     clearPayloadFields(next, ['chronicDisease', 'specifyDisease', 'illnessSince']);
   }
 
-  if (next.currentlyStudying === false || next.currentlyStudying === 'false') {
-    clearPayloadFields(next, ['currentClass', 'schoolName', 'schoolAddress', 'educationFeeStatus', 'monthlySchoolFee']);
+  const isCurrentlyStudying = next.currentlyStudying === true || next.currentlyStudying === 'true';
+  const isEnrolledInMadrasa = next.enrolledInMadrasa === true || next.enrolledInMadrasa === 'true';
+  const hasPaidEducationFee = next.educationFree === 'no' || next.educationFeeStatus === 'paid';
+
+  if (!isCurrentlyStudying) {
+    clearPayloadFields(next, ['currentClass', 'schoolName', 'schoolAddress', 'educationFeeStatus']);
   }
 
-  if (next.currentlyStudying === true || next.currentlyStudying === 'true') {
+  if (isCurrentlyStudying) {
     clearPayloadFields(next, ['notStudyingReason']);
   }
 
-  if (next.educationFeeStatus !== 'paid') {
+  if ((!isCurrentlyStudying && !isEnrolledInMadrasa) || !hasPaidEducationFee) {
     clearPayloadFields(next, ['monthlySchoolFee']);
   }
 
