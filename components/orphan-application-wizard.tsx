@@ -65,6 +65,216 @@ type AddressOptionInput = {
   name: string;
 };
 
+const reviewFieldLabelUrdu: Record<string, string> = {
+  'Registration Number': 'رجسٹریشن نمبر',
+  'Collector ID': 'جمع کرنے والے کا آئی ڈی',
+  'Collector Name': 'جمع کرنے والے کا نام',
+  Department: 'شعبہ',
+  'Collector CNIC': 'جمع کرنے والے کا شناختی کارڈ',
+  'Collector Address': 'جمع کرنے والے کا پتہ',
+  'Collector Contact': 'جمع کرنے والے کا رابطہ',
+  'Father Name': 'والد کا نام',
+  'Father DOB': 'والد کی تاریخ پیدائش',
+  'Father Date of Death': 'والد کی وفات کی تاریخ',
+  'Father Age': 'والد کی عمر',
+  'Father CNIC': 'والد کا شناختی کارڈ',
+  'Father Education': 'والد کی تعلیم',
+  'Father Mother Tongue': 'والد کی مادری زبان',
+  'Father Native Area': 'والد کا آبائی علاقہ',
+  'Father Occupation': 'والد کا پیشہ',
+  'Father Cause of Death': 'والد کی وفات کا سبب',
+  'Mother Name': 'والدہ کا نام',
+  'Mother DOB': 'والدہ کی تاریخ پیدائش',
+  "Mother's Living Status": 'والدہ کی حیات کی حیثیت',
+  'Mother Age': 'والدہ کی عمر',
+  'Mother CNIC': 'والدہ کا شناختی کارڈ',
+  'Mother Education': 'والدہ کی تعلیم',
+  'Mother Tongue': 'والدہ کی مادری زبان',
+  'Mother Native Area': 'والدہ کا آبائی علاقہ',
+  'Reason for Mother-Child Separation': 'والدہ اور بچے کی علیحدگی کی وجہ',
+  'Mother Contact': 'والدہ کا رابطہ',
+  'Mother Occupation': 'والدہ کا پیشہ',
+  'Monthly Income': 'ماہانہ آمدنی',
+  'Mother Remarried': 'والدہ کی دوبارہ شادی',
+  'Mother Death Date': 'والدہ کی وفات کی تاریخ',
+  'Mother Death Cause': 'والدہ کی وفات کا سبب',
+  'Mother Is Guardian': 'والدہ سرپرست ہیں',
+  'Guardian Name': 'سرپرست کا نام',
+  'Guardian DOB': 'سرپرست کی تاریخ پیدائش',
+  'Guardian Age': 'سرپرست کی عمر',
+  'Guardian Gender': 'سرپرست کی جنس',
+  'Guardian Relationship with Orphan': 'سرپرست کا یتیم سے تعلق',
+  'Guardian CNIC': 'سرپرست کا شناختی کارڈ',
+  'Guardian Education': 'سرپرست کی تعلیم',
+  'Guardian Mother Tongue': 'سرپرست کی مادری زبان',
+  'Guardian Native Area': 'سرپرست کا آبائی علاقہ',
+  'Guardian Contact': 'سرپرست کا رابطہ',
+  'Guardian Occupation': 'سرپرست کا پیشہ',
+  'Family Holder?': 'فیملی ہولڈر؟',
+  'No. of Family Members': 'خاندان کے افراد کی تعداد',
+  'Guardian Monthly Income': 'سرپرست کی ماہانہ آمدنی',
+  "Close Relatives' Information Disclosed": 'قریبی رشتہ داروں کی معلومات فراہم کی گئیں',
+  Relatives: 'رشتہ دار',
+  Province: 'صوبہ',
+  District: 'ضلع',
+  Tehsil: 'تحصیل',
+  'City/Town': 'شہر / قصبہ',
+  'Residential Area / Mohalla / Street': 'رہائشی علاقہ / محلہ / گلی',
+  'Full Address': 'مکمل پتہ',
+  Latitude: 'عرض بلد',
+  Longitude: 'طول بلد',
+  'GPS Accuracy in meters': 'GPS درستگی میٹر میں',
+  'GPS Captured Time': 'GPS حاصل کرنے کا وقت',
+  'House Ownership Status': 'گھر کی ملکیت',
+  'How much Rent?': 'کرایہ کتنا ہے؟',
+  'Who pays rent?': 'کرایہ کون ادا کرتا ہے؟',
+  'House Condition': 'گھر کی حالت',
+  'Residence Structure Type': 'رہائش کی ساخت کی قسم',
+  'Residence Category': 'رہائش کی قسم',
+  'House Condition Remarks': 'گھر کی حالت کی تفصیل',
+  'Electricity Available': 'بجلی دستیاب ہے',
+  'Gas Available': 'گیس دستیاب ہے',
+  'Water Available': 'پانی دستیاب ہے',
+  'Furnishing Condition': 'فرنیچر کی حالت',
+  'Furnishing Condition Remarks': 'فرنیچر کی حالت کی تفصیل',
+  'Household Assets': 'گھریلو اثاثہ جات',
+  'Child Name': 'بچے کا نام',
+  Gender: 'جنس',
+  Religion: 'مذہب',
+  'Specify Religion': 'مذہب کی وضاحت',
+  'Syed Status': 'سید حیثیت',
+  Nationality: 'شہریت',
+  'Specify Nationality': 'شہریت کی وضاحت',
+  'B-Form Number': 'ب فارم نمبر',
+  'Date of Birth': 'تاریخ پیدائش',
+  Age: 'عمر',
+  'Total Number of Siblings': 'بہن بھائیوں کی کل تعداد',
+  Siblings: 'بہن بھائی',
+  'Health Status': 'صحت کی حالت',
+  'Type of Disability': 'معذوری کی قسم',
+  'Cause of Disability': 'معذوری کی وجہ',
+  'Disability Details': 'معذوری کی تفصیل',
+  'Accident/Illness Details': 'حادثہ / بیماری کی تفصیل',
+  'Since When?': 'کب سے؟',
+  'Is Treatment Ongoing?': 'کیا علاج جاری ہے؟',
+  'Disease / Medical Condition': 'بیماری / طبی مسئلہ',
+  'Specify Disease': 'بیماری کی وضاحت',
+  'Since when is the Child ill?': 'بچہ کب سے بیمار ہے؟',
+  'Treatment Facility / Hospital': 'علاج کی جگہ / ہسپتال',
+  'Monthly Medical Expenses': 'ماہانہ طبی اخراجات',
+  'Currently Studying': 'زیر تعلیم',
+  'School Enrollment': 'اسکول میں داخلہ',
+  'Reason for Not Studying': 'تعلیم نہ حاصل کرنے کی وجہ',
+  'Not Studying Reason': 'تعلیم نہ حاصل کرنے کی وجہ',
+  'Current Class': 'موجودہ جماعت',
+  'Current Grade / Class': 'موجودہ جماعت',
+  'School Name': 'اسکول کا نام',
+  'School Address': 'اسکول کا پتہ',
+  'School Distance in KM': 'اسکول کا فاصلہ کلومیٹر میں',
+  'Distance from Home (km)': 'گھر سے اسکول کا فاصلہ',
+  'School Transport Mode': 'اسکول جانے کا ذریعہ',
+  'Mode of Transportation': 'آمد و رفت کا ذریعہ',
+  'Studying Since': 'کب سے زیر تعلیم',
+  'Enrolled in Madrasa': 'مدرسہ میں داخلہ',
+  'Madrasa / Maktab Enrollment': 'مدرسہ / مکتب میں داخلہ',
+  'Madrasa Name': 'مدرسہ کا نام',
+  'Madrasa / Maktab Name': 'مدرسہ / مکتب کا نام',
+  Address: 'پتہ',
+  'Madrasa Education Details': 'مدرسہ تعلیم کی تفصیل',
+  'Education Start Condition': 'تعلیم شروع کرنے کی شرط',
+  'Islamic Studies Level': 'اسلامی تعلیم کی سطح',
+  'Education Undertaking Accepted': 'تعلیمی اقرار نامہ قبول',
+  'Education Undertaking': 'تعلیمی اقرار نامہ',
+  'Education Free': 'تعلیم مفت ہے',
+  'Is Education Free?': 'کیا تعلیم مفت ہے؟',
+  'Monthly School Fee': 'ماہانہ اسکول فیس',
+  'Monthly Fee': 'ماہانہ فیس',
+  'Currently Learning Skill': 'فی الحال ہنر سیکھ رہا ہے',
+  'Is the Child Currently Learning Any Skill?': 'کیا بچہ اس وقت کوئی ہنر سیکھ رہا ہے؟',
+  'Current Skill': 'موجودہ ہنر',
+  'Child Hobbies': 'بچے کے مشاغل',
+  "Child's Hobby": 'بچے کا مشغلہ',
+  'Technical Skill Interest': 'تکنیکی ہنر میں دلچسپی',
+  'Interested in Learning Technical Skills?': 'کیا تکنیکی ہنر سیکھنے میں دلچسپی ہے؟',
+  'Technical Skill': 'تکنیکی ہنر',
+  'Total Family Members': 'خاندان کے کل افراد',
+  'Total Family Members (Living Together with One Kitchen)': 'ایک ہی کچن پر رہنے والے خاندان کے کل افراد',
+  'Household Has Monthly Income': 'گھرانے کی ماہانہ آمدنی ہے',
+  'Does the Household Have Any Monthly Income?': 'کیا گھر کی کوئی ماہانہ آمدنی ہے؟',
+  'Household Earners Count': 'کمانے والوں کی تعداد',
+  'Number of Earning Members': 'کمانے والے افراد کی تعداد',
+  'Total Household Income': 'کل گھریلو آمدنی',
+  'Total Monthly Household Income': 'کل ماہانہ گھریلو آمدنی',
+  'Child Earns Income': 'بچہ آمدنی کماتا ہے',
+  'Does the Child Earn Any Income?': 'کیا بچہ کوئی آمدنی حاصل کرتا ہے؟',
+  'Child Work Nature': 'بچے کے کام کی نوعیت',
+  'Nature of Work': 'کام کی نوعیت',
+  'Child Monthly Income': 'بچے کی ماہانہ آمدنی',
+  'Monthly Income of Child': 'بچے کی ماہانہ آمدنی',
+  'Receiving Other Aid': 'دیگر امداد مل رہی ہے',
+  'Is the Family Receiving Financial Assistance from Any Source?': 'کیا خاندان کو کسی ذریعہ سے مالی امداد مل رہی ہے؟',
+  'Other Aid Source': 'دیگر امداد کا ذریعہ',
+  'Assistance Source': 'امداد کا ذریعہ',
+  'Monthly Aid Amount': 'ماہانہ امداد کی رقم',
+  'Monthly Assistance Amount': 'ماہانہ امداد کی رقم',
+  'Assistance Applied': 'امداد کے لیے درخواست دی',
+  'Has the Family Applied Anywhere for Assistance?': 'کیا خاندان نے کہیں امداد کے لیے درخواست دی ہے؟',
+  'Assistance Applied Where': 'درخواست کہاں دی',
+  'Where the family has applied?': 'خاندان نے کہاں درخواست دی ہے؟',
+  'Attestation upload': 'تصدیق اپ لوڈ',
+  "Orphan's Picture": 'یتیم کی تصویر',
+  "Orphan's B-Form": 'یتیم کا ب فارم',
+  "Father's CNIC - Combined": 'والد کا شناختی کارڈ - مشترکہ',
+  "Father's CNIC - Front": 'والد کا شناختی کارڈ - سامنے',
+  "Father's CNIC - Back": 'والد کا شناختی کارڈ - پیچھے',
+  "Father's Death Certificate": 'والد کا وفات نامہ',
+  "Mother's CNIC - Combined": 'والدہ کا شناختی کارڈ - مشترکہ',
+  "Mother's CNIC - Front": 'والدہ کا شناختی کارڈ - سامنے',
+  "Mother's CNIC - Back": 'والدہ کا شناختی کارڈ - پیچھے',
+  "Mother's Death Certificate": 'والدہ کا وفات نامہ',
+  "Guardian's CNIC - Combined": 'سرپرست کا شناختی کارڈ - مشترکہ',
+  "Guardian's CNIC - Front": 'سرپرست کا شناختی کارڈ - سامنے',
+  "Guardian's CNIC - Back": 'سرپرست کا شناختی کارڈ - پیچھے',
+  'School Letter': 'اسکول لیٹر',
+  'Fee Voucher': 'فیس واؤچر',
+  'Medical Report': 'طبی رپورٹ',
+  'Imam Verification': 'امام کی تصدیق',
+  'Principal Verification': 'پرنسپل کی تصدیق',
+  'Attestation - Combined': 'تصدیق - مشترکہ',
+  'Attestation - Page 1': 'تصدیق - صفحہ 1',
+  'Attestation - Page 2': 'تصدیق - صفحہ 2',
+  'House Photo': 'گھر کی تصویر',
+  'Other Document': 'دیگر دستاویز',
+  "Father's CNIC": 'والد کا شناختی کارڈ',
+  "Mother's CNIC": 'والدہ کا شناختی کارڈ',
+  "Guardian's CNIC": 'سرپرست کا شناختی کارڈ',
+  'Date of birth': 'تاریخ پیدائش',
+  Education: 'تعلیم',
+  'Studying now': 'زیر تعلیم',
+  Occupation: 'پیشہ',
+  'Monthly income / fee': 'ماہانہ آمدنی / فیس',
+  'Marital status': 'ازدواجی حیثیت',
+  'Monthly income': 'ماہانہ آمدنی',
+  'Support type': 'معاونت کی قسم',
+};
+
+const reviewSectionLabelUrdu: Record<string, string> = {
+  'Collector and Registration': 'جمع کرنے والے اور رجسٹریشن',
+  'Deceased Father Details': 'مرحوم والد کی تفصیلات',
+  'Mother Details': 'والدہ کی تفصیلات',
+  'Guardian Details': 'سرپرست کی تفصیلات',
+  'Close Relatives': 'قریبی رشتہ دار',
+  'Address and GPS': 'پتہ اور GPS',
+  'Home Details': 'گھر کی تفصیلات',
+  'Household Assets': 'گھریلو اثاثہ جات',
+  'Orphan Child and Siblings': 'یتیم بچہ اور بہن بھائی',
+  'Health Information': 'صحت کی معلومات',
+  'Education and Skills': 'تعلیم اور ہنر',
+  'Household Income and Assistance': 'گھریلو آمدنی اور امداد',
+  Attestation: 'تصدیق',
+  'Uploaded Documents': 'اپ لوڈ شدہ دستاویزات',
+};
+
 export type FormData = {
   registrationNumber: string;
   collectorId: string;
@@ -2300,12 +2510,12 @@ export default function OrphanApplicationWizard({
     'Guardian / سرپرست',
     'Relatives / رشتہ دار',
     'Home / گھر',
-    'Assets / اثاثے',
+    'Assets / اثاثہ جات',
     'Child / بچہ',
     'Health / صحت',
-    'Education & Skills / تعلیم',
+    'Education & Skills / تعلیم اور ہنر',
     'Income / آمدنی',
-    'Attestation/تصدیق',
+    'Attestation / تصدیق',
     'Documents / دستاویزات',
     'Review / جائزہ',
   ];
@@ -2567,6 +2777,9 @@ export default function OrphanApplicationWizard({
       </>
     );
   };
+  const localizedReviewLabel = (label: string, urdu = reviewFieldLabelUrdu[label]) => (
+    renderLocalizedLabel(urdu ? `${label} / ${urdu}` : label)
+  );
   const renderFieldLabel = (field: keyof FormData, required = true) => (
     <span className={fieldLabelClass}>{renderLocalizedLabel(fieldLabel(field))}{renderRequiredMark(required)}</span>
   );
@@ -2816,7 +3029,7 @@ export default function OrphanApplicationWizard({
 
     return (
       <div className="min-w-0 rounded-md bg-white px-3 py-2 ring-1 ring-slate-200">
-        <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
+        <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{localizedReviewLabel(label)}</dt>
         <dd className={`mt-1 break-words text-sm font-medium ${displayValue ? 'text-slate-900' : 'text-slate-400'}`}>
           {displayValue || 'Not provided'}
         </dd>
@@ -4312,7 +4525,9 @@ export default function OrphanApplicationWizard({
                 <div className="mt-3 space-y-4">
                   {reviewStep.sections.map((section) => (
                     <div key={section.title}>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{section.title}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        {localizedReviewLabel(section.title, reviewSectionLabelUrdu[section.title])}
+                      </p>
                       <div className="mt-2 grid items-start gap-3 sm:grid-cols-2">
                         {section.items.map((item) => (
                           <div
@@ -4320,7 +4535,7 @@ export default function OrphanApplicationWizard({
                             className={`self-start rounded-lg border border-slate-200 bg-slate-50 p-3 ${isExpandedReviewItem(item) ? 'sm:col-span-2' : ''}`}
                           >
                             <div className="flex items-start justify-between gap-3">
-                              <p className="min-w-0 text-xs font-semibold text-slate-500">{item.label}</p>
+                              <p className="min-w-0 text-xs font-semibold leading-5 text-slate-500">{localizedReviewLabel(item.label)}</p>
                               {!item.filled ? (
                                 <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
                                   Missing
