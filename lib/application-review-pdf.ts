@@ -22,6 +22,48 @@ type ReviewPdfApplication = {
 const pageMargin = 42;
 const rtlPattern = /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]/;
 const longExpandedLabels = new Set(['Siblings', 'Relatives', 'Household Assets']);
+const pdfTitle = 'Application Review';
+const pdfTitleUr = 'درخواست کا جائزہ';
+
+const stepTitleUrdu: Record<string, string> = {
+  'Application Info': 'درخواست کی معلومات',
+  Father: 'والد',
+  Mother: 'والدہ',
+  Guardian: 'سرپرست',
+  Relatives: 'رشتہ دار',
+  Home: 'گھر',
+  Assets: 'اثاثہ جات',
+  Child: 'بچہ',
+  Health: 'صحت',
+  'Education and Skills': 'تعلیم اور ہنر',
+  Income: 'آمدنی',
+  Attestation: 'تصدیق',
+  Documents: 'دستاویزات',
+};
+
+const sectionTitleUrdu: Record<string, string> = {
+  'Collector and Registration': 'جمع کرنے والے اور رجسٹریشن',
+  'Deceased Father Details': 'مرحوم والد کی تفصیلات',
+  'Mother Details': 'والدہ کی تفصیلات',
+  'Guardian Details': 'سرپرست کی تفصیلات',
+  'Close Relatives': 'قریبی رشتہ دار',
+  'Address and GPS': 'پتہ اور GPS',
+  'Home Details': 'گھر کی تفصیلات',
+  'Household Assets': 'گھریلو اثاثہ جات',
+  'Orphan Child and Siblings': 'یتیم بچہ اور بہن بھائی',
+  'Health Information': 'صحت کی معلومات',
+  'Education and Skills': 'تعلیم اور ہنر',
+  'Household Income and Assistance': 'گھریلو آمدنی اور امداد',
+  Attestation: 'تصدیق',
+  'Uploaded Documents': 'اپ لوڈ شدہ دستاویزات',
+};
+
+const summaryLabelUrdu: Record<string, string> = {
+  Application: 'درخواست',
+  Status: 'حیثیت',
+  Department: 'شعبہ',
+  Generated: 'تیار کیا گیا',
+};
 
 let browserPromise: Promise<Browser> | null = null;
 
@@ -175,7 +217,7 @@ function renderItem(item: ApplicationReviewItem) {
 function renderSection(section: ApplicationReviewStep['sections'][number]) {
   return `
     <section class="review-section">
-      <h3>${escapeHtml(section.title)}</h3>
+      <h3>${renderBilingualHeading(section.title.toUpperCase(), sectionTitleUrdu[section.title])}</h3>
       <div class="review-grid">
         ${section.items.map(renderItem).join('')}
       </div>
@@ -183,10 +225,19 @@ function renderSection(section: ApplicationReviewStep['sections'][number]) {
   `;
 }
 
+function renderBilingualHeading(english: string, urdu?: string) {
+  if (!urdu) return escapeHtml(english);
+
+  return `${escapeHtml(english)} <span class="heading-slash">/</span> <span class="heading-ur" dir="rtl" lang="ur">${escapeHtml(urdu)}</span>`;
+}
+
 function renderStep(step: ApplicationReviewStep) {
+  const englishTitle = step.title;
+  const urduTitle = stepTitleUrdu[step.title];
+
   return `
     <section class="review-step">
-      <h2>${escapeHtml(step.number ? `Step ${step.number}: ${step.title}` : step.title)}</h2>
+      <h2>${renderBilingualHeading(englishTitle, urduTitle)}</h2>
       ${step.sections.map(renderSection).join('')}
     </section>
   `;
@@ -198,7 +249,7 @@ function renderHeader(application: ReviewPdfApplication) {
   return `
     <div style="box-sizing:border-box;width:100%;height:78px;padding:26px ${pageMargin}px 0;font-family:Arial,sans-serif;color:#0f172a;">
       <div style="text-align:center;padding-top:2px;">
-        <div style="font-size:14px;font-weight:700;line-height:1.35;">Application Review</div>
+        <div style="font-size:14px;font-weight:700;line-height:1.7;">${renderBilingualHeading(pdfTitle, pdfTitleUr)}</div>
         <div style="margin-top:3px;font-size:9px;color:#64748b;">${escapeHtml(registration)}</div>
       </div>
     </div>
@@ -290,6 +341,11 @@ function buildStyles(fontDataUri: string) {
       font-weight: 700;
     }
 
+    .metric .heading-ur {
+      font-size: 10px;
+      line-height: 1;
+    }
+
     .review-step {
       break-before: auto;
       margin: 0 0 16px;
@@ -299,7 +355,7 @@ function buildStyles(fontDataUri: string) {
       break-after: avoid;
       margin: 0 0 9px;
       font-size: 15px;
-      line-height: 1.35;
+      line-height: 1.75;
     }
 
     .review-section {
@@ -311,9 +367,22 @@ function buildStyles(fontDataUri: string) {
       margin: 0 0 7px;
       color: #64748b;
       font-size: 9px;
-      line-height: 1.35;
+      line-height: 1.75;
       letter-spacing: 1px;
       text-transform: uppercase;
+    }
+
+    .heading-slash {
+      color: #94a3b8;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .heading-ur {
+      font-family: 'SaibanPdfNastaliq', 'Noto Nastaliq Urdu', serif;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
     }
 
     .review-grid {
@@ -478,7 +547,7 @@ function buildHtml(application: ReviewPdfApplication) {
     <html lang="en">
       <head>
         <meta charset="utf-8" />
-        <title>Application Review - ${escapeHtml(registration)}</title>
+        <title>${escapeHtml(pdfTitle)} - ${escapeHtml(registration)}</title>
         <style>${buildStyles(fontDataUri)}</style>
       </head>
       <body>
@@ -488,7 +557,7 @@ function buildHtml(application: ReviewPdfApplication) {
             <div class="summary-grid">
               ${summaryItems.map(([label, value]) => `
                 <div class="metric">
-                  <span>${escapeHtml(label)}:</span>
+                  <span>${renderBilingualHeading(label, summaryLabelUrdu[label])}:</span>
                   <strong>${escapeHtml(value)}</strong>
                 </div>
               `).join('')}
