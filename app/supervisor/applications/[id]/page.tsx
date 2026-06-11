@@ -6,6 +6,7 @@ import SupervisorShell from '@/components/supervisor-shell';
 import BackButton from '@/components/back-button';
 import ApplicationActivityTimeline from '@/components/application-activity-timeline';
 import ApplicationStatusActions from '@/components/application-status-actions';
+import ApplicationFieldWorkerDetails from '@/components/application-field-worker-details';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
 import { getApplicationDocuments } from '@/lib/application-documents';
@@ -47,7 +48,7 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
       relatives: true,
       householdAssets: true,
       createdBy: {
-        select: { name: true, fieldWorkerId: true, selfRegistered: true },
+        select: { name: true, fieldWorkerId: true, phoneNumber: true, cnic: true, project: true, selfRegistered: true },
       },
       auditLogs: {
         orderBy: { createdAt: 'asc' },
@@ -98,6 +99,7 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
         />
 
         <aside className="min-w-0 space-y-5">
+          <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} />
           <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="supervisor" />
           <ApplicationActivityTimeline
             createdAt={application.createdAt}

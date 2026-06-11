@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
 import BackButton from '@/components/back-button';
 import ApplicationStatusActions from '@/components/application-status-actions';
+import ApplicationFieldWorkerDetails from '@/components/application-field-worker-details';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
 import { getApplicationDocuments } from '@/lib/application-documents';
@@ -33,6 +34,9 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
       siblings: true,
       relatives: true,
       householdAssets: true,
+      createdBy: {
+        select: { name: true, fieldWorkerId: true, phoneNumber: true, cnic: true, project: true, selfRegistered: true },
+      },
     },
   });
 
@@ -73,7 +77,8 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
           readOnly
         />
 
-        <aside>
+        <aside className="min-w-0 space-y-5">
+          <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} />
           <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="reviewer" />
         </aside>
       </div>

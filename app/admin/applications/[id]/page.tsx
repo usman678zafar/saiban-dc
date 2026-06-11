@@ -9,6 +9,7 @@ import BackButton from '@/components/back-button';
 import ApplicationActivityTimeline from '@/components/application-activity-timeline';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
+import ApplicationFieldWorkerDetails from '@/components/application-field-worker-details';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
@@ -34,7 +35,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
       relatives: true,
       householdAssets: true,
       createdBy: {
-        select: { name: true, fieldWorkerId: true },
+        select: { name: true, fieldWorkerId: true, phoneNumber: true, cnic: true, project: true, selfRegistered: true },
       },
       auditLogs: {
         orderBy: { createdAt: 'asc' },
@@ -99,6 +100,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
         />
 
         <aside className="space-y-6">
+          <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} />
           <ApplicationActivityTimeline
             createdAt={application.createdAt}
             updatedAt={application.updatedAt}
