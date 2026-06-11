@@ -21,7 +21,7 @@ import {
 import FileUpload from './file-upload';
 import { useNavigationLoading } from './navigation-loading';
 import { downloadAttestationPdf, printAttestationForm } from './attestation-form';
-import { buildApplicationReview } from '@/lib/application-review';
+import { buildApplicationReview, type ApplicationReviewItem } from '@/lib/application-review';
 
 type SiblingInput = {
   id?: string;
@@ -986,6 +986,32 @@ function hasOption(options: string[], value: string) {
 
 function siblingOccupationHasNoIncome(occupation: string) {
   return ['Unemployed', 'Retired', 'Disabled', 'Unable to Work'].includes(occupation);
+}
+
+function readableReviewValue(value: unknown) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  return raw
+    .replace(/_/g, ' ')
+    .replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
+}
+
+function readableYesNo(value: unknown) {
+  if (value === true || value === 'yes') return 'Yes';
+  if (value === false || value === 'no') return 'No';
+  return readableReviewValue(value);
+}
+
+function readableMoneyValue(value: unknown) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  const amount = Number(raw.replace(/,/g, ''));
+  if (!Number.isFinite(amount)) return raw;
+  return `PKR ${amount.toLocaleString('en-US')}`;
+}
+
+function countLabel(count: number, singular: string, plural = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : plural}`;
 }
 
 function normalizeInitialData(data: FormData): FormData {
@@ -2785,6 +2811,132 @@ export default function OrphanApplicationWizard({
   const reviewSteps = useMemo(() => buildApplicationReview(formData, documents), [documents, formData]);
   const isExpandedReviewItem = (item: { label: string; value: string }) =>
     item.value.includes('\n') || item.value.length > 180 || ['Siblings', 'Relatives', 'Household Assets'].includes(item.label);
+  const renderReviewFact = (label: string, value: unknown, valueFormatter = readableReviewValue) => {
+    const displayValue = valueFormatter(value);
+
+    return (
+      <div className="min-w-0 rounded-md bg-white px-3 py-2 ring-1 ring-slate-200">
+        <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
+        <dd className={`mt-1 break-words text-sm font-medium ${displayValue ? 'text-slate-900' : 'text-slate-400'}`}>
+          {displayValue || 'Not provided'}
+        </dd>
+      </div>
+    );
+  };
+  const renderSiblingReviewDetails = (item: ApplicationReviewItem) => {
+    if (!formData.siblings.length) {
+      return <p className="mt-1 whitespace-pre-line break-words text-sm text-slate-900">{item.value}</p>;
+    }
+
+    const totalBrothers = formData.siblings.filter((sibling) => sibling.relation === 'brother').length;
+    const totalSisters = formData.siblings.filter((sibling) => sibling.relation === 'sister').length;
+    const studyingCount = formData.siblings.filter((sibling) => sibling.currentlyStudying === 'yes').length;
+
+    return (
+      <div className="mt-3 space-y-4">
+        <div className="flex flex-wrap gap-2 text-xs font-semibold">
+          <span className="rounded-full bg-slate-900 px-2.5 py-1 text-white">{countLabel(formData.siblings.length, 'sibling')}</span>
+          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">{countLabel(totalBrothers, 'brother')}</span>
+          <span className="rounded-full bg-fuchsia-50 px-2.5 py-1 text-fuchsia-700">{countLabel(totalSisters, 'sister')}</span>
+          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">{studyingCount} studying</span>
+        </div>
+
+        <div className="divide-y divide-slate-200 border-y border-slate-200">
+          {formData.siblings.map((sibling, index) => {
+            const relation = readableReviewValue(sibling.relation) || 'Sibling';
+            const age = readableReviewValue(sibling.age);
+            const heading = readableReviewValue(sibling.name) || `Sibling ${index + 1}`;
+
+            return (
+              <div key={sibling.id ?? `${sibling.name}-${index}`} className="py-4 first:pt-3 last:pb-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="min-w-0 break-words text-sm font-semibold text-slate-950">{heading}</h4>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">{relation}</span>
+                  {age ? (
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                      {age} years old
+                    </span>
+                  ) : null}
+                </div>
+                <dl className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {renderReviewFact('Date of birth', sibling.dob)}
+                  {renderReviewFact('Education', sibling.educationStatus)}
+                  {renderReviewFact('Studying now', sibling.currentlyStudying, readableYesNo)}
+                  {renderReviewFact('Occupation', sibling.occupation)}
+                  {renderReviewFact('Monthly income / fee', sibling.monthlyIncomeOrFee)}
+                  {renderReviewFact('Marital status', sibling.maritalStatus)}
+                </dl>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+  const renderRelativeReviewDetails = (item: ApplicationReviewItem) => {
+    if (!formData.relatives.length) {
+      return <p className="mt-1 whitespace-pre-line break-words text-sm text-slate-900">{item.value}</p>;
+    }
+
+    const relativesWithSupport = formData.relatives.filter((relative) => relative.supportType).length;
+    const totalMonthlyIncome = formData.relatives.reduce((total, relative) => {
+      const amount = Number(String(relative.monthlyIncome || '').replace(/,/g, ''));
+      return Number.isFinite(amount) ? total + amount : total;
+    }, 0);
+
+    return (
+      <div className="mt-3 space-y-4">
+        <div className="flex flex-wrap gap-2 text-xs font-semibold">
+          <span className="rounded-full bg-slate-900 px-2.5 py-1 text-white">{countLabel(formData.relatives.length, 'relative')}</span>
+          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">{countLabel(relativesWithSupport, 'support entry', 'support entries')}</span>
+          {totalMonthlyIncome > 0 ? (
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">
+              {readableMoneyValue(totalMonthlyIncome)} combined income
+            </span>
+          ) : null}
+        </div>
+
+        <div className="divide-y divide-slate-200 border-y border-slate-200">
+          {formData.relatives.map((relative, index) => {
+            const relationship = readableReviewValue(relative.relativeType) || 'Relative';
+            const heading = readableReviewValue(relative.name) || `Relative ${index + 1}`;
+            const age = readableReviewValue(relative.age);
+            const occupation = relative.occupation === 'Other' ? relative.occupationOther || relative.occupation : relative.occupation;
+            const supportType = relative.supportType === 'other' ? relative.supportTypeOther || relative.supportType : relative.supportType;
+
+            return (
+              <div key={relative.id ?? `${relative.relativeType}-${relative.name}-${index}`} className="py-4 first:pt-3 last:pb-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="min-w-0 break-words text-sm font-semibold text-slate-950">{heading}</h4>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">{relationship}</span>
+                  {age ? (
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                      {age} years old
+                    </span>
+                  ) : null}
+                </div>
+                <dl className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {renderReviewFact('Occupation', occupation)}
+                  {renderReviewFact('Monthly income', relative.monthlyIncome, readableMoneyValue)}
+                  {renderReviewFact('Support type', supportType)}
+                </dl>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+  const renderReviewItemValue = (item: ApplicationReviewItem) => {
+    if (item.label === 'Siblings') return renderSiblingReviewDetails(item);
+    if (item.label === 'Relatives') return renderRelativeReviewDetails(item);
+
+    return <p className="mt-1 whitespace-pre-line break-words text-sm text-slate-900">{item.value}</p>;
+  };
+  const reviewStepTitle = (reviewStep: { number: number | null; title: string }) => {
+    if (!reviewStep.number) return 'Application Info / درخواست کی معلومات';
+    return stepTitles[reviewStep.number - 1] ?? reviewStep.title;
+  };
 
   const steps = Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1);
   const currentStepTitle = stepTitles[step - 1] ?? '';
@@ -4154,16 +4306,9 @@ export default function OrphanApplicationWizard({
           <div className="space-y-5">
             {reviewSteps.map((reviewStep) => (
               <section key={reviewStep.number ?? 'application-info'} className="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  {reviewStep.number ? (
-                    <span className="inline-flex size-7 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">
-                      {reviewStep.number}
-                    </span>
-                  ) : null}
-                  <h3 className="text-sm font-semibold text-slate-900">
-                    {reviewStep.number ? `Step ${reviewStep.number}: ${reviewStep.title}` : reviewStep.title}
-                  </h3>
-                </div>
+                <h3 className="text-base font-bold text-slate-950 sm:text-lg">
+                  {renderLocalizedLabel(reviewStepTitle(reviewStep))}
+                </h3>
                 <div className="mt-3 space-y-4">
                   {reviewStep.sections.map((section) => (
                     <div key={section.title}>
@@ -4182,7 +4327,7 @@ export default function OrphanApplicationWizard({
                                 </span>
                               ) : null}
                             </div>
-                            <p className="mt-1 whitespace-pre-line break-words text-sm text-slate-900">{item.value}</p>
+                            {renderReviewItemValue(item)}
                           </div>
                         ))}
                       </div>
