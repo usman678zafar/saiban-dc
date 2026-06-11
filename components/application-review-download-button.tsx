@@ -32,7 +32,14 @@ export default function ApplicationReviewDownloadButton({
       });
 
       if (!response.ok) {
-        throw new Error('Unable to download application review.');
+        let message = 'Unable to download application review.';
+        try {
+          const result = await response.json() as { message?: string; detail?: string };
+          message = result.detail ? `${result.message ?? message} ${result.detail}` : result.message ?? message;
+        } catch {
+          // Keep the generic message when the server did not return JSON.
+        }
+        throw new Error(message);
       }
 
       const blob = await response.blob();

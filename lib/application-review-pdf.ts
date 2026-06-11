@@ -278,12 +278,29 @@ async function launchBrowser() {
   return chromium.launch(localOptions);
 }
 
-function getBrowser() {
+function getBrowser(): Promise<Browser> {
   if (!browserPromise) {
-    browserPromise = launchBrowser();
+    browserPromise = launchBrowser()
+      .then((browser) => {
+        browser.on('disconnected', () => {
+          browserPromise = null;
+        });
+        return browser;
+      })
+      .catch((error) => {
+        browserPromise = null;
+        throw error;
+      });
   }
 
-  return browserPromise;
+  return browserPromise.then((browser) => {
+    if (!browser.isConnected()) {
+      browserPromise = null;
+      return getBrowser();
+    }
+
+    return browser;
+  });
 }
 
 function assetPath(...parts: string[]) {

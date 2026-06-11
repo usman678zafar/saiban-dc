@@ -48,14 +48,30 @@ export async function GET(_request: Request, { params }: ApplicationReviewRouteP
     return NextResponse.json({ message: 'Application not found' }, { status: 404 });
   }
 
-  const pdf = await buildApplicationReviewPdf(application);
-  const title = application.registrationNumber ?? application.id;
+  try {
+    const pdf = await buildApplicationReviewPdf(application);
+    const title = application.registrationNumber ?? application.id;
 
-  return new NextResponse(pdf, {
-    headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="application-review-${filenamePart(title)}.pdf"`,
-      'Cache-Control': 'no-store',
-    },
-  });
+    return new NextResponse(pdf, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="application-review-${filenamePart(title)}.pdf"`,
+        'Cache-Control': 'no-store',
+      },
+    });
+  } catch (error) {
+    console.error('Application review PDF generation failed', {
+      applicationId: application.id,
+      registrationNumber: application.registrationNumber,
+      error,
+    });
+
+    return NextResponse.json(
+      {
+        message: 'Unable to generate application review PDF.',
+        detail: error instanceof Error ? error.message : 'Unknown PDF generation error',
+      },
+      { status: 500 },
+    );
+  }
 }
