@@ -6,7 +6,6 @@ import { applicationToWizardData } from '@/lib/application-wizard-data';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import {
   buildApplicationReview,
-  calculateApplicationCompletion,
   type ApplicationReviewItem,
   type ApplicationReviewStep,
 } from '@/lib/application-review';
@@ -197,12 +196,11 @@ function renderHeader(application: ReviewPdfApplication) {
   const registration = application.registrationNumber ?? application.id;
 
   return `
-    <div style="box-sizing:border-box;width:100%;height:92px;padding:24px ${pageMargin}px 0;font-family:Arial,sans-serif;color:#0f172a;">
+    <div style="box-sizing:border-box;width:100%;height:78px;padding:26px ${pageMargin}px 0;font-family:Arial,sans-serif;color:#0f172a;">
       <div style="text-align:center;padding-top:2px;">
         <div style="font-size:14px;font-weight:700;line-height:1.35;">Application Review</div>
         <div style="margin-top:3px;font-size:9px;color:#64748b;">${escapeHtml(registration)}</div>
       </div>
-      <div style="margin-top:26px;border-bottom:1px solid #dbe4ef;"></div>
     </div>
   `;
 }
@@ -292,21 +290,6 @@ function buildStyles(fontDataUri: string) {
       font-weight: 700;
     }
 
-    .completion-track {
-      grid-column: 1 / -1;
-      height: 5px;
-      margin-top: 8px;
-      border-radius: 999px;
-      background: #dbeafe;
-      overflow: hidden;
-    }
-
-    .completion-bar {
-      height: 100%;
-      border-radius: inherit;
-      background: #2563eb;
-    }
-
     .review-step {
       break-before: auto;
       margin: 0 0 16px;
@@ -345,7 +328,7 @@ function buildStyles(fontDataUri: string) {
       border: 1px solid #e2e8f0;
       border-radius: 6px;
       background: #f8fafc;
-      padding: 8px 10px 9px;
+      padding: 12px 10px 10px;
       overflow-wrap: anywhere;
     }
 
@@ -367,7 +350,7 @@ function buildStyles(fontDataUri: string) {
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .label {
@@ -474,16 +457,20 @@ function buildStyles(fontDataUri: string) {
 function buildHtml(application: ReviewPdfApplication) {
   const wizardData = applicationToWizardData(application);
   const reviewSteps = buildApplicationReview(wizardData, application.documents);
-  const completion = calculateApplicationCompletion(wizardData, application.documents);
   const fontDataUri = readRequiredFont();
   const childName = application.childName ?? 'No child name';
   const childNameRtl = isRtlText(childName);
   const registration = application.registrationNumber ?? application.id;
+  const generatedAt = new Intl.DateTimeFormat('en-PK', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Karachi',
+  }).format(new Date());
   const summaryItems = [
     ['Application', registration],
     ['Status', applicationStatusLabel(application.status)],
     ['Department', application.collectorProject ?? '-'],
-    ['Completion', `${completion.percentage}% (${completion.complete}/${completion.total})`],
+    ['Generated', generatedAt],
   ];
 
   return `
@@ -505,9 +492,6 @@ function buildHtml(application: ReviewPdfApplication) {
                   <strong>${escapeHtml(value)}</strong>
                 </div>
               `).join('')}
-              <div class="completion-track" aria-hidden="true">
-                <div class="completion-bar" style="width:${completion.percentage}%;"></div>
-              </div>
             </div>
           </section>
           ${reviewSteps.map(renderStep).join('')}
@@ -536,7 +520,7 @@ export async function buildApplicationReviewPdf(application: ReviewPdfApplicatio
       headerTemplate: renderHeader(application),
       footerTemplate: renderFooter(),
       margin: {
-        top: '92px',
+        top: '86px',
         right: '0px',
         bottom: '54px',
         left: '0px',
