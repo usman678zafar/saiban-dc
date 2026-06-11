@@ -248,24 +248,18 @@ function formatSiblings(siblings: NonNullable<ApplicationReviewData['siblings']>
   if (!siblings.length) return '';
   return siblings.map((sibling, index) => {
     const rows = [
-      [
-        ['Name', sibling.name],
-        ['Relation', sibling.relation],
-        ['DOB', sibling.dob],
-        ['Age', sibling.age],
-      ],
-      [
-        ['Education', sibling.educationStatus],
-        ['Currently Studying', yesNo(sibling.currentlyStudying)],
-      ],
-      [
-        ['Occupation', sibling.occupation],
-        ['Monthly Income/Fee', sibling.monthlyIncomeOrFee],
-        ['Marital Status', sibling.maritalStatus],
-      ],
-    ].map((row) => row.filter(([, value]) => isFilled(value)).map(([label, value]) => `${label}: ${value}`).join(' | ')).filter(Boolean);
+      ['Name', sibling.name],
+      ['Relation', sibling.relation],
+      ['DOB', sibling.dob],
+      ['Age', sibling.age],
+      ['Education', sibling.educationStatus],
+      ['Currently Studying', yesNo(sibling.currentlyStudying)],
+      ['Occupation', sibling.occupation],
+      ['Monthly Income/Fee', sibling.monthlyIncomeOrFee],
+      ['Marital Status', sibling.maritalStatus],
+    ].filter(([, value]) => isFilled(value)).map(([label, value]) => `${label}: ${value}`);
 
-    return `Sibling ${index + 1}\n${rows.join('\n')}`;
+    return [`Sibling ${index + 1}`, ...rows].join('\n');
   }).join('\n\n');
 }
 
@@ -273,21 +267,15 @@ function formatRelatives(relatives: NonNullable<ApplicationReviewData['relatives
   if (!relatives.length) return '';
   return relatives.map((relative, index) => {
     const rows = [
-      [
-        ['Relationship', relative.relativeType?.replace(/_/g, ' ')],
-        ['Name', relative.name],
-        ['Age', relative.age],
-      ],
-      [
-        ['Occupation', relative.occupation === 'Other' ? relative.occupationOther : relative.occupation],
-        ['Monthly Income', relative.monthlyIncome],
-      ],
-      [
-        ['Support Type', relative.supportType === 'other' ? relative.supportTypeOther : relative.supportType?.replace(/_/g, ' ')],
-      ],
-    ].map((row) => row.filter(([, value]) => isFilled(value)).map(([label, value]) => `${label}: ${value}`).join(' | ')).filter(Boolean);
+      ['Relationship', relative.relativeType?.replace(/_/g, ' ')],
+      ['Name', relative.name],
+      ['Age', relative.age],
+      ['Occupation', relative.occupation === 'Other' ? relative.occupationOther : relative.occupation],
+      ['Monthly Income', relative.monthlyIncome],
+      ['Support Type', relative.supportType === 'other' ? relative.supportTypeOther : relative.supportType?.replace(/_/g, ' ')],
+    ].filter(([, value]) => isFilled(value)).map(([label, value]) => `${label}: ${value}`);
 
-    return `Relative ${index + 1}\n${rows.join('\n')}`;
+    return [`Relative ${index + 1}`, ...rows].join('\n');
   }).join('\n\n');
 }
 

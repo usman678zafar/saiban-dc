@@ -112,7 +112,52 @@ function valueClasses(value: string) {
   return isRtlText(value) ? 'value rtl' : 'value';
 }
 
+function repeatedRecordPrefix(value: string) {
+  if (/^Sibling \d+/m.test(value)) return 'Sibling';
+  if (/^Relative \d+/m.test(value)) return 'Relative';
+  return null;
+}
+
+function renderStructuredRecords(value: string) {
+  const prefix = repeatedRecordPrefix(value);
+  if (!prefix) return null;
+
+  const records = value
+    .split(/\n{2,}/)
+    .map((record) => record.split('\n').map((line) => line.trim()).filter(Boolean))
+    .filter((lines) => lines[0]?.startsWith(prefix));
+
+  if (!records.length) return null;
+
+  return `
+    <div class="record-list">
+      ${records.map(([title, ...rows]) => `
+        <div class="record-block">
+          <div class="record-title">${escapeHtml(title)}</div>
+          <div class="record-grid">
+            ${rows.map((row) => {
+              const separator = row.indexOf(':');
+              if (separator < 0) return `<div class="record-row full">${escapeHtml(row)}</div>`;
+              const label = row.slice(0, separator);
+              const recordValue = row.slice(separator + 1).trim();
+              return `
+                <div class="record-row">
+                  <span>${escapeHtml(label)}</span>
+                  <strong ${valueAttributes(recordValue)}>${escapeHtml(recordValue)}</strong>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
 function renderValue(value: string) {
+  const structuredRecords = renderStructuredRecords(value);
+  if (structuredRecords) return structuredRecords;
+
   return `<div class="${valueClasses(value)}" ${valueAttributes(value)}>${escapeHtml(value)}</div>`;
 }
 
@@ -343,9 +388,63 @@ function buildStyles(fontDataUri: string) {
     .value {
       color: #0f172a;
       font-size: 9.6px;
-      line-height: 1.45;
+      line-height: 1.6;
       white-space: pre-wrap;
       unicode-bidi: plaintext;
+    }
+
+    .record-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .record-block {
+      break-inside: avoid;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #ffffff;
+      padding: 8px;
+    }
+
+    .record-title {
+      margin-bottom: 6px;
+      color: #0f172a;
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .record-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px 10px;
+    }
+
+    .record-row {
+      min-width: 0;
+      color: #0f172a;
+      font-size: 8.6px;
+      line-height: 1.35;
+    }
+
+    .record-row.full {
+      grid-column: 1 / -1;
+    }
+
+    .record-row span {
+      display: block;
+      color: #64748b;
+      font-size: 7.4px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .record-row strong {
+      display: block;
+      margin-top: 1px;
+      font-weight: 600;
+      overflow-wrap: anywhere;
     }
 
     .value.rtl {
