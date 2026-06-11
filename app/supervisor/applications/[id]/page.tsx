@@ -7,6 +7,7 @@ import BackButton from '@/components/back-button';
 import ApplicationActivityTimeline from '@/components/application-activity-timeline';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
+import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
 import { getApplicationDocuments } from '@/lib/application-documents';
 import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
 import { projectMatchesAnyReviewAssignment } from '@/lib/field-workers';
@@ -76,9 +77,17 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
           <h1 className="break-words text-2xl font-semibold tracking-tight text-[#0f1f33] [overflow-wrap:anywhere] sm:text-3xl">{application.registrationNumber ?? application.id}</h1>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-[#5f718a]">Review the submitted record in the same step-by-step format used during form entry.</p>
         </div>
-        <BackButton fallbackHref="/supervisor" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
-          Back
-        </BackButton>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:justify-end">
+          <BackButton fallbackHref="/supervisor" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+            Back
+          </BackButton>
+          <ApplicationReviewDownloadButton
+            applicationId={application.id}
+            fileName={application.registrationNumber ?? application.id}
+            label="Download"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70"
+          />
+        </div>
       </header>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <OrphanApplicationWizard

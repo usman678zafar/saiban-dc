@@ -11,6 +11,7 @@ import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
+import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
 import { getApplicationDocuments } from '@/lib/application-documents';
 import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
 
@@ -62,6 +63,12 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
           <BackButton fallbackHref="/admin/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
             Back
           </BackButton>
+          <ApplicationReviewDownloadButton
+            applicationId={application.id}
+            fileName={application.registrationNumber ?? application.id}
+            label="Download"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70"
+          />
           <Link href={`/applications/${application.id}/duplicate`} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-100">
             <CopyPlus className="h-4 w-4" aria-hidden="true" />
             Add Child Same Family
