@@ -250,14 +250,12 @@ const fieldLabelUrdu: Record<string, string> = {
   "Guardian's CNIC": 'سرپرست کا شناختی کارڈ',
 };
 
-let browserPromise: Promise<Browser> | null = null;
-
-async function launchBrowser() {
+async function launchBrowser(): Promise<Browser> {
   const fontArgs = ['--font-render-hinting=medium'];
 
   if (process.env.VERCEL) {
     return chromium.launch({
-      args: [...serverlessChromium.args, ...fontArgs],
+      args: [...serverlessChromium.args, '--disable-dev-shm-usage', ...fontArgs],
       executablePath: await serverlessChromium.executablePath(),
       headless: true,
     });
@@ -278,31 +276,6 @@ async function launchBrowser() {
   return chromium.launch(localOptions);
 }
 
-function getBrowser(): Promise<Browser> {
-  if (!browserPromise) {
-    browserPromise = launchBrowser()
-      .then((browser) => {
-        browser.on('disconnected', () => {
-          browserPromise = null;
-        });
-        return browser;
-      })
-      .catch((error) => {
-        browserPromise = null;
-        throw error;
-      });
-  }
-
-  return browserPromise.then((browser) => {
-    if (!browser.isConnected()) {
-      browserPromise = null;
-      return getBrowser();
-    }
-
-    return browser;
-  });
-}
-
 function assetPath(...parts: string[]) {
   return path.join(process.cwd(), ...parts);
 }
@@ -315,7 +288,9 @@ function existingAsset(...parts: string[]) {
 function readRequiredFont() {
   const fontPath = existingAsset('public', 'fonts', 'NotoNastaliqUrdu-Regular.ttf');
   if (!fontPath) {
-    throw new Error('Missing PDF Urdu font: public/fonts/NotoNastaliqUrdu-Regular.ttf');
+    throw new Error(
+      `Missing PDF Urdu font: public/fonts/NotoNastaliqUrdu-Regular.ttf (cwd: ${process.cwd()})`,
+    );
   }
 
   return `data:font/ttf;base64,${fs.readFileSync(fontPath).toString('base64')}`;
@@ -777,13 +752,15 @@ function buildHtml(application: ReviewPdfApplication) {
 }
 
 export async function buildApplicationReviewPdf(application: ReviewPdfApplication) {
-  const browser = await getBrowser();
-  const page = await browser.newPage({
-    viewport: { width: 794, height: 1123 },
-    deviceScaleFactor: 1,
-  });
+  const browser = await launchBrowser();
+  let page: Awaited<ReturnType<Browser['newPage']>> | null = null;
 
   try {
+    page = await browser.newPage({
+      viewport: { width: 794, height: 1123 },
+      deviceScaleFactor: 1,
+    });
+
     await page.setContent(buildHtml(application), { waitUntil: 'load' });
     await page.evaluate(() => document.fonts.ready);
     await page.emulateMedia({ media: 'print' });
@@ -802,6 +779,7 @@ export async function buildApplicationReviewPdf(application: ReviewPdfApplicatio
       },
     });
   } finally {
-    await page.close();
+    await page?.close().catch(() => undefined);
+    await browser.close().catch(() => undefined);
   }
 }

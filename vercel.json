@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "app/api/applications/[id]/review/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
+}

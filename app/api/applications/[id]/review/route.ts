@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { buildApplicationReviewPdf } from '@/lib/application-review-pdf';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 interface ApplicationReviewRouteProps {
