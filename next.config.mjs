@@ -2,7 +2,7 @@
 const nextConfig = {
   distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next',
   experimental: {
-    serverComponentsExternalPackages: ['pdfkit'],
+    serverComponentsExternalPackages: ['@sparticuz/chromium', 'playwright-core'],
   },
   images: {
     remotePatterns: [

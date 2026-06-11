@@ -5,10 +5,11 @@
 @font-face {
   font-family: 'Saiban Urdu Nastaleeq';
   src:
+    url('/fonts/NotoNastaliqUrdu-Regular.ttf') format('truetype'),
     url('/fonts/Jameel-Noori-Nastaleeq.woff') format('woff'),
+    local('Noto Nastaliq Urdu'),
     local('Jameel Noori Nastaleeq'),
-    local('Jameel Noori Nastaleeq Regular'),
-    local('Noto Nastaliq Urdu');
+    local('Jameel Noori Nastaleeq Regular');
   font-style: normal;
   font-weight: 400 800;
   font-display: swap;
