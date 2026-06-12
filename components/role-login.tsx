@@ -6,7 +6,7 @@ import LoginForm from './login-form';
 import logo from '@/assests/logo.png';
 import baitussalamLogo from '@/assests/baitussalam.webp';
 
-type LoginRole = 'admin' | 'reviewer' | 'supervisor' | 'field_worker';
+type LoginRole = 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer';
 
 const loginOptions: Array<{
   role: LoginRole;
@@ -33,6 +33,12 @@ const loginOptions: Array<{
     redirect: '/reviewer',
   },
   {
+    role: 'viewer',
+    label: 'Viewer',
+    title: 'Viewer Login',
+    redirect: '/viewer',
+  },
+  {
     role: 'admin',
     label: 'Admin',
     title: 'Admin Login',
@@ -45,7 +51,7 @@ export default function RoleLogin() {
   const selectedOption = loginOptions.find((option) => option.role === selectedRole) ?? loginOptions[0];
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-xs items-center px-2 sm:max-w-sm sm:px-0">
+    <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-sm items-center px-2 sm:px-0">
       <div className="w-full rounded-lg border border-slate-200 bg-white p-3 shadow-[0_18px_60px_rgba(15,23,42,0.18)]">
         <div className="flex items-center justify-between gap-4">
           <Image src={logo} alt="Saiban" width={150} height={110} className="h-14 w-auto object-contain sm:h-16" priority />
@@ -55,7 +61,7 @@ export default function RoleLogin() {
           <h1 className="text-base font-semibold tracking-tight text-slate-950">Saiban Login</h1>
         </div>
 
-        <div className="mt-2 grid h-8 grid-cols-4 gap-1 rounded-lg bg-slate-100 p-0.5">
+        <div className="mt-2 grid h-8 grid-cols-5 gap-1 rounded-lg bg-slate-100 p-0.5">
           {loginOptions.map((option) => {
             const isSelected = option.role === selectedRole;
             return (

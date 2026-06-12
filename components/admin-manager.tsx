@@ -10,6 +10,7 @@ export type AdminListItem = {
   id: string;
   name: string | null;
   email: string;
+  role: 'admin' | 'viewer';
   createdAt: string;
 };
 
@@ -17,12 +18,14 @@ type FormState = {
   name: string;
   email: string;
   password: string;
+  role: 'admin' | 'viewer';
 };
 
 const emptyForm: FormState = {
   name: '',
   email: '',
   password: '',
+  role: 'admin',
 };
 
 export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
@@ -42,7 +45,7 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
 
   const openEdit = (admin: AdminListItem) => {
     setSelected(admin);
-    setForm({ name: admin.name ?? '', email: admin.email, password: '' });
+    setForm({ name: admin.name ?? '', email: admin.email, password: '', role: admin.role });
     setMessage(null);
     setIsOpen(true);
   };
@@ -62,7 +65,7 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
     setIsSubmitting(false);
 
     if (!response.ok) {
-      setMessage(result?.message ?? 'Unable to save admin.');
+      setMessage(result?.message ?? 'Unable to save account.');
       return;
     }
 
@@ -72,12 +75,12 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
   };
 
   const remove = async (admin: AdminListItem) => {
-    if (!window.confirm(`Delete admin ${admin.name ?? admin.email}?`)) return;
+    if (!window.confirm(`Delete ${admin.role === 'viewer' ? 'viewer' : 'admin'} ${admin.name ?? admin.email}?`)) return;
 
     const response = await fetch(`/api/admin/admins/${admin.id}`, { method: 'DELETE' });
     const result = await response.json();
     if (!response.ok) {
-      setMessage(result?.message ?? 'Unable to delete admin.');
+      setMessage(result?.message ?? 'Unable to delete account.');
       return;
     }
     router.refresh();
@@ -88,12 +91,12 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
       <section className="rounded-xl border border-[#dbe4ef] bg-white p-4 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-[#0f1f33]">Admin Accounts</h2>
-            <p className="mt-1 text-sm text-[#5f718a]">Admins can access the admin portal, but cannot manage admins, run migrations, or perform super admin workflow actions.</p>
+            <h2 className="text-lg font-semibold text-[#0f1f33]">Admin & Viewer Accounts</h2>
+            <p className="mt-1 text-sm text-[#5f718a]">Admins can work in the admin portal. Viewers can only see applications, KPIs, and download application reviews.</p>
           </div>
           <button type="button" onClick={openAdd} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-4 py-3 text-sm font-semibold text-white hover:bg-[#2563eb]">
             <Plus size={18} />
-            Add Admin
+            Add Account
           </button>
         </div>
       </section>
@@ -106,6 +109,7 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
             <tr>
               <th className="px-4 py-3">Admin</th>
               <th className="px-4 py-3">Email</th>
+              <th className="px-4 py-3">Role</th>
               <th className="px-4 py-3">Added</th>
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
@@ -113,20 +117,25 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
           <tbody>
             {admins.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-[#8a9bb3]">No admins yet.</td>
+                <td colSpan={5} className="px-4 py-10 text-center text-[#8a9bb3]">No accounts yet.</td>
               </tr>
             ) : (
               admins.map((admin) => (
                 <tr key={admin.id} className="border-t border-[#edf2f7] hover:bg-[#f8fbff]">
-                  <td className="px-4 py-4 font-semibold text-[#0f1f33]">{admin.name ?? 'Unnamed admin'}</td>
+                  <td className="px-4 py-4 font-semibold text-[#0f1f33]">{admin.name ?? `Unnamed ${admin.role}`}</td>
                   <td className="px-4 py-4">{admin.email}</td>
+                  <td className="px-4 py-4">
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${admin.role === 'viewer' ? 'bg-sky-50 text-sky-700' : 'bg-blue-50 text-blue-700'}`}>
+                      {admin.role === 'viewer' ? 'Viewer' : 'Admin'}
+                    </span>
+                  </td>
                   <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(admin.createdAt)}</td>
                   <td className="px-4 py-4">
                     <div className="flex justify-end gap-2">
-                      <button type="button" onClick={() => openEdit(admin)} className="inline-flex size-9 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white text-[#506784] hover:bg-[#f6f9fd]" aria-label="Edit admin">
+                      <button type="button" onClick={() => openEdit(admin)} className="inline-flex size-9 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white text-[#506784] hover:bg-[#f6f9fd]" aria-label="Edit account">
                         <Edit2 size={16} />
                       </button>
-                      <button type="button" onClick={() => remove(admin)} className="inline-flex size-9 items-center justify-center rounded-lg border border-red-100 bg-white text-red-600 hover:bg-red-50" aria-label="Delete admin">
+                      <button type="button" onClick={() => remove(admin)} className="inline-flex size-9 items-center justify-center rounded-lg border border-red-100 bg-white text-red-600 hover:bg-red-50" aria-label="Delete account">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -143,8 +152,8 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
           <div className="w-full max-w-2xl rounded-lg bg-white shadow-xl">
             <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
               <div>
-                <h2 className="text-lg font-semibold text-slate-900">{selected ? 'Edit Admin' : 'Add Admin'}</h2>
-                <p className="mt-1 text-sm text-slate-500">Admin accounts are managed only by super admins.</p>
+                <h2 className="text-lg font-semibold text-slate-900">{selected ? 'Edit Account' : 'Add Account'}</h2>
+                <p className="mt-1 text-sm text-slate-500">Admin and viewer accounts are managed only by super admins.</p>
               </div>
               <button type="button" onClick={() => setIsOpen(false)} className="inline-flex size-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Close modal">
                 <X size={18} />
@@ -161,6 +170,19 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
                 <input value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required disabled={Boolean(selected)} type="email" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:text-slate-500" />
               </label>
               <label className="grid gap-2 text-sm text-slate-700">
+                <span>Role <span className="text-rose-500">*</span></span>
+                <select
+                  value={form.role}
+                  onChange={(event) => setForm({ ...form, role: event.target.value === 'viewer' ? 'viewer' : 'admin' })}
+                  disabled={Boolean(selected)}
+                  required
+                  className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:text-slate-500"
+                >
+                  <option value="admin">Admin</option>
+                  <option value="viewer">Viewer</option>
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm text-slate-700">
                 <span>{selected ? 'New Password' : 'Password'} {selected ? <span className="text-xs text-slate-400">(optional)</span> : <span className="text-rose-500">*</span>}</span>
                 <PasswordInput value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required={!selected} minLength={form.password || !selected ? 8 : undefined} placeholder={selected ? 'Leave blank to keep current password' : 'At least 8 characters'} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </label>
@@ -172,7 +194,7 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
                   Cancel
                 </button>
                 <button type="submit" disabled={isSubmitting} className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-60">
-                  {isSubmitting ? 'Saving...' : 'Save Admin'}
+                  {isSubmitting ? 'Saving...' : 'Save Account'}
                 </button>
               </div>
             </form>

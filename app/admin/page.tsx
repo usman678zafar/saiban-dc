@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { ApplicationStatus } from '@prisma/client';
-import { ArrowRight, CheckCircle2, ClipboardList, Database, FileCheck2, FileText, Send, ShieldCheck, UsersRound } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ClipboardList, Database, FileCheck2, FileText, RotateCcw, Send, UsersRound } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { prisma } from '@/lib/prisma';
@@ -61,6 +61,7 @@ async function getAdminPortalData() {
   const allApplicationCountByStatus = new Map(allApplicationStatusCounts.map((item) => [item.status, item._count._all]));
   const totalApplications = allApplicationStatusCounts.reduce((total, item) => total + item._count._all, 0);
   const draftApplications = allApplicationCountByStatus.get(ApplicationStatus.draft) ?? 0;
+  const needsCorrectionApplications = applicationCountByStatus.get(ApplicationStatus.needs_correction) ?? 0;
   const reviewerApprovedApplications = applicationCountByStatus.get(ApplicationStatus.reviewer_approved) ?? 0;
   const adminApprovedApplications =
     (applicationCountByStatus.get(ApplicationStatus.admin_approved) ?? 0) +
@@ -75,7 +76,6 @@ async function getAdminPortalData() {
   const userCountByRole = new Map(userRoleCounts.map((item) => [item.role, item._count._all]));
   const totalUsers = userRoleCounts.reduce((total, item) => total + item._count._all, 0);
   const adminUsers = (userCountByRole.get('admin') ?? 0) + (userCountByRole.get('super_admin') ?? 0);
-  const fieldWorkerCount = userCountByRole.get('field_worker') ?? 0;
 
   const fieldWorkers = await prisma.user.findMany({
     where: { role: 'field_worker' },
@@ -109,11 +109,11 @@ async function getAdminPortalData() {
     { label: 'Total Applications', value: totalApplications, tone: 'blue' },
     { label: 'Drafts', value: draftApplications, tone: 'steel' },
     { label: 'Applications Submitted', value: submittedByFieldWorkersCount, tone: 'violet' },
+    { label: 'Needs Correction', value: needsCorrectionApplications, tone: 'orange' },
     { label: 'Reviewer Approved', value: reviewerApprovedApplications, tone: 'indigo' },
     { label: 'Final Approved', value: adminApprovedApplications, tone: 'emerald' },
     { label: 'Migrated', value: migratedApplications, tone: 'sky' },
     { label: 'Rejected', value: rejectedApplications, tone: 'red' },
-    { label: 'Field Workers', value: fieldWorkerCount, tone: 'orange' },
     { label: 'Users', value: totalUsers, tone: 'amber' },
     { label: 'Admins', value: adminUsers, tone: 'charcoal' },
   ];
@@ -140,7 +140,7 @@ export default async function AdminPortalPage() {
     emerald: { icon: CheckCircle2, card: 'bg-[#54cc59]' },
     sky: { icon: Database, card: 'bg-[#20b8d8]' },
     red: { icon: FileCheck2, card: 'bg-[#ff5f6d]' },
-    orange: { icon: UsersRound, card: 'bg-[#ffad47]' },
+    orange: { icon: RotateCcw, card: 'bg-[#ffad47]' },
     amber: { icon: UsersRound, card: 'bg-[#f59e0b]' },
     charcoal: { icon: FileText, card: 'bg-[#475569]' },
   };

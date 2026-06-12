@@ -11,8 +11,8 @@ export const dynamic = 'force-dynamic';
 
 const PAGE_SIZE = 50;
 const sourceOptions = ['all', 'system', 'application'] as const;
-const roleOptions = ['all', 'super_admin', 'admin', 'reviewer', 'supervisor', 'field_worker'] as const;
-const entityOptions = ['all', 'application', 'supervisor', 'field_worker', 'reviewer', 'admin', 'department'] as const;
+const roleOptions = ['all', 'super_admin', 'admin', 'viewer', 'reviewer', 'supervisor', 'field_worker'] as const;
+const entityOptions = ['all', 'application', 'supervisor', 'field_worker', 'reviewer', 'admin', 'viewer', 'department'] as const;
 
 type AuditSource = (typeof sourceOptions)[number];
 type RoleFilter = (typeof roleOptions)[number];
@@ -45,6 +45,7 @@ const entityLabels: Record<EntityFilter, string> = {
   field_worker: 'Field workers',
   reviewer: 'Reviewers',
   admin: 'Admins',
+  viewer: 'Viewers',
   department: 'Departments',
 };
 
@@ -52,6 +53,7 @@ const roleLabels: Record<RoleFilter, string> = {
   all: 'All actors',
   super_admin: 'Super admins',
   admin: 'Admins',
+  viewer: 'Viewers',
   reviewer: 'Reviewers',
   supervisor: 'Supervisors',
   field_worker: 'Field workers',
@@ -110,6 +112,7 @@ function managementHref(entityType: string) {
     case 'reviewer':
       return '/admin/reviewers';
     case 'admin':
+    case 'viewer':
       return '/admin/admins';
     case 'department':
       return '/admin/projects';

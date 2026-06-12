@@ -11,6 +11,7 @@ const createAdminSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
   email: z.string().trim().email('Valid email is required').transform((value) => value.toLowerCase()),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  role: z.enum(['admin', 'viewer']).default('admin'),
 });
 
 async function requireSuperAdmin() {
@@ -41,40 +42,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
     }
 
-    const admin = await prisma.user.create({
+    const role = input.role === 'viewer' ? UserRole.viewer : UserRole.admin;
+    const account = await prisma.user.create({
       data: {
         name: input.name,
         email: input.email,
         passwordHash: await bcrypt.hash(input.password, 10),
         passwordChangeRequired: false,
-        role: UserRole.admin,
+        role,
       },
       select: {
         id: true,
         name: true,
         email: true,
+        role: true,
         createdAt: true,
       },
     });
 
     await logSystemAudit({
-      action: 'admin_created',
-      entityType: 'admin',
-      entityId: admin.id,
-      entityLabel: admin.name ?? admin.email,
+      action: `${account.role}_created`,
+      entityType: account.role,
+      entityId: account.id,
+      entityLabel: account.name ?? account.email,
       actorId: auth.session.user?.id,
       details: {
-        name: admin.name,
-        email: admin.email,
+        name: account.name,
+        email: account.email,
+        role: account.role,
       },
     });
 
-    return NextResponse.json(admin, { status: 201 });
+    return NextResponse.json(account, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: error.errors[0]?.message ?? 'Invalid input' }, { status: 422 });
     }
 
-    return NextResponse.json({ message: error instanceof Error ? error.message : 'Unable to create admin' }, { status: 500 });
+    return NextResponse.json({ message: error instanceof Error ? error.message : 'Unable to create account' }, { status: 500 });
   }
 }

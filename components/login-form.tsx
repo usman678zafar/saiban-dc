@@ -10,7 +10,7 @@ interface LoginFormProps {
   title?: string;
   description?: string;
   defaultRedirect?: string;
-  loginRole?: 'admin' | 'reviewer' | 'supervisor' | 'field_worker';
+  loginRole?: 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer';
   compact?: boolean;
 }
 
@@ -43,7 +43,7 @@ export default function LoginForm({
       });
 
       if (result?.error) {
-        setError(loginRole === 'admin' ? 'Invalid admin credentials.' : loginRole === 'reviewer' ? 'Invalid reviewer credentials.' : loginRole === 'supervisor' ? 'Invalid supervisor credentials.' : loginRole === 'field_worker' ? 'Invalid volunteer credentials.' : 'Invalid credentials.');
+        setError(loginRole === 'admin' ? 'Invalid admin credentials.' : loginRole === 'reviewer' ? 'Invalid reviewer credentials.' : loginRole === 'supervisor' ? 'Invalid supervisor credentials.' : loginRole === 'field_worker' ? 'Invalid volunteer credentials.' : loginRole === 'viewer' ? 'Invalid viewer credentials.' : 'Invalid credentials.');
         stopLoading();
         return;
       }

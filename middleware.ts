@@ -8,6 +8,14 @@ function redirectTo(request: NextRequest, pathname: string, callbackPath?: strin
   return NextResponse.redirect(url);
 }
 
+function portalHome(role: unknown) {
+  if (role === 'supervisor') return '/supervisor';
+  if (role === 'reviewer') return '/reviewer';
+  if (role === 'viewer') return '/viewer';
+  if (role === 'admin' || role === 'super_admin') return '/admin';
+  return '/applications';
+}
+
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   const { pathname, search } = request.nextUrl;
@@ -19,7 +27,7 @@ export async function middleware(request: NextRequest) {
       return redirectTo(request, '/signin', callbackPath);
     }
     if (!mustChangePassword) {
-      return redirectTo(request, token.role === 'supervisor' ? '/supervisor' : token.role === 'reviewer' ? '/reviewer' : '/admin');
+      return redirectTo(request, portalHome(token.role));
     }
     return NextResponse.next();
   }
@@ -36,10 +44,20 @@ export async function middleware(request: NextRequest) {
       return redirectTo(request, '/signin', callbackPath);
     }
     if (token.role !== 'admin' && token.role !== 'super_admin') {
-      return redirectTo(request, '/applications');
+      return redirectTo(request, portalHome(token.role));
     }
     if (mustChangePassword) {
       return redirectTo(request, '/change-password', callbackPath);
+    }
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith('/viewer')) {
+    if (!token || token.sessionInvalid) {
+      return redirectTo(request, '/signin', callbackPath);
+    }
+    if (token.role !== 'viewer') {
+      return redirectTo(request, portalHome(token.role));
     }
     return NextResponse.next();
   }
@@ -49,7 +67,7 @@ export async function middleware(request: NextRequest) {
       return redirectTo(request, '/signin', callbackPath);
     }
     if (token.role !== 'supervisor' && token.role !== 'admin' && token.role !== 'super_admin') {
-      return redirectTo(request, '/applications');
+      return redirectTo(request, portalHome(token.role));
     }
     if (mustChangePassword) {
       return redirectTo(request, '/change-password', callbackPath);
@@ -62,7 +80,7 @@ export async function middleware(request: NextRequest) {
       return redirectTo(request, '/signin', callbackPath);
     }
     if (token.role !== 'reviewer' && token.role !== 'admin' && token.role !== 'super_admin') {
-      return redirectTo(request, '/applications');
+      return redirectTo(request, portalHome(token.role));
     }
     if (mustChangePassword) {
       return redirectTo(request, '/change-password', callbackPath);
@@ -78,9 +96,13 @@ export async function middleware(request: NextRequest) {
     return redirectTo(request, '/change-password', callbackPath);
   }
 
+  if (token.role === 'viewer') {
+    return redirectTo(request, pathname.startsWith('/applications') ? '/viewer/applications' : '/viewer');
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/supervisor/:path*', '/reviewer/:path*', '/dashboard', '/applications/:path*', '/change-password'],
+  matcher: ['/admin/:path*', '/viewer/:path*', '/supervisor/:path*', '/reviewer/:path*', '/dashboard', '/applications/:path*', '/change-password'],
 };

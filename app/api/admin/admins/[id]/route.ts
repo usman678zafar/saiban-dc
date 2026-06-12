@@ -38,8 +38,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const input = updateAdminSchema.parse(await request.json());
     const passwordHash = input.password ? await bcrypt.hash(input.password, 10) : undefined;
     const sessionVersionUpdate = passwordHash ? await getSessionVersionUpdateData() : {};
-    const admin = await prisma.user.update({
-      where: { id: params.id, role: UserRole.admin },
+    const account = await prisma.user.update({
+      where: { id: params.id, role: { in: [UserRole.admin, UserRole.viewer] } },
       data: {
         name: input.name,
         ...(passwordHash ? { passwordHash } : {}),
@@ -50,30 +50,32 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         id: true,
         name: true,
         email: true,
+        role: true,
         createdAt: true,
       },
     });
 
     await logSystemAudit({
-      action: 'admin_updated',
-      entityType: 'admin',
-      entityId: admin.id,
-      entityLabel: admin.name ?? admin.email,
+      action: `${account.role}_updated`,
+      entityType: account.role,
+      entityId: account.id,
+      entityLabel: account.name ?? account.email,
       actorId: auth.session.user?.id,
       details: {
-        name: admin.name,
-        email: admin.email,
+        name: account.name,
+        email: account.email,
+        role: account.role,
         passwordChanged: Boolean(passwordHash),
       },
     });
 
-    return NextResponse.json(admin);
+    return NextResponse.json(account);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: error.errors[0]?.message ?? 'Invalid input' }, { status: 422 });
     }
 
-    return NextResponse.json({ message: error instanceof Error ? error.message : 'Unable to update admin' }, { status: 500 });
+    return NextResponse.json({ message: error instanceof Error ? error.message : 'Unable to update account' }, { status: 500 });
   }
 }
 
@@ -81,12 +83,13 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
   const auth = await requireSuperAdmin();
   if ('response' in auth) return auth.response;
 
-  const admin = await prisma.user.findFirst({
-    where: { id: params.id, role: UserRole.admin },
+  const account = await prisma.user.findFirst({
+    where: { id: params.id, role: { in: [UserRole.admin, UserRole.viewer] } },
     select: {
       id: true,
       name: true,
       email: true,
+      role: true,
       _count: {
         select: {
           updatedApps: true,
@@ -96,21 +99,21 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     },
   });
 
-  if (!admin) {
-    return NextResponse.json({ message: 'Admin not found.' }, { status: 404 });
+  if (!account) {
+    return NextResponse.json({ message: 'Account not found.' }, { status: 404 });
   }
 
-  if (admin._count.updatedApps > 0 || admin._count.auditLogs > 0) {
-    return NextResponse.json({ message: 'This admin has activity history and cannot be deleted.' }, { status: 409 });
+  if (account._count.updatedApps > 0 || account._count.auditLogs > 0) {
+    return NextResponse.json({ message: 'This account has activity history and cannot be deleted.' }, { status: 409 });
   }
 
   await prisma.user.delete({ where: { id: params.id } });
   await logSystemAudit({
-    action: 'admin_deleted',
-    entityType: 'admin',
-    entityId: admin.id,
-    entityLabel: admin.name ?? admin.email,
+    action: `${account.role}_deleted`,
+    entityType: account.role,
+    entityId: account.id,
+    entityLabel: account.name ?? account.email,
     actorId: auth.session.user?.id,
   });
-  return NextResponse.json({ message: 'Admin deleted successfully.' });
+  return NextResponse.json({ message: 'Account deleted successfully.' });
 }

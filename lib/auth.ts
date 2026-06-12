@@ -111,7 +111,7 @@ export const authOptions: NextAuthOptions = {
         const bootstrapEmail = (process.env.SUPER_ADMIN_EMAIL ?? process.env.ADMIN_EMAIL)?.trim().toLowerCase();
         const bootstrapPassword = process.env.SUPER_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD;
         const isBootstrapLogin = bootstrapEmail === email && bootstrapPassword === credentials.password;
-        const loginRole = credentials.loginRole === 'admin' || credentials.loginRole === 'reviewer' || credentials.loginRole === 'supervisor' || credentials.loginRole === 'field_worker' ? credentials.loginRole : undefined;
+        const loginRole = credentials.loginRole === 'admin' || credentials.loginRole === 'reviewer' || credentials.loginRole === 'supervisor' || credentials.loginRole === 'field_worker' || credentials.loginRole === 'viewer' ? credentials.loginRole : undefined;
         const user = loginRole === 'field_worker'
           ? await prisma.user.findFirst({
             where: {
@@ -143,6 +143,14 @@ export const authOptions: NextAuthOptions = {
                   { phoneNumber: identifier },
                   { email },
                 ],
+              },
+              select: authUserSelect,
+            })
+          : loginRole === 'viewer'
+            ? await prisma.user.findFirst({
+              where: {
+                role: 'viewer',
+                email,
               },
               select: authUserSelect,
             })

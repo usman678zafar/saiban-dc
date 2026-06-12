@@ -44,7 +44,7 @@ export async function GET(_request: Request, { params }: ApplicationReviewRouteP
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!['admin', 'super_admin'].includes(session.user.role ?? '')) {
+  if (!['admin', 'super_admin', 'viewer'].includes(session.user.role ?? '')) {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
   }
 
