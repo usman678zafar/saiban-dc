@@ -8,7 +8,7 @@ import FieldWorkerManager, { FieldWorkerListItem } from '@/components/field-work
 import { projectReviewValues } from '@/lib/field-workers';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 50;
 
 type FieldWorker = {
   id: string;

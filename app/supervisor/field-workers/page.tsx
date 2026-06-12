@@ -7,7 +7,7 @@ import SupervisorShell from '@/components/supervisor-shell';
 import FieldWorkerManager, { FieldWorkerListItem } from '@/components/field-worker-manager';
 import { projectReviewValues } from '@/lib/field-workers';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 50;
 
 type SourceFilter = 'all' | 'admin' | 'self';
 
