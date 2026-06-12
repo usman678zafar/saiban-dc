@@ -59,8 +59,10 @@ const draftStringFields = [
   'fatherName', 'fatherCnic', 'fatherEducation', 'fatherTongue', 'fatherNativeArea', 'fatherOccupation', 'fatherCauseOfDeath',
   'motherName', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea', 'motherAlive', 'motherSeparationReason',
   'motherEmploymentStatus', 'motherIsGuardian', 'motherContact', 'motherOccupation', 'motherDeathCause',
+  'motherHealthStatus', 'motherDisabilityRemarks',
   'guardianName', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue',
   'guardianNativeArea', 'guardianContact', 'guardianZakatStatus', 'guardianOccupation', 'guardianFamilyHolder',
+  'guardianHealthStatus', 'guardianDisabilityRemarks',
   'paternalGrandfatherName', 'paternalGrandfatherOccupation', 'maternalGrandfatherName', 'maternalGrandfatherOccupation',
   'province', 'city', 'district', 'tehsil', 'residentialArea', 'fullAddress', 'houseOwnershipStatus', 'rentPaidBy', 'houseOwner', 'houseCondition',
   'residenceStructureType', 'residenceCategory', 'houseConditionRemarks', 'furnishingCondition', 'furnishingConditionRemarks',
@@ -176,6 +178,8 @@ function sanitizeDraftApplication(input: any) {
       occupation: cleanString(sibling.occupation),
       monthlyIncomeOrFee: cleanNumber(sibling.monthlyIncomeOrFee),
       maritalStatus: cleanString(sibling.maritalStatus),
+      healthStatus: cleanString(sibling.healthStatus),
+      disabilityRemarks: cleanString(sibling.disabilityRemarks),
     }))
     : undefined;
 
@@ -243,6 +247,10 @@ function normalizeConditionalPayload(payload: any) {
     next.motherIsHousewife = next.motherOccupation === 'Housewife';
   }
 
+  if (next.motherHealthStatus !== 'disabled') {
+    clearPayloadFields(next, ['motherDisabilityRemarks']);
+  }
+
   if (next.motherAlive === 'yes' && next.motherIsGuardian === 'yes') {
     clearPayloadFields(next, [
       'guardianName',
@@ -261,8 +269,21 @@ function normalizeConditionalPayload(payload: any) {
       'guardianFamilyHolderAmount',
       'guardianFamilyMembersCount',
       'guardianMonthlyIncome',
+      'guardianHealthStatus',
+      'guardianDisabilityRemarks',
       'guardianSignatureFileKey',
     ]);
+  }
+
+  if (next.guardianHealthStatus !== 'disabled') {
+    clearPayloadFields(next, ['guardianDisabilityRemarks']);
+  }
+
+  if (Array.isArray(next.siblings)) {
+    next.siblings = next.siblings.map((sibling: any) => ({
+      ...sibling,
+      ...(sibling.healthStatus === 'disabled' ? {} : { disabilityRemarks: '' }),
+    }));
   }
 
   if (!next.guardianGender) {

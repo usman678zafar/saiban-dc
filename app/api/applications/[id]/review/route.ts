@@ -34,6 +34,10 @@ function filenamePart(value: string) {
   return value.replace(/[^a-z0-9_-]+/gi, '-').replace(/^-+|-+$/g, '') || 'application';
 }
 
+function toResponseBody(bytes: ArrayLike<number>) {
+  return Uint8Array.from(bytes);
+}
+
 export async function GET(_request: Request, { params }: ApplicationReviewRouteProps) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -53,7 +57,7 @@ export async function GET(_request: Request, { params }: ApplicationReviewRouteP
     const pdf = await buildApplicationReviewPdf(application);
     const title = application.registrationNumber ?? application.id;
 
-    return new NextResponse(pdf, {
+    return new NextResponse(toResponseBody(pdf), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="application-review-${filenamePart(title)}.pdf"`,

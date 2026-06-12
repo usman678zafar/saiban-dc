@@ -70,6 +70,8 @@ export const siblingSchema = z.object({
   occupation: optionalString,
   monthlyIncomeOrFee: nonNegativeNumber.optional(),
   maritalStatus: optionalEnum(['married', 'unmarried', 'widowed', 'divorced']),
+  healthStatus: optionalString,
+  disabilityRemarks: optionalString,
 });
 
 export const relativeSchema = z.object({
@@ -153,6 +155,8 @@ const baseOrphanApplicationSchema = z.object({
     message: 'Mother death date cannot be in the future',
   }).optional(),
   motherDeathCause: optionalString,
+  motherHealthStatus: optionalString,
+  motherDisabilityRemarks: optionalString,
   guardianName: optionalString,
   guardianRelationship: optionalString,
   guardianGender: optionalEnum(['male', 'female']),
@@ -181,6 +185,8 @@ const baseOrphanApplicationSchema = z.object({
     return value;
   }, z.number().int().positive().optional()),
   guardianMonthlyIncome: nonNegativeNumber.optional(),
+  guardianHealthStatus: optionalString,
+  guardianDisabilityRemarks: optionalString,
   paternalGrandfatherName: optionalString,
   paternalGrandfatherAge: z.preprocess((value) => {
     if (typeof value === 'string') return Number(value);
@@ -406,6 +412,14 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
     ctx.addIssue({ path: ['motherNativeArea'], code: z.ZodIssueCode.custom, message: 'Mother native area is required' });
   }
 
+  if (!data.motherHealthStatus) {
+    ctx.addIssue({ path: ['motherHealthStatus'], code: z.ZodIssueCode.custom, message: 'Mother health status is required' });
+  }
+
+  if (data.motherHealthStatus === 'disabled' && !data.motherDisabilityRemarks) {
+    ctx.addIssue({ path: ['motherDisabilityRemarks'], code: z.ZodIssueCode.custom, message: 'Mother disability remarks are required when mother is disabled' });
+  }
+
   if (data.motherAlive === 'yes' && !data.motherOccupation) {
     ctx.addIssue({ path: ['motherOccupation'], code: z.ZodIssueCode.custom, message: 'Mother occupation is required' });
   }
@@ -453,6 +467,22 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
         path: ['guardianContact'],
         code: z.ZodIssueCode.custom,
         message: 'Guardian contact is required',
+      });
+    }
+
+    if (!data.guardianHealthStatus) {
+      ctx.addIssue({
+        path: ['guardianHealthStatus'],
+        code: z.ZodIssueCode.custom,
+        message: 'Guardian health status is required',
+      });
+    }
+
+    if (data.guardianHealthStatus === 'disabled' && !data.guardianDisabilityRemarks) {
+      ctx.addIssue({
+        path: ['guardianDisabilityRemarks'],
+        code: z.ZodIssueCode.custom,
+        message: 'Guardian disability remarks are required when guardian is disabled',
       });
     }
 
@@ -570,6 +600,12 @@ export const orphanApplicationSchema = baseOrphanApplicationSchema.superRefine((
     }
     if (!sibling.maritalStatus) {
       ctx.addIssue({ path: ['siblings', index, 'maritalStatus'], code: z.ZodIssueCode.custom, message: 'Sibling marital status is required' });
+    }
+    if (!sibling.healthStatus) {
+      ctx.addIssue({ path: ['siblings', index, 'healthStatus'], code: z.ZodIssueCode.custom, message: 'Sibling health status is required' });
+    }
+    if (sibling.healthStatus === 'disabled' && !sibling.disabilityRemarks) {
+      ctx.addIssue({ path: ['siblings', index, 'disabilityRemarks'], code: z.ZodIssueCode.custom, message: 'Sibling disability remarks are required when sibling is disabled' });
     }
   });
 

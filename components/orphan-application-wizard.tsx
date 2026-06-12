@@ -34,6 +34,8 @@ type SiblingInput = {
   occupation: string;
   monthlyIncomeOrFee: string;
   maritalStatus: string;
+  healthStatus: string;
+  disabilityRemarks: string;
 };
 
 type RelativeInput = {
@@ -311,6 +313,8 @@ export type FormData = {
   motherRemarried: boolean;
   motherDeathDate: string;
   motherDeathCause: string;
+  motherHealthStatus: string;
+  motherDisabilityRemarks: string;
   guardianName: string;
   guardianRelationship: string;
   guardianGender: string;
@@ -327,6 +331,8 @@ export type FormData = {
   guardianFamilyHolderAmount: string;
   guardianFamilyMembersCount: string;
   guardianMonthlyIncome: string;
+  guardianHealthStatus: string;
+  guardianDisabilityRemarks: string;
   paternalGrandfatherName: string;
   paternalGrandfatherAge: string;
   paternalGrandfatherOccupation: string;
@@ -474,6 +480,8 @@ const defaultData: FormData = {
   motherRemarried: false,
   motherDeathDate: '',
   motherDeathCause: '',
+  motherHealthStatus: '',
+  motherDisabilityRemarks: '',
   guardianName: '',
   guardianRelationship: '',
   guardianGender: '',
@@ -490,6 +498,8 @@ const defaultData: FormData = {
   guardianFamilyHolderAmount: '',
   guardianFamilyMembersCount: '',
   guardianMonthlyIncome: '',
+  guardianHealthStatus: '',
+  guardianDisabilityRemarks: '',
   paternalGrandfatherName: '',
   paternalGrandfatherAge: '',
   paternalGrandfatherOccupation: '',
@@ -1239,6 +1249,8 @@ function normalizeInitialData(data: FormData): FormData {
   next.siblings = next.siblings.map((sibling) => ({
     ...sibling,
     monthlyIncomeOrFee: sibling.monthlyIncomeOrFee === 'no_income' || (!sibling.monthlyIncomeOrFee && siblingOccupationHasNoIncome(sibling.occupation)) ? '0' : sibling.monthlyIncomeOrFee,
+    healthStatus: sibling.healthStatus ?? '',
+    disabilityRemarks: sibling.disabilityRemarks ?? '',
   }));
   next.collectorCnic = formatCnic(next.collectorCnic);
   next.fatherCnic = formatCnic(next.fatherCnic);
@@ -1720,6 +1732,8 @@ export default function OrphanApplicationWizard({
             guardianFamilyHolderAmount: '',
             guardianFamilyMembersCount: '',
             guardianMonthlyIncome: '',
+            guardianHealthStatus: '',
+            guardianDisabilityRemarks: '',
             guardianSignatureFileKey: '',
           }
         : {}),
@@ -1867,6 +1881,27 @@ export default function OrphanApplicationWizard({
     });
   };
 
+  const handleMotherHealthStatusChange = (value: string) => {
+    updateFields({
+      motherHealthStatus: value,
+      ...(value === 'disabled' ? {} : { motherDisabilityRemarks: '' }),
+    });
+  };
+
+  const handleGuardianHealthStatusChange = (value: string) => {
+    updateFields({
+      guardianHealthStatus: value,
+      ...(value === 'disabled' ? {} : { guardianDisabilityRemarks: '' }),
+    });
+  };
+
+  const handleSiblingHealthStatusChange = (index: number, value: string) => {
+    updateArrayItem<SiblingInput>('siblings', index, {
+      healthStatus: value,
+      ...(value === 'disabled' ? {} : { disabilityRemarks: '' }),
+    });
+  };
+
   const handleTreatmentOngoingChange = (value: string) => {
     updateFields({
       treatmentOngoing: value,
@@ -1940,6 +1975,8 @@ export default function OrphanApplicationWizard({
         occupation: '',
         monthlyIncomeOrFee: '',
         maritalStatus: '',
+        healthStatus: '',
+        disabilityRemarks: '',
       });
 
       return {
@@ -2028,7 +2065,7 @@ export default function OrphanApplicationWizard({
     markFormChanged();
     setFormData((current) => {
       const item = key === 'siblings'
-        ? { name: '', relation: 'brother', dob: '', age: '', educationStatus: '', currentlyStudying: '', occupation: '', monthlyIncomeOrFee: '', maritalStatus: '' }
+        ? { name: '', relation: 'brother', dob: '', age: '', educationStatus: '', currentlyStudying: '', occupation: '', monthlyIncomeOrFee: '', maritalStatus: '', healthStatus: '', disabilityRemarks: '' }
         : { relativeType: 'paternal_grandfather' as const, name: '', age: '', occupation: '', occupationOther: '', monthlyIncome: '', supportType: '', supportTypeOther: '' };
       const next = [...current[key], item];
       return { ...current, [key]: next, ...(key === 'siblings' ? { totalSiblings: String(next.length) } : {}) };
@@ -2527,20 +2564,22 @@ export default function OrphanApplicationWizard({
       case 1:
         return ['fatherName', 'fatherDob', 'fatherCnic', 'fatherEducation', 'fatherTongue', 'fatherNativeArea', 'fatherOccupation', 'fatherDateOfDeath', 'fatherCauseOfDeath'];
       case 2: {
-        const fields: Array<keyof FormData> = ['motherName', 'motherDob', 'motherAlive', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea'];
+        const fields: Array<keyof FormData> = ['motherName', 'motherDob', 'motherAlive', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea', 'motherHealthStatus'];
         if (formData.motherAlive === 'no') fields.push('motherDeathDate', 'motherDeathCause');
         if (formData.motherAlive === 'separated') fields.push('motherSeparationReason');
         if (formData.motherAlive === 'yes') {
           fields.push('motherContact', 'motherOccupation');
           if (motherOccupationNeedsIncome(formData.motherOccupation)) fields.push('motherMonthlyIncome');
         }
+        if (formData.motherHealthStatus === 'disabled') fields.push('motherDisabilityRemarks');
         return fields;
       }
       case 3: {
         if (formData.motherAlive === 'yes' && formData.motherIsGuardian === 'yes') return [];
         if (!guardianDetailsNeeded) return [];
-        const fields: Array<keyof FormData> = ['guardianName', 'guardianDob', 'guardianAge', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianContact', 'guardianMonthlyIncome'];
+        const fields: Array<keyof FormData> = ['guardianName', 'guardianDob', 'guardianAge', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianContact', 'guardianMonthlyIncome', 'guardianHealthStatus'];
         if (formData.guardianFamilyHolder === 'yes') fields.push('guardianFamilyMembersCount');
+        if (formData.guardianHealthStatus === 'disabled') fields.push('guardianDisabilityRemarks');
         return fields;
       }
       case 4:
@@ -2662,7 +2701,9 @@ export default function OrphanApplicationWizard({
             s.currentlyStudying !== '' && 
             s.occupation !== '' && 
             s.monthlyIncomeOrFee !== '' && 
-            s.maritalStatus !== ''
+            s.maritalStatus !== '' &&
+            s.healthStatus !== '' &&
+            (s.healthStatus !== 'disabled' || s.disabilityRemarks.trim() !== '')
           );
         }
         return true;
@@ -3499,6 +3540,8 @@ export default function OrphanApplicationWizard({
                 {renderBooleanSelect('motherRemarried', undefined, 'Yes', 'No', true)}
               </>
             ) : null}
+            {renderSelectField('motherHealthStatus', HEALTH_STATUS_OPTIONS, handleMotherHealthStatusChange, true)}
+            {formData.motherHealthStatus === 'disabled' ? renderTextareaField('motherDisabilityRemarks', undefined, true) : null}
           </div>
         </div>
       )}
@@ -3557,6 +3600,8 @@ export default function OrphanApplicationWizard({
                 ], handleGuardianFamilyHolderChange)}
                 {formData.guardianFamilyHolder === 'yes' ? renderTextField('guardianFamilyMembersCount', 'number') : null}
                 {renderSelectField('guardianMonthlyIncome', MONTHLY_INCOME_OPTIONS)}
+                {renderSelectField('guardianHealthStatus', HEALTH_STATUS_OPTIONS, handleGuardianHealthStatusChange)}
+                {formData.guardianHealthStatus === 'disabled' ? renderTextareaField('guardianDisabilityRemarks') : null}
               </>
             ) : null}
           </div>
@@ -4120,6 +4165,29 @@ export default function OrphanApplicationWizard({
                       ))}
                     </select>
                   </label>
+                  <label className={fieldWrapperClass}>
+                    <span>{renderLocalizedLabel('Health Status')} *</span>
+                    <select
+                      value={sibling.healthStatus}
+                      onChange={(event) => handleSiblingHealthStatusChange(index, event.target.value)}
+                      className={fieldControlClass}
+                    >
+                      {HEALTH_STATUS_OPTIONS.map((option, optionIndex) => (
+                        <option key={`${option.value}-${optionIndex}`} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  {sibling.healthStatus === 'disabled' ? (
+                    <label className={`${fieldWrapperClass} xl:col-span-3`}>
+                      <span>{renderLocalizedLabel('Disability Remarks')} *</span>
+                      <textarea
+                        value={sibling.disabilityRemarks}
+                        onChange={(event) => updateArrayItem<SiblingInput>('siblings', index, { disabilityRemarks: event.target.value })}
+                        rows={3}
+                        className="min-h-24 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-3 text-base leading-6 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-600 sm:px-4 sm:text-sm"
+                      />
+                    </label>
+                  ) : null}
                 </div>
                 <button type="button" onClick={() => removeArrayItem('siblings', index)} className="mt-4 min-h-11 w-full rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500 sm:w-auto">
                   Remove Sibling

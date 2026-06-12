@@ -150,6 +150,8 @@ model OrphanApplication {
   motherRemarried               Boolean?
   motherDeathDate               DateTime?
   motherDeathCause              String?
+  motherHealthStatus            String?
+  motherDisabilityRemarks       String?
   guardianName                  String?
   guardianRelationship          String?
   guardianGender                String?
@@ -166,6 +168,8 @@ model OrphanApplication {
   guardianFamilyHolderAmount    Float?
   guardianFamilyMembersCount    Int?
   guardianMonthlyIncome         Float?
+  guardianHealthStatus          String?
+  guardianDisabilityRemarks     String?
   paternalGrandfatherName       String?
   paternalGrandfatherAge        Int?
   paternalGrandfatherOccupation String?
@@ -315,6 +319,8 @@ model Sibling {
   occupation         String?
   monthlyIncomeOrFee Float?
   maritalStatus      String?
+  healthStatus       String?
+  disabilityRemarks  String?
 }
 
 model Relative {

@@ -87,6 +87,8 @@ export function applicationToWizardData(application: any): Partial<FormData> {
     motherRemarried: application.motherRemarried ?? false,
     motherDeathDate: dateOnly(application.motherDeathDate),
     motherDeathCause: application.motherDeathCause ?? '',
+    motherHealthStatus: application.motherHealthStatus ?? '',
+    motherDisabilityRemarks: application.motherDisabilityRemarks ?? '',
     guardianName: application.guardianName ?? '',
     guardianRelationship: application.guardianRelationship ?? '',
     guardianGender: application.guardianGender ?? '',
@@ -103,6 +105,8 @@ export function applicationToWizardData(application: any): Partial<FormData> {
     guardianFamilyHolderAmount: stringValue(application.guardianFamilyHolderAmount),
     guardianFamilyMembersCount: stringValue(application.guardianFamilyMembersCount),
     guardianMonthlyIncome: stringValue(application.guardianMonthlyIncome),
+    guardianHealthStatus: application.guardianHealthStatus ?? '',
+    guardianDisabilityRemarks: application.guardianDisabilityRemarks ?? '',
     guardianSignatureFileKey: application.guardianSignatureFileKey ?? '',
     paternalGrandfatherName: application.paternalGrandfatherName ?? '',
     paternalGrandfatherAge: stringValue(application.paternalGrandfatherAge),
@@ -203,6 +207,8 @@ export function applicationToWizardData(application: any): Partial<FormData> {
       occupation: sibling.occupation ?? '',
       monthlyIncomeOrFee: stringValue(sibling.monthlyIncomeOrFee),
       maritalStatus: sibling.maritalStatus ?? '',
+      healthStatus: sibling.healthStatus ?? '',
+      disabilityRemarks: sibling.disabilityRemarks ?? '',
     })),
     totalSiblings: application.totalSiblings !== null && application.totalSiblings !== undefined
       ? stringValue(application.totalSiblings)

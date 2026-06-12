@@ -5,6 +5,10 @@ export type LabelPair = {
 
 export const labels: Record<string, LabelPair> = {
   collectorId: { ur: 'Collector ID', en: 'Collector ID' },
+  motherHealthStatus: { ur: '', en: 'Mother Health Status' },
+  motherDisabilityRemarks: { ur: '', en: 'Mother Disability Remarks' },
+  guardianHealthStatus: { ur: '', en: 'Guardian Health Status' },
+  guardianDisabilityRemarks: { ur: '', en: 'Guardian Disability Remarks' },
   guardianDob: { ur: 'Guardian DOB', en: 'Guardian DOB' },
   guardianAge: { ur: 'Guardian Age', en: 'Guardian Age' },
   motherAlive: { ur: '', en: "Mother's Living Status" },

@@ -198,10 +198,12 @@ export function shouldShowReviewField(data: ApplicationReviewData, field: Review
   if (['motherContact', 'motherOccupation'].includes(field)) return data.motherAlive === 'yes';
   if (field === 'motherRemarried') return motherIsLiving(data);
   if (field === 'motherMonthlyIncome') return data.motherAlive === 'yes' && motherOccupationNeedsIncome(text(data.motherOccupation));
+  if (field === 'motherDisabilityRemarks') return data.motherHealthStatus === 'disabled';
   if (field === 'guardianOccupation') return guardianDetailsNeeded(data) && Boolean(data.guardianGender);
-  if (['guardianName', 'guardianRelationship', 'guardianGender', 'guardianDob', 'guardianAge', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianFamilyHolder', 'guardianMonthlyIncome'].includes(field)) {
+  if (['guardianName', 'guardianRelationship', 'guardianGender', 'guardianDob', 'guardianAge', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianFamilyHolder', 'guardianMonthlyIncome', 'guardianHealthStatus'].includes(field)) {
     return guardianDetailsNeeded(data);
   }
+  if (field === 'guardianDisabilityRemarks') return guardianDetailsNeeded(data) && data.guardianHealthStatus === 'disabled';
   if (field === 'guardianFamilyMembersCount') return guardianDetailsNeeded(data) && data.guardianFamilyHolder === 'yes';
   if (['monthlyRent', 'rentPaidBy'].includes(field)) return data.houseOwnershipStatus === 'rent';
   if (field === 'disabilityDetails') return data.healthStatus === 'disabled';
@@ -257,6 +259,8 @@ function formatSiblings(siblings: NonNullable<ApplicationReviewData['siblings']>
       ['Occupation', sibling.occupation],
       ['Monthly Income/Fee', sibling.monthlyIncomeOrFee],
       ['Marital Status', sibling.maritalStatus],
+      ['Health Status', sibling.healthStatus],
+      ['Disability Remarks', sibling.disabilityRemarks],
     ].filter(([, value]) => isFilled(value)).map(([label, value]) => `${label}: ${value}`);
 
     return [`Sibling ${index + 1}`, ...rows].join('\n');
@@ -376,12 +380,12 @@ export function buildApplicationReview(data: ApplicationReviewData, documents: A
     {
       number: 2,
       title: applicationReviewStepTitles[1],
-      sections: [{ title: 'Mother Details', items: fieldItems(data, ['motherName', 'motherDob', 'motherAlive', 'motherAge', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea', 'motherSeparationReason', 'motherContact', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause']) }],
+      sections: [{ title: 'Mother Details', items: fieldItems(data, ['motherName', 'motherDob', 'motherAlive', 'motherAge', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea', 'motherSeparationReason', 'motherContact', 'motherOccupation', 'motherMonthlyIncome', 'motherRemarried', 'motherDeathDate', 'motherDeathCause', 'motherHealthStatus', 'motherDisabilityRemarks']) }],
     },
     {
       number: 3,
       title: applicationReviewStepTitles[2],
-      sections: [{ title: 'Guardian Details', items: fieldItems(data, ['motherIsGuardian', 'guardianName', 'guardianDob', 'guardianAge', 'guardianGender', 'guardianRelationship', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome']) }],
+      sections: [{ title: 'Guardian Details', items: fieldItems(data, ['motherIsGuardian', 'guardianName', 'guardianDob', 'guardianAge', 'guardianGender', 'guardianRelationship', 'guardianCnic', 'guardianEducation', 'guardianMotherTongue', 'guardianNativeArea', 'guardianContact', 'guardianOccupation', 'guardianFamilyHolder', 'guardianFamilyMembersCount', 'guardianMonthlyIncome', 'guardianHealthStatus', 'guardianDisabilityRemarks']) }],
     },
     {
       number: 4,
@@ -529,6 +533,10 @@ export function getStepCompletionItems(data: ApplicationReviewData, documents: A
           items.push(completionItem(`Sibling ${index + 1} occupation`, isFilled(sibling.occupation)));
           items.push(completionItem(`Sibling ${index + 1} monthly income`, isFilled(sibling.monthlyIncomeOrFee)));
           items.push(completionItem(`Sibling ${index + 1} marital status`, isFilled(sibling.maritalStatus)));
+          items.push(completionItem(`Sibling ${index + 1} health status`, isFilled(sibling.healthStatus)));
+          if (sibling.healthStatus === 'disabled') {
+            items.push(completionItem(`Sibling ${index + 1} disability remarks`, isFilled(sibling.disabilityRemarks)));
+          }
         });
       }
       return items;

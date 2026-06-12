@@ -41,6 +41,12 @@ function englishCanvasFont(size: number, weight = '') {
   return `${weight ? `${weight} ` : ''}${size}px ${englishFontFamily}`;
 }
 
+function bytesToArrayBuffer(bytes: Uint8Array) {
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
+}
+
 async function ensureUrduFontLoaded() {
   if (!document.fonts?.load) return;
   await Promise.all([
@@ -349,9 +355,10 @@ function buildPdfFromImages(images: string[]) {
     objects.push(`<< /Type /XObject /Subtype /Image /Width 1240 /Height 1754 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBuffers[index].length} >>\nstream\n__IMAGE_${index}__\nendstream`);
   });
 
-  const chunks: Uint8Array[] = [new TextEncoder().encode('%PDF-1.4\n')];
+  const headerChunk = new TextEncoder().encode('%PDF-1.4\n');
+  const chunks: BlobPart[] = [headerChunk];
   const offsets: number[] = [0];
-  let position = chunks[0].length;
+  let position = headerChunk.length;
   objects.forEach((object, index) => {
     offsets.push(position);
     const imageIndex = object.match(/__IMAGE_(\d+)__/)?.[1];
@@ -365,7 +372,7 @@ function buildPdfFromImages(images: string[]) {
     const beforeChunk = new TextEncoder().encode(`${index + 1} 0 obj\n${before}`);
     const imageChunk = imageBuffers[Number(imageIndex)];
     const afterChunk = new TextEncoder().encode(`${after}\nendobj\n`);
-    chunks.push(beforeChunk, imageChunk, afterChunk);
+    chunks.push(beforeChunk, bytesToArrayBuffer(imageChunk), afterChunk);
     position += beforeChunk.length + imageChunk.length + afterChunk.length;
   });
 
