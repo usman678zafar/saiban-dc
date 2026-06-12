@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { ApplicationStatus } from '@prisma/client';
-import { ArrowRight, CheckCircle2, ClipboardList, Database, FileCheck2, FileText, RotateCcw, Send, ShieldCheck, UsersRound } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ClipboardList, FileCheck2, FileText, RotateCcw, Send, ShieldCheck, UsersRound } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { prisma } from '@/lib/prisma';
@@ -28,12 +28,13 @@ function countStatus(counts: Map<ApplicationStatus, number>, status: Application
 }
 
 async function getViewerPortalData() {
-  const [applicationStatusCounts, totalUsers, recentApplications] = await Promise.all([
+  const [applicationStatusCounts, totalUsers, adminUsers, recentApplications] = await Promise.all([
     prisma.orphanApplication.groupBy({
       by: ['status'],
       _count: { _all: true },
     }),
     prisma.user.count(),
+    prisma.user.count({ where: { role: { in: ['admin', 'super_admin'] } } }),
     prisma.orphanApplication.findMany({
       orderBy: { updatedAt: 'desc' },
       take: 10,
@@ -63,8 +64,8 @@ async function getViewerPortalData() {
     { label: 'Reviewer Approved', value: countStatus(applicationCountByStatus, ApplicationStatus.reviewer_approved), tone: 'charcoal' },
     { label: 'Final Approved', value: finalApprovedApplications, tone: 'emerald' },
     { label: 'Rejected', value: countStatus(applicationCountByStatus, ApplicationStatus.rejected), tone: 'red' },
-    { label: 'Migrated', value: countStatus(applicationCountByStatus, ApplicationStatus.migrated), tone: 'sky' },
     { label: 'Users', value: totalUsers, tone: 'orange' },
+    { label: 'Admins', value: adminUsers, tone: 'sky' },
   ];
 
   return { metrics, recentApplications };
@@ -87,7 +88,7 @@ export default async function ViewerPortalPage() {
     violet: { icon: Send, card: 'bg-[#8b5cf6]' },
     indigo: { icon: ShieldCheck, card: 'bg-[#6366f1]' },
     emerald: { icon: CheckCircle2, card: 'bg-[#54cc59]' },
-    sky: { icon: Database, card: 'bg-[#20b8d8]' },
+    sky: { icon: UsersRound, card: 'bg-[#20b8d8]' },
     red: { icon: FileCheck2, card: 'bg-[#ff5f6d]' },
     amber: { icon: RotateCcw, card: 'bg-[#f59e0b]' },
     orange: { icon: UsersRound, card: 'bg-[#ffad47]' },
