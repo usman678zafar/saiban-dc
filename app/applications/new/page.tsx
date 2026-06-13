@@ -1,6 +1,7 @@
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import AppShell from '@/components/app-shell';
 import SupervisorShell from '@/components/supervisor-shell';
+import ReviewerShell from '@/components/reviewer-shell';
 import { authOptions } from '@/lib/auth';
 import { getApplicationCollectorPrefill } from '@/lib/application-prefill';
 import { getServerSession } from 'next-auth';
@@ -35,6 +36,22 @@ export default async function NewApplicationPage() {
         </header>
         {content}
       </SupervisorShell>
+    );
+  }
+
+  if (session.user.role === 'reviewer') {
+    return (
+      <ReviewerShell
+        email={session.user.email}
+        name={session.user.name}
+        canCreateApplications={Boolean(session.user.canCreateApplications)}
+      >
+        <header className="mb-5 flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">+ Application</h1>
+          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">Follow the numbered steps through review and submission.</p>
+        </header>
+        {content}
+      </ReviewerShell>
     );
   }
 

@@ -3,47 +3,53 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ClipboardList, LayoutDashboard, LogOut } from 'lucide-react';
+import { ClipboardCheck, ClipboardList, KeyRound, LogOut } from 'lucide-react';
 import clsx from 'clsx';
 import SignOutButton from './sign-out-button';
 import logo from '@/assests/logo1.png';
 
-interface ViewerSidebarProps {
+interface ReviewerSidebarProps {
   email?: string | null;
+  name?: string | null;
+  canCreateApplications?: boolean;
 }
 
 const navItems = [
-  { href: '/viewer', label: 'Overview', mobileLabel: 'Home', icon: LayoutDashboard, exact: true },
-  { href: '/viewer/applications', label: 'Applications', mobileLabel: 'Apps', icon: ClipboardList },
+  { href: '/reviewer/applications', label: 'Applications', mobileLabel: 'Apps', icon: ClipboardCheck },
+  { href: '/applications', label: 'Your Applications', mobileLabel: 'Yours', icon: ClipboardList, requiresCreateAccess: true },
+  { href: '/reviewer/account', label: 'Account', mobileLabel: 'Acct', icon: KeyRound },
 ];
 
-function isActivePath(pathname: string, href: string, exact?: boolean) {
-  if (exact) return pathname === href;
+function isActivePath(pathname: string, href: string) {
+  if (href === '/reviewer/applications') return pathname === '/reviewer' || pathname === href || pathname.startsWith(`${href}/`);
+  if (href === '/applications' && pathname.startsWith('/applications/new')) return false;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function ViewerSidebar({ email }: ViewerSidebarProps) {
+export default function ReviewerSidebar({ email, name, canCreateApplications }: ReviewerSidebarProps) {
   const pathname = usePathname();
+  const visibleNavItems = navItems.filter((item) => !item.requiresCreateAccess || canCreateApplications);
+  const displayName = name || email || 'Reviewer';
 
   return (
     <>
       <aside className="admin-sidebar-scrollbar fixed inset-y-0 left-0 z-40 hidden w-48 flex-col overflow-y-auto border-r border-[#2f3d52] bg-[#1f2b3d] text-white lg:flex">
         <div className="border-b border-white/10 px-3 pb-4 pt-4 text-center">
           <Image src={logo} alt="Saiban" width={140} height={110} className="mx-auto h-16 w-auto object-contain" priority />
-          <p className="mt-1.5 text-xs font-medium text-[#b7c6db]">Viewer Portal</p>
+          <p className="mt-1.5 text-xs font-medium text-[#b7c6db]">Reviewer Portal</p>
         </div>
 
-        <nav className="grid gap-1 py-4">
-          {navItems.map((item) => {
+        <nav className="grid gap-1 px-2 py-4">
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
-            const active = isActivePath(pathname, item.href, item.exact);
+            const active = isActivePath(pathname, item.href);
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={clsx(
-                  'flex items-center gap-2 px-4 py-2.5 text-xs font-semibold transition',
+                  'flex items-center gap-2 rounded-lg px-2.5 py-2.5 text-xs font-semibold transition',
                   active
                     ? 'bg-[#3b82f6] text-white shadow-[0_12px_28px_rgba(59,130,246,0.28)]'
                     : 'text-[#c9d4e2] hover:bg-white/10 hover:text-white',
@@ -58,8 +64,8 @@ export default function ViewerSidebar({ email }: ViewerSidebarProps) {
 
         <div className="mt-auto border-t border-white/10 p-2.5">
           <div className="mb-3 min-w-0 px-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#91a1b7]">Read Only</p>
-            <p className="mt-1 truncate text-xs font-medium text-white">{email ?? 'Signed in'}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#91a1b7]">Reviewer</p>
+            <p className="mt-1 truncate text-xs font-medium text-white">{displayName}</p>
           </div>
           <SignOutButton className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/15">
             <LogOut className="h-4 w-4" aria-hidden="true" />
@@ -69,10 +75,10 @@ export default function ViewerSidebar({ email }: ViewerSidebarProps) {
       </aside>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#dbe4ef] bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
-        <div className="mx-auto grid max-w-sm grid-cols-3 gap-1">
-          {navItems.map((item) => {
+        <div className="mx-auto grid max-w-xl gap-1" style={{ gridTemplateColumns: `repeat(${visibleNavItems.length + 1}, minmax(0, 1fr))` }}>
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
-            const active = isActivePath(pathname, item.href, item.exact);
+            const active = isActivePath(pathname, item.href);
 
             return (
               <Link

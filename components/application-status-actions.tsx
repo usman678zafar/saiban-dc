@@ -56,7 +56,7 @@ const actionButtons: Record<'super_admin' | 'admin' | 'reviewer' | 'supervisor' 
 const redirectAfterAction: Record<'super_admin' | 'admin' | 'reviewer' | 'supervisor' | 'field_worker', string> = {
   super_admin: '/admin/applications',
   admin: '/admin/applications',
-  reviewer: '/reviewer',
+  reviewer: '/reviewer/applications',
   supervisor: '/supervisor',
   field_worker: '/applications',
 };

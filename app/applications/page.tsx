@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
 import SupervisorShell from '@/components/supervisor-shell';
+import ReviewerShell from '@/components/reviewer-shell';
 import { authOptions } from '@/lib/auth';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 import DuplicateApplicationButton from '@/components/duplicate-application-button';
@@ -60,11 +61,12 @@ export default async function ApplicationsPage({
   const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
   const isSuperAdmin = session?.user?.role === 'super_admin';
   const isSupervisor = session.user.role === 'supervisor';
+  const isReviewer = session.user.role === 'reviewer';
   const canCreateApplications = session.user.role === 'field_worker'
     || isAdmin
     || ((session.user.role === 'supervisor' || session.user.role === 'reviewer') && Boolean(session.user.canCreateApplications));
   if (!canCreateApplications) {
-    redirect(session.user.role === 'supervisor' ? '/supervisor' : session.user.role === 'reviewer' ? '/reviewer' : '/dashboard');
+    redirect(session.user.role === 'supervisor' ? '/supervisor' : session.user.role === 'reviewer' ? '/reviewer/applications' : '/dashboard');
   }
   const user = session?.user?.email
     ? await prisma.user.findUnique({
@@ -155,7 +157,7 @@ export default async function ApplicationsPage({
           {total === 0 ? 'No records' : `Showing ${skip + 1}-${Math.min(skip + PAGE_SIZE, total)} of ${total}`}
         </div>
         {applications.length === 0 ? (
-          <EmptyApplicationsState search={search} compact />
+          <EmptyApplicationsState search={search} compact canCreateApplications={canCreateApplications} />
         ) : (
           applications.map((application: ApplicationListItem) => (
             <article key={application.id} className="min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
@@ -239,7 +241,7 @@ export default async function ApplicationsPage({
             {applications.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-4 py-8">
-                  <EmptyApplicationsState search={search} />
+                  <EmptyApplicationsState search={search} canCreateApplications={canCreateApplications} />
                 </td>
               </tr>
             ) : (
@@ -345,6 +347,28 @@ export default async function ApplicationsPage({
     );
   }
 
+  if (isReviewer) {
+    return (
+      <ReviewerShell email={session.user.email} name={user?.name} canCreateApplications={user?.canCreateApplications}>
+        <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Your Applications</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a]">Browse applications created from your reviewer account.</p>
+          </div>
+          {canCreateApplications ? (
+            <Link
+              href="/applications/new"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(37,99,235,0.22)] transition hover:bg-blue-500 sm:min-w-36"
+            >
+              + Application
+            </Link>
+          ) : null}
+        </header>
+        {content}
+      </ReviewerShell>
+    );
+  }
+
   return (
     <AppShell
       title="Applications"
@@ -368,7 +392,7 @@ export default async function ApplicationsPage({
   );
 }
 
-function EmptyApplicationsState({ search, compact = false }: { search: string; compact?: boolean }) {
+function EmptyApplicationsState({ search, compact = false, canCreateApplications = true }: { search: string; compact?: boolean; canCreateApplications?: boolean }) {
   const isSearchEmpty = Boolean(search);
 
   return (
@@ -393,9 +417,9 @@ function EmptyApplicationsState({ search, compact = false }: { search: string; c
             Clear Search
           </Link>
         ) : null}
-        <Link href="/applications/new" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 sm:w-auto">
+        {canCreateApplications ? <Link href="/applications/new" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 sm:w-auto">
           + Application
-        </Link>
+        </Link> : null}
       </div>
     </div>
   );

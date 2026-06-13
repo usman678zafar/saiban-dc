@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ClipboardList, FolderKanban, KeyRound, LayoutDashboard, LogOut, PlusCircle, ScrollText, ShieldCheck, UserCog, UserCheck, UsersRound } from 'lucide-react';
 import clsx from 'clsx';
 import SignOutButton from './sign-out-button';
-import logo from '@/assests/logo.png';
+import logo from '@/assests/logo1.png';
 
 interface AdminSidebarProps {
   email?: string | null;

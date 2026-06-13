@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AppShell from '@/components/app-shell';
 import SupervisorShell from '@/components/supervisor-shell';
+import ReviewerShell from '@/components/reviewer-shell';
 import ApplicationActivityTimeline from '@/components/application-activity-timeline';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationMigrationFields from '@/components/application-migration-fields';
@@ -139,6 +140,27 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
         </header>
         {content}
       </SupervisorShell>
+    );
+  }
+
+  if (session.user.role === 'reviewer') {
+    return (
+      <ReviewerShell
+        email={session.user.email}
+        name={session.user.name}
+        canCreateApplications={Boolean(session.user.canCreateApplications)}
+      >
+        <header className="mb-5 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0">
+            <h1 className="break-words text-2xl font-semibold tracking-tight text-[#0f1f33] [overflow-wrap:anywhere] sm:text-3xl">
+              {application.registrationNumber ?? 'Application Review'}
+            </h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a]">Review the application in the same step-by-step format used during form entry.</p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap md:justify-end">{actions}</div>
+        </header>
+        {content}
+      </ReviewerShell>
     );
   }
 

@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import AppShell from '@/components/app-shell';
 import AdminShell from '@/components/admin-shell';
 import SupervisorShell from '@/components/supervisor-shell';
+import ReviewerShell from '@/components/reviewer-shell';
 import BackButton from '@/components/back-button';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import { getApplicationDocuments } from '@/lib/application-documents';
@@ -117,6 +118,27 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
         </header>
         {content}
       </AdminShell>
+    );
+  }
+
+  if (session.user.role === 'reviewer') {
+    return (
+      <ReviewerShell
+        email={session.user.email}
+        name={session.user.name}
+        canCreateApplications={Boolean(session.user.canCreateApplications)}
+      >
+        <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Edit Orphan Application</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a]">
+              Update draft information and save changes for application {application.registrationNumber ?? application.id}.
+            </p>
+          </div>
+          {backButton}
+        </header>
+        {content}
+      </ReviewerShell>
     );
   }
 

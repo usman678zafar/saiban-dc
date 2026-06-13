@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ClipboardCheck, ClipboardList, KeyRound, LogOut, UsersRound } from 'lucide-react';
 import clsx from 'clsx';
 import SignOutButton from './sign-out-button';
-import logo from '@/assests/logo.png';
+import logo from '@/assests/logo1.png';
 
 interface SupervisorSidebarProps {
   email?: string | null;
