@@ -1,4 +1,5 @@
 import './styles/globals.css';
+import 'leaflet/dist/leaflet.css';
 import { Providers } from './providers';
 import logo from '@/assests/logo.png';
 

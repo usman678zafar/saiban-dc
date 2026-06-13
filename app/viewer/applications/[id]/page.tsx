@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import ViewerShell from '@/components/viewer-shell';
+import { ViewerLocalizedText } from '@/components/viewer-language';
 import BackButton from '@/components/back-button';
 import ApplicationActivityTimeline from '@/components/application-activity-timeline';
 import ApplicationFieldWorkerDetails from '@/components/application-field-worker-details';
@@ -49,13 +50,13 @@ export default async function ViewerApplicationDetailPage({ params }: ViewerAppl
   return (
     <ViewerShell email={session.user.email}>
       <header className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div>
+        <div className="min-w-0 flex-1">
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{application.registrationNumber ?? application.id}</h1>
-          <p className="mt-2 text-sm text-slate-600">View the full application record, documents, and activity history.</p>
+          <ViewerLocalizedText as="p" en="View the full application record, documents, and activity history." ur="درخواست کا مکمل ریکارڈ، دستاویزات، اور سرگرمی کی تاریخ دیکھیں۔" className="mt-2 text-sm text-slate-600" />
         </div>
         <div className="flex flex-wrap gap-3">
           <BackButton fallbackHref="/viewer/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
-            Back
+            <ViewerLocalizedText en="Back" ur="واپس" />
           </BackButton>
           <ApplicationReviewDownloadButton
             applicationId={application.id}

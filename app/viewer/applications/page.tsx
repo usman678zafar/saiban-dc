@@ -7,6 +7,7 @@ import { Search, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import ViewerShell from '@/components/viewer-shell';
+import { ViewerLocalizedText } from '@/components/viewer-language';
 import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
@@ -178,9 +179,9 @@ export default async function ViewerApplicationsPage({
   return (
     <ViewerShell email={session.user.email}>
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-[#0f1f33]">Applications</h1>
-          <p className="mt-2 text-sm text-[#5f718a]">View all application records and download review PDFs.</p>
+        <div className="w-full">
+          <ViewerLocalizedText as="h1" en="Applications" ur="درخواستیں" className="text-3xl font-semibold tracking-tight text-[#0f1f33]" />
+          <ViewerLocalizedText as="p" en="View all application records and download review PDFs." ur="تمام درخواستوں کا ریکارڈ دیکھیں اور ریویو PDF ڈاؤن لوڈ کریں۔" className="mt-2 text-sm text-[#5f718a]" />
         </div>
       </header>
 
@@ -223,12 +224,12 @@ export default async function ViewerApplicationsPage({
             </select>
           </label>
           <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#3b82f6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2563eb]">
-            Search
+            <ViewerLocalizedText en="Search" ur="تلاش" />
           </button>
           {search || selectedDepartment !== 'all' || selectedStatusFilter !== 'all' ? (
             <Link href="/viewer/applications" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-4 py-2 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd]">
               <X className="h-4 w-4" aria-hidden="true" />
-              Clear
+              <ViewerLocalizedText en="Clear" ur="صاف کریں" />
             </Link>
           ) : null}
         </div>
@@ -237,7 +238,7 @@ export default async function ViewerApplicationsPage({
       <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
         <div className="grid gap-3 p-3 md:hidden">
           {applications.length === 0 ? (
-            <p className="px-4 py-10 text-center text-sm text-[#8a9bb3]">No applications found.</p>
+            <ViewerLocalizedText as="p" en="No applications found." ur="کوئی درخواست نہیں ملی۔" className="px-4 py-10 text-center text-sm text-[#8a9bb3]" />
           ) : (
             applications.map((application) => (
               <div key={application.id} className="rounded-xl border border-[#edf2f7] bg-white p-4">
@@ -269,19 +270,21 @@ export default async function ViewerApplicationsPage({
           <table className="min-w-full text-left text-sm text-[#506784]">
             <thead className="bg-[#f6f9fd] text-xs uppercase tracking-[0.12em] text-[#7d8fa6]">
               <tr>
-                <th className="px-4 py-3">Application</th>
-                <th className="px-4 py-3">Field Worker</th>
-                <th className="px-4 py-3">Department</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Complete</th>
-                <th className="px-4 py-3">Updated</th>
-                <th className="px-4 py-3">Action</th>
+                <th className="px-4 py-3"><ViewerLocalizedText en="Application" ur="درخواست" /></th>
+                <th className="px-4 py-3"><ViewerLocalizedText en="Field Worker" ur="فیلڈ ورکر" /></th>
+                <th className="px-4 py-3"><ViewerLocalizedText en="Department" ur="شعبہ" /></th>
+                <th className="px-4 py-3"><ViewerLocalizedText en="Status" ur="حیثیت" /></th>
+                <th className="px-4 py-3"><ViewerLocalizedText en="Complete" ur="مکمل" /></th>
+                <th className="px-4 py-3"><ViewerLocalizedText en="Updated" ur="تازہ کاری" /></th>
+                <th className="px-4 py-3"><ViewerLocalizedText en="Action" ur="عمل" /></th>
               </tr>
             </thead>
             <tbody>
               {applications.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
+                  <td colSpan={7} className="px-4 py-8 text-center text-[#8a9bb3]">
+                    <ViewerLocalizedText en="No applications found." ur="کوئی درخواست نہیں ملی۔" />
+                  </td>
                 </tr>
               ) : (
                 applications.map((application) => (
@@ -302,7 +305,7 @@ export default async function ViewerApplicationsPage({
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-2">
                         <Link href={`/viewer/applications/${application.id}`} className="rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff]">
-                          View
+                          <ViewerLocalizedText en="View" ur="دیکھیں" />
                         </Link>
                         <ApplicationReviewDownloadButton
                           applicationId={application.id}
@@ -323,17 +326,17 @@ export default async function ViewerApplicationsPage({
           <div className="flex gap-2">
             {hasPrev ? (
               <Link href={pageHref(page - 1)} className="rounded-lg border border-[#dbe4ef] px-3 py-1.5 text-xs font-semibold hover:bg-[#f6f9fd]">
-                Previous
+                <ViewerLocalizedText en="Previous" ur="پچھلا" />
               </Link>
             ) : (
-              <span className="rounded-lg border border-[#edf2f7] px-3 py-1.5 text-xs font-semibold text-[#c2d0e0]">Previous</span>
+              <span className="rounded-lg border border-[#edf2f7] px-3 py-1.5 text-xs font-semibold text-[#c2d0e0]"><ViewerLocalizedText en="Previous" ur="پچھلا" /></span>
             )}
             {hasNext ? (
               <Link href={pageHref(page + 1)} className="rounded-lg border border-[#dbe4ef] px-3 py-1.5 text-xs font-semibold hover:bg-[#f6f9fd]">
-                Next
+                <ViewerLocalizedText en="Next" ur="اگلا" />
               </Link>
             ) : (
-              <span className="rounded-lg border border-[#edf2f7] px-3 py-1.5 text-xs font-semibold text-[#c2d0e0]">Next</span>
+              <span className="rounded-lg border border-[#edf2f7] px-3 py-1.5 text-xs font-semibold text-[#c2d0e0]"><ViewerLocalizedText en="Next" ur="اگلا" /></span>
             )}
           </div>
         </div>
