@@ -58,16 +58,16 @@ const copy = {
 };
 
 const metricStyles = {
-  blue: { icon: ClipboardList, card: 'bg-[#2563eb]' },
-  steel: { icon: FileText, card: 'bg-[#64748b]' },
-  violet: { icon: Send, card: 'bg-[#8b5cf6]' },
-  indigo: { icon: ShieldCheck, card: 'bg-[#6366f1]' },
-  emerald: { icon: CheckCircle2, card: 'bg-[#54cc59]' },
-  sky: { icon: UsersRound, card: 'bg-[#20b8d8]' },
-  red: { icon: FileCheck2, card: 'bg-[#ff5f6d]' },
-  amber: { icon: RotateCcw, card: 'bg-[#f59e0b]' },
-  orange: { icon: UsersRound, card: 'bg-[#ffad47]' },
-  charcoal: { icon: FileText, card: 'bg-[#475569]' },
+  blue: { icon: ClipboardList, card: 'from-[#2563eb] to-[#1d4ed8]' },
+  steel: { icon: FileText, card: 'from-[#64748b] to-[#475569]' },
+  violet: { icon: Send, card: 'from-[#8b5cf6] to-[#6d28d9]' },
+  indigo: { icon: ShieldCheck, card: 'from-[#6366f1] to-[#4338ca]' },
+  emerald: { icon: CheckCircle2, card: 'from-[#22c55e] to-[#15803d]' },
+  sky: { icon: UsersRound, card: 'from-[#0ea5e9] to-[#0369a1]' },
+  red: { icon: FileCheck2, card: 'from-[#fb7185] to-[#e11d48]' },
+  amber: { icon: RotateCcw, card: 'from-[#f59e0b] to-[#d97706]' },
+  orange: { icon: UsersRound, card: 'from-[#fb923c] to-[#ea580c]' },
+  charcoal: { icon: FileText, card: 'from-[#475569] to-[#1e293b]' },
 };
 
 export default function ViewerOverviewContent({
@@ -91,20 +91,20 @@ export default function ViewerOverviewContent({
         </div>
       </header>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {metrics.map((metric) => {
           const style = metricStyles[metric.tone];
           const Icon = style.icon;
 
           return (
-            <div key={metric.key} className={`min-h-[132px] rounded-lg px-5 py-7 text-white shadow-[0_18px_32px_rgba(15,31,51,0.10)] 2xl:px-8 ${style.card}`}>
-              <div className={`flex h-full items-center gap-5 2xl:gap-8 ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}>
-                <div className="flex size-16 shrink-0 items-center justify-center text-white/95">
-                  <Icon size={52} strokeWidth={1.9} />
+            <div key={metric.key} className={`min-h-[92px] overflow-hidden rounded-xl bg-gradient-to-br px-4 py-3 text-white shadow-[0_16px_34px_rgba(15,31,51,0.14)] ${style.card}`}>
+              <div className={`flex h-full items-center gap-3 ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}>
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/18 text-white ring-1 ring-white/20">
+                  <Icon size={19} strokeWidth={2.1} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="break-words text-xl font-medium leading-6 text-white" dir={dir}>{t.metrics[metric.key]}</p>
-                  <p className="mt-2 truncate text-3xl font-semibold leading-none text-white">
+                  <p className="truncate text-xs font-semibold leading-5 text-white/82" dir={dir}>{t.metrics[metric.key]}</p>
+                  <p className="mt-1 truncate text-2xl font-bold leading-none text-white">
                     {metric.value.toLocaleString(language === 'ur' ? 'ur-PK' : 'en-US')}
                   </p>
                 </div>

@@ -3,7 +3,7 @@ import { ApplicationStatus } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import type { Prisma } from '@prisma/client';
-import { Search, X } from 'lucide-react';
+import { LayoutGrid, List, Search, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import ViewerShell from '@/components/viewer-shell';
@@ -33,6 +33,7 @@ const statusFilters = [
 ] as const;
 
 type StatusFilter = (typeof statusFilters)[number]['key'];
+type ViewMode = 'list' | 'grid';
 
 const finalApprovedWhere: Prisma.OrphanApplicationWhereInput = {
   status: { in: [ApplicationStatus.admin_approved, ApplicationStatus.validated, ApplicationStatus.migrated] },
@@ -40,6 +41,10 @@ const finalApprovedWhere: Prisma.OrphanApplicationWhereInput = {
 
 function isStatusFilter(value: string | undefined): value is StatusFilter {
   return statusFilters.some((filter) => filter.key === value);
+}
+
+function isViewMode(value: string | undefined): value is ViewMode {
+  return value === 'list' || value === 'grid';
 }
 
 function applicationFilterWhere(filter: StatusFilter): Prisma.OrphanApplicationWhereInput {
@@ -109,10 +114,14 @@ function departmentLabel(application: ApplicationListItem) {
     ?? '-';
 }
 
+function applicationLocation(application: ApplicationListItem) {
+  return [application.city, application.tehsil, application.district, application.province].filter(Boolean).join(', ') || '-';
+}
+
 export default async function ViewerApplicationsPage({
   searchParams,
 }: {
-  searchParams: { page?: string; q?: string; status?: string; department?: string };
+  searchParams: { page?: string; q?: string; status?: string; department?: string; view?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/viewer/applications');
@@ -121,7 +130,8 @@ export default async function ViewerApplicationsPage({
   const search = searchParams.q?.trim() ?? '';
   const projects = await getFieldWorkerProjectOptions();
   const selectedDepartment = projects.includes(searchParams.department ?? '') ? searchParams.department ?? 'all' : 'all';
-  const selectedStatusFilter: StatusFilter = isStatusFilter(searchParams.status) ? searchParams.status : 'all';
+  const selectedStatusFilter: StatusFilter = isStatusFilter(searchParams.status) ? searchParams.status : 'submitted';
+  const selectedViewMode: ViewMode = isViewMode(searchParams.view) ? searchParams.view : 'list';
   const whereParts: Prisma.OrphanApplicationWhereInput[] = [
     applicationSearchWhere(search),
     applicationFilterWhere(selectedStatusFilter),
@@ -130,15 +140,23 @@ export default async function ViewerApplicationsPage({
   const where: Prisma.OrphanApplicationWhereInput = whereParts.length ? { AND: whereParts } : {};
   const page = Math.max(1, Number(searchParams.page) || 1);
   const skip = (page - 1) * PAGE_SIZE;
-  const pageHref = (nextPage: number) => {
+  const applicationsHref = (overrides: { page?: number; view?: ViewMode; status?: StatusFilter; department?: string; q?: string } = {}) => {
     const params = new URLSearchParams();
-    if (search) params.set('q', search);
-    if (selectedStatusFilter !== 'all') params.set('status', selectedStatusFilter);
-    if (selectedDepartment !== 'all') params.set('department', selectedDepartment);
+    const nextSearch = overrides.q ?? search;
+    const nextStatus = overrides.status ?? selectedStatusFilter;
+    const nextDepartment = overrides.department ?? selectedDepartment;
+    const nextView = overrides.view ?? selectedViewMode;
+    const nextPage = overrides.page ?? 1;
+
+    if (nextSearch) params.set('q', nextSearch);
+    if (nextStatus !== 'submitted') params.set('status', nextStatus);
+    if (nextDepartment !== 'all') params.set('department', nextDepartment);
+    if (nextView !== 'list') params.set('view', nextView);
     if (nextPage > 1) params.set('page', String(nextPage));
     const query = params.toString();
     return query ? `/viewer/applications?${query}` : '/viewer/applications';
   };
+  const pageHref = (nextPage: number) => applicationsHref({ page: nextPage });
 
   const [applicationRecords, total] = await Promise.all([
     prisma.orphanApplication.findMany({
@@ -187,6 +205,7 @@ export default async function ViewerApplicationsPage({
 
       <form action="/viewer/applications" className="mb-4 rounded-xl border border-[#dbe4ef] bg-white p-3">
         <div className="flex flex-col gap-2 sm:flex-row">
+          <input type="hidden" name="view" value={selectedViewMode} />
           <label className="relative min-w-0 flex-1">
             <span className="sr-only">Search applications</span>
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9bb3]" aria-hidden="true" />
@@ -226,8 +245,8 @@ export default async function ViewerApplicationsPage({
           <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#3b82f6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2563eb]">
             <ViewerLocalizedText en="Search" ur="تلاش" />
           </button>
-          {search || selectedDepartment !== 'all' || selectedStatusFilter !== 'all' ? (
-            <Link href="/viewer/applications" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-4 py-2 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd]">
+          {search || selectedDepartment !== 'all' || selectedStatusFilter !== 'submitted' ? (
+            <Link href={applicationsHref({ q: '', status: 'submitted', department: 'all' })} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-4 py-2 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd]">
               <X className="h-4 w-4" aria-hidden="true" />
               <ViewerLocalizedText en="Clear" ur="صاف کریں" />
             </Link>
@@ -236,36 +255,49 @@ export default async function ViewerApplicationsPage({
       </form>
 
       <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
+        <div className="flex flex-col gap-3 border-b border-[#edf2f7] bg-[#f8fbff] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-sm font-semibold text-[#0f1f33]">
+            <ViewerLocalizedText en="Application results" ur="درخواستوں کے نتائج" />
+          </span>
+          <div className="inline-flex rounded-lg border border-[#dbe4ef] bg-white p-1">
+            <Link
+              href={applicationsHref({ view: 'list' })}
+              className={`inline-flex min-h-9 items-center gap-2 rounded-md px-3 text-xs font-semibold transition ${selectedViewMode === 'list' ? 'bg-[#2563eb] text-white shadow-sm' : 'text-[#506784] hover:bg-[#f6f9fd]'}`}
+            >
+              <List className="h-4 w-4" aria-hidden="true" />
+              <ViewerLocalizedText en="List" ur="فہرست" />
+            </Link>
+            <Link
+              href={applicationsHref({ view: 'grid' })}
+              className={`inline-flex min-h-9 items-center gap-2 rounded-md px-3 text-xs font-semibold transition ${selectedViewMode === 'grid' ? 'bg-[#2563eb] text-white shadow-sm' : 'text-[#506784] hover:bg-[#f6f9fd]'}`}
+            >
+              <LayoutGrid className="h-4 w-4" aria-hidden="true" />
+              <ViewerLocalizedText en="Grid" ur="گرڈ" />
+            </Link>
+          </div>
+        </div>
+
         <div className="grid gap-3 p-3 md:hidden">
           {applications.length === 0 ? (
             <ViewerLocalizedText as="p" en="No applications found." ur="کوئی درخواست نہیں ملی۔" className="px-4 py-10 text-center text-sm text-[#8a9bb3]" />
           ) : (
             applications.map((application) => (
-              <div key={application.id} className="rounded-xl border border-[#edf2f7] bg-white p-4">
-                <Link href={`/viewer/applications/${application.id}`} className="block hover:bg-[#f8fbff]">
-                  <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
-                  <div className="mt-1 text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                    <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
-                    <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{departmentLabel(application) === '-' ? 'No department' : departmentLabel(application)}</span>
-                    <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{fieldWorkerLabel(application)}</span>
-                    <span className="rounded-lg bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">{application.completionPercentage}% complete</span>
-                  </div>
-                  <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
-                </Link>
-                <div className="mt-3 flex gap-2">
-                  <ApplicationReviewDownloadButton
-                    applicationId={application.id}
-                    fileName={application.registrationNumber ?? application.id}
-                    label="Download"
-                    className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-70"
-                  />
-                </div>
-              </div>
+              <ApplicationGridCard key={application.id} application={application} />
             ))
           )}
         </div>
 
+        {selectedViewMode === 'grid' ? (
+          <div className="hidden grid-cols-2 gap-4 p-4 md:grid xl:grid-cols-3 2xl:grid-cols-4">
+            {applications.length === 0 ? (
+              <ViewerLocalizedText as="p" en="No applications found." ur="کوئی درخواست نہیں ملی۔" className="col-span-full px-4 py-10 text-center text-sm text-[#8a9bb3]" />
+            ) : (
+              applications.map((application) => (
+                <ApplicationGridCard key={application.id} application={application} />
+              ))
+            )}
+          </div>
+        ) : (
         <div className="hidden overflow-x-auto md:block">
           <table className="min-w-full text-left text-sm text-[#506784]">
             <thead className="bg-[#f6f9fd] text-xs uppercase tracking-[0.12em] text-[#7d8fa6]">
@@ -320,6 +352,7 @@ export default async function ViewerApplicationsPage({
             </tbody>
           </table>
         </div>
+        )}
 
         <div className="flex items-center justify-between border-t border-[#edf2f7] px-4 py-3 text-sm text-[#5f718a]">
           <span>{total === 0 ? 'No records' : `Showing ${skip + 1}-${Math.min(skip + PAGE_SIZE, total)} of ${total}`}</span>
@@ -342,5 +375,63 @@ export default async function ViewerApplicationsPage({
         </div>
       </div>
     </ViewerShell>
+  );
+}
+
+function ApplicationGridCard({ application }: { application: ApplicationListItem }) {
+  return (
+    <article className="flex min-h-full flex-col rounded-xl border border-[#dbe4ef] bg-white p-4 shadow-[0_14px_32px_rgba(15,31,51,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(15,31,51,0.10)]">
+      <Link href={`/viewer/applications/${application.id}`} className="block min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-base font-bold text-[#0f1f33]">{application.childName ?? 'No child name'}</p>
+            <p className="mt-1 truncate text-xs font-medium text-[#8a9bb3]">{application.registrationNumber ?? application.id}</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-[#edf4ff] px-2.5 py-1 text-[11px] font-bold text-[#2563eb]">
+            {application.completionPercentage}%
+          </span>
+        </div>
+
+        <div className="mt-4 grid gap-2 text-xs">
+          <div className="grid grid-cols-2 gap-2">
+            <CardDetail label="Age" value={application.age != null ? `${application.age} years` : '-'} />
+            <CardDetail label="Gender" value={application.gender ?? '-'} />
+          </div>
+          <CardDetail label="B-form" value={application.bFormNumber ?? '-'} />
+          <div className="grid grid-cols-2 gap-2">
+            <CardDetail label="Health" value={application.healthStatus ?? '-'} />
+            <CardDetail label="Class" value={application.currentClass ?? '-'} />
+          </div>
+          <CardDetail label="School / Madrasa" value={application.schoolName ?? application.madrasaName ?? '-'} />
+          <div className="grid grid-cols-2 gap-2">
+            <CardDetail label="Siblings" value={application.totalSiblings != null ? String(application.totalSiblings) : '-'} />
+            <CardDetail label="Lives with mother" value={application.childLivesWithMother == null ? '-' : application.childLivesWithMother ? 'Yes' : 'No'} />
+          </div>
+          <CardDetail label="Location" value={applicationLocation(application)} />
+        </div>
+
+      </Link>
+
+      <div className="mt-4 flex items-center gap-2 border-t border-[#edf2f7] pt-3">
+        <Link href={`/viewer/applications/${application.id}`} className="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff]">
+          <ViewerLocalizedText en="View details" ur="تفصیل دیکھیں" />
+        </Link>
+        <ApplicationReviewDownloadButton
+          applicationId={application.id}
+          fileName={application.registrationNumber ?? application.id}
+          label="PDF"
+          className="inline-flex min-h-9 items-center justify-center rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-70"
+        />
+      </div>
+    </article>
+  );
+}
+
+function CardDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-[#f8fbff] px-3 py-2">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8a9bb3]">{label}</p>
+      <p className="mt-1 truncate text-xs font-semibold text-[#0f1f33]">{value}</p>
+    </div>
   );
 }

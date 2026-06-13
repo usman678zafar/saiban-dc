@@ -36,7 +36,7 @@ export default function ViewerSidebar({ email }: ViewerSidebarProps) {
 
   return (
     <>
-      <aside className="admin-sidebar-scrollbar fixed inset-y-0 left-0 z-40 hidden w-48 flex-col overflow-y-auto border-r border-[#2f3d52] bg-[#1f2b3d] text-white lg:flex">
+      <aside className="admin-sidebar-scrollbar fixed inset-y-0 left-0 z-40 hidden w-48 flex-col overflow-y-auto border-r border-[#0d315d] bg-[#06264a] text-white lg:flex">
         <div className="border-b border-white/10 px-3 pb-4 pt-4 text-center">
           <Image src={logo} alt="Saiban" width={140} height={110} className="mx-auto h-16 w-auto object-contain" priority />
           <p className="mt-1.5 text-xs font-medium text-[#b7c6db]" dir={language === 'ur' ? 'rtl' : 'ltr'}>{t.portal}</p>
@@ -54,7 +54,7 @@ export default function ViewerSidebar({ email }: ViewerSidebarProps) {
                 className={clsx(
                   'flex items-center gap-2 px-4 py-2.5 text-xs font-semibold transition',
                   active
-                    ? 'bg-[#3b82f6] text-white shadow-[0_12px_28px_rgba(59,130,246,0.28)]'
+                    ? 'bg-[#1d74e8] text-white shadow-[0_12px_28px_rgba(29,116,232,0.30)]'
                     : 'text-[#c9d4e2] hover:bg-white/10 hover:text-white',
                 )}
               >

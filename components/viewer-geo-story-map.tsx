@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LatLngBoundsExpression, LayerGroup, Map as LeafletMap } from 'leaflet';
-import { Activity, Filter, LocateFixed, MapPinned, Navigation, ShieldCheck } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Activity, Filter, Home, LocateFixed, MapPinned, Navigation, ShieldCheck } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { useViewerLanguage, type ViewerLanguage as Language } from './viewer-language';
 
@@ -70,6 +71,16 @@ const copy = {
     homes: 'homes',
     pakistanOnly: 'Pakistan only',
     unspecified: 'Unspecified',
+    selectedHome: 'Selected household',
+    statusMix: 'Status mix',
+    registration: 'Registration',
+    status: 'Status',
+    project: 'Project',
+    address: 'Address',
+    coordinates: 'Coordinates',
+    captured: 'Captured',
+    selectFromMap: 'Select a point on the map to view household details.',
+    active: 'In process',
   },
   ur: {
     eyebrow: 'جغرافیائی رسائی',
@@ -94,6 +105,16 @@ const copy = {
     homes: 'گھرانے',
     pakistanOnly: 'صرف پاکستان',
     unspecified: 'غیر متعین',
+    selectedHome: 'منتخب گھرانہ',
+    statusMix: 'حیثیت کا خلاصہ',
+    registration: 'رجسٹریشن',
+    status: 'حیثیت',
+    project: 'پروجیکٹ',
+    address: 'پتہ',
+    coordinates: 'کوآرڈینیٹس',
+    captured: 'محفوظ شدہ وقت',
+    selectFromMap: 'گھرانے کی تفصیل دیکھنے کے لیے نقشے پر نشان منتخب کریں۔',
+    active: 'زیر عمل',
   },
 };
 
@@ -108,6 +129,17 @@ const statusLabelsUrdu: Record<string, string> = {
   rejected: 'مسترد',
   migrated: 'منتقل شدہ',
 };
+
+const locationNameAliases: Record<string, Record<Language, string>> = {
+  talagang: { en: 'Talagang', ur: 'تلہ گنگ' },
+  'تلہ گنگ': { en: 'Talagang', ur: 'تلہ گنگ' },
+  تلہگنگ: { en: 'Talagang', ur: 'تلہ گنگ' },
+};
+
+function normalizeLocationName(value: string, language: Language) {
+  const key = value.trim().toLowerCase().replace(/[\s-]+/g, '');
+  return locationNameAliases[key]?.[language] ?? value.trim();
+}
 
 function displayStatusLabel(status: string, language: Language) {
   return language === 'ur' ? statusLabelsUrdu[status] ?? applicationStatusLabel(status) : applicationStatusLabel(status);
@@ -138,9 +170,29 @@ function formatAccuracy(value: number | null, language: Language) {
   return language === 'ur' ? `${Math.round(value).toLocaleString('ur-PK')} میٹر` : `${Math.round(value).toLocaleString()} m`;
 }
 
-function locationValue(point: ViewerGeoApplication, level: LocationLevel, fallback: string) {
+function formatDate(value: string | null, language: Language) {
+  if (!value) return copy[language].unspecified;
+  return new Intl.DateTimeFormat(language === 'ur' ? 'ur-PK' : 'en-US', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value));
+}
+
+function formatCoordinate(value: number) {
+  return value.toFixed(5);
+}
+
+function locationValue(point: ViewerGeoApplication, level: LocationLevel, fallback: string, language: Language) {
   const value = point[level]?.trim();
-  return value || fallback;
+  return value ? normalizeLocationName(value, language) : fallback;
+}
+
+function locationLabel(point: ViewerGeoApplication, fallback: string, language: Language) {
+  return [point.city, point.tehsil, point.district, point.province]
+    .filter(Boolean)
+    .map((value) => normalizeLocationName(value, language))
+    .join(', ') || fallback;
 }
 
 export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplication[] }) {
@@ -162,18 +214,18 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
   const locationOptions = useMemo(() => {
     const counts = new Map<string, number>();
     for (const point of statusFilteredPoints) {
-      const value = locationValue(point, locationLevel, t.unspecified);
+      const value = locationValue(point, locationLevel, t.unspecified, language);
       counts.set(value, (counts.get(value) ?? 0) + 1);
     }
     return Array.from(counts.entries())
       .map(([value, total]) => ({ value, total }))
       .sort((a, b) => b.total - a.total || a.value.localeCompare(b.value));
-  }, [locationLevel, statusFilteredPoints, t.unspecified]);
+  }, [language, locationLevel, statusFilteredPoints, t.unspecified]);
 
   const pointsInLocation = useMemo(() => {
     if (locationFilter === 'all') return points;
-    return points.filter((point) => locationValue(point, locationLevel, t.unspecified) === locationFilter);
-  }, [locationFilter, locationLevel, points, t.unspecified]);
+    return points.filter((point) => locationValue(point, locationLevel, t.unspecified, language) === locationFilter);
+  }, [language, locationFilter, locationLevel, points, t.unspecified]);
 
   const filteredPoints = useMemo(() => {
     if (filter === 'all') return pointsInLocation;
@@ -188,14 +240,14 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
   const locationCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const point of filteredPoints) {
-      const value = locationValue(point, locationLevel, t.unspecified);
+      const value = locationValue(point, locationLevel, t.unspecified, language);
       counts.set(value, (counts.get(value) ?? 0) + 1);
     }
     return Array.from(counts.entries())
       .map(([value, total]) => ({ value, total }))
       .sort((a, b) => b.total - a.total || a.value.localeCompare(b.value))
       .slice(0, 5);
-  }, [filteredPoints, locationLevel, t.unspecified]);
+  }, [filteredPoints, language, locationLevel, t.unspecified]);
 
   const filterCounts = useMemo(() => {
     const counts = new Map<StatusFilter, number>();
@@ -210,14 +262,29 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
   const summary = useMemo(() => {
     const areas = new Set(
       filteredPoints
-        .map((point) => locationValue(point, locationLevel, t.unspecified))
+        .map((point) => locationValue(point, locationLevel, t.unspecified, language))
         .filter((value) => value !== t.unspecified),
     ).size;
     const finalApproved = filteredPoints.filter((point) => statusGroup(point.status) === 'final_approved').length;
     const accuracies = filteredPoints.map((point) => point.gpsAccuracyMeters).filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
     const averageAccuracy = accuracies.length ? Math.round(accuracies.reduce((total, value) => total + value, 0) / accuracies.length) : null;
     return { areas, finalApproved, averageAccuracy };
-  }, [filteredPoints, locationLevel, t.unspecified]);
+  }, [filteredPoints, language, locationLevel, t.unspecified]);
+
+  const statusBreakdown = useMemo(() => {
+    const groups: Array<{ value: StatusFilter; label: string; color: string }> = [
+      { value: 'active', label: t.active, color: '#f59e0b' },
+      { value: 'pending', label: statusFilters[3].label[language], color: '#2563eb' },
+      { value: 'final_approved', label: statusFilters[2].label[language], color: '#16a34a' },
+      { value: 'rejected', label: statusFilters[4].label[language], color: '#e11d48' },
+    ];
+
+    return groups.map((group) => {
+      const total = filteredPoints.filter((point) => statusGroup(point.status) === group.value).length;
+      const percent = filteredPoints.length ? Math.round((total / filteredPoints.length) * 100) : 0;
+      return { ...group, total, percent };
+    });
+  }, [filteredPoints, language, t.active]);
 
   const selectedLocationLevel = locationLevels.find((item) => item.value === locationLevel) ?? locationLevels[1];
   const numberLocale = language === 'ur' ? 'ur-PK' : 'en-US';
@@ -241,7 +308,7 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
       }).fitBounds(PAKISTAN_BOUNDS, { padding: [8, 8] });
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
       }).addTo(map);
 
@@ -327,8 +394,8 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
   }
 
   return (
-    <section className="mt-5 overflow-hidden rounded-xl border border-[#b8c7da] bg-[#101c2f] shadow-[0_26px_70px_rgba(15,31,51,0.18)]">
-      <div className="border-b border-white/10 bg-[#14233a] px-4 py-5 sm:px-6">
+    <section className="mt-5 overflow-hidden rounded-2xl border border-[#c8d7ea] bg-[#eef5fb] shadow-[0_22px_60px_rgba(15,31,51,0.14)]">
+      <div className="border-b border-[#d9e5f2] bg-gradient-to-r from-[#06264a] via-[#082e59] to-[#0b3b73] px-4 py-5 sm:px-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className={`min-w-0 w-full ${isRtl ? 'text-right' : 'text-left'}`}>
             <p className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8fc7ff] ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
@@ -348,9 +415,9 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
         </div>
       </div>
 
-      <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="min-w-0 bg-[#eef5fa]">
-          <div className="space-y-3 border-b border-[#d7e3ef] bg-white/95 px-4 py-3">
+      <div className="grid gap-4 p-3 xl:grid-cols-[minmax(0,1fr)_330px]">
+        <div className="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[#cddbeb] bg-white shadow-[0_16px_40px_rgba(15,31,51,0.08)]">
+          <div className="shrink-0 space-y-3 border-b border-[#d7e3ef] bg-white px-4 py-3">
             <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#506784]">
                 <LocateFixed className="h-4 w-4" aria-hidden="true" />
@@ -367,7 +434,7 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
                         setLocationFilter('all');
                         setSelectedId(null);
                       }}
-                      className={`inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${locationLevel === item.value ? 'border-[#101c2f] bg-[#101c2f] text-white shadow-[0_10px_24px_rgba(15,31,51,0.18)]' : 'border-[#dbe4ef] bg-white text-[#0f1f33] hover:bg-[#f6f9fd]'}`}
+                      className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${locationLevel === item.value ? 'border-[#0b3b73] bg-[#0b3b73] text-white shadow-[0_10px_24px_rgba(11,59,115,0.18)]' : 'border-[#dbe4ef] bg-white text-[#0f1f33] hover:bg-[#f6f9fd]'}`}
                     >
                       {item.label[language]}
                     </button>
@@ -381,7 +448,7 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
                     setLocationFilter(event.target.value);
                     setSelectedId(null);
                   }}
-                  className="min-h-10 w-full rounded-lg border border-[#dbe4ef] bg-white px-3 text-xs font-semibold text-[#0f1f33] shadow-sm outline-none transition focus:border-[#2563eb] focus:ring-2 focus:ring-[#bfdbfe] lg:w-[260px]"
+                  className="min-h-9 w-full rounded-lg border border-[#dbe4ef] bg-white px-3 text-xs font-semibold text-[#0f1f33] shadow-sm outline-none transition focus:border-[#2563eb] focus:ring-2 focus:ring-[#bfdbfe] lg:w-[240px]"
                 >
                   <option value="all">{t.allLocations}</option>
                   {locationOptions.map((option) => (
@@ -397,7 +464,7 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
                       setLocationFilter('all');
                       setSelectedId(null);
                     }}
-                    className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white px-3 text-xs font-semibold text-[#506784] transition hover:bg-[#f6f9fd]"
+                    className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white px-3 text-xs font-semibold text-[#506784] transition hover:bg-[#f6f9fd]"
                   >
                     {t.clearLocation}
                   </button>
@@ -421,7 +488,7 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
                         setFilter(item.value);
                         setSelectedId(null);
                       }}
-                      className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition ${filter === item.value ? 'border-[#2563eb] bg-[#2563eb] text-white shadow-[0_10px_24px_rgba(37,99,235,0.24)]' : 'border-[#dbe4ef] bg-white text-[#0f1f33] hover:bg-[#f6f9fd]'}`}
+                      className={`inline-flex min-h-9 shrink-0 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition ${filter === item.value ? 'border-[#2563eb] bg-[#2563eb] text-white shadow-[0_10px_24px_rgba(37,99,235,0.24)]' : 'border-[#dbe4ef] bg-white text-[#0f1f33] hover:bg-[#f6f9fd]'}`}
                     >
                       <span>{item.label[language]}</span>
                       <span className={`rounded-full px-2 py-0.5 text-[11px] ${filter === item.value ? 'bg-white/20 text-white' : 'bg-[#edf4ff] text-[#2563eb]'}`}>
@@ -434,7 +501,7 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
             </div>
           </div>
 
-          <div className="relative h-[500px] min-h-[500px] bg-[#dfeaf2] sm:h-[620px]">
+          <div className="relative min-h-[560px] flex-1 bg-[#dfeaf2]">
             <div ref={mapNodeRef} className="h-full w-full" role="img" aria-label={t.mapAria} />
             <div className="pointer-events-none absolute left-4 top-4 rounded-lg border border-white/80 bg-white/95 px-3 py-2 text-xs font-semibold text-[#0f1f33] shadow-[0_10px_24px_rgba(15,31,51,0.12)] backdrop-blur">
               {locationFilter === 'all' ? t.pakistanOnly : locationFilter}
@@ -443,6 +510,7 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
               {filteredPoints.length.toLocaleString(numberLocale)} / {points.length.toLocaleString(numberLocale)} {t.homes}
             </div>
             <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 rounded-lg border border-white/80 bg-white/95 px-3 py-2 text-xs font-semibold text-[#506784] shadow-[0_12px_28px_rgba(15,31,51,0.14)] backdrop-blur sm:right-auto">
+              <LegendDot color="#f59e0b" label={statusFilters[1].label[language]} />
               <LegendDot color="#16a34a" label={statusFilters[2].label[language]} />
               <LegendDot color="#2563eb" label={statusFilters[3].label[language]} />
               <LegendDot color="#e11d48" label={statusFilters[4].label[language]} />
@@ -450,8 +518,52 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
           </div>
         </div>
 
-        <aside className="min-w-0 border-t border-white/10 bg-[#f8fbff] p-4 xl:border-l xl:border-t-0">
-          <section className="rounded-lg border border-[#cddbeb] bg-white p-4 shadow-[0_14px_30px_rgba(15,31,51,0.08)]">
+        <aside className="min-w-0 space-y-3">
+          <section className="rounded-xl border border-[#cddbeb] bg-white p-4 shadow-[0_14px_30px_rgba(15,31,51,0.08)]">
+            <div className={`flex items-center justify-between gap-3 ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a9bb3]">{t.selectedHome}</p>
+                <h3 className="mt-1 text-base font-semibold text-[#0f1f33]" dir={isRtl ? 'rtl' : 'ltr'}>
+                  {selectedPoint?.childName || selectedPoint?.registrationNumber || t.unspecified}
+                </h3>
+              </div>
+              <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#edf4ff] text-[#2563eb]">
+                <Home className="h-5 w-5" aria-hidden="true" />
+              </span>
+            </div>
+
+            {selectedPoint ? (
+              <div className="mt-4 space-y-2">
+                <DetailRow label={t.registration} value={selectedPoint.registrationNumber ?? selectedPoint.id} isRtl={isRtl} />
+                <DetailRow label={t.status} value={displayStatusLabel(selectedPoint.status, language)} isRtl={isRtl} />
+                <DetailRow label={t.project} value={selectedPoint.collectorProject ?? t.unspecified} isRtl={isRtl} />
+                <DetailRow label={t.address} value={selectedPoint.fullAddress || locationLabel(selectedPoint, t.unspecified, language)} isRtl={isRtl} />
+                <DetailRow label={t.coordinates} value={`${formatCoordinate(selectedPoint.latitude)}, ${formatCoordinate(selectedPoint.longitude)}`} isRtl={isRtl} />
+                <DetailRow label={t.captured} value={formatDate(selectedPoint.gpsCapturedAt, language)} isRtl={isRtl} />
+              </div>
+            ) : (
+              <p className={`mt-4 text-sm leading-6 text-[#5f718a] ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>{t.selectFromMap}</p>
+            )}
+          </section>
+
+          <section className="rounded-xl border border-[#cddbeb] bg-white p-4 shadow-[0_14px_30px_rgba(15,31,51,0.08)]">
+            <h3 className={`text-sm font-semibold text-[#0f1f33] ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>{t.statusMix}</h3>
+            <div className="mt-4 space-y-3">
+              {statusBreakdown.map((item) => (
+                <div key={item.value}>
+                  <div className={`mb-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-[#506784] ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <span className="truncate">{item.label}</span>
+                    <span className="shrink-0">{item.total.toLocaleString(numberLocale)} ({item.percent.toLocaleString(numberLocale)}%)</span>
+                  </div>
+                  <div className="h-2.5 overflow-hidden rounded-full bg-[#edf2f7]">
+                    <div className="h-full rounded-full" style={{ width: `${item.percent}%`, backgroundColor: item.color }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-[#cddbeb] bg-white p-4 shadow-[0_14px_30px_rgba(15,31,51,0.08)]">
             <h3 className={`text-sm font-semibold text-[#0f1f33] ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>{selectedLocationLevel.ranking[language]}</h3>
             <div className="mt-4 space-y-4">
               {locationCounts.length === 0 ? (
@@ -460,10 +572,20 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
               {locationCounts.map((item, index) => {
                 const width = filteredPoints.length ? Math.max(8, Math.round((item.total / filteredPoints.length) * 100)) : 0;
                 return (
-                  <div key={item.value}>
-                    <div className="mb-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-[#506784]">
-                      <span className="flex min-w-0 items-center gap-2">
-                        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-[#edf4ff] text-[#2563eb]">{index + 1}</span>
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => {
+                      setLocationFilter(item.value);
+                      setSelectedId(null);
+                    }}
+                    className="block w-full rounded-lg px-2 py-1.5 text-left transition hover:bg-[#f6f9fd]"
+                  >
+                    <div className={`mb-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-[#506784] ${isRtl ? 'flex-row-reverse text-right' : ''}`}>
+                      <span className={`flex min-w-0 items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-[#edf4ff] text-[#2563eb]">
+                          {index + 1}
+                        </span>
                         <span className="truncate">{item.value}</span>
                       </span>
                       <span className="shrink-0">{item.total.toLocaleString(numberLocale)} {t.homes}</span>
@@ -471,7 +593,7 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
                     <div className="h-2.5 overflow-hidden rounded-full bg-[#edf2f7]">
                       <div className="h-full rounded-full bg-[#2563eb]" style={{ width: `${width}%` }} />
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -482,7 +604,7 @@ export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplica
   );
 }
 
-function SummaryTile({ icon: Icon, label, value, tone }: { icon: typeof MapPinned; label: string; value: string; tone: 'blue' | 'violet' | 'emerald' | 'amber' }) {
+function SummaryTile({ icon: Icon, label, value, tone }: { icon: LucideIcon; label: string; value: string; tone: 'blue' | 'violet' | 'emerald' | 'amber' }) {
   const tones = {
     blue: 'bg-[#edf4ff] text-[#2563eb]',
     violet: 'bg-violet-50 text-violet-700',
@@ -499,6 +621,15 @@ function SummaryTile({ icon: Icon, label, value, tone }: { icon: typeof MapPinne
         <p className="truncate text-xs font-semibold text-[#8a9bb3]">{label}</p>
         <p className="mt-1 truncate text-base font-semibold text-[#0f1f33]">{value}</p>
       </div>
+    </div>
+  );
+}
+
+function DetailRow({ label, value, isRtl }: { label: string; value: string; isRtl: boolean }) {
+  return (
+    <div className={`rounded-lg border border-[#edf2f7] bg-[#f8fbff] px-3 py-2 ${isRtl ? 'text-right' : 'text-left'}`}>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a9bb3]">{label}</p>
+      <p className="mt-1 text-sm font-semibold leading-5 text-[#0f1f33]" dir={isRtl ? 'rtl' : 'ltr'}>{value}</p>
     </div>
   );
 }
