@@ -190,7 +190,7 @@ function locationValue(point: ViewerGeoApplication, level: LocationLevel, fallba
 
 function locationLabel(point: ViewerGeoApplication, fallback: string, language: Language) {
   return [point.city, point.tehsil, point.district, point.province]
-    .filter(Boolean)
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
     .map((value) => normalizeLocationName(value, language))
     .join(', ') || fallback;
 }
