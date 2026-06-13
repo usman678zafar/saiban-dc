@@ -131,7 +131,7 @@ export default async function ViewerApplicationsPage({
   const projects = await getFieldWorkerProjectOptions();
   const selectedDepartment = projects.includes(searchParams.department ?? '') ? searchParams.department ?? 'all' : 'all';
   const selectedStatusFilter: StatusFilter = isStatusFilter(searchParams.status) ? searchParams.status : 'submitted';
-  const selectedViewMode: ViewMode = isViewMode(searchParams.view) ? searchParams.view : 'list';
+  const selectedViewMode: ViewMode = isViewMode(searchParams.view) ? searchParams.view : 'grid';
   const whereParts: Prisma.OrphanApplicationWhereInput[] = [
     applicationSearchWhere(search),
     applicationFilterWhere(selectedStatusFilter),
@@ -151,7 +151,7 @@ export default async function ViewerApplicationsPage({
     if (nextSearch) params.set('q', nextSearch);
     if (nextStatus !== 'submitted') params.set('status', nextStatus);
     if (nextDepartment !== 'all') params.set('department', nextDepartment);
-    if (nextView !== 'list') params.set('view', nextView);
+    if (nextView !== 'grid') params.set('view', nextView);
     if (nextPage > 1) params.set('page', String(nextPage));
     const query = params.toString();
     return query ? `/viewer/applications?${query}` : '/viewer/applications';
