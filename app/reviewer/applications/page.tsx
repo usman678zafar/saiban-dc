@@ -13,6 +13,8 @@ import { formatDate } from '@/lib/date-format';
 
 export const dynamic = 'force-dynamic';
 
+const PAGE_SIZE = 50;
+
 const reviewerViews = [
   { value: 'pending', label: 'Pending Review' },
   { value: 'approved', label: 'Approved' },
@@ -89,7 +91,7 @@ async function withDatabaseRetry<T>(operation: () => Promise<T>, attempts = 3): 
 export default async function ReviewerApplicationsPage({
   searchParams,
 }: {
-  searchParams: { q?: string; status?: string };
+  searchParams: { page?: string; q?: string; status?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/reviewer/applications');
@@ -110,6 +112,9 @@ export default async function ReviewerApplicationsPage({
     ...baseWhereParts,
     ...(search ? [applicationSearchWhere(search)] : []),
   ];
+  const where: Prisma.OrphanApplicationWhereInput = { AND: whereParts };
+  const page = Math.max(1, Number(searchParams.page) || 1);
+  const skip = (page - 1) * PAGE_SIZE;
 
   const reviewerHref = (view: ReviewerView) => {
     const params = new URLSearchParams();
@@ -119,11 +124,21 @@ export default async function ReviewerApplicationsPage({
     return query ? `/reviewer/applications?${query}` : '/reviewer/applications';
   };
   const clearSearchHref = currentView !== 'pending' ? `/reviewer/applications?status=${currentView}` : '/reviewer/applications';
+  const pageHref = (nextPage: number) => {
+    const params = new URLSearchParams();
+    if (currentView !== 'pending') params.set('status', currentView);
+    if (search) params.set('q', search);
+    if (nextPage > 1) params.set('page', String(nextPage));
+    const query = params.toString();
+    return query ? `/reviewer/applications?${query}` : '/reviewer/applications';
+  };
 
-  const [applications, viewCounts] = await Promise.all([
+  const [applications, total, viewCounts] = await Promise.all([
     withDatabaseRetry(() => prisma.orphanApplication.findMany({
-      where: { AND: whereParts },
+      where,
       orderBy: { updatedAt: currentView === 'pending' ? 'asc' : 'desc' },
+      skip,
+      take: PAGE_SIZE,
       select: {
         id: true,
         registrationNumber: true,
@@ -139,6 +154,7 @@ export default async function ReviewerApplicationsPage({
         },
       },
     })),
+    withDatabaseRetry(() => prisma.orphanApplication.count({ where })),
     Promise.all(reviewerViews.map(async (view) => ({
       view: view.value,
       count: await withDatabaseRetry(() => prisma.orphanApplication.count({
@@ -147,6 +163,9 @@ export default async function ReviewerApplicationsPage({
     }))),
   ]);
   const countsByView = new Map(viewCounts.map((item) => [item.view, item.count]));
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const hasPrev = page > 1;
+  const hasNext = page < totalPages;
 
   return (
     <ReviewerShell email={session.user.email} name={user?.name} canCreateApplications={user?.canCreateApplications}>
@@ -271,6 +290,29 @@ export default async function ReviewerApplicationsPage({
               );
             })
           )}
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <span>{total === 0 ? 'No records' : `Showing ${skip + 1}-${Math.min(skip + PAGE_SIZE, total)} of ${total}`}</span>
+          <div className="flex gap-2">
+            {hasPrev ? (
+              <Link href={pageHref(page - 1)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50">
+                Previous
+              </Link>
+            ) : (
+              <span className="rounded-lg border border-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-300">Previous</span>
+            )}
+            <span className="rounded-lg border border-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-500">
+              Page {page} of {totalPages}
+            </span>
+            {hasNext ? (
+              <Link href={pageHref(page + 1)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50">
+                Next
+              </Link>
+            ) : (
+              <span className="rounded-lg border border-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-300">Next</span>
+            )}
+          </div>
         </div>
       </div>
     </ReviewerShell>
