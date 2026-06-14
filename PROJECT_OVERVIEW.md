@@ -1,6 +1,6 @@
-# Saiban Data Collector — Project Overview
+# Saiban Data Collector - Project Overview
 
-A temporary field data collection app for orphan registration. Field workers fill multi-step forms on mobile; records are later reviewed by admins and migrated into the main Saiban system.
+A temporary field data collection app for orphan registration. Field workers collect household and child data on mobile, supervisors and reviewers process submitted records, admins complete final review, and approved records can later be migrated into the main Saiban system.
 
 ---
 
@@ -8,13 +8,16 @@ A temporary field data collection app for orphan registration. Field workers fil
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js 14 (App Router), React 18, TypeScript |
+| Framework | Next.js 14.2.5 App Router, React 18, TypeScript |
+| Runtime | Node.js 22.x required by `package.json` |
 | Styling | Tailwind CSS |
-| Database | PostgreSQL (Neon serverless) |
-| ORM | Prisma 7 |
-| Auth | NextAuth.js v4 — JWT strategy, Credentials provider |
+| Database | PostgreSQL on Neon |
+| ORM | Prisma 7 with `@prisma/adapter-pg` |
+| Auth | NextAuth.js v4, JWT sessions, Credentials provider |
 | Validation | Zod |
-| File storage | Cloudflare R2 (S3-compatible), AWS SDK v3 |
+| File storage | Cloudflare R2, S3-compatible API, AWS SDK v3 |
+| Maps | Leaflet |
+| PDF/rendering | Playwright Core + `@sparticuz/chromium` |
 
 ---
 
@@ -22,182 +25,256 @@ A temporary field data collection app for orphan registration. Field workers fil
 
 | Role | Access |
 |---|---|
-| `admin` | Full access — manage field workers, review/validate/export all applications |
-| `field_worker` | Create and edit own applications, view own list |
-| `viewer` | Read-only (reserved, not fully implemented) |
+| `super_admin` | Fullest access. Can manage admins/viewers and override more application workflow restrictions. |
+| `admin` | Manage projects, supervisors, reviewers, field workers, and final application review. |
+| `supervisor` | Review submitted applications, approve/reject/return, and optionally create applications or manage assigned field workers. |
+| `reviewer` | Review supervisor-approved applications, approve/reject/return, and optionally create applications. |
+| `field_worker` | Create, edit, and submit own applications. |
+| `viewer` | Read-only viewer portal with dashboards, application lists, and geo map views. |
 
-### Bootstrap Admin
-If `ADMIN_EMAIL` + `ADMIN_PASSWORD` env vars are set and no admin user exists yet, the first login with those credentials auto-creates the admin account.
+### Bootstrap Super Admin
+
+`lib/auth.ts` contains bootstrap logic for the first super admin account.
+
+- Uses `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` if present.
+- Falls back to `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+- The matching login must be made from the **Admin** tab on `/signin`.
+- If no matching user exists, the account is created as `super_admin`.
+- If the matching user exists but has the wrong password hash or role, a successful bootstrap login updates that user to `super_admin`.
+
+Current local `.env` expects:
+
+```env
+ADMIN_EMAIL="admin@saiban.com"
+ADMIN_PASSWORD="USMANI12345"
+```
+
+Do not commit real production secrets to git.
+
+---
+
+## Authentication
+
+- Sign-in page: `/signin`
+- Login tabs: Volunteer, Supervisor, Reviewer, Viewer, Admin
+- Volunteer login accepts phone number, CNIC, or email.
+- Supervisor and reviewer login accepts phone number or email.
+- Viewer and admin login use email.
+- Admin tab accepts both `admin` and `super_admin` users.
+- Forced password change flow exists for supervisors and reviewers using default phone-derived passwords.
+- Middleware protects admin, viewer, supervisor, reviewer, dashboard, applications, and change-password routes.
+- `/signup` and `/privacy-policy` are public.
 
 ---
 
 ## Field Worker Types
 
 ### Admin-Created
-- Created by admin via `/admin/field-workers`
-- **Required:** name, phone, CNIC (13 digits), address, project
-- Email: `{cnic}@field.saiban.local`
-- Password: set by admin (default = last 4 digits of phone)
-- `selfRegistered: false`
 
-### Self-Registered (Public)
-- Sign up via `/signup` (public, no auth required)
-- **Required:** name, phone — CNIC and address are optional
-- Email: `{phone}@public.saiban.local`
-- Password: automatically last 4 digits of phone number
-- `selfRegistered: true`
-- No project assigned
+- Created from `/admin/field-workers`.
+- Required: name, phone, CNIC, address, project, supervisor.
+- Email is generated from CNIC: `{cnic}@field.saiban.local`.
+- Password is set by admin.
+- `selfRegistered: false`.
 
-Both types sign in the same way (phone number or CNIC + password) through the Field Worker tab on `/signin`.
+### Self-Registered
+
+- Created from public `/signup`.
+- Required: name and phone.
+- CNIC and address are optional.
+- Email is generated from phone: `{phone}@public.saiban.local`.
+- Password defaults to the last 4 digits of the phone number.
+- `selfRegistered: true`.
+- No project/supervisor assignment by default.
+
+Both types sign in through the Volunteer tab.
 
 ---
 
-## Authentication
+## Review Workflow
 
-- Sign-in page: `/signin` (role toggle: Field Worker / Admin)
-- Field worker login accepts: phone number, CNIC, or email as identifier
-- Admin login accepts: email only
-- Middleware (`middleware.ts`) protects `/admin/*` and `/applications/*`
-- `/signup` is public (not in middleware matcher)
+Application status values:
+
+```text
+draft
+submitted
+needs_correction
+supervisor_approved
+reviewer_approved
+admin_approved
+validated
+rejected
+migrated
+```
+
+Typical path:
+
+```text
+draft -> submitted -> supervisor_approved -> reviewer_approved -> admin_approved -> validated -> migrated
+```
+
+Correction/rejection paths:
+
+```text
+submitted -> needs_correction
+submitted -> rejected
+supervisor_approved -> rejected
+reviewer_approved -> rejected
+```
+
+Super admins can act across more workflow states than normal admins.
 
 ---
 
 ## Directory Structure
 
-```
+```text
 app/
-  page.tsx                          → redirects to /signin
-  signin/page.tsx                   → login page
-  signup/page.tsx                   → public self-registration page
-  dashboard/page.tsx                → viewer dashboard
-  applications/
-    page.tsx                        → field worker application list (paginated, scoped to own)
-    new/page.tsx                    → start new application
-    [id]/page.tsx                   → view application
-    [id]/edit/page.tsx              → edit application
-  admin/
-    page.tsx                        → admin dashboard
-    applications/page.tsx           → all applications list (paginated)
-    applications/new/page.tsx       → admin create application
-    applications/[id]/page.tsx      → admin view application
-    field-workers/page.tsx          → manage field workers
+  page.tsx                          root redirect by session role
+  signin/page.tsx                   role-based login page
+  signup/page.tsx                   public volunteer registration
+  change-password/page.tsx          forced password change flow
+  dashboard/page.tsx                shared dashboard
+  applications/                     field-worker/shared application pages
+  admin/                            admin and super-admin portal
+  supervisor/                       supervisor portal
+  reviewer/                         reviewer portal
+  viewer/                           read-only viewer portal
   api/
-    auth/[...nextauth]/route.ts     → NextAuth handler
-    register/route.ts               → POST — public self-registration
-    applications/route.ts           → GET (list), POST (create), PATCH (update draft)
-    applications/export/route.ts    → GET — CSV export with nested data
-    admin/field-workers/route.ts    → GET (list), POST (create admin worker)
-    admin/field-workers/[id]/route.ts → PATCH, DELETE
-    upload/route.ts                 → POST — presigned R2 upload URL
-    address-options/route.ts        → GET, POST — district/tehsil options
+    auth/[...nextauth]/route.ts     NextAuth handler
+    register/route.ts               public self-registration
+    applications/route.ts           list/create/update/delete applications
+    applications/export/route.ts    CSV export
+    applications/[id]/review/route.ts review PDF endpoint
+    upload/route.ts                 R2 upload/delete helpers
+    address-options/route.ts        district/tehsil options
+    admin/*                         admin CRUD APIs
+    supervisor/*                    supervisor CRUD APIs
 
 components/
-  orphan-application-wizard.tsx     → 12-step wizard (main form, ~3000 lines)
-  field-worker-manager.tsx          → admin field worker CRUD + filter UI
-  signup-form.tsx                   → public registration form
-  role-login.tsx                    → sign-in page with role toggle
-  login-form.tsx                    → credentials form
-  admin-shell.tsx                   → admin layout wrapper
+  orphan-application-wizard.tsx     main multi-step application form
+  role-login.tsx                    sign-in role tabs
+  login-form.tsx                    NextAuth credentials form
+  admin-shell.tsx                   admin layout wrapper
+  supervisor-shell.tsx              supervisor layout wrapper
+  reviewer-shell.tsx                reviewer layout wrapper
+  viewer-shell.tsx                  viewer layout wrapper
+  viewer-geo-story-map.tsx          Leaflet map for viewer dashboard
 
 lib/
-  auth.ts                           → NextAuth config, bootstrap admin logic
-  prisma.ts                         → Prisma client singleton
-  validation.ts                     → Zod schemas for application data
-  field-workers.ts                  → fieldWorkerProjects array (4 projects)
-  labels.ts                         → bilingual (EN/UR) field labels
-  household-assets.ts               → asset type definitions
-  address-utils.ts                  → district/tehsil helpers
-  pakistan-address-data.ts          → static province/district/tehsil data
-  application-prefill.ts            → prefill logic for edit mode
-  r2.ts                             → Cloudflare R2 / S3 client
+  auth.ts                           NextAuth config and bootstrap admin logic
+  prisma.ts                         Prisma client singleton
+  validation.ts                     Zod schemas
+  application-workflow.ts           status labels and badge styling
+  field-workers.ts                  project assignment helpers
+  r2.ts                             Cloudflare R2 client
+  application-review-pdf.ts         PDF generation support
 
 prisma/
-  schema.prisma                     → DB models (User, OrphanApplication, Sibling, Relative, HouseholdAsset, ApplicationDocument, AuditLog, AddressOption)
+  schema.prisma                     DB schema
+  seed.ts                           local/dev seed script
 ```
 
 ---
 
-## Orphan Application — 12 Wizard Steps
+## Orphan Application Wizard
+
+The application form is a 12-step wizard:
 
 | # | Step | Key Data |
 |---|---|---|
-| 1 | Father | Name, DOB, CNIC, occupation, cause/date of death |
+| 1 | Father | Name, DOB, CNIC, occupation, death date/cause |
 | 2 | Mother | Name, alive status, employment, income, remarriage |
 | 3 | Guardian | Name, relationship, CNIC, income, zakat status |
-| 4 | Relatives | Paternal/maternal grandfathers and uncles (up to 4) |
-| 5 | Home | Province, district, tehsil, GPS, house ownership, utilities |
+| 4 | Relatives | Paternal/maternal grandfathers and uncles |
+| 5 | Home | Province, district, tehsil, GPS, ownership, utilities |
 | 6 | Assets | Household assets with quantity and value |
 | 7 | Child | Name, DOB, gender, B-form, siblings count |
 | 8 | Health | Disability, chronic disease, treatment details |
-| 9 | Education & Skills | School enrollment, class, fees, madrasa, skills |
-| 10 | Income | Family income, child earnings, other aid |
-| 11 | Documents | Upload: child photo, B-form, father/mother CNIC, death cert, school letter, medical report, etc. |
-| 12 | Review & Submit | Summary + imam/principal verification + terms acceptance |
+| 9 | Education & Skills | School, class, fees, madrasa, skills |
+| 10 | Income | Family income, child earnings, outside aid |
+| 11 | Documents | Child photo, B-form, CNICs, death certificate, school/medical files |
+| 12 | Review & Submit | Summary, verifications, and terms acceptance |
 
-Draft progress is auto-saved to `localStorage`. On submit the wizard calls `POST /api/applications`.
-
----
-
-## Application Statuses
-
-```
-draft → submitted → needs_correction
-                 → validated → migrated
-                             → rejected
-```
-
----
-
-## Field Worker Projects
-
-```
-Link Road / لنک روڈ
-Talagang / تلہ گنگ
-Schools / مکاتب
-Volunteer / رضاکار
-```
-
-Self-registered workers have no project assignment.
+Draft progress is saved client-side. Submitted records are normalized server-side before database writes.
 
 ---
 
 ## Key Business Logic
 
 ### Registration Number
-Format: `APP-YYYYMMDD-HHMMSSmmm` — generated at submit time with zero-padded time parts to avoid collisions.
+
+Generated at submit time as:
+
+```text
+APP-YYYYMMDD-HHMMSSmmm
+```
 
 ### Worker IDs
-Sequential `FW-000001`, `FW-000002`, … — generated at creation time with a 5-retry collision loop.
 
-### Application Normalization (POST /api/applications)
-On submit, conditional fields are cleared server-side based on parent field values:
-- If `motherAlive !== 'no'` → clear mother death fields
-- If `fatherOccupation !== 'other'` → clear other-occupation text
-- etc.
+Generated sequentially as:
 
-### CSV Export (GET /api/applications/export)
-Admin-only. Exports all applications with nested `siblings`, `relatives`, `householdAssets` serialized as JSON strings in their columns.
+```text
+FW-000001
+FW-000002
+...
+```
+
+### Application Normalization
+
+`POST /api/applications` and update paths clear conditional fields server-side. For example, irrelevant mother death fields are cleared when mother is not marked deceased.
 
 ### File Uploads
-Client requests a presigned PUT URL from `/api/upload`, uploads directly to R2, then stores the `fileKey` in the application record.
 
-### Pagination
-- Field worker list: 20 per page (scoped to `createdById`)
-- Admin list: 50 per page (all applications)
+The client asks `/api/upload` for a presigned R2 upload URL, uploads directly to R2, then stores the resulting file key on the application document record.
+
+### Export
+
+Admins can export applications from `/api/applications/export`. Nested data such as siblings, relatives, household assets, and documents are serialized into export columns.
 
 ---
 
-## Dev Commands
+## Neon Notes
 
-```bash
-npm run dev           # start local dev server
-npm run build         # prisma generate + next build
-npm run test:submit   # smoke test (scripts/smoke-submit-application.mjs)
-npx prisma db push    # push schema changes to database
-npx prisma generate   # regenerate Prisma client (run after schema changes)
+The app uses Neon PostgreSQL through `DATABASE_URL`.
+
+Important quota behavior:
+
+- Neon Free has limited monthly network transfer.
+- When network transfer is exceeded, DB calls can fail with messages like:
+
+```text
+Your project has exceeded the data transfer quota. Upgrade your plan to increase limits.
 ```
 
-> **Note:** After any change to `prisma/schema.prisma`, always run `npx prisma generate` (and `npx prisma db push` if it's a new field). If the app still uses the old client, delete `.next/` and restart.
+- In Neon dashboard, check organization/project usage for:
+  - Compute
+  - Storage
+  - History
+  - Network transfer
+- If production usage exceeds the Free network transfer allowance, upgrade to **Launch** before Scale. Launch is the practical next tier for this app.
+
+---
+
+## Development Commands
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run start
+npm run test:submit
+npx prisma generate
+npx prisma db push
+```
+
+Notes:
+
+- Use Node.js 22.x. Node 24 may install packages but can make `next dev` unstable.
+- `npm install` runs `prisma generate` through `postinstall`.
+- `next.config.mjs` uses `.next-dev` as the development build directory and `.next` for production builds.
+- If dependency resolution or CSS imports look stale, stop the dev server, delete `.next-dev`, and restart.
+- If `leaflet/dist/leaflet.css` cannot resolve, run `npm install` and confirm `node_modules/leaflet/dist/leaflet.css` exists.
 
 ---
 
@@ -205,14 +282,32 @@ npx prisma generate   # regenerate Prisma client (run after schema changes)
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | PostgreSQL connection string (Neon pooler URL) |
-| `NEXTAUTH_SECRET` | JWT signing secret |
-| `NEXTAUTH_URL` | App base URL |
-| `ADMIN_EMAIL` | Bootstrap admin email |
-| `ADMIN_PASSWORD` | Bootstrap admin password |
-| `ADMIN_NAME` | Bootstrap admin display name |
-| `R2_ACCOUNT_ID` | Cloudflare R2 account ID |
-| `R2_ACCESS_KEY_ID` | R2 access key |
-| `R2_SECRET_ACCESS_KEY` | R2 secret key |
-| `R2_BUCKET_NAME` | R2 bucket name |
-| `R2_PUBLIC_URL` | Public base URL for R2 files |
+| `DATABASE_URL` | Neon PostgreSQL connection string |
+| `NEXTAUTH_URL` | App base URL, locally `http://localhost:3000` |
+| `NEXTAUTH_SECRET` | JWT/session signing secret |
+| `SUPER_ADMIN_EMAIL` | Optional explicit bootstrap super-admin email |
+| `SUPER_ADMIN_PASSWORD` | Optional explicit bootstrap super-admin password |
+| `SUPER_ADMIN_NAME` | Optional explicit bootstrap super-admin display name |
+| `ADMIN_EMAIL` | Bootstrap admin email fallback |
+| `ADMIN_PASSWORD` | Bootstrap admin password fallback |
+| `ADMIN_NAME` | Bootstrap admin display name fallback |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key |
+| `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile secret key |
+| `CLOUDFLARE_R2_BUCKET` | R2 bucket name |
+| `CLOUDFLARE_R2_ACCESS_KEY_ID` | R2 access key |
+| `CLOUDFLARE_R2_SECRET_ACCESS_KEY` | R2 secret key |
+| `CLOUDFLARE_R2_ACCOUNT_ID` | R2 account ID |
+| `CLOUDFLARE_R2_ENDPOINT` | R2 S3-compatible endpoint |
+| `CLOUDFLARE_R2_PUBLIC_URL` | Public base URL for stored files |
+
+---
+
+## Production Checklist
+
+- Run on Node.js 22.x.
+- Keep real database, NextAuth, R2, and Turnstile secrets outside git.
+- Confirm Neon plan has enough network transfer for expected usage.
+- Run `npm run build` before deployment.
+- Confirm `prisma generate` runs during install/build.
+- Confirm R2 public URL and upload permissions work.
+- Test login from the correct role tab on `/signin`.
