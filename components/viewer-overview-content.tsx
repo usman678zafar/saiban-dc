@@ -35,8 +35,8 @@ const copy = {
       reviewerApproved: 'Reviewer Approved',
       finalApproved: 'Final Approved',
       rejected: 'Rejected',
-      users: 'Users',
-      admins: 'Admins',
+      users: 'System Users',
+      admins: 'System Admin',
     },
   },
   ur: {
