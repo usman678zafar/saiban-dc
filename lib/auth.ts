@@ -111,7 +111,14 @@ export const authOptions: NextAuthOptions = {
         const bootstrapEmail = (process.env.SUPER_ADMIN_EMAIL ?? process.env.ADMIN_EMAIL)?.trim().toLowerCase();
         const bootstrapPassword = process.env.SUPER_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD;
         const isBootstrapLogin = bootstrapEmail === email && bootstrapPassword === credentials.password;
-        const loginRole = credentials.loginRole === 'admin' || credentials.loginRole === 'reviewer' || credentials.loginRole === 'supervisor' || credentials.loginRole === 'field_worker' || credentials.loginRole === 'viewer' ? credentials.loginRole : undefined;
+        const loginRole = credentials.loginRole === 'admin'
+          || credentials.loginRole === 'reviewer'
+          || credentials.loginRole === 'supervisor'
+          || credentials.loginRole === 'field_worker'
+          || credentials.loginRole === 'viewer'
+          || credentials.loginRole === 'administration'
+          ? credentials.loginRole
+          : undefined;
         const user = loginRole === 'field_worker'
           ? await prisma.user.findFirst({
             where: {
@@ -121,9 +128,21 @@ export const authOptions: NextAuthOptions = {
                 { cnic: numericIdentifier },
                 { email },
               ],
-            },
-            select: authUserSelect,
-          })
+              },
+              select: authUserSelect,
+            })
+          : loginRole === 'administration'
+            ? await prisma.user.findFirst({
+              where: {
+                role: { in: ['supervisor', 'reviewer', 'viewer', 'admin', 'super_admin'] },
+                OR: [
+                  { phoneNumber: identifier },
+                  { phoneNumber: numericIdentifier },
+                  { email },
+                ],
+              },
+              select: authUserSelect,
+            }) ?? await ensureBootstrapAdmin(email, credentials.password)
           : loginRole === 'supervisor'
             ? await prisma.user.findFirst({
               where: {
@@ -160,7 +179,7 @@ export const authOptions: NextAuthOptions = {
           }) ?? await ensureBootstrapAdmin(email, credentials.password);
 
         if (!user) return null;
-        if (loginRole && (loginRole === 'admin' ? !['admin', 'super_admin'].includes(user.role) : user.role !== loginRole)) return null;
+        if (loginRole && loginRole !== 'administration' && (loginRole === 'admin' ? !['admin', 'super_admin'].includes(user.role) : user.role !== loginRole)) return null;
         let resolvedRole = user.role;
         let resolvedSessionVersion = await getSessionVersion(user.id);
         let resolvedPasswordChangeRequired = user.passwordChangeRequired;

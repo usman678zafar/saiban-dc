@@ -5,12 +5,29 @@ import RoleLogin from '@/components/role-login';
 import backgroundImage from '@/assests/background.jpg';
 import { authOptions } from '@/lib/auth';
 
+function redirectForRole(role?: string) {
+  switch (role) {
+    case 'super_admin':
+    case 'admin':
+      return '/admin';
+    case 'reviewer':
+      return '/reviewer';
+    case 'supervisor':
+      return '/supervisor';
+    case 'viewer':
+      return '/viewer';
+    case 'field_worker':
+    default:
+      return '/applications';
+  }
+}
+
 export default async function SignInPage() {
   const session = await getServerSession(authOptions);
 
   if (session?.user?.email) {
     if (session.user.passwordChangeRequired) redirect('/change-password');
-    redirect('/applications');
+    redirect(redirectForRole(session.user.role));
   }
 
   return (
