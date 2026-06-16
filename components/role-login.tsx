@@ -6,7 +6,8 @@ import LoginForm from './login-form';
 import logo from '@/assests/logo.png';
 import baitussalamLogo from '@/assests/baitussalam.webp';
 
-type LoginRole = 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer';
+type LoginRole = 'administration' | 'field_worker';
+type LoginMode = 'volunteer' | 'administration';
 
 const loginOptions: Array<{
   role: LoginRole;
@@ -21,34 +22,27 @@ const loginOptions: Array<{
     redirect: '/applications',
   },
   {
-    role: 'supervisor',
-    label: 'Supervisor',
-    title: 'Supervisor Login',
-    redirect: '/supervisor',
-  },
-  {
-    role: 'reviewer',
-    label: 'Reviewer',
-    title: 'Reviewer Login',
-    redirect: '/reviewer',
-  },
-  {
-    role: 'viewer',
-    label: 'Viewer',
-    title: 'Viewer Login',
-    redirect: '/viewer',
-  },
-  {
-    role: 'admin',
-    label: 'Admin',
-    title: 'Admin Login',
-    redirect: '/admin',
+    role: 'administration',
+    label: 'Administration',
+    title: 'Administration Login',
+    redirect: '/signin',
   },
 ];
 
+const modeOptions: Array<{ mode: LoginMode; label: string }> = [
+  { mode: 'volunteer', label: 'Volunteer' },
+  { mode: 'administration', label: 'Administration' },
+];
+
 export default function RoleLogin() {
+  const [selectedMode, setSelectedMode] = useState<LoginMode>('volunteer');
   const [selectedRole, setSelectedRole] = useState<LoginRole>('field_worker');
   const selectedOption = loginOptions.find((option) => option.role === selectedRole) ?? loginOptions[0];
+
+  const handleModeChange = (mode: LoginMode) => {
+    setSelectedMode(mode);
+    setSelectedRole(mode === 'volunteer' ? 'field_worker' : 'administration');
+  };
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-sm items-center px-2 sm:px-0">
@@ -61,15 +55,15 @@ export default function RoleLogin() {
           <h1 className="text-base font-semibold tracking-tight text-slate-950">Saiban Login</h1>
         </div>
 
-        <div className="mt-2 grid h-8 grid-cols-5 gap-1 rounded-lg bg-slate-100 p-0.5">
-          {loginOptions.map((option) => {
-            const isSelected = option.role === selectedRole;
+        <div className="mt-2 grid h-9 grid-cols-2 gap-1 rounded-lg bg-slate-100 p-0.5">
+          {modeOptions.map((option) => {
+            const isSelected = option.mode === selectedMode;
             return (
               <button
-                key={option.role}
+                key={option.mode}
                 type="button"
-                onClick={() => setSelectedRole(option.role)}
-                className={`min-w-0 rounded-md px-1 text-center text-[11px] font-semibold leading-none transition ${
+                onClick={() => handleModeChange(option.mode)}
+                className={`min-w-0 rounded-md px-3 text-center text-xs font-semibold transition ${
                   isSelected ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -80,15 +74,15 @@ export default function RoleLogin() {
         </div>
 
         <LoginForm
-          key={selectedOption.role}
-          title={selectedOption.title}
+          key={`${selectedMode}-${selectedOption.role}`}
+          title={selectedMode === 'volunteer' ? 'Volunteer Login' : selectedOption.title}
           defaultRedirect={selectedOption.redirect}
           loginRole={selectedOption.role}
           compact
         />
 
         <div className="mt-2 min-h-4 text-center text-xs leading-4">
-          {selectedRole === 'field_worker' ? (
+          {selectedMode === 'volunteer' ? (
             <p className="text-slate-500">
               Want to volunteer?{' '}
               <a href="/signup" className="font-semibold text-blue-600 hover:underline">
@@ -118,4 +112,3 @@ function AuthFooter() {
     </footer>
   );
 }
-

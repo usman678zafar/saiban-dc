@@ -10,8 +10,27 @@ interface LoginFormProps {
   title?: string;
   description?: string;
   defaultRedirect?: string;
-  loginRole?: 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer';
+  loginRole?: 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer' | 'administration';
   compact?: boolean;
+}
+
+function defaultRedirectForRole(role: LoginFormProps['loginRole']) {
+  switch (role) {
+    case 'admin':
+      return '/admin';
+    case 'reviewer':
+      return '/reviewer';
+    case 'supervisor':
+      return '/supervisor';
+    case 'viewer':
+      return '/viewer';
+    case 'field_worker':
+      return '/applications';
+    case 'administration':
+      return '/signin';
+    default:
+      return '/dashboard';
+  }
 }
 
 export default function LoginForm({
@@ -43,13 +62,27 @@ export default function LoginForm({
       });
 
       if (result?.error) {
-        setError(loginRole === 'admin' ? 'Invalid admin credentials.' : loginRole === 'reviewer' ? 'Invalid reviewer credentials.' : loginRole === 'supervisor' ? 'Invalid supervisor credentials.' : loginRole === 'field_worker' ? 'Invalid volunteer credentials.' : loginRole === 'viewer' ? 'Invalid viewer credentials.' : 'Invalid credentials.');
+        setError(
+          loginRole === 'field_worker'
+            ? 'Invalid volunteer credentials.'
+            : loginRole === 'administration'
+              ? 'Invalid administration credentials.'
+              : loginRole === 'admin'
+                ? 'Invalid admin credentials.'
+                : loginRole === 'reviewer'
+                  ? 'Invalid reviewer credentials.'
+                  : loginRole === 'supervisor'
+                    ? 'Invalid supervisor credentials.'
+                    : loginRole === 'viewer'
+                      ? 'Invalid viewer credentials.'
+                      : 'Invalid credentials.',
+        );
         stopLoading();
         return;
       }
 
       const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl');
-      router.push(loginRole === 'supervisor' ? defaultRedirect : callbackUrl ?? defaultRedirect);
+      router.push(callbackUrl ?? defaultRedirect ?? defaultRedirectForRole(loginRole));
       router.refresh();
     } catch {
       setError('Unable to sign in. Please try again.');
@@ -58,7 +91,11 @@ export default function LoginForm({
       setIsSubmitting(false);
     }
   };
-  const identifierLabel = loginRole === 'field_worker' ? 'Phone Number or CNIC' : loginRole === 'supervisor' || loginRole === 'reviewer' ? 'Phone Number' : loginRole === 'admin' ? 'Email or Username' : 'Email';
+  const identifierLabel = loginRole === 'field_worker'
+    ? 'Phone Number or CNIC'
+    : loginRole === 'administration' || loginRole === 'supervisor' || loginRole === 'reviewer'
+      ? 'Phone Number or Email'
+      : 'Email';
   const identifierType = loginRole ? 'text' : 'email';
 
   return (
