@@ -1199,11 +1199,6 @@ function normalizeAddressOption(value: string) {
   return value.trim().replace(/\s+/g, ' ');
 }
 
-function hasOption(options: string[], value: string) {
-  const normalizedValue = normalizeAddressOption(value).toLowerCase();
-  return options.some((option) => normalizeAddressOption(option).toLowerCase() === normalizedValue);
-}
-
 function siblingOccupationHasNoIncome(occupation: string) {
   return ['Unemployed', 'Retired', 'Disabled', 'Unable to Work'].includes(occupation);
 }
@@ -1601,51 +1596,14 @@ export default function OrphanApplicationWizard({
     setFormData((current) => ({ ...current, ...values }));
   };
 
-  const saveAddressOption = async (type: 'district' | 'tehsil', name: string) => {
-    const normalizedName = normalizeAddressOption(name);
-    if (!normalizedName || !formData.province) return;
-    if (normalizedName.toLowerCase() === 'unknown') return;
-    if (type === 'tehsil' && !formData.district) return;
-
-    const exists = addressOptions.some((option) =>
-      option.type === type &&
-      option.province === formData.province &&
-      (type === 'district' || option.district === formData.district) &&
-      normalizeAddressOption(option.name).toLowerCase() === normalizedName.toLowerCase(),
-    );
-
-    if (exists) return;
-
-    const response = await fetch('/api/address-options', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type,
-        province: formData.province,
-        district: type === 'tehsil' ? formData.district : null,
-        name: normalizedName,
-      }),
-    });
-
-    if (!response.ok) return;
-
-    const option = await response.json();
-    setAddressOptions((current) => {
-      const alreadyExists = current.some((item) => item.id === option.id);
-      return alreadyExists ? current : [...current, option];
-    });
-  };
-
   const commitDistrict = (value: string) => {
     const normalizedValue = normalizeAddressOption(value);
     updateFields({ district: normalizedValue, tehsil: '' });
-    void saveAddressOption('district', normalizedValue);
   };
 
   const commitTehsil = (value: string) => {
     const normalizedValue = normalizeAddressOption(value);
     updateField('tehsil', normalizedValue);
-    void saveAddressOption('tehsil', normalizedValue);
   };
 
   const handleFatherDobChange = (value: string) => {
@@ -2908,48 +2866,6 @@ export default function OrphanApplicationWizard({
     </label>
   );
 
-  const renderSearchableAddressField = (
-    field: 'district' | 'tehsil',
-    options: string[],
-    disabled: boolean,
-    placeholder: string,
-    onCommit: (value: string) => void,
-  ) => {
-    const listId = `${field}-options`;
-
-    return (
-      <label key={field} className={fieldWrapperClass}>
-        {renderFieldLabel(field)}
-        <input
-          value={formData[field]}
-          list={listId}
-          disabled={readOnly || disabled}
-          placeholder={placeholder}
-          onChange={(event) => updateField(field, event.target.value)}
-          onBlur={(event) => {
-            const value = normalizeAddressOption(event.target.value);
-            if (value) onCommit(value);
-          }}
-          onKeyDown={(event) => {
-            if (event.key !== 'Enter') return;
-            event.preventDefault();
-            const value = normalizeAddressOption(event.currentTarget.value);
-            if (value) onCommit(value);
-          }}
-          className={`${fieldControlClass} ${disabledFieldControlClass}`}
-        />
-        <datalist id={listId}>
-          {options.map((option, index) => (
-            <option key={`${option}-${index}`} value={option} />
-          ))}
-        </datalist>
-        {!readOnly && !disabled && formData[field] && !hasOption(options, formData[field]) ? (
-          <span className="text-xs text-slate-500">Press Enter or leave the field to add this option for all field workers.</span>
-        ) : null}
-      </label>
-    );
-  };
-
   const renderSelectWithOther = (
     field: keyof FormData,
     options: Array<{ value: string; label: string }>,
@@ -3815,19 +3731,24 @@ export default function OrphanApplicationWizard({
               ],
               handleProvinceChange,
             )}
-            {renderSearchableAddressField(
+            {renderHomeSelectField(
               'district',
-              districtOptions,
-              !formData.province,
-              formData.province ? 'Search or add district' : 'Select province first',
+              [
+                { value: '', label: formData.province ? 'Select district' : 'Select province first' },
+                ...districtOptions.map((district) => ({ value: district, label: district })),
+              ],
               commitDistrict,
+              !formData.province,
             )}
-            {renderSearchableAddressField(
+            {renderHomeSelectField(
               'tehsil',
-              ['unknown', ...tehsilOptions],
-              !formData.district,
-              formData.district ? 'Search or add tehsil' : 'Select district first',
+              [
+                { value: '', label: formData.district ? 'Select tehsil' : 'Select district first' },
+                { value: 'unknown', label: 'Not Available / Unknown' },
+                ...tehsilOptions.map((tehsil) => ({ value: tehsil, label: tehsil })),
+              ],
               commitTehsil,
+              !formData.district,
             )}
             {renderTextField('city')}
             {renderTextField('residentialArea', 'text', false, (value) => updateField('residentialArea', value.slice(0, 150)), 150)}

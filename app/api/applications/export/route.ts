@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { toIsoString } from '@/lib/safe-date';
+import { calculateApplicationCompletion } from '@/lib/application-review';
+import { applicationToWizardData } from '@/lib/application-wizard-data';
 
 function csvEscape(value: unknown) {
   if (value === null || value === undefined) return '';
@@ -27,6 +29,11 @@ export async function GET(request: NextRequest) {
       siblings: true,
       relatives: true,
       householdAssets: true,
+      documents: {
+        select: {
+          documentType: true,
+        },
+      },
       createdBy: {
         select: {
           phoneNumber: true,
@@ -37,11 +44,15 @@ export async function GET(request: NextRequest) {
   });
 
   if (format === 'json') {
-    return NextResponse.json(applications.map((application) => ({
-      ...application,
-      createdByPhoneNumber: application.createdBy.phoneNumber,
-      createdByCnic: application.createdBy.cnic,
-    })));
+    return NextResponse.json(applications.map((application) => {
+      const { documents, ...applicationExport } = application;
+      return {
+        ...applicationExport,
+        createdByPhoneNumber: application.createdBy.phoneNumber,
+        createdByCnic: application.createdBy.cnic,
+        completionPercentage: calculateApplicationCompletion(applicationToWizardData(application), documents).percentage,
+      };
+    }));
   }
 
   type ApplicationRow = (typeof applications)[number];
@@ -83,13 +94,21 @@ export async function GET(request: NextRequest) {
     'updatedAt',
   ];
 
+  const completionHeader = '% complete';
   const computedHeaders: ComputedHeader[] = ['createdByPhoneNumber', 'createdByCnic'];
   const nestedHeaders = ['siblings', 'relatives', 'householdAssets'] as const;
-  const allHeaders = [...scalarHeaders, ...computedHeaders, ...nestedHeaders];
+  const allHeaders = [
+    ...scalarHeaders.slice(0, 2),
+    completionHeader,
+    ...scalarHeaders.slice(2),
+    ...computedHeaders,
+    ...nestedHeaders,
+  ];
 
   const csvRows = [allHeaders.map(csvEscape).join(',')];
   const csvBody = applications
     .map((application: ApplicationRow) => {
+      const completionPercentage = calculateApplicationCompletion(applicationToWizardData(application), application.documents).percentage;
       const scalarValues = scalarHeaders.map((header) => {
         const value = application[header];
         return csvEscape(value);
@@ -103,7 +122,13 @@ export async function GET(request: NextRequest) {
       const nestedValues = nestedHeaders.map((header) =>
         csvEscape(JSON.stringify(application[header]))
       );
-      return [...scalarValues, ...computedValues, ...nestedValues].join(',');
+      return [
+        ...scalarValues.slice(0, 2),
+        csvEscape(completionPercentage),
+        ...scalarValues.slice(2),
+        ...computedValues,
+        ...nestedValues,
+      ].join(',');
     })
     .join('\n');
 

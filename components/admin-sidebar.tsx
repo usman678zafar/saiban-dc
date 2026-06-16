@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ClipboardList, FolderKanban, KeyRound, LayoutDashboard, LogOut, PlusCircle, ScrollText, ShieldCheck, UserCog, UserCheck, UsersRound } from 'lucide-react';
+import { ClipboardList, FolderKanban, KeyRound, LayoutDashboard, LogOut, MapPin, PlusCircle, ScrollText, ShieldCheck, UserCog, UserCheck, UsersRound } from 'lucide-react';
 import clsx from 'clsx';
 import SignOutButton from './sign-out-button';
 import logo from '@/assests/logo1.png';
@@ -18,6 +18,7 @@ const navItems = [
   { href: '/admin/applications', label: 'Applications', mobileLabel: 'Apps', icon: ClipboardList },
   { href: '/admin/applications/new', label: 'New Application', mobileLabel: 'New', icon: PlusCircle, exact: true },
   { href: '/admin/projects', label: 'Departments', mobileLabel: 'Depts', icon: FolderKanban },
+  { href: '/admin/address-options', label: 'Locations', mobileLabel: 'Locs', icon: MapPin },
   { href: '/admin/supervisors', label: 'Supervisors', mobileLabel: 'Supers', icon: ShieldCheck },
   { href: '/admin/reviewers', label: 'Reviewers', mobileLabel: 'Review', icon: UserCheck },
   { href: '/admin/field-workers', label: 'Field Workers', mobileLabel: 'Workers', icon: UsersRound },

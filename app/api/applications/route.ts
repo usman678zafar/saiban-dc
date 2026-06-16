@@ -4,7 +4,7 @@ import { ZodError } from 'zod';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getOrphanApplicationSchema } from '@/lib/validation';
-import { isValidDistrictForProvince, isValidTehsilForDistrict } from '@/lib/address-utils';
+import { isValidDistrictForProvince, isValidProvince, isValidTehsilForDistrict } from '@/lib/address-utils';
 import { deleteFromR2 } from '@/lib/r2';
 import { applicationStatuses } from '@/lib/application-workflow';
 import { projectMatchesAnyReviewAssignment } from '@/lib/field-workers';
@@ -482,9 +482,24 @@ async function generateRegistrationNumber() {
   throw new Error('Unable to generate registration number');
 }
 
-async function validateSubmittedAddress(payload: any) {
-  if (payload.status !== 'submitted') return;
-  if (!payload.province || !payload.district) return;
+async function validateAddressSelection(payload: any) {
+  if (!payload.province) {
+    if (payload.district || payload.tehsil) {
+      throw new Error('Select a province before selecting district or tehsil');
+    }
+    return;
+  }
+
+  if (!isValidProvince(payload.province)) {
+    throw new Error('Selected province is invalid');
+  }
+
+  if (!payload.district) {
+    if (payload.tehsil && payload.tehsil !== 'unknown') {
+      throw new Error('Select a district before selecting tehsil');
+    }
+    return;
+  }
 
   const districtIsInDataset = isValidDistrictForProvince(payload.province, payload.district);
   const districtIsCustom = await prisma.addressOption.findFirst({
@@ -678,7 +693,7 @@ export async function POST(request: NextRequest) {
     if (status === 'submitted') {
       throw new Error('Save the application as a draft, upload all required documents and attestation, then submit.');
     }
-    await validateSubmittedAddress({ ...payload, status });
+    await validateAddressSelection({ ...payload, status });
     const application = await prisma.orphanApplication.create({
       data: {
         ...payload,
@@ -760,7 +775,7 @@ export async function PATCH(request: NextRequest) {
       updatedById: user.id,
       status: canOwnerEdit ? validated.status ?? application.status : application.status,
     };
-    await validateSubmittedAddress(updateData);
+    await validateAddressSelection(updateData);
     await validateSubmittedDocuments(id, updateData);
 
     const shouldGenerateRegistrationNumber = application.status !== 'submitted' && updateData.status === 'submitted' && !application.registrationNumber;
