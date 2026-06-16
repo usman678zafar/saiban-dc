@@ -1,0 +1,4672 @@
+[
+  {
+    "id": "6705305a-e099-46f3-843c-368b3afacf83",
+    "type": "tehsil",
+    "province": "Azad Kashmir",
+    "district": "Bhimber",
+    "name": "Barnala",
+    "createdById": "ef2cc711-0834-425d-a68f-58b7aba6772f",
+    "createdAt": "2026-05-25T17:28:40.331Z",
+    "updatedAt": "2026-05-25T17:28:40.331Z"
+  },
+  {
+    "id": "e17ad34e-71d2-4fe7-bd23-c90e0f6c2eed",
+    "type": "tehsil",
+    "province": "Azad Kashmir",
+    "district": "Muzaffarabad",
+    "name": "Naseerabad",
+    "createdById": "ea711e32-3f4f-4e55-aed2-739048498713",
+    "createdAt": "2026-06-10T02:26:57.261Z",
+    "updatedAt": "2026-06-10T02:26:57.261Z"
+  },
+  {
+    "id": "b7fa2e08-49ed-4654-8d68-87f3cf609bf2",
+    "type": "district",
+    "province": "Azad Kashmir",
+    "district": null,
+    "name": "Bhimber",
+    "createdById": "ef2cc711-0834-425d-a68f-58b7aba6772f",
+    "createdAt": "2026-05-25T17:28:28.708Z",
+    "updatedAt": "2026-05-25T17:28:28.708Z"
+  },
+  {
+    "id": "af99cf80-1014-44c6-aaab-7baba85628dd",
+    "type": "district",
+    "province": "Azad Kashmir",
+    "district": null,
+    "name": "Muzaffarabad",
+    "createdById": "ea711e32-3f4f-4e55-aed2-739048498713",
+    "createdAt": "2026-06-10T02:26:53.248Z",
+    "updatedAt": "2026-06-10T02:26:53.248Z"
+  },
+  {
+    "id": "77f1967d-6070-4bea-a803-7fff8e961220",
+    "type": "tehsil",
+    "province": "Balochistan",
+    "district": "Awaran",
+    "name": "Awaran",
+    "createdById": "04d6ebf3-8a2a-4ab7-bb24-254cfd0e2d1e",
+    "createdAt": "2026-06-11T14:36:53.820Z",
+    "updatedAt": "2026-06-11T14:36:53.820Z"
+  },
+  {
+    "id": "9f22c2d3-9c34-4c1e-9134-fda5b7a168ad",
+    "type": "tehsil",
+    "province": "Balochistan",
+    "district": "Duki",
+    "name": "Duki",
+    "createdById": "f7bfbb92-ceef-4dca-8abe-e11046c1ed7c",
+    "createdAt": "2026-06-14T11:46:09.691Z",
+    "updatedAt": "2026-06-14T11:46:09.691Z"
+  },
+  {
+    "id": "46edaf91-e81d-41c3-ac7b-07da81146c31",
+    "type": "tehsil",
+    "province": "Balochistan",
+    "district": "Jaffarabad",
+    "name": "Jhat Pat",
+    "createdById": "51973483-7363-4ce0-8d2c-bdb237f43771",
+    "createdAt": "2026-06-15T05:16:58.623Z",
+    "updatedAt": "2026-06-15T05:16:58.623Z"
+  },
+  {
+    "id": "1016176c-69e7-4861-bf5b-2a8cc1108edc",
+    "type": "tehsil",
+    "province": "Balochistan",
+    "district": "Jhal Magsi",
+    "name": "Gandawa",
+    "createdById": "850e33a9-2ec2-4dff-a4b8-ac7c4a3b1def",
+    "createdAt": "2026-06-06T08:17:34.172Z",
+    "updatedAt": "2026-06-06T08:17:34.172Z"
+  },
+  {
+    "id": "d477f1a8-4450-4f42-a558-46f630f122b0",
+    "type": "tehsil",
+    "province": "Balochistan",
+    "district": "Kachhi",
+    "name": "بھ ناڑی",
+    "createdById": "8afb861b-e478-4c49-8546-eaf7516e74bf",
+    "createdAt": "2026-06-09T14:49:29.937Z",
+    "updatedAt": "2026-06-09T14:49:29.937Z"
+  },
+  {
+    "id": "9a4390f7-417b-45f1-b59e-86978af75514",
+    "type": "tehsil",
+    "province": "Balochistan",
+    "district": "Kachhi",
+    "name": "بھاگ",
+    "createdById": "8afb861b-e478-4c49-8546-eaf7516e74bf",
+    "createdAt": "2026-06-09T14:49:40.713Z",
+    "updatedAt": "2026-06-09T14:49:40.713Z"
+  },
+  {
+    "id": "6dc00b92-1373-495f-9e7f-b39ca6af30c9",
+    "type": "tehsil",
+    "province": "Balochistan",
+    "district": "Kachhi",
+    "name": "بھاگنا",
+    "createdById": "8afb861b-e478-4c49-8546-eaf7516e74bf",
+    "createdAt": "2026-06-09T14:49:23.431Z",
+    "updatedAt": "2026-06-09T14:49:23.431Z"
+  },
+  {
+    "id": "311e9b98-2bdd-4b80-85c3-07bb0e91e868",
+    "type": "tehsil",
+    "province": "Balochistan",
+    "district": "Nushki",
+    "name": "Nushki",
+    "createdById": "ca6617e9-902f-4aa2-a203-cc622c18ded8",
+    "createdAt": "2026-06-12T10:52:20.816Z",
+    "updatedAt": "2026-06-12T10:52:20.816Z"
+  },
+  {
+    "id": "ef38eecb-525f-4bbd-93c4-aaf2fbba4667",
+    "type": "tehsil",
+    "province": "Balochistan",
+    "district": "Quetta",
+    "name": "Quetta Saddar",
+    "createdById": "f76b1236-4040-4451-bc2e-4bf43bf2042e",
+    "createdAt": "2026-06-13T18:24:21.999Z",
+    "updatedAt": "2026-06-13T18:24:21.999Z"
+  },
+  {
+    "id": "66115760-29d8-4f32-85a4-88b9f85a0edb",
+    "type": "district",
+    "province": "Balochistan",
+    "district": null,
+    "name": "Awaran",
+    "createdById": "04d6ebf3-8a2a-4ab7-bb24-254cfd0e2d1e",
+    "createdAt": "2026-06-11T14:36:48.814Z",
+    "updatedAt": "2026-06-11T14:36:48.814Z"
+  },
+  {
+    "id": "255b6c9d-dd42-4e07-97eb-4d30c63ecd09",
+    "type": "district",
+    "province": "Balochistan",
+    "district": null,
+    "name": "Duki",
+    "createdById": "f7bfbb92-ceef-4dca-8abe-e11046c1ed7c",
+    "createdAt": "2026-06-14T11:46:09.719Z",
+    "updatedAt": "2026-06-14T11:46:09.719Z"
+  },
+  {
+    "id": "9b60fdaf-4951-4df2-9460-926fa5c4fb9f",
+    "type": "district",
+    "province": "Balochistan",
+    "district": null,
+    "name": "Jaffarabad",
+    "createdById": "51973483-7363-4ce0-8d2c-bdb237f43771",
+    "createdAt": "2026-06-15T05:16:52.023Z",
+    "updatedAt": "2026-06-15T05:16:52.023Z"
+  },
+  {
+    "id": "3e1dc9dd-3284-4678-b605-817a4145ada6",
+    "type": "district",
+    "province": "Balochistan",
+    "district": null,
+    "name": "Jhal Magsi",
+    "createdById": "850e33a9-2ec2-4dff-a4b8-ac7c4a3b1def",
+    "createdAt": "2026-06-06T08:17:28.811Z",
+    "updatedAt": "2026-06-06T08:17:28.811Z"
+  },
+  {
+    "id": "3c555a70-fb8c-4078-8abf-4d62e614db94",
+    "type": "district",
+    "province": "Balochistan",
+    "district": null,
+    "name": "Kachhi",
+    "createdById": "8afb861b-e478-4c49-8546-eaf7516e74bf",
+    "createdAt": "2026-06-08T16:40:56.049Z",
+    "updatedAt": "2026-06-08T16:40:56.049Z"
+  },
+  {
+    "id": "3ed135db-fe16-4192-87e6-f4b005858308",
+    "type": "district",
+    "province": "Balochistan",
+    "district": null,
+    "name": "No",
+    "createdById": "ef2cc711-0834-425d-a68f-58b7aba6772f",
+    "createdAt": "2026-06-14T10:57:23.259Z",
+    "updatedAt": "2026-06-14T10:57:23.259Z"
+  },
+  {
+    "id": "d5e7b172-d9b2-4c25-b2e6-002f8287336a",
+    "type": "district",
+    "province": "Balochistan",
+    "district": null,
+    "name": "Nushki",
+    "createdById": "ca6617e9-902f-4aa2-a203-cc622c18ded8",
+    "createdAt": "2026-06-12T10:52:16.908Z",
+    "updatedAt": "2026-06-12T10:52:16.908Z"
+  },
+  {
+    "id": "4104986d-e304-4982-92c3-80c68f634be5",
+    "type": "district",
+    "province": "Balochistan",
+    "district": null,
+    "name": "Quetta",
+    "createdById": "28e5c2a8-7221-451c-93a1-d7ca5654ea82",
+    "createdAt": "2026-06-12T04:28:52.964Z",
+    "updatedAt": "2026-06-12T04:28:52.964Z"
+  },
+  {
+    "id": "16092ee8-6a24-4402-bc63-c98c13ac5b31",
+    "type": "tehsil",
+    "province": "Gilgit Baltistan",
+    "district": "Ghazer",
+    "name": "Poniyal",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-05-28T08:49:00.129Z",
+    "updatedAt": "2026-05-28T08:49:00.129Z"
+  },
+  {
+    "id": "a4ed03d7-b44e-4063-bb18-7222c61f294a",
+    "type": "tehsil",
+    "province": "Gilgit Baltistan",
+    "district": "Ghazer",
+    "name": "Yasin",
+    "createdById": "bb8d7f30-9ef5-4f66-9a37-95d670b794a3",
+    "createdAt": "2026-06-14T18:16:09.579Z",
+    "updatedAt": "2026-06-14T18:16:09.579Z"
+  },
+  {
+    "id": "a8c78914-717d-4a98-9af9-cc353e236419",
+    "type": "tehsil",
+    "province": "Gilgit Baltistan",
+    "district": "Ghizer",
+    "name": "Punial",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-05-28T13:23:13.992Z",
+    "updatedAt": "2026-05-28T13:23:13.992Z"
+  },
+  {
+    "id": "e3aa62d8-85f1-429a-88e1-e5b5df2dc74f",
+    "type": "tehsil",
+    "province": "Gilgit Baltistan",
+    "district": "Gilgit",
+    "name": "Gilgit",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-06-09T14:38:42.574Z",
+    "updatedAt": "2026-06-09T14:38:42.574Z"
+  },
+  {
+    "id": "e06f4a86-1f46-4315-8aa2-6069220e7a50",
+    "type": "tehsil",
+    "province": "Gilgit Baltistan",
+    "district": "ضلع غذر گلگت",
+    "name": "پونیال",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-05-26T14:14:00.766Z",
+    "updatedAt": "2026-05-26T14:14:00.766Z"
+  },
+  {
+    "id": "69a4480e-0eb8-41ec-8a68-dc300cb6125e",
+    "type": "tehsil",
+    "province": "Gilgit Baltistan",
+    "district": "غذر",
+    "name": "پونیال",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-05-25T13:24:52.039Z",
+    "updatedAt": "2026-05-25T13:24:52.039Z"
+  },
+  {
+    "id": "12b8b431-e7f7-48e1-affc-d1f0596761be",
+    "type": "tehsil",
+    "province": "Gilgit Baltistan",
+    "district": "فگھگگگ",
+    "name": "ف",
+    "createdById": "b853f009-de5d-49d5-904f-4b775e7176da",
+    "createdAt": "2026-06-12T12:35:34.448Z",
+    "updatedAt": "2026-06-12T12:35:34.448Z"
+  },
+  {
+    "id": "52a78a7a-867e-4144-93c9-6324a2c4a228",
+    "type": "tehsil",
+    "province": "Gilgit Baltistan",
+    "district": "فگھگگگ",
+    "name": "فگگ",
+    "createdById": "b853f009-de5d-49d5-904f-4b775e7176da",
+    "createdAt": "2026-06-12T12:35:36.907Z",
+    "updatedAt": "2026-06-12T12:35:36.907Z"
+  },
+  {
+    "id": "b3da9999-e306-4651-ac88-fde0adc4ced0",
+    "type": "district",
+    "province": "Gilgit Baltistan",
+    "district": null,
+    "name": "Ghazer",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-05-28T08:48:50.354Z",
+    "updatedAt": "2026-05-28T08:48:50.354Z"
+  },
+  {
+    "id": "74dcb0b6-434a-4dc9-b902-3705d7e03bf6",
+    "type": "district",
+    "province": "Gilgit Baltistan",
+    "district": null,
+    "name": "Ghizer",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-05-28T13:23:10.923Z",
+    "updatedAt": "2026-05-28T13:23:10.923Z"
+  },
+  {
+    "id": "32f40b12-c3a1-4c12-9e4c-f2e0e3136ccd",
+    "type": "district",
+    "province": "Gilgit Baltistan",
+    "district": null,
+    "name": "Gilgit",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-06-09T14:38:38.159Z",
+    "updatedAt": "2026-06-09T14:38:38.159Z"
+  },
+  {
+    "id": "32d7b85b-a8c5-4a56-9fd4-ec05e248b049",
+    "type": "district",
+    "province": "Gilgit Baltistan",
+    "district": null,
+    "name": "ضلع غذر گلگت",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-05-26T14:13:52.436Z",
+    "updatedAt": "2026-05-26T14:13:52.436Z"
+  },
+  {
+    "id": "8cc4d1e0-cb0a-428b-9070-8b7cbe3f2325",
+    "type": "district",
+    "province": "Gilgit Baltistan",
+    "district": null,
+    "name": "غذر",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-05-25T13:24:35.205Z",
+    "updatedAt": "2026-05-25T13:24:35.205Z"
+  },
+  {
+    "id": "d65329e2-cb5a-438d-a2a3-a11ee8a6d9fc",
+    "type": "district",
+    "province": "Gilgit Baltistan",
+    "district": null,
+    "name": "فگھگگگ",
+    "createdById": "b853f009-de5d-49d5-904f-4b775e7176da",
+    "createdAt": "2026-06-12T12:35:33.812Z",
+    "updatedAt": "2026-06-12T12:35:33.812Z"
+  },
+  {
+    "id": "eaf58322-4ae7-4e59-84e2-befc3d0d10c7",
+    "type": "tehsil",
+    "province": "Islamabad",
+    "district": "Islamabad",
+    "name": "Bharakhu",
+    "createdById": "f1816355-e98e-42fe-8a56-33e47391e6c3",
+    "createdAt": "2026-06-12T01:10:25.986Z",
+    "updatedAt": "2026-06-12T01:10:25.986Z"
+  },
+  {
+    "id": "a1b3d246-e258-4478-969b-b6a6e64c9eba",
+    "type": "tehsil",
+    "province": "Islamabad",
+    "district": "Islamabad",
+    "name": "Islamabad",
+    "createdById": "f1816355-e98e-42fe-8a56-33e47391e6c3",
+    "createdAt": "2026-06-06T17:21:18.912Z",
+    "updatedAt": "2026-06-06T17:21:18.912Z"
+  },
+  {
+    "id": "b5847c1e-b2ff-425b-adcd-5fd67ba338ce",
+    "type": "tehsil",
+    "province": "Islamabad",
+    "district": "Mardan",
+    "name": "Takht bhai",
+    "createdById": "5feff6fb-dd80-4dae-9ba7-8017b150afd5",
+    "createdAt": "2026-06-06T10:15:00.164Z",
+    "updatedAt": "2026-06-06T10:15:00.164Z"
+  },
+  {
+    "id": "f2a4ea86-0ab9-477b-8ec5-0d48d733271c",
+    "type": "district",
+    "province": "Islamabad",
+    "district": null,
+    "name": "Bharakahu",
+    "createdById": "e05b054e-2b23-4880-8947-2e9f2cb9f0a7",
+    "createdAt": "2026-06-12T14:58:31.106Z",
+    "updatedAt": "2026-06-12T14:58:31.106Z"
+  },
+  {
+    "id": "bfa5c0b5-d900-4508-b939-8a5510bb8e61",
+    "type": "district",
+    "province": "Islamabad",
+    "district": null,
+    "name": "Islamabad",
+    "createdById": "f1816355-e98e-42fe-8a56-33e47391e6c3",
+    "createdAt": "2026-06-06T17:21:09.340Z",
+    "updatedAt": "2026-06-06T17:21:09.340Z"
+  },
+  {
+    "id": "122bf960-54cf-4be0-90f7-1a3e2301264a",
+    "type": "district",
+    "province": "Islamabad",
+    "district": null,
+    "name": "Mardan",
+    "createdById": "5feff6fb-dd80-4dae-9ba7-8017b150afd5",
+    "createdAt": "2026-06-06T10:14:50.501Z",
+    "updatedAt": "2026-06-06T10:14:50.501Z"
+  },
+  {
+    "id": "f635031a-647e-4811-bfc4-efc5b53dbe1d",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Abbottabad",
+    "name": "Abbottabad",
+    "createdById": "7b3bea32-7e86-4704-b248-79034d84ec8f",
+    "createdAt": "2026-06-07T06:47:45.704Z",
+    "updatedAt": "2026-06-07T06:47:45.704Z"
+  },
+  {
+    "id": "aba17cb9-82f5-487f-8e05-7a0c913d8411",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Abbottabad",
+    "name": "Havelian",
+    "createdById": "10bc4066-cf68-4a55-86b5-2afe12474f81",
+    "createdAt": "2026-06-08T16:54:19.646Z",
+    "updatedAt": "2026-06-08T16:54:19.646Z"
+  },
+  {
+    "id": "d3b755fc-3605-40de-81cb-5dfcef5a59e2",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Abbottabad",
+    "name": "Hazara",
+    "createdById": "ccf8de75-b2cb-408e-a1a1-d41db42b2895",
+    "createdAt": "2026-06-15T12:40:35.038Z",
+    "updatedAt": "2026-06-15T12:40:35.038Z"
+  },
+  {
+    "id": "1bb7da8b-3dee-4be1-8578-27d93f391456",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Abbottabad",
+    "name": "Lower Tanawal",
+    "createdById": "50470040-d1d8-4ba7-83c2-45243df02e73",
+    "createdAt": "2026-06-13T11:04:44.317Z",
+    "updatedAt": "2026-06-13T11:04:44.317Z"
+  },
+  {
+    "id": "47165ef9-f48a-419d-a3a9-aa610b68abc5",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Abbottabad",
+    "name": "Manshra",
+    "createdById": "ccf8de75-b2cb-408e-a1a1-d41db42b2895",
+    "createdAt": "2026-06-15T12:40:14.086Z",
+    "updatedAt": "2026-06-15T12:40:14.086Z"
+  },
+  {
+    "id": "d8719ede-f06f-4c55-a011-15d81fd13fae",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bajauar",
+    "name": "Barang",
+    "createdById": "fc7bd418-3431-43dc-b9ae-14e94a70a885",
+    "createdAt": "2026-06-13T13:45:48.980Z",
+    "updatedAt": "2026-06-13T13:45:48.980Z"
+  },
+  {
+    "id": "a99e2d62-40a5-4ad6-b2d0-f422ef9e8731",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bajauar",
+    "name": "JAOHARH",
+    "createdById": "52642aab-7842-45af-8f65-8ac049548b11",
+    "createdAt": "2026-06-16T07:55:02.601Z",
+    "updatedAt": "2026-06-16T07:55:02.601Z"
+  },
+  {
+    "id": "746acd73-358d-4b1a-a25d-b2346e35d788",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bajaur",
+    "name": "Barang",
+    "createdById": "fc7bd418-3431-43dc-b9ae-14e94a70a885",
+    "createdAt": "2026-06-11T15:46:26.824Z",
+    "updatedAt": "2026-06-11T15:46:26.824Z"
+  },
+  {
+    "id": "aad42488-e10d-4db8-9b27-157b3e315fa2",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bajaur",
+    "name": "Khar",
+    "createdById": "fc7bd418-3431-43dc-b9ae-14e94a70a885",
+    "createdAt": "2026-06-14T14:32:00.363Z",
+    "updatedAt": "2026-06-14T14:32:00.363Z"
+  },
+  {
+    "id": "caea51e4-683b-40ff-8038-324532d7d0dc",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bajaur",
+    "name": "Mamund",
+    "createdById": "e257e918-fd4e-426d-991e-e6e1acccffa6",
+    "createdAt": "2026-06-11T01:03:10.986Z",
+    "updatedAt": "2026-06-11T01:03:10.986Z"
+  },
+  {
+    "id": "665d0fa0-646c-462e-b935-5e70f608c420",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bajaur",
+    "name": "برنگ",
+    "createdById": "fc7bd418-3431-43dc-b9ae-14e94a70a885",
+    "createdAt": "2026-06-13T07:05:57.756Z",
+    "updatedAt": "2026-06-13T07:05:57.756Z"
+  },
+  {
+    "id": "335405b9-d9e7-47cd-9e54-b4c86adc8d17",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bajaur",
+    "name": "برنگِ",
+    "createdById": "fc7bd418-3431-43dc-b9ae-14e94a70a885",
+    "createdAt": "2026-06-13T14:25:21.044Z",
+    "updatedAt": "2026-06-13T14:25:21.044Z"
+  },
+  {
+    "id": "ce48474a-0862-47b2-9d21-8e0e6421c29b",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bannu",
+    "name": "Bannu",
+    "createdById": "9ef5cab2-78bf-4643-87f7-4e2f889ee6b1",
+    "createdAt": "2026-06-10T11:39:44.941Z",
+    "updatedAt": "2026-06-10T11:39:44.941Z"
+  },
+  {
+    "id": "288f639b-cb99-4956-a1f1-97af297dde23",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bannu",
+    "name": "Domel",
+    "createdById": "42cf830e-aba8-472f-ae0d-b09db4727aff",
+    "createdAt": "2026-06-11T17:20:37.980Z",
+    "updatedAt": "2026-06-11T17:20:37.980Z"
+  },
+  {
+    "id": "2cf7cb29-e73e-494d-86d5-35a6de1ead25",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bat Tag Ram",
+    "name": "Bat Tag Ram",
+    "createdById": "bc53120b-9f56-40e8-99c4-6ee4474fd563",
+    "createdAt": "2026-06-15T12:16:42.344Z",
+    "updatedAt": "2026-06-15T12:16:42.344Z"
+  },
+  {
+    "id": "317bcfc3-66fa-44fc-bf6a-2293db981844",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bnir",
+    "name": "Daggar",
+    "createdById": "0325bc67-6366-4016-b3b6-64b9e160e757",
+    "createdAt": "2026-06-11T15:05:07.433Z",
+    "updatedAt": "2026-06-11T15:05:07.433Z"
+  },
+  {
+    "id": "1e606dc2-1483-4bf4-bd50-e847f31432b9",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bnir",
+    "name": "Mandan",
+    "createdById": "92ef6997-10c0-46e0-aec1-326e12115804",
+    "createdAt": "2026-06-12T16:58:16.035Z",
+    "updatedAt": "2026-06-12T16:58:16.035Z"
+  },
+  {
+    "id": "b67c6c50-7668-45b9-b64f-4df126275bb4",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bnir",
+    "name": "طوطالی",
+    "createdById": "92ef6997-10c0-46e0-aec1-326e12115804",
+    "createdAt": "2026-06-12T16:38:41.457Z",
+    "updatedAt": "2026-06-12T16:38:41.457Z"
+  },
+  {
+    "id": "d4508f54-31af-4da3-9801-a945b188f9c3",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Bune",
+    "name": "Daggar",
+    "createdById": "7e56235b-9619-48f2-b14d-d7dd951a63e4",
+    "createdAt": "2026-06-10T15:27:14.084Z",
+    "updatedAt": "2026-06-10T15:27:14.084Z"
+  },
+  {
+    "id": "20306b25-1c98-4f35-996a-0cbf5660077c",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Dagaar",
+    "createdById": "0325bc67-6366-4016-b3b6-64b9e160e757",
+    "createdAt": "2026-06-09T05:14:14.385Z",
+    "updatedAt": "2026-06-09T05:14:14.385Z"
+  },
+  {
+    "id": "4df221e5-528f-4a60-870c-a67523470045",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Dagar",
+    "createdById": "0325bc67-6366-4016-b3b6-64b9e160e757",
+    "createdAt": "2026-06-10T05:50:57.399Z",
+    "updatedAt": "2026-06-10T05:50:57.399Z"
+  },
+  {
+    "id": "b441b025-e2be-43e7-8440-690252d6b0b7",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Dagarr",
+    "createdById": "0325bc67-6366-4016-b3b6-64b9e160e757",
+    "createdAt": "2026-06-09T12:46:11.464Z",
+    "updatedAt": "2026-06-09T12:46:11.464Z"
+  },
+  {
+    "id": "8899c5fb-66be-4103-8071-c32baf7527d3",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Daggar",
+    "createdById": "0325bc67-6366-4016-b3b6-64b9e160e757",
+    "createdAt": "2026-06-10T05:52:11.217Z",
+    "updatedAt": "2026-06-10T05:52:11.217Z"
+  },
+  {
+    "id": "d487e9c8-043a-48ec-a4b6-b2659bba2128",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Gadazai",
+    "createdById": "eb16057d-ae90-40e2-b25f-8384316aac53",
+    "createdAt": "2026-06-11T09:54:30.202Z",
+    "updatedAt": "2026-06-11T09:54:30.202Z"
+  },
+  {
+    "id": "defa834c-b1aa-4a81-a987-e05d847a74ec",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Gadezai",
+    "createdById": "78a929e8-3748-472c-bdce-60634d12d4a5",
+    "createdAt": "2026-06-12T02:19:06.472Z",
+    "updatedAt": "2026-06-12T02:19:06.472Z"
+  },
+  {
+    "id": "5813cc8d-004c-4c41-9d7b-fe143fae503f",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Gadezai Salarzai",
+    "createdById": "b2754d15-2365-4eb2-b7e9-c723f7a55fa1",
+    "createdAt": "2026-06-13T13:31:13.828Z",
+    "updatedAt": "2026-06-13T13:31:13.828Z"
+  },
+  {
+    "id": "1b72e77a-6c27-42e3-9aa5-3d7d1a159108",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Gadezai, Daggar",
+    "createdById": "b00bb0a8-3292-4642-beff-771e892b2895",
+    "createdAt": "2026-06-01T18:12:17.147Z",
+    "updatedAt": "2026-06-01T18:12:17.147Z"
+  },
+  {
+    "id": "782dd117-5433-4fdf-96cb-ac17717806e3",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Gadizi",
+    "createdById": "0325bc67-6366-4016-b3b6-64b9e160e757",
+    "createdAt": "2026-06-08T13:01:03.711Z",
+    "updatedAt": "2026-06-08T13:01:03.711Z"
+  },
+  {
+    "id": "e92c6e07-7bac-4be1-8d87-90c1225e7f26",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Gagra",
+    "createdById": "e7c98d7d-81f1-4ebc-a425-0d77ea322d8a",
+    "createdAt": "2026-06-11T17:27:28.019Z",
+    "updatedAt": "2026-06-11T17:27:28.019Z"
+  },
+  {
+    "id": "b410cb6e-6c62-4b2f-b5a0-f13767654b04",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Khado Khel",
+    "createdById": "92ef6997-10c0-46e0-aec1-326e12115804",
+    "createdAt": "2026-06-13T08:44:53.112Z",
+    "updatedAt": "2026-06-13T08:44:53.112Z"
+  },
+  {
+    "id": "1c598a07-0a23-496a-b78d-770dd97d1ca8",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "Mandanr",
+    "createdById": "0fbca68f-5241-4ced-a15c-2994cc4ed4ae",
+    "createdAt": "2026-06-10T15:10:29.348Z",
+    "updatedAt": "2026-06-10T15:10:29.348Z"
+  },
+  {
+    "id": "cad8ac5d-f1ad-4f15-9d19-5a2ca2585e53",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "gadezi",
+    "createdById": "699ab2e6-a085-4f57-85dc-cf3ae22ce0a8",
+    "createdAt": "2026-06-11T05:49:30.698Z",
+    "updatedAt": "2026-06-11T05:49:30.698Z"
+  },
+  {
+    "id": "6b59863c-3e01-427e-9d07-76bc958a80a5",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Buner",
+    "name": "ڈگر",
+    "createdById": "fb86d2c6-8404-4256-b9c8-0886a819bab5",
+    "createdAt": "2026-06-11T08:45:14.080Z",
+    "updatedAt": "2026-06-11T08:45:14.080Z"
+  },
+  {
+    "id": "c47c35d5-d958-4892-8ef3-4033528073f3",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Charsadda",
+    "name": "Charsadda",
+    "createdById": "52642aab-7842-45af-8f65-8ac049548b11",
+    "createdAt": "2026-06-11T10:25:41.939Z",
+    "updatedAt": "2026-06-11T10:25:41.939Z"
+  },
+  {
+    "id": "bb6d7bf7-8017-4530-8ee8-33bd0d01679e",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Charsadda",
+    "name": "Shabqadar",
+    "createdById": "2a5ab97a-acac-4436-8a40-646752c9b174",
+    "createdAt": "2026-06-13T07:37:09.761Z",
+    "updatedAt": "2026-06-13T07:37:09.761Z"
+  },
+  {
+    "id": "e8dea23f-19f8-4b47-9206-9802de996c59",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Charsadda",
+    "name": "Tangi",
+    "createdById": "2a5ab97a-acac-4436-8a40-646752c9b174",
+    "createdAt": "2026-06-16T04:00:17.016Z",
+    "updatedAt": "2026-06-16T04:00:17.016Z"
+  },
+  {
+    "id": "4820d713-775c-4ac7-a00a-58c42dbf887a",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Chitral Upper",
+    "name": "Mastuj",
+    "createdById": "013bd868-5ebc-45a6-8053-ee67818b79b8",
+    "createdAt": "2026-06-11T12:20:07.317Z",
+    "updatedAt": "2026-06-11T12:20:07.317Z"
+  },
+  {
+    "id": "1d30d26b-ce9d-4e12-b680-520a693feeb3",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Chitral Upper",
+    "name": "Mulkhow torkhow",
+    "createdById": "93f5bdf5-0986-45fd-9b1f-6ddf2d54d04f",
+    "createdAt": "2026-06-08T10:23:59.123Z",
+    "updatedAt": "2026-06-08T10:23:59.123Z"
+  },
+  {
+    "id": "720ec9f8-fd46-45e4-8b78-7379ad81db05",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "D. I. Khan",
+    "name": "D. I. Khan",
+    "createdById": "1e33b1e9-4bf4-4886-a8e9-6bfaa771e1d7",
+    "createdAt": "2026-06-16T04:26:38.430Z",
+    "updatedAt": "2026-06-16T04:26:38.430Z"
+  },
+  {
+    "id": "99e003f1-fd07-4b52-9a3c-089337dbd61e",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "D. I. Khan",
+    "name": "Kulachi",
+    "createdById": "1e33b1e9-4bf4-4886-a8e9-6bfaa771e1d7",
+    "createdAt": "2026-06-16T08:18:37.157Z",
+    "updatedAt": "2026-06-16T08:18:37.157Z"
+  },
+  {
+    "id": "f5823967-eb53-4bb4-b90a-2c91cb58fb74",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "D. I. Khan",
+    "name": "Paharpur",
+    "createdById": "01d210d9-ad49-42ca-912f-a49cf00ede39",
+    "createdAt": "2026-06-11T16:08:24.864Z",
+    "updatedAt": "2026-06-11T16:08:24.864Z"
+  },
+  {
+    "id": "dc52e5ba-1281-46a0-85c4-5ad4e0e03a4e",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Dir Lower",
+    "name": "LAL QALA",
+    "createdById": "52642aab-7842-45af-8f65-8ac049548b11",
+    "createdAt": "2026-06-14T16:59:07.929Z",
+    "updatedAt": "2026-06-14T16:59:07.929Z"
+  },
+  {
+    "id": "f6dbb5a6-6faa-4882-843d-3d5af6cc6112",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Dir Lower",
+    "name": "Munda",
+    "createdById": "719a9c4a-bf51-450a-bdc5-c1c9d07148ee",
+    "createdAt": "2026-06-13T08:10:21.242Z",
+    "updatedAt": "2026-06-13T08:10:21.242Z"
+  },
+  {
+    "id": "d2e5d9ae-7e05-4d6a-98dc-b1665ee3e674",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Dir Lower",
+    "name": "Timergara",
+    "createdById": "def3136f-fce5-4a7d-8998-3cadd0a32ef6",
+    "createdAt": "2026-06-15T12:09:26.209Z",
+    "updatedAt": "2026-06-15T12:09:26.209Z"
+  },
+  {
+    "id": "3d442706-6ae3-43d8-87c4-b09fe36f4df2",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Hangu",
+    "name": "Hangu",
+    "createdById": "4cf8fa75-ff6e-455a-bf58-faa75abf54c5",
+    "createdAt": "2026-06-11T10:56:30.549Z",
+    "updatedAt": "2026-06-11T10:56:30.549Z"
+  },
+  {
+    "id": "062296b7-464a-46fc-9c72-0f6f58b2f88d",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Hangu",
+    "name": "Tall",
+    "createdById": "c5ef1dfa-f283-4e88-9b86-3d79709f655c",
+    "createdAt": "2026-06-12T10:56:09.391Z",
+    "updatedAt": "2026-06-12T10:56:09.391Z"
+  },
+  {
+    "id": "04515faf-7eb5-44ff-a63c-3e7010b3dcd6",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Hangu",
+    "name": "اپر",
+    "createdById": "4cf8fa75-ff6e-455a-bf58-faa75abf54c5",
+    "createdAt": "2026-06-12T03:30:43.776Z",
+    "updatedAt": "2026-06-12T03:30:43.776Z"
+  },
+  {
+    "id": "a3c10252-30a6-4060-b9dd-a4ba9a7c0a39",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Haripur",
+    "name": "Haripur",
+    "createdById": "9b8f59ee-ba33-4213-8a3e-dd995f3f083b",
+    "createdAt": "2026-06-02T14:10:38.885Z",
+    "updatedAt": "2026-06-02T14:10:38.885Z"
+  },
+  {
+    "id": "0279ae3a-3afb-4aed-9b3a-c23c75a3af23",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Kohat",
+    "name": "Gumbat",
+    "createdById": "9a0327c3-b986-4f08-ad06-cd6b18ed841a",
+    "createdAt": "2026-06-09T14:05:24.669Z",
+    "updatedAt": "2026-06-09T14:05:24.669Z"
+  },
+  {
+    "id": "b284e432-0452-444b-ac87-fd81622ff4fb",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Kohat",
+    "name": "Kohat",
+    "createdById": "672c7801-660f-4e56-9efd-7eed1134f085",
+    "createdAt": "2026-06-10T16:11:18.468Z",
+    "updatedAt": "2026-06-10T16:11:18.468Z"
+  },
+  {
+    "id": "e74c6078-ee0c-400b-9237-93f30b8a670e",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Kohistan",
+    "name": "Pattan",
+    "createdById": "8622bee3-0dc7-40e0-82ca-9b923fac7821",
+    "createdAt": "2026-06-01T16:44:13.715Z",
+    "updatedAt": "2026-06-01T16:44:13.715Z"
+  },
+  {
+    "id": "61251a91-634f-46df-a32d-376b1f620bbb",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Kohistan Lower",
+    "name": "Pattan",
+    "createdById": "820de957-ab04-4ef1-84a6-c8a855f852f5",
+    "createdAt": "2026-06-11T15:02:12.166Z",
+    "updatedAt": "2026-06-11T15:02:12.166Z"
+  },
+  {
+    "id": "f018a587-0c29-4664-9dde-b948786116bd",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Kurram",
+    "name": "Central Kurram",
+    "createdById": "c55624ec-8f3d-412f-8fa3-f8c7496f29a7",
+    "createdAt": "2026-06-05T11:37:28.329Z",
+    "updatedAt": "2026-06-05T11:37:28.329Z"
+  },
+  {
+    "id": "5b02a8a3-177a-4bdc-a292-68d2abb25a1e",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Lakki Marwat",
+    "name": "Lakki Marwat",
+    "createdById": "dc74f162-933f-4961-bdf1-34e72f3af67d",
+    "createdAt": "2026-06-10T04:08:32.763Z",
+    "updatedAt": "2026-06-10T04:08:32.763Z"
+  },
+  {
+    "id": "e880ee44-625c-42e3-8627-2f437d586c72",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Lakki Marwat",
+    "name": "Serai Naurang",
+    "createdById": "42cf830e-aba8-472f-ae0d-b09db4727aff",
+    "createdAt": "2026-06-16T07:17:55.364Z",
+    "updatedAt": "2026-06-16T07:17:55.364Z"
+  },
+  {
+    "id": "57f2e2f9-87b2-4241-90fe-6fadebf0edd2",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Lower Dir",
+    "name": "Samarbagh",
+    "createdById": "3e6a9c35-a1d9-4565-8852-d952c18a6a77",
+    "createdAt": "2026-06-13T20:12:33.866Z",
+    "updatedAt": "2026-06-13T20:12:33.866Z"
+  },
+  {
+    "id": "b01769a7-50ac-4dff-a4d3-570054f59d2f",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Malakand",
+    "name": "Bat Khela",
+    "createdById": "52642aab-7842-45af-8f65-8ac049548b11",
+    "createdAt": "2026-06-11T23:58:33.606Z",
+    "updatedAt": "2026-06-11T23:58:33.606Z"
+  },
+  {
+    "id": "26185d26-ee7b-4d1e-a5e8-1153cd7f87eb",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Malakand",
+    "name": "Dargai",
+    "createdById": "cff4f9c4-e37a-4d8e-a04f-252a7e19c1cc",
+    "createdAt": "2026-06-07T06:15:27.050Z",
+    "updatedAt": "2026-06-07T06:15:27.050Z"
+  },
+  {
+    "id": "2b68000d-25bc-4c7f-ad7c-d915ef697de2",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Mansehra",
+    "name": "Oghi",
+    "createdById": "f2d5a8fb-e22d-4ca5-9c01-3c5c8cc995d2",
+    "createdAt": "2026-06-02T08:41:27.798Z",
+    "updatedAt": "2026-06-02T08:41:27.798Z"
+  },
+  {
+    "id": "34962990-8f90-4b82-b721-34326a84900e",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Mardan",
+    "name": "Mardan",
+    "createdById": "ee163c30-dc7d-4710-af00-e9a0590c122c",
+    "createdAt": "2026-06-10T15:59:40.120Z",
+    "updatedAt": "2026-06-10T15:59:40.120Z"
+  },
+  {
+    "id": "0dccf660-8709-4919-9014-93bfd7d744f5",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Mardan",
+    "name": "Takhat Bhai",
+    "createdById": "71849cc0-01e9-4ebd-aa5d-3b475b0e5eb7",
+    "createdAt": "2026-06-09T08:09:00.078Z",
+    "updatedAt": "2026-06-09T08:09:00.078Z"
+  },
+  {
+    "id": "e76a5dc3-bf09-42ca-af64-075e139e8fd6",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Mardan",
+    "name": "Takht Bhai",
+    "createdById": "1304d2df-3866-4686-a05a-90241df3fbd4",
+    "createdAt": "2026-06-06T15:48:56.232Z",
+    "updatedAt": "2026-06-06T15:48:56.232Z"
+  },
+  {
+    "id": "3d1d2028-c34b-4117-be7f-d854d9760309",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Mardan",
+    "name": "مردان",
+    "createdById": "d94c760a-aa5e-4a0e-90ae-a3057152d96d",
+    "createdAt": "2026-06-15T06:17:42.189Z",
+    "updatedAt": "2026-06-15T06:17:42.189Z"
+  },
+  {
+    "id": "a84faa78-9b55-4ceb-9e9c-bcd7b69fb32c",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Nowshera",
+    "name": "Jehangira",
+    "createdById": "2c4c6d2b-f6ed-436b-b10f-b809ea4282a6",
+    "createdAt": "2026-06-12T09:29:01.972Z",
+    "updatedAt": "2026-06-12T09:29:01.972Z"
+  },
+  {
+    "id": "348e28ba-eaa8-4246-a62d-ecbc0b55fb76",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Nowshera",
+    "name": "Nawshra",
+    "createdById": "42cf830e-aba8-472f-ae0d-b09db4727aff",
+    "createdAt": "2026-06-13T16:05:50.275Z",
+    "updatedAt": "2026-06-13T16:05:50.275Z"
+  },
+  {
+    "id": "671ac3d7-8761-4fb0-a1e9-7922714774b9",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Nowshera",
+    "name": "Nowshera",
+    "createdById": "3ce886b9-c8ea-4cc2-be86-96df814c9bd6",
+    "createdAt": "2026-06-06T17:23:49.158Z",
+    "updatedAt": "2026-06-06T17:23:49.158Z"
+  },
+  {
+    "id": "8fabbbbf-2a4b-4d65-b12b-3c18f43425fa",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Nowshera",
+    "name": "Pabbi",
+    "createdById": "a3ce6c2c-bdc5-437e-9850-4dbae0e8d5e7",
+    "createdAt": "2026-06-14T03:40:29.454Z",
+    "updatedAt": "2026-06-14T03:40:29.454Z"
+  },
+  {
+    "id": "c1736a8d-d16c-410d-94cd-ffbad0b6739e",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Peshawar",
+    "name": "Peshawar",
+    "createdById": "d3b1e2e0-2cb5-48cb-b7f3-765bbddd7a66",
+    "createdAt": "2026-06-15T18:01:10.583Z",
+    "updatedAt": "2026-06-15T18:01:10.583Z"
+  },
+  {
+    "id": "08577661-96d9-49ea-bbc6-a159e2f9e4cc",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Shangla",
+    "name": "Chakesar",
+    "createdById": "a496f73e-f743-405a-a16f-0f4fff2c41ea",
+    "createdAt": "2026-06-13T16:24:44.100Z",
+    "updatedAt": "2026-06-13T16:24:44.100Z"
+  },
+  {
+    "id": "b78f4709-65a6-4f80-9998-6631248dc71b",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Shangla",
+    "name": "Martoong",
+    "createdById": "fdbcfc55-0c0f-4ad1-bd4b-6da578198755",
+    "createdAt": "2026-05-25T16:12:47.424Z",
+    "updatedAt": "2026-05-25T16:12:47.424Z"
+  },
+  {
+    "id": "e02ecd91-c415-4f87-bc1e-0d1778257263",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Shangla",
+    "name": "مارتونگ",
+    "createdById": "fdbcfc55-0c0f-4ad1-bd4b-6da578198755",
+    "createdAt": "2026-06-08T12:29:06.750Z",
+    "updatedAt": "2026-06-08T12:29:06.750Z"
+  },
+  {
+    "id": "b2e70496-825a-4f7e-8315-67960333ca2b",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "South Waziristan",
+    "name": "Makin",
+    "createdById": "f9adbbfd-f3a6-47c9-9ded-645144eeaec4",
+    "createdAt": "2026-06-12T05:28:54.832Z",
+    "updatedAt": "2026-06-12T05:28:54.832Z"
+  },
+  {
+    "id": "4bc69309-ed95-4ede-8f6f-6e7cd5b605f9",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Swabi",
+    "name": "Razar",
+    "createdById": "f6deb596-5740-488e-9d91-8e766adc2c7b",
+    "createdAt": "2026-06-07T02:47:40.711Z",
+    "updatedAt": "2026-06-07T02:47:40.711Z"
+  },
+  {
+    "id": "dab4a311-915b-4fa4-b898-001173872740",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Swabi",
+    "name": "Razzar",
+    "createdById": "94e8ece8-c616-467a-9f12-dd13dd009ceb",
+    "createdAt": "2026-06-11T12:10:54.961Z",
+    "updatedAt": "2026-06-11T12:10:54.961Z"
+  },
+  {
+    "id": "9ee94351-e71c-48b4-8212-437ad6f2eb20",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Swabi",
+    "name": "لاہور",
+    "createdById": "7838b512-a5bb-4a6c-838b-73381837cbf5",
+    "createdAt": "2026-06-11T18:29:16.089Z",
+    "updatedAt": "2026-06-11T18:29:16.089Z"
+  },
+  {
+    "id": "7f80d2f6-0d1b-4020-b34f-e53d8fbc0879",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Swat",
+    "name": "Babozai",
+    "createdById": "29cd1566-3e3e-43ad-95e1-efa42e3a2efa",
+    "createdAt": "2026-06-11T06:22:19.129Z",
+    "updatedAt": "2026-06-11T06:22:19.129Z"
+  },
+  {
+    "id": "148ffef3-2757-4e4d-9a4b-8bd858b0b29d",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Swat",
+    "name": "Bahrain",
+    "createdById": "bf2ee6d1-2027-40f2-95b9-a803f5b373ea",
+    "createdAt": "2026-06-07T09:42:50.310Z",
+    "updatedAt": "2026-06-07T09:42:50.310Z"
+  },
+  {
+    "id": "b6ba674e-9fd4-48b4-acf8-e4cc2f951f39",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Swat",
+    "name": "Behrain",
+    "createdById": "d3b07844-8647-49f5-935f-e7f10d97ac28",
+    "createdAt": "2026-06-08T13:54:52.235Z",
+    "updatedAt": "2026-06-08T13:54:52.235Z"
+  },
+  {
+    "id": "16780e18-1194-4adf-8f87-3550c98a4b9b",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Swat",
+    "name": "Matta",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-09T18:44:59.811Z",
+    "updatedAt": "2026-06-09T18:44:59.811Z"
+  },
+  {
+    "id": "d11da338-daef-4c1d-aabb-26b76cc5b0e5",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Swat",
+    "name": "بریکوٹ",
+    "createdById": "0070035d-c3a3-4641-96c4-8bee9b310a9f",
+    "createdAt": "2026-06-12T07:49:34.014Z",
+    "updatedAt": "2026-06-12T07:49:34.014Z"
+  },
+  {
+    "id": "86e2b4b3-2d6f-4d29-8e7e-030922b2fd68",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Tank",
+    "name": "Mullazai",
+    "createdById": "5967ba23-fa47-4f78-8bec-8a0c42f87fe9",
+    "createdAt": "2026-06-13T15:13:46.309Z",
+    "updatedAt": "2026-06-13T15:13:46.309Z"
+  },
+  {
+    "id": "4a67b0e5-be6a-4e20-a645-809d695744bb",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Tank",
+    "name": "Tank",
+    "createdById": "1e33b1e9-4bf4-4886-a8e9-6bfaa771e1d7",
+    "createdAt": "2026-06-10T05:57:08.513Z",
+    "updatedAt": "2026-06-10T05:57:08.513Z"
+  },
+  {
+    "id": "b8e2f867-65f4-4379-8caf-a52a9178955e",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Upper Chitral",
+    "name": "Mastuj",
+    "createdById": "013bd868-5ebc-45a6-8053-ee67818b79b8",
+    "createdAt": "2026-06-11T12:30:39.961Z",
+    "updatedAt": "2026-06-11T12:30:39.961Z"
+  },
+  {
+    "id": "dc821664-7204-4ecf-a2c0-71deb9f42330",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Upper Chitral",
+    "name": "Mulkhow torkhow",
+    "createdById": "93f5bdf5-0986-45fd-9b1f-6ddf2d54d04f",
+    "createdAt": "2026-06-06T11:45:54.327Z",
+    "updatedAt": "2026-06-06T11:45:54.327Z"
+  },
+  {
+    "id": "e8af1472-a040-4004-8b27-0411f26421dd",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Upper Chitral",
+    "name": "Torkhow mulkhow",
+    "createdById": "93f5bdf5-0986-45fd-9b1f-6ddf2d54d04f",
+    "createdAt": "2026-06-08T09:56:56.445Z",
+    "updatedAt": "2026-06-08T09:56:56.445Z"
+  },
+  {
+    "id": "02038358-7c2d-483e-9148-78b89cd8d42f",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Upper Dir",
+    "name": "Larjam",
+    "createdById": "bc5bf67c-6d09-4507-9528-2265732e723e",
+    "createdAt": "2026-06-15T06:58:04.561Z",
+    "updatedAt": "2026-06-15T06:58:04.561Z"
+  },
+  {
+    "id": "46a1e6f7-eca7-4628-b8fe-7a03114b86fc",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Upper Dir",
+    "name": "Larjum",
+    "createdById": "bc5bf67c-6d09-4507-9528-2265732e723e",
+    "createdAt": "2026-06-15T14:19:13.120Z",
+    "updatedAt": "2026-06-15T14:19:13.120Z"
+  },
+  {
+    "id": "9f564253-4d2c-4160-aa73-bc1f6382e8bd",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Upper Dir",
+    "name": "Wari",
+    "createdById": "29cd1566-3e3e-43ad-95e1-efa42e3a2efa",
+    "createdAt": "2026-06-07T09:30:24.705Z",
+    "updatedAt": "2026-06-07T09:30:24.705Z"
+  },
+  {
+    "id": "9f96d6a8-2919-4143-a0e7-16a1608ac13f",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "Upper Dir",
+    "name": "واڑی",
+    "createdById": "8f3d9916-c2ec-4543-841f-a99b4117b6b5",
+    "createdAt": "2026-06-14T23:54:04.463Z",
+    "updatedAt": "2026-06-14T23:54:04.463Z"
+  },
+  {
+    "id": "9e8e9564-2b76-48e7-be6d-558a95bf38b5",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "buner",
+    "name": "Mandanr",
+    "createdById": "92ef6997-10c0-46e0-aec1-326e12115804",
+    "createdAt": "2026-06-15T08:51:14.194Z",
+    "updatedAt": "2026-06-15T08:51:14.194Z"
+  },
+  {
+    "id": "2c130928-b3ff-42e2-b7ad-c70c7e715097",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "buner",
+    "name": "gadezi",
+    "createdById": "699ab2e6-a085-4f57-85dc-cf3ae22ce0a8",
+    "createdAt": "2026-06-10T14:33:36.636Z",
+    "updatedAt": "2026-06-10T14:33:36.636Z"
+  },
+  {
+    "id": "49d795f6-aefa-40d5-b073-8d7074c7a39a",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "اپر سوات",
+    "name": "مٹہ",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-14T16:02:52.208Z",
+    "updatedAt": "2026-06-14T16:02:52.208Z"
+  },
+  {
+    "id": "898b2314-155f-48f7-8f36-d10482c08833",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "ایبٹ آباد",
+    "name": "ایبٹ آباد",
+    "createdById": "9bd506ed-f71c-48ca-a03a-0636739b29d8",
+    "createdAt": "2026-06-10T13:43:10.272Z",
+    "updatedAt": "2026-06-10T13:43:10.272Z"
+  },
+  {
+    "id": "9ddcdb94-5300-4b42-b18d-ccc2968be666",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "باجوڑ",
+    "name": "برنگ",
+    "createdById": "fc7bd418-3431-43dc-b9ae-14e94a70a885",
+    "createdAt": "2026-06-11T04:22:23.227Z",
+    "updatedAt": "2026-06-11T04:22:23.227Z"
+  },
+  {
+    "id": "9e569693-d739-43ff-9bd6-ffeea768e509",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "بنوں",
+    "name": "ڈومیل",
+    "createdById": "42cf830e-aba8-472f-ae0d-b09db4727aff",
+    "createdAt": "2026-06-13T18:02:00.267Z",
+    "updatedAt": "2026-06-13T18:02:00.267Z"
+  },
+  {
+    "id": "dd26830a-8ea1-4d53-82db-91de59de06d0",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "بونیر",
+    "name": "مندنڑ",
+    "createdById": "0fbca68f-5241-4ced-a15c-2994cc4ed4ae",
+    "createdAt": "2026-06-11T15:16:21.388Z",
+    "updatedAt": "2026-06-11T15:16:21.388Z"
+  },
+  {
+    "id": "537cf69b-db8d-4d9d-86d3-e6f97c242164",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "بونیر",
+    "name": "ڈگر",
+    "createdById": "fb86d2c6-8404-4256-b9c8-0886a819bab5",
+    "createdAt": "2026-06-11T09:22:08.371Z",
+    "updatedAt": "2026-06-11T09:22:08.371Z"
+  },
+  {
+    "id": "16b039e4-fc48-4689-8507-a85289c661f7",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "بونیر",
+    "name": "گاگرہ",
+    "createdById": "eebeb7de-822d-4304-9e26-90b9b742e6c4",
+    "createdAt": "2026-06-14T15:13:48.608Z",
+    "updatedAt": "2026-06-14T15:13:48.608Z"
+  },
+  {
+    "id": "caac717a-7e6e-42a7-8ba5-0eb17ca371d4",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "بونیر",
+    "name": "گدیزائی",
+    "createdById": "0070035d-c3a3-4641-96c4-8bee9b310a9f",
+    "createdAt": "2026-06-15T05:57:36.767Z",
+    "updatedAt": "2026-06-15T05:57:36.767Z"
+  },
+  {
+    "id": "43fdabfd-8e81-4eec-947b-9e4b86d46d1d",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "بونیر",
+    "name": "گدیزی",
+    "createdById": "0b8047d0-6f22-4f8a-aeb6-6e05dc4cfc11",
+    "createdAt": "2026-06-12T05:04:07.118Z",
+    "updatedAt": "2026-06-12T05:04:07.118Z"
+  },
+  {
+    "id": "d5d5df07-525d-40c6-bf70-260474c53a20",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "بٹگرام",
+    "name": "الائی",
+    "createdById": "ab8cafda-88bf-414d-8a75-eaa54db356a0",
+    "createdAt": "2026-06-12T05:41:14.271Z",
+    "updatedAt": "2026-06-12T05:41:14.271Z"
+  },
+  {
+    "id": "d31e8d1a-2521-4cea-837e-0728e8ae2260",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "تورغر",
+    "name": "کنڈر حسن زئی",
+    "createdById": "752186aa-57cd-4786-b2f3-89f484b31aeb",
+    "createdAt": "2026-06-05T01:41:57.371Z",
+    "updatedAt": "2026-06-05T01:41:57.371Z"
+  },
+  {
+    "id": "c10179c6-cd06-40f2-9b22-140c6521b3ea",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "سوات",
+    "name": "بحرین",
+    "createdById": "e3da05a9-0e60-4359-a060-67cea15cd361",
+    "createdAt": "2026-06-14T12:46:15.135Z",
+    "updatedAt": "2026-06-14T12:46:15.135Z"
+  },
+  {
+    "id": "1847f0e4-22dd-4170-9203-39ee178c9b17",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "سوات",
+    "name": "خوازہ خیلہ",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-12T17:22:47.577Z",
+    "updatedAt": "2026-06-12T17:22:47.577Z"
+  },
+  {
+    "id": "af61a7e0-ef46-43f0-8397-e3cb7803a48e",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "سوات",
+    "name": "مٹہ",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-11T09:59:35.263Z",
+    "updatedAt": "2026-06-11T09:59:35.263Z"
+  },
+  {
+    "id": "576221e8-1b57-4598-8510-b72fc1e5c43e",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "شانگلہ",
+    "name": "مارتونگ",
+    "createdById": "fdbcfc55-0c0f-4ad1-bd4b-6da578198755",
+    "createdAt": "2026-06-08T13:41:10.805Z",
+    "updatedAt": "2026-06-08T13:41:10.805Z"
+  },
+  {
+    "id": "2104f9ea-8e31-481c-8fb4-e9da3f5bf229",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "شانگلہ",
+    "name": "مارتونگ، پورن",
+    "createdById": "38990670-7024-48ca-a044-8893d02270d6",
+    "createdAt": "2026-06-09T07:43:11.925Z",
+    "updatedAt": "2026-06-09T07:43:11.925Z"
+  },
+  {
+    "id": "bf8dd8ae-8d0e-41a7-a4a7-53a030160ade",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "صوابی",
+    "name": "رزڑ",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-15T04:53:36.423Z",
+    "updatedAt": "2026-06-15T04:53:36.423Z"
+  },
+  {
+    "id": "84efb670-d7fe-4910-a22e-0250116dc8d9",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "مالاکنڈ",
+    "name": "بٹ خیلہ",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-13T00:55:43.945Z",
+    "updatedAt": "2026-06-13T00:55:43.945Z"
+  },
+  {
+    "id": "4f8480af-6bf2-473b-be86-3daa220f4ddc",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "مالاکنڈ",
+    "name": "درگئی",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-10T17:30:05.698Z",
+    "updatedAt": "2026-06-10T17:30:05.698Z"
+  },
+  {
+    "id": "aa680532-a94a-4c1c-aea8-c2b1aa911eee",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "مانسہرہ",
+    "name": "بفہ پکھل",
+    "createdById": "19412936-8ce9-4f6e-ac78-03695f5de0ae",
+    "createdAt": "2026-06-04T13:30:02.544Z",
+    "updatedAt": "2026-06-04T13:30:02.544Z"
+  },
+  {
+    "id": "a2669613-96a8-4ba6-ab39-50b6a83af2a0",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "مانسہرہ",
+    "name": "مانسہرہ",
+    "createdById": "518e82b4-5f0f-4092-8fa7-70de56298331",
+    "createdAt": "2026-06-04T13:41:07.711Z",
+    "updatedAt": "2026-06-04T13:41:07.711Z"
+  },
+  {
+    "id": "43d69010-7193-4be3-9d02-b46e4d73c82a",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "مردان",
+    "name": "تحت بھائی",
+    "createdById": "fc7bd418-3431-43dc-b9ae-14e94a70a885",
+    "createdAt": "2026-06-12T09:03:09.361Z",
+    "updatedAt": "2026-06-12T09:03:09.361Z"
+  },
+  {
+    "id": "f7682c0e-e543-4deb-981e-476396f30797",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "مردان",
+    "name": "تخت بھائی",
+    "createdById": "7838b512-a5bb-4a6c-838b-73381837cbf5",
+    "createdAt": "2026-06-12T02:16:23.195Z",
+    "updatedAt": "2026-06-12T02:16:23.195Z"
+  },
+  {
+    "id": "605dc47e-2113-445f-96be-7cd69ef96521",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "مردان",
+    "name": "مردان",
+    "createdById": "08631505-12d9-475b-8884-8826d5ce7e5b",
+    "createdAt": "2026-06-12T16:25:20.976Z",
+    "updatedAt": "2026-06-12T16:25:20.976Z"
+  },
+  {
+    "id": "37e70f5f-d63f-4b6b-8849-86fe2775e570",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "مردان",
+    "name": "کاٹلنگ",
+    "createdById": "cc487c14-8e45-4eb6-b51f-f8a9af63cc48",
+    "createdAt": "2026-05-28T11:29:25.092Z",
+    "updatedAt": "2026-05-28T11:29:25.092Z"
+  },
+  {
+    "id": "b15c07db-2109-4f42-ac19-08205bcf4eca",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "نوشہرہ",
+    "name": "تحصیل و ضلع نوشہروہ",
+    "createdById": "7838b512-a5bb-4a6c-838b-73381837cbf5",
+    "createdAt": "2026-06-12T05:37:17.874Z",
+    "updatedAt": "2026-06-12T05:37:17.874Z"
+  },
+  {
+    "id": "17d93450-ba11-4f97-b943-9338989d37f3",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "نوشہرہ",
+    "name": "تحصیل و ضلع نوشہرہ",
+    "createdById": "7838b512-a5bb-4a6c-838b-73381837cbf5",
+    "createdAt": "2026-06-12T05:39:55.033Z",
+    "updatedAt": "2026-06-12T05:39:55.033Z"
+  },
+  {
+    "id": "421c9bbd-86fd-4df1-b7ec-871e7ccec43a",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "نوشہرہ",
+    "name": "نوشہرہ",
+    "createdById": "6dfb43b0-f51d-4ea9-84f0-b7da0d94e59c",
+    "createdAt": "2026-06-15T20:55:00.508Z",
+    "updatedAt": "2026-06-15T20:55:00.508Z"
+  },
+  {
+    "id": "4372e530-c5e9-44d2-a9c9-ef0affab5183",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "ٹانک",
+    "name": "ٹانک",
+    "createdById": "1e33b1e9-4bf4-4886-a8e9-6bfaa771e1d7",
+    "createdAt": "2026-06-09T15:10:31.250Z",
+    "updatedAt": "2026-06-09T15:10:31.250Z"
+  },
+  {
+    "id": "efcea51f-a437-43dc-9390-f6f4c7fb8192",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "ٹانک",
+    "name": "ٹانگ",
+    "createdById": "b853f009-de5d-49d5-904f-4b775e7176da",
+    "createdAt": "2026-06-12T15:59:59.822Z",
+    "updatedAt": "2026-06-12T15:59:59.822Z"
+  },
+  {
+    "id": "2dafcffb-0896-4a9a-9c3b-747b5c8df86f",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "پشاور",
+    "name": "شاہ عالم",
+    "createdById": "beab9e1a-153d-43aa-a956-834dc1063992",
+    "createdAt": "2026-06-13T11:12:09.747Z",
+    "updatedAt": "2026-06-13T11:12:09.747Z"
+  },
+  {
+    "id": "66a1fdb8-d623-444a-926b-8c6fc45692bf",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "پشاور",
+    "name": "متھرا",
+    "createdById": "beab9e1a-153d-43aa-a956-834dc1063992",
+    "createdAt": "2026-06-15T11:45:47.583Z",
+    "updatedAt": "2026-06-15T11:45:47.583Z"
+  },
+  {
+    "id": "f3ea22c0-ce75-4bf6-8e6a-f04c17165ede",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "پشاور",
+    "name": "پشاور",
+    "createdById": "beab9e1a-153d-43aa-a956-834dc1063992",
+    "createdAt": "2026-06-13T11:07:27.027Z",
+    "updatedAt": "2026-06-13T11:07:27.027Z"
+  },
+  {
+    "id": "1888df7e-5166-43cf-91c2-9dccc0665e50",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "چارسدہ",
+    "name": "چارسدہ",
+    "createdById": "beab9e1a-153d-43aa-a956-834dc1063992",
+    "createdAt": "2026-06-13T16:44:55.011Z",
+    "updatedAt": "2026-06-13T16:44:55.011Z"
+  },
+  {
+    "id": "8adc2d97-46b4-46a4-8e78-904ab66f428b",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "ڈیرہ اسماعیل خان",
+    "name": "پہاڑپور",
+    "createdById": "8e5accbc-d7e7-4633-8b1b-c1b65e220b46",
+    "createdAt": "2026-06-12T17:49:23.579Z",
+    "updatedAt": "2026-06-12T17:49:23.579Z"
+  },
+  {
+    "id": "094cee06-f1d1-40af-ab64-27340f3338f2",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "ڈیرہ اسماعیل خان",
+    "name": "ڈیرہ",
+    "createdById": "33f95dd6-d840-47e6-975f-bfabbc7f8d43",
+    "createdAt": "2026-06-14T12:04:17.146Z",
+    "updatedAt": "2026-06-14T12:04:17.146Z"
+  },
+  {
+    "id": "962d4184-9340-4ae4-9ca7-ba47f5049321",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "کرک",
+    "name": "تخت نصرتیغ",
+    "createdById": "5c50ab87-4af2-47de-931d-2969aa74f01b",
+    "createdAt": "2026-06-13T11:49:28.662Z",
+    "updatedAt": "2026-06-13T11:49:28.662Z"
+  },
+  {
+    "id": "10d0345a-7494-46cb-9233-08bbb7a66072",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "کوھاٹ",
+    "name": "سنی گمبٹ",
+    "createdById": "04bf06f3-19f0-4ba5-a751-524c4819ccbe",
+    "createdAt": "2026-06-12T13:22:39.211Z",
+    "updatedAt": "2026-06-12T13:22:39.211Z"
+  },
+  {
+    "id": "47cb69e7-4317-4c54-a6a8-dd354ba53fd4",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "کوھاٹ",
+    "name": "سینی گمبٹ",
+    "createdById": "04bf06f3-19f0-4ba5-a751-524c4819ccbe",
+    "createdAt": "2026-06-12T10:00:07.938Z",
+    "updatedAt": "2026-06-12T10:00:07.938Z"
+  },
+  {
+    "id": "52289d44-aa2d-4cd8-80c9-6b03a1608e8d",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "کوہاٹ",
+    "name": "Kohat",
+    "createdById": "0bbaffec-ae8a-48da-85e4-4d7c036dc2ef",
+    "createdAt": "2026-06-12T02:55:14.752Z",
+    "updatedAt": "2026-06-12T02:55:14.752Z"
+  },
+  {
+    "id": "436d1057-aebc-43f0-b982-420f34e9be87",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "کوہاٹ",
+    "name": "تحصیل گمبٹ",
+    "createdById": "5ff29d80-fcaf-4f7e-a2b1-2da142874b53",
+    "createdAt": "2026-06-10T07:24:52.494Z",
+    "updatedAt": "2026-06-10T07:24:52.494Z"
+  },
+  {
+    "id": "475547b4-f66b-4a09-abd6-d7be26a68ff2",
+    "type": "tehsil",
+    "province": "Khyber Pakhtunkhwa",
+    "district": "ہری پور",
+    "name": "ہری پور",
+    "createdById": "68598ac4-a1da-4c3f-9fad-9fb0ce2afbc5",
+    "createdAt": "2026-06-04T11:37:39.078Z",
+    "updatedAt": "2026-06-04T11:37:39.078Z"
+  },
+  {
+    "id": "a7f993d4-aae8-4a42-9521-8a95b0b5f093",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Abbottabad",
+    "createdById": "7b3bea32-7e86-4704-b248-79034d84ec8f",
+    "createdAt": "2026-06-07T06:47:38.579Z",
+    "updatedAt": "2026-06-07T06:47:38.579Z"
+  },
+  {
+    "id": "63f514e3-23f4-4f85-b011-6214cad85a7b",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Bajauar",
+    "createdById": "fc7bd418-3431-43dc-b9ae-14e94a70a885",
+    "createdAt": "2026-06-13T13:45:44.879Z",
+    "updatedAt": "2026-06-13T13:45:44.879Z"
+  },
+  {
+    "id": "e6556d0d-38f7-413b-b39a-d26d70bb4858",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Bajaur",
+    "createdById": "e257e918-fd4e-426d-991e-e6e1acccffa6",
+    "createdAt": "2026-06-11T01:02:57.800Z",
+    "updatedAt": "2026-06-11T01:02:57.800Z"
+  },
+  {
+    "id": "d2b1d7c7-b82d-4905-971d-bee46d285b67",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Bannu",
+    "createdById": "9ef5cab2-78bf-4643-87f7-4e2f889ee6b1",
+    "createdAt": "2026-06-10T11:39:40.295Z",
+    "updatedAt": "2026-06-10T11:39:40.295Z"
+  },
+  {
+    "id": "74ed27d1-9933-4036-bbf7-b7488a9a8e35",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Bat Tag Ram",
+    "createdById": "bc53120b-9f56-40e8-99c4-6ee4474fd563",
+    "createdAt": "2026-06-15T12:16:23.700Z",
+    "updatedAt": "2026-06-15T12:16:23.700Z"
+  },
+  {
+    "id": "bd8b2a61-b745-4bd6-a986-bae0cb65910f",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Behrain",
+    "createdById": "d3b07844-8647-49f5-935f-e7f10d97ac28",
+    "createdAt": "2026-06-08T13:54:20.379Z",
+    "updatedAt": "2026-06-08T13:54:20.379Z"
+  },
+  {
+    "id": "d0d9aaa4-d36f-4251-846e-5806194520a4",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Bnir",
+    "createdById": "0325bc67-6366-4016-b3b6-64b9e160e757",
+    "createdAt": "2026-06-11T15:04:58.450Z",
+    "updatedAt": "2026-06-11T15:04:58.450Z"
+  },
+  {
+    "id": "dabc60e1-dd5c-42f7-a4c9-7093cae828b1",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Bune",
+    "createdById": "7e56235b-9619-48f2-b14d-d7dd951a63e4",
+    "createdAt": "2026-06-10T15:27:07.340Z",
+    "updatedAt": "2026-06-10T15:27:07.340Z"
+  },
+  {
+    "id": "14aa1fe8-4424-49c8-90dd-2fd32237701a",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Buner",
+    "createdById": "b00bb0a8-3292-4642-beff-771e892b2895",
+    "createdAt": "2026-06-01T18:11:51.649Z",
+    "updatedAt": "2026-06-01T18:11:51.649Z"
+  },
+  {
+    "id": "6aa78f0e-fb54-4317-a218-abbe952ba21b",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Charsadda",
+    "createdById": "52642aab-7842-45af-8f65-8ac049548b11",
+    "createdAt": "2026-06-11T10:25:40.363Z",
+    "updatedAt": "2026-06-11T10:25:40.363Z"
+  },
+  {
+    "id": "f91177ea-e6ac-44ad-ad95-ba90130c371a",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Chitral Upper",
+    "createdById": "93f5bdf5-0986-45fd-9b1f-6ddf2d54d04f",
+    "createdAt": "2026-06-08T10:23:51.141Z",
+    "updatedAt": "2026-06-08T10:23:51.141Z"
+  },
+  {
+    "id": "9dd5ad79-894c-463c-b8a5-44442e733038",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "D. I. Khan",
+    "createdById": "01d210d9-ad49-42ca-912f-a49cf00ede39",
+    "createdAt": "2026-06-11T16:08:16.914Z",
+    "updatedAt": "2026-06-11T16:08:16.914Z"
+  },
+  {
+    "id": "4c0b2426-5f56-4e7a-9a64-a861aff5af5f",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Dir Lower",
+    "createdById": "719a9c4a-bf51-450a-bdc5-c1c9d07148ee",
+    "createdAt": "2026-06-13T08:10:17.867Z",
+    "updatedAt": "2026-06-13T08:10:17.867Z"
+  },
+  {
+    "id": "57849a66-170d-4003-b3fc-644647f6aaff",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Hangu",
+    "createdById": "4cf8fa75-ff6e-455a-bf58-faa75abf54c5",
+    "createdAt": "2026-06-11T10:56:26.769Z",
+    "updatedAt": "2026-06-11T10:56:26.769Z"
+  },
+  {
+    "id": "8b03a70f-64d8-4f66-b103-130443c90bc0",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Haripur",
+    "createdById": "9b8f59ee-ba33-4213-8a3e-dd995f3f083b",
+    "createdAt": "2026-06-02T14:10:35.969Z",
+    "updatedAt": "2026-06-02T14:10:35.969Z"
+  },
+  {
+    "id": "233b2d1e-423d-4b56-9f0f-a5900488aaa0",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Kohat",
+    "createdById": "9a0327c3-b986-4f08-ad06-cd6b18ed841a",
+    "createdAt": "2026-06-09T14:05:15.255Z",
+    "updatedAt": "2026-06-09T14:05:15.255Z"
+  },
+  {
+    "id": "bb2f1cb2-d798-4a42-97e8-aa1cc0848587",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Kohistan",
+    "createdById": "8622bee3-0dc7-40e0-82ca-9b923fac7821",
+    "createdAt": "2026-06-01T16:43:31.897Z",
+    "updatedAt": "2026-06-01T16:43:31.897Z"
+  },
+  {
+    "id": "c37fd9a7-7a12-48ea-a49f-f8055ed6b3b7",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Kohistan Lower",
+    "createdById": "820de957-ab04-4ef1-84a6-c8a855f852f5",
+    "createdAt": "2026-06-11T15:02:03.385Z",
+    "updatedAt": "2026-06-11T15:02:03.385Z"
+  },
+  {
+    "id": "bdbd784b-53b3-40ba-8675-09009ede2cbc",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Kurram",
+    "createdById": "c55624ec-8f3d-412f-8fa3-f8c7496f29a7",
+    "createdAt": "2026-06-05T11:37:16.346Z",
+    "updatedAt": "2026-06-05T11:37:16.346Z"
+  },
+  {
+    "id": "b7a49ff1-df61-407a-b0e4-6b107624dad0",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Lakki Marwat",
+    "createdById": "dc74f162-933f-4961-bdf1-34e72f3af67d",
+    "createdAt": "2026-06-10T04:08:28.938Z",
+    "updatedAt": "2026-06-10T04:08:28.938Z"
+  },
+  {
+    "id": "b643ffb3-6897-4783-bacd-dd7440a58641",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Lower Dir",
+    "createdById": "3e6a9c35-a1d9-4565-8852-d952c18a6a77",
+    "createdAt": "2026-06-13T20:12:29.978Z",
+    "updatedAt": "2026-06-13T20:12:29.978Z"
+  },
+  {
+    "id": "6af794e5-c07c-41c8-89ba-66cd3c8f3b6c",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Malakand",
+    "createdById": "cff4f9c4-e37a-4d8e-a04f-252a7e19c1cc",
+    "createdAt": "2026-06-07T06:15:12.027Z",
+    "updatedAt": "2026-06-07T06:15:12.027Z"
+  },
+  {
+    "id": "57baf166-55b2-4956-9ae9-45e970683060",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Mansehra",
+    "createdById": "f2d5a8fb-e22d-4ca5-9c01-3c5c8cc995d2",
+    "createdAt": "2026-06-02T08:41:23.559Z",
+    "updatedAt": "2026-06-02T08:41:23.559Z"
+  },
+  {
+    "id": "7996f4bc-1631-49b6-8591-4bf9059d6b72",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Mardan",
+    "createdById": "1304d2df-3866-4686-a05a-90241df3fbd4",
+    "createdAt": "2026-06-06T15:48:50.548Z",
+    "updatedAt": "2026-06-06T15:48:50.548Z"
+  },
+  {
+    "id": "468f2e67-3f8a-453d-b8f9-f6a937a370e9",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Nowshera",
+    "createdById": "3ce886b9-c8ea-4cc2-be86-96df814c9bd6",
+    "createdAt": "2026-06-06T17:23:44.022Z",
+    "updatedAt": "2026-06-06T17:23:44.022Z"
+  },
+  {
+    "id": "538c326c-e9d6-4902-939e-9bf1f82dee92",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Peshawar",
+    "createdById": "d3b1e2e0-2cb5-48cb-b7f3-765bbddd7a66",
+    "createdAt": "2026-06-15T18:01:06.950Z",
+    "updatedAt": "2026-06-15T18:01:06.950Z"
+  },
+  {
+    "id": "c34d154d-dfdf-42fa-8d14-7651e6bf12e6",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Shangla",
+    "createdById": "fdbcfc55-0c0f-4ad1-bd4b-6da578198755",
+    "createdAt": "2026-05-25T16:12:39.960Z",
+    "updatedAt": "2026-05-25T16:12:39.960Z"
+  },
+  {
+    "id": "d694d8a2-fd4e-40fe-ae13-1dbc6dbb858e",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "South Waziristan",
+    "createdById": "f9adbbfd-f3a6-47c9-9ded-645144eeaec4",
+    "createdAt": "2026-06-12T05:28:28.455Z",
+    "updatedAt": "2026-06-12T05:28:28.455Z"
+  },
+  {
+    "id": "7f9e6a4c-84b4-4ede-bca2-294b5a6e304c",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Swabi",
+    "createdById": "f6deb596-5740-488e-9d91-8e766adc2c7b",
+    "createdAt": "2026-06-07T02:47:36.628Z",
+    "updatedAt": "2026-06-07T02:47:36.628Z"
+  },
+  {
+    "id": "c236063e-e344-4a48-a327-98a64407b3d8",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Swat",
+    "createdById": "bf2ee6d1-2027-40f2-95b9-a803f5b373ea",
+    "createdAt": "2026-06-07T09:42:33.799Z",
+    "updatedAt": "2026-06-07T09:42:33.799Z"
+  },
+  {
+    "id": "c91826d7-db99-401f-9774-0c2752faace0",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Tank",
+    "createdById": "1e33b1e9-4bf4-4886-a8e9-6bfaa771e1d7",
+    "createdAt": "2026-06-10T05:57:05.575Z",
+    "updatedAt": "2026-06-10T05:57:05.575Z"
+  },
+  {
+    "id": "ce2ec314-6e47-4f29-ba88-d5a9245ffbdb",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Upper Chitral",
+    "createdById": "93f5bdf5-0986-45fd-9b1f-6ddf2d54d04f",
+    "createdAt": "2026-06-06T11:45:42.118Z",
+    "updatedAt": "2026-06-06T11:45:42.118Z"
+  },
+  {
+    "id": "7b7cb509-187f-4755-93a5-be467b877410",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "Upper Dir",
+    "createdById": "29cd1566-3e3e-43ad-95e1-efa42e3a2efa",
+    "createdAt": "2026-06-07T09:30:21.357Z",
+    "updatedAt": "2026-06-07T09:30:21.357Z"
+  },
+  {
+    "id": "5f8d91fb-f350-4a99-8c66-a1565798ce74",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "اپر سوات",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-14T16:02:47.897Z",
+    "updatedAt": "2026-06-14T16:02:47.897Z"
+  },
+  {
+    "id": "bd2142ee-ad27-406c-924d-4c5644bbc181",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "ایبٹ آباد",
+    "createdById": "9bd506ed-f71c-48ca-a03a-0636739b29d8",
+    "createdAt": "2026-06-10T13:43:02.998Z",
+    "updatedAt": "2026-06-10T13:43:02.998Z"
+  },
+  {
+    "id": "4700e47d-a710-4374-b675-92072b25cdb1",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "باجوڑ",
+    "createdById": "fc7bd418-3431-43dc-b9ae-14e94a70a885",
+    "createdAt": "2026-06-11T04:22:18.234Z",
+    "updatedAt": "2026-06-11T04:22:18.234Z"
+  },
+  {
+    "id": "70f669bd-e2c3-4166-8b6b-2b55ac70f1ce",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "بنوں",
+    "createdById": "42cf830e-aba8-472f-ae0d-b09db4727aff",
+    "createdAt": "2026-06-13T18:01:54.308Z",
+    "updatedAt": "2026-06-13T18:01:54.308Z"
+  },
+  {
+    "id": "f5192043-8597-4e29-9e4c-e2d474b121b2",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "بونیر",
+    "createdById": "fb86d2c6-8404-4256-b9c8-0886a819bab5",
+    "createdAt": "2026-06-11T09:21:47.870Z",
+    "updatedAt": "2026-06-11T09:21:47.870Z"
+  },
+  {
+    "id": "ea3a1dc3-3081-43c8-a890-7b5e59e25498",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "بٹگرام",
+    "createdById": "ab8cafda-88bf-414d-8a75-eaa54db356a0",
+    "createdAt": "2026-06-12T05:40:56.444Z",
+    "updatedAt": "2026-06-12T05:40:56.444Z"
+  },
+  {
+    "id": "6d1fff3e-00d0-4bb4-9093-d7bf3cbd9b4a",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "تورغر",
+    "createdById": "752186aa-57cd-4786-b2f3-89f484b31aeb",
+    "createdAt": "2026-06-05T01:41:35.343Z",
+    "updatedAt": "2026-06-05T01:41:35.343Z"
+  },
+  {
+    "id": "023cbf98-43e6-4754-886f-7eef3cf4d26a",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "سوات",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-11T09:59:30.700Z",
+    "updatedAt": "2026-06-11T09:59:30.700Z"
+  },
+  {
+    "id": "0b5deb18-7132-4132-affc-ebd9acec67b7",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "شانگلہ",
+    "createdById": "fdbcfc55-0c0f-4ad1-bd4b-6da578198755",
+    "createdAt": "2026-06-08T13:41:04.930Z",
+    "updatedAt": "2026-06-08T13:41:04.930Z"
+  },
+  {
+    "id": "291a4939-adfb-497d-94d7-7d38a8c109da",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "صوابی",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-15T04:53:32.325Z",
+    "updatedAt": "2026-06-15T04:53:32.325Z"
+  },
+  {
+    "id": "8e3f8601-6509-4b6b-84f8-f1c584444bbf",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "مالاکنڈ",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-10T17:30:00.232Z",
+    "updatedAt": "2026-06-10T17:30:00.232Z"
+  },
+  {
+    "id": "aa9a1391-e7f1-47fb-a2a3-37a3de04a221",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "مانسہرہ",
+    "createdById": "19412936-8ce9-4f6e-ac78-03695f5de0ae",
+    "createdAt": "2026-06-04T13:29:51.385Z",
+    "updatedAt": "2026-06-04T13:29:51.385Z"
+  },
+  {
+    "id": "3d3c0d92-3d92-44fd-85a7-75e68e0293a9",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "مردان",
+    "createdById": "cc487c14-8e45-4eb6-b51f-f8a9af63cc48",
+    "createdAt": "2026-05-28T11:29:02.656Z",
+    "updatedAt": "2026-05-28T11:29:02.656Z"
+  },
+  {
+    "id": "3dc3e1c0-b15f-4cb1-bfca-851c628601de",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "نوشہرہ",
+    "createdById": "7838b512-a5bb-4a6c-838b-73381837cbf5",
+    "createdAt": "2026-06-12T05:36:34.396Z",
+    "updatedAt": "2026-06-12T05:36:34.396Z"
+  },
+  {
+    "id": "a0227ea5-4d3e-459c-8974-d221a1a57c76",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "ٹانک",
+    "createdById": "1e33b1e9-4bf4-4886-a8e9-6bfaa771e1d7",
+    "createdAt": "2026-06-09T15:10:23.660Z",
+    "updatedAt": "2026-06-09T15:10:23.660Z"
+  },
+  {
+    "id": "ca7870c1-edcc-46bf-9752-9a7bc5d2c446",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "پشاور",
+    "createdById": "beab9e1a-153d-43aa-a956-834dc1063992",
+    "createdAt": "2026-06-13T11:06:58.372Z",
+    "updatedAt": "2026-06-13T11:06:58.372Z"
+  },
+  {
+    "id": "79fb359e-675c-4250-8a43-c63f72c0adf4",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "چارسدہ",
+    "createdById": "beab9e1a-153d-43aa-a956-834dc1063992",
+    "createdAt": "2026-06-13T16:44:24.120Z",
+    "updatedAt": "2026-06-13T16:44:24.120Z"
+  },
+  {
+    "id": "3f4a2985-ae71-4043-b22e-fb77b31e8fd2",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "ڈیرہ اسماعیل خان",
+    "createdById": "8e5accbc-d7e7-4633-8b1b-c1b65e220b46",
+    "createdAt": "2026-06-12T17:49:16.621Z",
+    "updatedAt": "2026-06-12T17:49:16.621Z"
+  },
+  {
+    "id": "15cc0045-5106-4cc0-b7bd-2bf325e0ba8f",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "کرک",
+    "createdById": "5c50ab87-4af2-47de-931d-2969aa74f01b",
+    "createdAt": "2026-06-13T11:48:36.981Z",
+    "updatedAt": "2026-06-13T11:48:36.981Z"
+  },
+  {
+    "id": "9f625f78-a077-40e0-8ebb-2037ce5d2560",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "کوھاٹ",
+    "createdById": "04bf06f3-19f0-4ba5-a751-524c4819ccbe",
+    "createdAt": "2026-06-12T09:59:46.846Z",
+    "updatedAt": "2026-06-12T09:59:46.846Z"
+  },
+  {
+    "id": "6dce555d-50f2-4e8e-9624-038ee67165c5",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "کوہاٹ",
+    "createdById": "5ff29d80-fcaf-4f7e-a2b1-2da142874b53",
+    "createdAt": "2026-06-10T07:24:33.122Z",
+    "updatedAt": "2026-06-10T07:24:33.122Z"
+  },
+  {
+    "id": "45218808-9da8-4f8e-95a1-84901af88b90",
+    "type": "district",
+    "province": "Khyber Pakhtunkhwa",
+    "district": null,
+    "name": "ہری پور",
+    "createdById": "68598ac4-a1da-4c3f-9fad-9fb0ce2afbc5",
+    "createdAt": "2026-06-04T11:37:28.721Z",
+    "updatedAt": "2026-06-04T11:37:28.721Z"
+  },
+  {
+    "id": "23fe1ccd-c535-49ac-adc4-a6eb949e429d",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Attock",
+    "name": "Hassan abdal",
+    "createdById": "0ffa13c4-7785-49d5-8d7d-ccb89ed0902e",
+    "createdAt": "2026-06-08T10:47:05.846Z",
+    "updatedAt": "2026-06-08T10:47:05.846Z"
+  },
+  {
+    "id": "c2a3d1be-0c9b-4d31-a364-16071e3df346",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Attock",
+    "name": "Hazro",
+    "createdById": "1d0e1771-8284-49c2-855a-f6dae6da49d1",
+    "createdAt": "2026-06-10T08:07:43.548Z",
+    "updatedAt": "2026-06-10T08:07:43.548Z"
+  },
+  {
+    "id": "52f710ac-204d-4882-b1f8-2cb0f60a98c0",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Attock",
+    "name": "Jand",
+    "createdById": "26a3628c-f7c7-4a7b-a36c-301270f90013",
+    "createdAt": "2026-06-04T13:10:14.748Z",
+    "updatedAt": "2026-06-04T13:10:14.748Z"
+  },
+  {
+    "id": "74c6a0ee-566a-43cd-9f20-0f3b03ab92fd",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Bahawalnagar",
+    "name": "Minchinabad",
+    "createdById": "5e53ea98-431e-4a3d-9928-017812351cbc",
+    "createdAt": "2026-06-04T14:23:08.542Z",
+    "updatedAt": "2026-06-04T14:23:08.542Z"
+  },
+  {
+    "id": "019eb48f-984b-401d-a8b4-9367ab3e08f0",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Chakwal",
+    "name": "Chakwal",
+    "createdById": "d1dbc5ac-ad99-408a-8679-f6f0542aca30",
+    "createdAt": "2026-06-10T14:09:58.185Z",
+    "updatedAt": "2026-06-10T14:09:58.185Z"
+  },
+  {
+    "id": "40a14cc4-bc1e-4be1-8ca7-065b2847e181",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Chakwal",
+    "name": "Choa Saidan Shah",
+    "createdById": "674bf4cd-ec93-435e-b76c-a2b60abc8947",
+    "createdAt": "2026-06-15T07:36:51.934Z",
+    "updatedAt": "2026-06-15T07:36:51.934Z"
+  },
+  {
+    "id": "a433bfd9-b36d-41d0-a17f-0df6fb26eb0c",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Chakwal",
+    "name": "Kallar Kahar",
+    "createdById": "49596915-45c5-4280-8cb2-2d30b5b3d37b",
+    "createdAt": "2026-06-07T13:40:36.541Z",
+    "updatedAt": "2026-06-07T13:40:36.541Z"
+  },
+  {
+    "id": "63d69bfe-1c0d-4d0a-9d95-ab1171be2c8e",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Chakwal",
+    "name": "Lawa",
+    "createdById": "68bb6eb3-bd9c-4936-ad62-2e06dc170fc9",
+    "createdAt": "2026-06-12T04:16:33.251Z",
+    "updatedAt": "2026-06-12T04:16:33.251Z"
+  },
+  {
+    "id": "9a093cda-433f-467e-85aa-0e22a775e439",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Chakwal",
+    "name": "Talagang",
+    "createdById": "1bd9869e-aed3-4645-be8f-793e587ce4f6",
+    "createdAt": "2026-06-10T16:55:54.415Z",
+    "updatedAt": "2026-06-10T16:55:54.415Z"
+  },
+  {
+    "id": "4a357d00-841d-482a-8dbf-00834c448105",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Dera ghazi khan",
+    "name": "Kot chutta",
+    "createdById": "690288c0-cb0c-4686-83c6-728f35efd8c7",
+    "createdAt": "2026-06-15T12:29:46.980Z",
+    "updatedAt": "2026-06-15T12:29:46.980Z"
+  },
+  {
+    "id": "8fe2115f-c00a-4221-b446-9de297e1b2b5",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Gujranwala",
+    "name": "Kamoke",
+    "createdById": "97cef41f-8d79-4bb0-a37b-b67ef2c6ff8c",
+    "createdAt": "2026-06-09T04:57:08.430Z",
+    "updatedAt": "2026-06-09T04:57:08.430Z"
+  },
+  {
+    "id": "4d21e74c-8214-40a5-b374-651a5944f437",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Jhang",
+    "name": "Ahmad pur Sial",
+    "createdById": "16c97626-2bcc-46c2-9a77-31f95b45322b",
+    "createdAt": "2026-06-10T03:07:11.888Z",
+    "updatedAt": "2026-06-10T03:07:11.888Z"
+  },
+  {
+    "id": "1ca6e133-8bbd-4fbe-8c6e-756988d10b1f",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Jhang",
+    "name": "Shorkot",
+    "createdById": "5e7d962c-b459-4783-bb10-66bed7996a04",
+    "createdAt": "2026-06-07T09:13:22.940Z",
+    "updatedAt": "2026-06-07T09:13:22.940Z"
+  },
+  {
+    "id": "7c52af63-25ce-49ea-92bf-74ecfce8f516",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Jhnag",
+    "name": "Ahmed pur seal",
+    "createdById": "16c97626-2bcc-46c2-9a77-31f95b45322b",
+    "createdAt": "2026-06-09T06:31:49.563Z",
+    "updatedAt": "2026-06-09T06:31:49.563Z"
+  },
+  {
+    "id": "bb358078-bac0-4a8d-a2ec-ccf2bb9667b3",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Kasur",
+    "name": "Pattoki",
+    "createdById": "ebe5c03d-f27c-4fb5-9651-ca0dbd3d4f20",
+    "createdAt": "2026-06-07T04:53:54.103Z",
+    "updatedAt": "2026-06-07T04:53:54.103Z"
+  },
+  {
+    "id": "86055031-964f-42d5-9a63-f7c0973b9a6c",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Khanewal",
+    "name": "Mian chanuu",
+    "createdById": "72cadc50-ba53-4f44-980f-bece8c834172",
+    "createdAt": "2026-06-06T16:42:18.095Z",
+    "updatedAt": "2026-06-06T16:42:18.095Z"
+  },
+  {
+    "id": "af8c494b-4d7f-40e1-86b9-080407e400d7",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Khushab",
+    "name": "Khushab",
+    "createdById": "f862fc47-1261-4a1d-8275-887670449deb",
+    "createdAt": "2026-06-05T06:23:41.697Z",
+    "updatedAt": "2026-06-05T06:23:41.697Z"
+  },
+  {
+    "id": "8a6acf59-ee63-496f-9bd6-4f404b4cd0b5",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Lahore",
+    "name": "City",
+    "createdById": "ab307647-d262-48c3-b506-ad483e3c6179",
+    "createdAt": "2026-06-08T11:53:36.580Z",
+    "updatedAt": "2026-06-08T11:53:36.580Z"
+  },
+  {
+    "id": "acd0372f-4380-4f80-bd19-33a7306ee4eb",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Lahore",
+    "name": "Lahore",
+    "createdById": "a6632b27-07c0-481c-8d79-431b7f9b8d88",
+    "createdAt": "2026-06-05T14:53:41.136Z",
+    "updatedAt": "2026-06-05T14:53:41.136Z"
+  },
+  {
+    "id": "ff059386-53dd-42bf-8415-7336e81630ab",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Lahore",
+    "name": "Lahore Cantt",
+    "createdById": "1fbb354d-ead5-47a9-b9ee-97f1330b9432",
+    "createdAt": "2026-06-09T17:55:42.684Z",
+    "updatedAt": "2026-06-09T17:55:42.684Z"
+  },
+  {
+    "id": "de93fcf8-49a3-4004-8efc-f310775b1df8",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Lahore",
+    "name": "Model Town",
+    "createdById": "a6632b27-07c0-481c-8d79-431b7f9b8d88",
+    "createdAt": "2026-06-05T14:53:11.229Z",
+    "updatedAt": "2026-06-05T14:53:11.229Z"
+  },
+  {
+    "id": "111f4743-f458-4619-95d3-8afe2d112026",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Leiah",
+    "name": "Leiah",
+    "createdById": "a1e0b149-11d9-402e-badb-d1318846ddc6",
+    "createdAt": "2026-06-14T03:30:18.217Z",
+    "updatedAt": "2026-06-14T03:30:18.217Z"
+  },
+  {
+    "id": "31ff95d9-b89a-4b38-bb7c-3d0e64c2bd2a",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Lodhran",
+    "name": "Dunyapur",
+    "createdById": "40030a56-989a-4695-9303-a648e0791eaa",
+    "createdAt": "2026-06-11T02:21:44.203Z",
+    "updatedAt": "2026-06-11T02:21:44.203Z"
+  },
+  {
+    "id": "7e415ca2-c024-4bdc-9c0b-d5c1a52608d9",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Mianwali",
+    "name": "Mianwali",
+    "createdById": "f16972fa-9d32-4560-9409-f1af5114fd6e",
+    "createdAt": "2026-06-11T14:15:57.337Z",
+    "updatedAt": "2026-06-11T14:15:57.337Z"
+  },
+  {
+    "id": "f8733dab-0305-4517-accf-e2ab7c85223f",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Multan",
+    "name": "Multan City",
+    "createdById": "1b5307d2-a157-4ac9-8b1e-e19535ea3183",
+    "createdAt": "2026-05-24T13:03:21.396Z",
+    "updatedAt": "2026-05-24T13:03:21.396Z"
+  },
+  {
+    "id": "44d717b2-4984-451d-a514-8baf69a3e66c",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Murree",
+    "name": "Murree",
+    "createdById": "8bab67f1-0f13-4931-9acc-e42fd455379e",
+    "createdAt": "2026-06-04T11:58:14.182Z",
+    "updatedAt": "2026-06-04T11:58:14.182Z"
+  },
+  {
+    "id": "0551e1ae-9211-4a15-a2f9-431c80f97caa",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Muzaffargarh",
+    "name": "Jatoi",
+    "createdById": "16f2b4f4-c5a8-477f-8c21-6e15f54b864d",
+    "createdAt": "2026-06-07T00:52:48.658Z",
+    "updatedAt": "2026-06-07T00:52:48.658Z"
+  },
+  {
+    "id": "89721807-856c-4896-ae46-84dcbfec921d",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Okara",
+    "name": "Depalpur",
+    "createdById": "aa440807-231e-4851-9080-909073ce857c",
+    "createdAt": "2026-06-08T09:38:29.996Z",
+    "updatedAt": "2026-06-08T09:38:29.996Z"
+  },
+  {
+    "id": "cd571400-2734-424c-8dc2-d6edf553d3b5",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Rahim Yar Khan",
+    "name": "Rahim Yar Khan",
+    "createdById": "64e64566-5210-4669-87fc-1ff2695e19be",
+    "createdAt": "2026-06-06T13:34:32.303Z",
+    "updatedAt": "2026-06-06T13:34:32.303Z"
+  },
+  {
+    "id": "11a9022f-4405-4ecf-98dc-4b5ca2a1eb3e",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Rahim yar khan",
+    "name": "خانپور",
+    "createdById": "c9cbfd5b-81f6-4950-9dab-f29c73ccfae1",
+    "createdAt": "2026-06-14T02:16:26.300Z",
+    "updatedAt": "2026-06-14T02:16:26.300Z"
+  },
+  {
+    "id": "db0f8ac6-f0af-4679-b0f7-5f1fe9c3005b",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Rawalpindi",
+    "name": "Gujar Khan",
+    "createdById": "ea711e32-3f4f-4e55-aed2-739048498713",
+    "createdAt": "2026-06-10T02:28:34.361Z",
+    "updatedAt": "2026-06-10T02:28:34.361Z"
+  },
+  {
+    "id": "844475ae-ab6c-4de4-b379-44bc34aa1562",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Rawalpindi",
+    "name": "Kallar Sayaddan",
+    "createdById": "7e1d0f98-28e9-4545-a41a-c51b7c6b0072",
+    "createdAt": "2026-06-04T10:18:16.389Z",
+    "updatedAt": "2026-06-04T10:18:16.389Z"
+  },
+  {
+    "id": "99024c96-ef7b-4399-be49-465555fddcdb",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Rawalpindi",
+    "name": "Rawalpindi",
+    "createdById": "314fce3c-d0c5-48d5-8fd2-793e42d28a2e",
+    "createdAt": "2026-06-05T13:26:59.455Z",
+    "updatedAt": "2026-06-05T13:26:59.455Z"
+  },
+  {
+    "id": "b36eeb76-37e5-49aa-8446-c78318f388f2",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Rawalpindi",
+    "name": "Taxila",
+    "createdById": "f71b93cb-423a-4e88-9df6-9cea9358c1e6",
+    "createdAt": "2026-05-24T11:01:17.488Z",
+    "updatedAt": "2026-05-24T11:01:17.488Z"
+  },
+  {
+    "id": "d2cecc63-ec4a-479e-901a-053e6e162b74",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Sargodha",
+    "name": "Sargodha",
+    "createdById": "80bb0cdd-5c9b-43c0-916a-1d621e0da78b",
+    "createdAt": "2026-06-15T15:53:21.241Z",
+    "updatedAt": "2026-06-15T15:53:21.241Z"
+  },
+  {
+    "id": "84a58cbe-335f-4fdc-a0d7-c7a2fb0eb299",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Talagang",
+    "name": "Lawa",
+    "createdById": "cc73d71e-7b7c-4ed6-b9ec-517efa21b48a",
+    "createdAt": "2026-06-11T09:57:13.928Z",
+    "updatedAt": "2026-06-11T09:57:13.928Z"
+  },
+  {
+    "id": "a2391547-8227-4d36-9cad-8267d7b8cb09",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Talagang",
+    "name": "Talagang",
+    "createdById": "933c3392-bfb4-419f-b828-ce9c02bc5842",
+    "createdAt": "2026-06-05T07:19:13.129Z",
+    "updatedAt": "2026-06-05T07:19:13.129Z"
+  },
+  {
+    "id": "e4ab362a-e744-44f5-b8df-7818d9b8b804",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Toba Tek Singh",
+    "name": "Toba Tek Singh",
+    "createdById": "71e514f1-1bda-46c9-b0ae-7dcf6f703f00",
+    "createdAt": "2026-06-13T03:54:28.627Z",
+    "updatedAt": "2026-06-13T03:54:28.627Z"
+  },
+  {
+    "id": "c529976c-a28b-4652-a000-049ff3011dcb",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "Toba Tek singh",
+    "name": "Toba Tek singh",
+    "createdById": "71e514f1-1bda-46c9-b0ae-7dcf6f703f00",
+    "createdAt": "2026-06-13T03:40:25.878Z",
+    "updatedAt": "2026-06-13T03:40:25.878Z"
+  },
+  {
+    "id": "feac3cfd-ab9c-4fb6-93cc-6a027e65e850",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "lod",
+    "name": "Dunyapur",
+    "createdById": "ff2e3226-fa70-4ece-b818-2e4bd00645c1",
+    "createdAt": "2026-06-13T07:45:28.336Z",
+    "updatedAt": "2026-06-13T07:45:28.336Z"
+  },
+  {
+    "id": "b4ac52c0-e4f9-4de5-80d4-624cdcad275c",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "تلہ گنگ",
+    "name": "تلہ گنگ",
+    "createdById": "cad39d71-3cfc-4cce-ae6e-3c24777f4bd9",
+    "createdAt": "2026-06-09T08:00:38.403Z",
+    "updatedAt": "2026-06-09T08:00:38.403Z"
+  },
+  {
+    "id": "e2af29c9-6e1e-4168-a46c-f16789220c7f",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "تلہ گنگ",
+    "name": "لاوہ",
+    "createdById": "6c704f14-3d29-497a-a695-1c535cc1b6b0",
+    "createdAt": "2026-06-12T03:26:52.814Z",
+    "updatedAt": "2026-06-12T03:26:52.814Z"
+  },
+  {
+    "id": "f6c41461-b808-4f2e-9f78-c13d22d899b3",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "خوشاب",
+    "name": "خوشاب",
+    "createdById": "c9cbfd5b-81f6-4950-9dab-f29c73ccfae1",
+    "createdAt": "2026-06-12T03:49:38.900Z",
+    "updatedAt": "2026-06-12T03:49:38.900Z"
+  },
+  {
+    "id": "775b1af7-f640-4fe5-95f3-3a7173dfcdac",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "خوشاب",
+    "name": "قائدآباد",
+    "createdById": "5efd9ff4-0f12-4861-aada-5192f3cb59fc",
+    "createdAt": "2026-06-11T17:26:05.134Z",
+    "updatedAt": "2026-06-11T17:26:05.134Z"
+  },
+  {
+    "id": "220b22c6-70ac-4dbd-851e-8bc8f575981f",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "خوشاب",
+    "name": "نوشہرہ",
+    "createdById": "92732884-e689-48d5-a2a6-aafd11da99aa",
+    "createdAt": "2026-06-12T09:22:26.841Z",
+    "updatedAt": "2026-06-12T09:22:26.841Z"
+  },
+  {
+    "id": "0c4ccbfb-f436-4688-a467-b993c720ddb6",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "راوالپنڈی",
+    "name": "ٹیکسلا",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-06-10T15:03:10.361Z",
+    "updatedAt": "2026-06-10T15:03:10.361Z"
+  },
+  {
+    "id": "92e160fd-54cf-4700-98ba-302159101dec",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "لاہور",
+    "name": "لاہور",
+    "createdById": "c9cbfd5b-81f6-4950-9dab-f29c73ccfae1",
+    "createdAt": "2026-06-12T03:50:22.704Z",
+    "updatedAt": "2026-06-12T03:50:22.704Z"
+  },
+  {
+    "id": "40725fb8-dd2d-4d76-906d-2fbe5602c1a8",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "لیہ",
+    "name": "کروڑ لعل عیسن",
+    "createdById": "e61a7508-38ce-4c40-89a8-f799e41eb129",
+    "createdAt": "2026-06-06T03:51:31.280Z",
+    "updatedAt": "2026-06-06T03:51:31.280Z"
+  },
+  {
+    "id": "906c2998-cc11-4d52-a4f5-9beb90cefd38",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "میانوالی",
+    "name": "میانوالی",
+    "createdById": "cf2b1273-4292-4699-8e8b-11a9c1335ffc",
+    "createdAt": "2026-06-07T03:30:03.320Z",
+    "updatedAt": "2026-06-07T03:30:03.320Z"
+  },
+  {
+    "id": "684b9d27-400c-4d24-a6ba-160a6c605a1c",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "میانوالی موچھ",
+    "name": "میانوالی",
+    "createdById": "f16972fa-9d32-4560-9409-f1af5114fd6e",
+    "createdAt": "2026-06-12T13:06:12.737Z",
+    "updatedAt": "2026-06-12T13:06:12.737Z"
+  },
+  {
+    "id": "1298a8dc-4e0f-4932-84d1-081c64d7774d",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "چکوال",
+    "name": "تلہ گنگ",
+    "createdById": "a0ebca91-6639-4b83-9c78-8750a95786d7",
+    "createdAt": "2026-06-12T04:35:20.106Z",
+    "updatedAt": "2026-06-12T04:35:20.106Z"
+  },
+  {
+    "id": "a1b5e11f-eccf-4d99-a1f5-76de291d1d22",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "ڈی جی خان",
+    "name": "تونسہ شریف",
+    "createdById": "05758e92-c31f-445c-8d30-74d7f356935c",
+    "createdAt": "2026-06-12T04:10:44.703Z",
+    "updatedAt": "2026-06-12T04:10:44.703Z"
+  },
+  {
+    "id": "e47b4bd4-f8e0-4a7f-9ea7-bddd42efd661",
+    "type": "tehsil",
+    "province": "Punjab",
+    "district": "ڈیرہ غازی خان",
+    "name": "تونسہ شریف",
+    "createdById": "8ed0c38e-f773-4757-be6f-3f15cfe371c9",
+    "createdAt": "2026-06-15T11:38:12.570Z",
+    "updatedAt": "2026-06-15T11:38:12.570Z"
+  },
+  {
+    "id": "5a54f83d-e2e2-41de-84c3-47d52320e18d",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Attock",
+    "createdById": "26a3628c-f7c7-4a7b-a36c-301270f90013",
+    "createdAt": "2026-06-04T13:10:06.857Z",
+    "updatedAt": "2026-06-04T13:10:06.857Z"
+  },
+  {
+    "id": "f363a4c2-2790-4962-80fe-2b82ce5bb78f",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Bahawalnagar",
+    "createdById": "5e53ea98-431e-4a3d-9928-017812351cbc",
+    "createdAt": "2026-06-04T14:23:02.421Z",
+    "updatedAt": "2026-06-04T14:23:02.421Z"
+  },
+  {
+    "id": "5d55cc5d-7595-4da8-90ea-365693bae7ab",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Bahawalpur",
+    "createdById": "8a030dcc-d7e1-4c36-aaeb-0256affaf11b",
+    "createdAt": "2026-06-08T11:15:31.438Z",
+    "updatedAt": "2026-06-08T11:15:31.438Z"
+  },
+  {
+    "id": "9c0f7223-b835-4d8b-b6e5-e4355c6fce52",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Chakwal",
+    "createdById": "49596915-45c5-4280-8cb2-2d30b5b3d37b",
+    "createdAt": "2026-06-07T13:40:31.058Z",
+    "updatedAt": "2026-06-07T13:40:31.058Z"
+  },
+  {
+    "id": "7c453f7f-61f4-427e-9c74-f090b2e51d18",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Dera ghazi khan",
+    "createdById": "690288c0-cb0c-4686-83c6-728f35efd8c7",
+    "createdAt": "2026-06-15T12:29:38.476Z",
+    "updatedAt": "2026-06-15T12:29:38.476Z"
+  },
+  {
+    "id": "dc6fe6f8-809a-4cce-8f28-d045adff2619",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Gujranwala",
+    "createdById": "97cef41f-8d79-4bb0-a37b-b67ef2c6ff8c",
+    "createdAt": "2026-06-09T04:56:41.414Z",
+    "updatedAt": "2026-06-09T04:56:41.414Z"
+  },
+  {
+    "id": "fd34d56e-4ab2-40b4-b073-399bc4b1406c",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Jhang",
+    "createdById": "5e7d962c-b459-4783-bb10-66bed7996a04",
+    "createdAt": "2026-06-07T09:13:17.854Z",
+    "updatedAt": "2026-06-07T09:13:17.854Z"
+  },
+  {
+    "id": "9031db17-8d59-4adc-92ba-6a4b09145ee8",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Jhnag",
+    "createdById": "16c97626-2bcc-46c2-9a77-31f95b45322b",
+    "createdAt": "2026-06-09T06:31:38.080Z",
+    "updatedAt": "2026-06-09T06:31:38.080Z"
+  },
+  {
+    "id": "42050a84-a6bd-4af6-9611-f11bbd62e6d2",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Kasur",
+    "createdById": "ebe5c03d-f27c-4fb5-9651-ca0dbd3d4f20",
+    "createdAt": "2026-06-07T04:53:46.163Z",
+    "updatedAt": "2026-06-07T04:53:46.163Z"
+  },
+  {
+    "id": "fabc4521-a536-4553-b630-c72825c628c8",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Khanewal",
+    "createdById": "72cadc50-ba53-4f44-980f-bece8c834172",
+    "createdAt": "2026-06-06T16:41:02.300Z",
+    "updatedAt": "2026-06-06T16:41:02.300Z"
+  },
+  {
+    "id": "66841b16-9504-4a13-a5db-e31f65f9d700",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Khushab",
+    "createdById": "f862fc47-1261-4a1d-8275-887670449deb",
+    "createdAt": "2026-06-05T06:23:37.777Z",
+    "updatedAt": "2026-06-05T06:23:37.777Z"
+  },
+  {
+    "id": "15890cfe-6504-44b3-becb-7b6095678a4a",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Lahore",
+    "createdById": "52c3e9d4-01df-4ce4-9845-d557e1cd2ca1",
+    "createdAt": "2026-06-05T10:50:42.176Z",
+    "updatedAt": "2026-06-05T10:50:42.176Z"
+  },
+  {
+    "id": "2100f7de-10a2-4d99-9ddc-393a02ad8dc0",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Leiah",
+    "createdById": "a1e0b149-11d9-402e-badb-d1318846ddc6",
+    "createdAt": "2026-06-14T03:30:14.085Z",
+    "updatedAt": "2026-06-14T03:30:14.085Z"
+  },
+  {
+    "id": "30098259-1bba-4b08-b250-21fb29261313",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Lodhran",
+    "createdById": "40030a56-989a-4695-9303-a648e0791eaa",
+    "createdAt": "2026-06-11T02:21:40.700Z",
+    "updatedAt": "2026-06-11T02:21:40.700Z"
+  },
+  {
+    "id": "1b8c1ed5-16c6-4835-994c-908974800aed",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Mianwali",
+    "createdById": "f16972fa-9d32-4560-9409-f1af5114fd6e",
+    "createdAt": "2026-06-11T14:15:53.870Z",
+    "updatedAt": "2026-06-11T14:15:53.870Z"
+  },
+  {
+    "id": "a2c17cda-ad86-480b-bc3c-8fa7d932c2cf",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Multan",
+    "createdById": "1b5307d2-a157-4ac9-8b1e-e19535ea3183",
+    "createdAt": "2026-05-24T13:03:16.180Z",
+    "updatedAt": "2026-05-24T13:03:16.180Z"
+  },
+  {
+    "id": "00440b30-2748-4544-b189-50e02f03b2e2",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Murree",
+    "createdById": "8bab67f1-0f13-4931-9acc-e42fd455379e",
+    "createdAt": "2026-06-04T11:58:11.035Z",
+    "updatedAt": "2026-06-04T11:58:11.035Z"
+  },
+  {
+    "id": "a6a48fa3-01e8-466a-a142-b9ef1dd4d40c",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Muzaffargarh",
+    "createdById": "16f2b4f4-c5a8-477f-8c21-6e15f54b864d",
+    "createdAt": "2026-06-07T00:52:43.757Z",
+    "updatedAt": "2026-06-07T00:52:43.757Z"
+  },
+  {
+    "id": "c9709d1e-522f-4873-a17e-0b776856a0c3",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Okara",
+    "createdById": "aa440807-231e-4851-9080-909073ce857c",
+    "createdAt": "2026-06-08T09:38:27.383Z",
+    "updatedAt": "2026-06-08T09:38:27.383Z"
+  },
+  {
+    "id": "253ce24d-24b8-44dd-b450-542e8a6ec710",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Rahim Yar Khan",
+    "createdById": "64e64566-5210-4669-87fc-1ff2695e19be",
+    "createdAt": "2026-06-06T13:34:28.427Z",
+    "updatedAt": "2026-06-06T13:34:28.427Z"
+  },
+  {
+    "id": "be0b9121-8a55-482f-ab44-274ab0ce8da3",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Rawalpindi",
+    "createdById": "f71b93cb-423a-4e88-9df6-9cea9358c1e6",
+    "createdAt": "2026-05-24T11:01:14.062Z",
+    "updatedAt": "2026-05-24T11:01:14.062Z"
+  },
+  {
+    "id": "1588b823-0a1c-4820-a7d4-49c563779e1a",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Sargodha",
+    "createdById": "80bb0cdd-5c9b-43c0-916a-1d621e0da78b",
+    "createdAt": "2026-06-15T15:53:15.818Z",
+    "updatedAt": "2026-06-15T15:53:15.818Z"
+  },
+  {
+    "id": "7f9bae09-b177-42aa-a217-56f815269ddf",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Talagang",
+    "createdById": "933c3392-bfb4-419f-b828-ce9c02bc5842",
+    "createdAt": "2026-06-05T07:19:01.329Z",
+    "updatedAt": "2026-06-05T07:19:01.329Z"
+  },
+  {
+    "id": "0d038ebd-1081-48f3-a1aa-ac40c6574ee8",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "Toba Tek singh",
+    "createdById": "71e514f1-1bda-46c9-b0ae-7dcf6f703f00",
+    "createdAt": "2026-06-13T03:40:20.603Z",
+    "updatedAt": "2026-06-13T03:40:20.603Z"
+  },
+  {
+    "id": "12ef0d5a-6a0c-4cd0-986f-a6588f0df30f",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "lod",
+    "createdById": "ff2e3226-fa70-4ece-b818-2e4bd00645c1",
+    "createdAt": "2026-06-13T07:45:06.926Z",
+    "updatedAt": "2026-06-13T07:45:06.926Z"
+  },
+  {
+    "id": "e22a6a1f-5d2b-48dc-9c34-399123652c75",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "تلہ گنگ",
+    "createdById": "cad39d71-3cfc-4cce-ae6e-3c24777f4bd9",
+    "createdAt": "2026-06-09T08:00:28.271Z",
+    "updatedAt": "2026-06-09T08:00:28.271Z"
+  },
+  {
+    "id": "0c8825b4-24f8-4710-93d6-f5cfc184f2d7",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "خوشاب",
+    "createdById": "5efd9ff4-0f12-4861-aada-5192f3cb59fc",
+    "createdAt": "2026-06-11T17:25:49.003Z",
+    "updatedAt": "2026-06-11T17:25:49.003Z"
+  },
+  {
+    "id": "fd9a79a7-cdf4-4972-bcd1-a51aff693d40",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "راوالپنڈی",
+    "createdById": "4acc8730-617b-4075-b070-dbcc3127ac9f",
+    "createdAt": "2026-06-10T15:02:32.054Z",
+    "updatedAt": "2026-06-10T15:02:32.054Z"
+  },
+  {
+    "id": "2dbe5417-0d7a-4dcb-bbc3-e0eaf0b54c57",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "لاہور",
+    "createdById": "c9cbfd5b-81f6-4950-9dab-f29c73ccfae1",
+    "createdAt": "2026-06-12T03:50:08.267Z",
+    "updatedAt": "2026-06-12T03:50:08.267Z"
+  },
+  {
+    "id": "b9edf32a-8917-4a62-a82c-d9a87c7bfbef",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "لیہ",
+    "createdById": "e61a7508-38ce-4c40-89a8-f799e41eb129",
+    "createdAt": "2026-06-06T03:51:21.117Z",
+    "updatedAt": "2026-06-06T03:51:21.117Z"
+  },
+  {
+    "id": "e68e6de4-5a3b-4986-ac0e-4609e9bf73ad",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "میانوالی",
+    "createdById": "cf2b1273-4292-4699-8e8b-11a9c1335ffc",
+    "createdAt": "2026-06-07T03:29:58.168Z",
+    "updatedAt": "2026-06-07T03:29:58.168Z"
+  },
+  {
+    "id": "27218c55-e104-497a-b8a7-904489d19015",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "میانوالی موچھ",
+    "createdById": "f16972fa-9d32-4560-9409-f1af5114fd6e",
+    "createdAt": "2026-06-12T13:05:47.209Z",
+    "updatedAt": "2026-06-12T13:05:47.209Z"
+  },
+  {
+    "id": "69245828-37b5-4617-b03d-d2fbd104f660",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "چکوال",
+    "createdById": "a0ebca91-6639-4b83-9c78-8750a95786d7",
+    "createdAt": "2026-06-12T04:35:02.517Z",
+    "updatedAt": "2026-06-12T04:35:02.517Z"
+  },
+  {
+    "id": "65db2d89-36bf-4a0b-8202-8141151e33ba",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "ڈی جی خان",
+    "createdById": "05758e92-c31f-445c-8d30-74d7f356935c",
+    "createdAt": "2026-06-12T04:10:38.095Z",
+    "updatedAt": "2026-06-12T04:10:38.095Z"
+  },
+  {
+    "id": "2dbf536f-cbaf-4714-bd65-ca585b9f0541",
+    "type": "district",
+    "province": "Punjab",
+    "district": null,
+    "name": "ڈیرہ غازی خان",
+    "createdById": "8ed0c38e-f773-4757-be6f-3f15cfe371c9",
+    "createdAt": "2026-06-15T11:38:06.469Z",
+    "updatedAt": "2026-06-15T11:38:06.469Z"
+  },
+  {
+    "id": "b0043709-f465-41ec-a2f3-c1ee4cc90920",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Badin",
+    "name": "Matli",
+    "createdById": "55225e55-ee1f-40e4-b6c4-6d9d8d2245e6",
+    "createdAt": "2026-06-05T14:07:25.833Z",
+    "updatedAt": "2026-06-05T14:07:25.833Z"
+  },
+  {
+    "id": "b30c4f8e-f8b8-44eb-b25e-661a60307a75",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Central Karachi",
+    "name": "Baldia",
+    "createdById": "2718567c-cf0c-4478-9aa4-29e618926eca",
+    "createdAt": "2026-06-10T11:58:24.254Z",
+    "updatedAt": "2026-06-10T11:58:24.254Z"
+  },
+  {
+    "id": "466e03d2-29b1-4774-9195-288f5426c1f0",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Central Karachi",
+    "name": "Gulberg Town",
+    "createdById": "d6e8c82d-aff0-43e8-9d14-6d8257e9b815",
+    "createdAt": "2026-06-09T07:52:30.596Z",
+    "updatedAt": "2026-06-09T07:52:30.596Z"
+  },
+  {
+    "id": "abdaba94-8dd0-42df-831e-cff5ee9cc757",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Central Karachi",
+    "name": "Gulshan Iqbal",
+    "createdById": "ef2cc711-0834-425d-a68f-58b7aba6772f",
+    "createdAt": "2026-05-22T00:55:50.711Z",
+    "updatedAt": "2026-05-22T00:55:50.711Z"
+  },
+  {
+    "id": "6f022ce6-227c-4f4d-9cff-c0c49b60e819",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Central Karachi",
+    "name": "Kemari",
+    "createdById": "42cf830e-aba8-472f-ae0d-b09db4727aff",
+    "createdAt": "2026-06-15T19:53:10.319Z",
+    "updatedAt": "2026-06-15T19:53:10.319Z"
+  },
+  {
+    "id": "d81744ba-3c20-4d5e-a911-1961826eaf2c",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Central Karachi",
+    "name": "Liaqatabad Town",
+    "createdById": "7418a3e5-104a-480d-bfed-3571f1821b1e",
+    "createdAt": "2026-06-06T15:11:29.910Z",
+    "updatedAt": "2026-06-06T15:11:29.910Z"
+  },
+  {
+    "id": "d0df43b3-d92d-47a3-941c-fcb9a0ba44b7",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Central Karachi",
+    "name": "Liaqatabad Townkl",
+    "createdById": "7418a3e5-104a-480d-bfed-3571f1821b1e",
+    "createdAt": "2026-06-09T19:01:37.798Z",
+    "updatedAt": "2026-06-09T19:01:37.798Z"
+  },
+  {
+    "id": "a6a94418-874d-4999-8d26-daf84b7e6129",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Central Karachi",
+    "name": "Nazimabad no.1",
+    "createdById": "1ab00951-bad9-4df5-a184-4cf78cd24852",
+    "createdAt": "2026-06-04T09:25:07.899Z",
+    "updatedAt": "2026-06-04T09:25:07.899Z"
+  },
+  {
+    "id": "080290e4-de39-467b-9591-786587ad3cee",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Central Karachi",
+    "name": "P. I.B colony",
+    "createdById": "a8c831e2-ee1e-40ba-8769-445687d31bd4",
+    "createdAt": "2026-05-22T16:36:10.763Z",
+    "updatedAt": "2026-05-22T16:36:10.763Z"
+  },
+  {
+    "id": "fca9ce75-53ba-416b-91b8-51af2a378c28",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Central Karachi",
+    "name": "West",
+    "createdById": "42cf830e-aba8-472f-ae0d-b09db4727aff",
+    "createdAt": "2026-06-15T19:53:51.828Z",
+    "updatedAt": "2026-06-15T19:53:51.828Z"
+  },
+  {
+    "id": "523cb57a-2b5e-4e2d-87e1-7614f6929f93",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Central Karachi",
+    "name": "کورنگی",
+    "createdById": "7061f55d-f2c3-4efa-b7ae-deb379c353e1",
+    "createdAt": "2026-06-08T15:34:57.636Z",
+    "updatedAt": "2026-06-08T15:34:57.636Z"
+  },
+  {
+    "id": "a7bd2101-50d2-4530-aa15-aabee0974763",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "East Karachi",
+    "name": "Jamshaid Town",
+    "createdById": "f7e8ff81-b5e1-4b98-984a-40e861cf7562",
+    "createdAt": "2026-06-09T16:16:49.494Z",
+    "updatedAt": "2026-06-09T16:16:49.494Z"
+  },
+  {
+    "id": "ee3a5dd6-901d-41bb-86fa-6c1f27bcc81b",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "East Karachi",
+    "name": "Korangi",
+    "createdById": "26ea2b63-1a18-4047-bed1-b4075f456068",
+    "createdAt": "2026-06-06T06:34:41.163Z",
+    "updatedAt": "2026-06-06T06:34:41.163Z"
+  },
+  {
+    "id": "8e8ee9ee-5f61-41c5-8279-49a010052abf",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "East Karachi",
+    "name": "Shah Faisal",
+    "createdById": "0d22b0a2-e5a6-4260-afcb-bc2a2c3ec730",
+    "createdAt": "2026-05-31T16:30:38.839Z",
+    "updatedAt": "2026-05-31T16:30:38.839Z"
+  },
+  {
+    "id": "d824fa88-2630-4b2d-ac06-2bee04582992",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Hyderabad",
+    "name": "Hyderabad City",
+    "createdById": "1c563e10-6625-4d6d-acdc-0b7d3995e3f0",
+    "createdAt": "2026-06-12T10:40:13.849Z",
+    "updatedAt": "2026-06-12T10:40:13.849Z"
+  },
+  {
+    "id": "b54c45b6-665c-4497-b5ec-2e12ebb71ac2",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Jacobabad",
+    "name": "Jacobabad",
+    "createdById": "51973483-7363-4ce0-8d2c-bdb237f43771",
+    "createdAt": "2026-06-15T17:27:32.184Z",
+    "updatedAt": "2026-06-15T17:27:32.184Z"
+  },
+  {
+    "id": "7efdf2da-78e6-4885-b6cd-93d3c8d1f176",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Karachi",
+    "name": "Karachi",
+    "createdById": "baa10ee0-155c-430d-82bc-ef002138a69e",
+    "createdAt": "2026-06-06T11:25:21.086Z",
+    "updatedAt": "2026-06-06T11:25:21.086Z"
+  },
+  {
+    "id": "88ce6e8e-fec5-4815-909c-a3b990ba1f24",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Karachi Mair",
+    "name": "Malir",
+    "createdById": "9c2356e7-f7ff-497a-8a47-f5b3a403d8b0",
+    "createdAt": "2026-06-13T11:56:25.774Z",
+    "updatedAt": "2026-06-13T11:56:25.774Z"
+  },
+  {
+    "id": "1d670736-3a4f-49ad-b6c2-5fdaba1c1638",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Karachi garbi",
+    "name": "Baldia town",
+    "createdById": "3c0dcb46-35c9-45e5-85f0-d9633bbcf5e8",
+    "createdAt": "2026-06-09T14:40:12.783Z",
+    "updatedAt": "2026-06-09T14:40:12.783Z"
+  },
+  {
+    "id": "ede40e0b-950d-492f-9dc5-0715fdf52cd7",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Karachi garbi",
+    "name": "Metro site",
+    "createdById": "6dcaf85a-1a48-4ec7-914e-34cae0aca255",
+    "createdAt": "2026-06-11T11:33:29.808Z",
+    "updatedAt": "2026-06-11T11:33:29.808Z"
+  },
+  {
+    "id": "6f8d4e5d-3c79-44c7-9dc1-5e96c03b2536",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Karachi garbi",
+    "name": "کراچی",
+    "createdById": "6dcaf85a-1a48-4ec7-914e-34cae0aca255",
+    "createdAt": "2026-06-11T11:38:03.293Z",
+    "updatedAt": "2026-06-11T11:38:03.293Z"
+  },
+  {
+    "id": "3a4970a3-969f-48ed-b0e8-2524805fb5ab",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Keamari",
+    "name": "Baldia Town",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-05T08:10:22.931Z",
+    "updatedAt": "2026-06-05T08:10:22.931Z"
+  },
+  {
+    "id": "43cfe40f-aa25-4724-bffa-c572e2cee554",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Keamari",
+    "name": "Keamari",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-05T08:09:51.156Z",
+    "updatedAt": "2026-06-05T08:09:51.156Z"
+  },
+  {
+    "id": "3a38344b-1683-45c6-a5a4-369b263ff15f",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Kimari",
+    "name": "Baldia",
+    "createdById": "509a3e3e-5e7c-4272-a8d4-0224ed3cfcd0",
+    "createdAt": "2026-06-13T06:46:33.013Z",
+    "updatedAt": "2026-06-13T06:46:33.013Z"
+  },
+  {
+    "id": "aedeb2f7-49e9-4d8a-bbec-f7f97470d009",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Korangi",
+    "name": "Karachi sub-division",
+    "createdById": "193e7af7-3613-4fed-a8b5-f1ec5638d27a",
+    "createdAt": "2026-06-16T08:11:37.870Z",
+    "updatedAt": "2026-06-16T08:11:37.870Z"
+  },
+  {
+    "id": "8c9f8344-0885-4048-9e82-c2b86df269b7",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Korangi",
+    "name": "Shah Faisal town",
+    "createdById": "2664a444-c4a5-4127-b715-6e712888656e",
+    "createdAt": "2026-06-11T12:40:24.896Z",
+    "updatedAt": "2026-06-11T12:40:24.896Z"
+  },
+  {
+    "id": "1ca1aa17-e044-49a3-819f-78d720afff54",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Korangi",
+    "name": "کورنگی",
+    "createdById": "71f62943-3d29-485e-bce6-8264434cdb17",
+    "createdAt": "2026-06-14T11:57:11.772Z",
+    "updatedAt": "2026-06-14T11:57:11.772Z"
+  },
+  {
+    "id": "f8e4a987-32e3-4d0c-98bb-55e367fff3b6",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Korangi Karachi",
+    "name": "Korangi Town",
+    "createdById": "df80de96-f231-483f-93f7-dfd883d6f6f1",
+    "createdAt": "2026-06-09T07:03:01.602Z",
+    "updatedAt": "2026-06-09T07:03:01.602Z"
+  },
+  {
+    "id": "ecc4b2b1-028f-4c78-8098-25bbbe8f6826",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Korangi Karachi",
+    "name": "Shah Faisal Town",
+    "createdById": "b8a405e5-1ced-4fae-9ff6-c9395e93a898",
+    "createdAt": "2026-06-13T11:29:02.758Z",
+    "updatedAt": "2026-06-13T11:29:02.758Z"
+  },
+  {
+    "id": "602ea4fa-dd09-4721-8024-d84c8968afb4",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Korangi Karachi",
+    "name": "Shah Faisal Town 5",
+    "createdById": "b8a405e5-1ced-4fae-9ff6-c9395e93a898",
+    "createdAt": "2026-06-13T11:28:40.831Z",
+    "updatedAt": "2026-06-13T11:28:40.831Z"
+  },
+  {
+    "id": "2f5f6895-a2f2-4172-b7dd-46c3455e5369",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Landhi",
+    "name": "East",
+    "createdById": "a235a328-93c8-4f23-8095-3eb781fff927",
+    "createdAt": "2026-06-12T08:06:13.397Z",
+    "updatedAt": "2026-06-12T08:06:13.397Z"
+  },
+  {
+    "id": "4bc465ed-7618-4ed2-83b4-f6144a48a694",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Liyari south",
+    "name": "Nawalan liyari",
+    "createdById": "4a3a88f9-64ab-4844-a239-b3e82079ffd2",
+    "createdAt": "2026-06-09T12:18:05.057Z",
+    "updatedAt": "2026-06-09T12:18:05.057Z"
+  },
+  {
+    "id": "e11e4325-3c33-4b3b-8c13-3cec9e688342",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Malir",
+    "name": "Bin Qasim Town",
+    "createdById": "08cb3314-3139-4c50-845a-991d9a268472",
+    "createdAt": "2026-06-07T18:16:10.885Z",
+    "updatedAt": "2026-06-07T18:16:10.885Z"
+  },
+  {
+    "id": "ca5cfb93-d25e-44c6-9324-90a2b160319d",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Malir Karachi",
+    "name": "Bin Qasim Town",
+    "createdById": "e6711fa3-668a-48fb-ac05-8c378c636291",
+    "createdAt": "2026-06-11T15:16:36.655Z",
+    "updatedAt": "2026-06-11T15:16:36.655Z"
+  },
+  {
+    "id": "3cb09b8d-28bf-47cb-b062-a0077aaf8b32",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Malir Karachi",
+    "name": "Gadap",
+    "createdById": "b2edd448-a976-44ae-b984-47b605bbd77c",
+    "createdAt": "2026-06-10T19:35:16.814Z",
+    "updatedAt": "2026-06-10T19:35:16.814Z"
+  },
+  {
+    "id": "ee3efeeb-18c3-48cf-9218-1101827a8899",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Malir Karachi",
+    "name": "Gadap Town",
+    "createdById": "b2edd448-a976-44ae-b984-47b605bbd77c",
+    "createdAt": "2026-06-10T18:36:56.463Z",
+    "updatedAt": "2026-06-10T18:36:56.463Z"
+  },
+  {
+    "id": "8cfc9172-951d-4950-af3b-2caeb85ced86",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Malir Karachi",
+    "name": "Malir",
+    "createdById": "ef2cc711-0834-425d-a68f-58b7aba6772f",
+    "createdAt": "2026-05-28T11:29:40.767Z",
+    "updatedAt": "2026-05-28T11:29:40.767Z"
+  },
+  {
+    "id": "e3091e40-30fb-4ae7-ae9d-98d66d5373c7",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Malir Karachi",
+    "name": "Malir Town",
+    "createdById": "e6711fa3-668a-48fb-ac05-8c378c636291",
+    "createdAt": "2026-06-01T13:04:50.478Z",
+    "updatedAt": "2026-06-01T13:04:50.478Z"
+  },
+  {
+    "id": "3a070bd2-cf2f-4e37-97c5-f870857c5f63",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Malir Karachi",
+    "name": "landhi",
+    "createdById": "6f8950c8-2446-4527-99b3-35d2dc7a361b",
+    "createdAt": "2026-06-06T07:17:13.888Z",
+    "updatedAt": "2026-06-06T07:17:13.888Z"
+  },
+  {
+    "id": "7b07fe5f-66e3-4bfb-95ef-19b675f5ae0c",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Matiari",
+    "name": "Saeedabad",
+    "createdById": "dae04a2b-bc83-4fb0-b3de-986042a61d37",
+    "createdAt": "2026-06-06T06:34:21.581Z",
+    "updatedAt": "2026-06-06T06:34:21.581Z"
+  },
+  {
+    "id": "6788e55d-a7fc-4d34-85a8-88540c21e13c",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Mirpurkhas",
+    "name": "Mirpurkhas",
+    "createdById": "5dc232ec-6c2d-46c4-a09a-4761041a872a",
+    "createdAt": "2026-06-15T09:31:18.491Z",
+    "updatedAt": "2026-06-15T09:31:18.491Z"
+  },
+  {
+    "id": "73d46d9f-3e45-4cad-a598-c54963c95010",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Naushahro Feroze",
+    "name": "Bhiria",
+    "createdById": "84bd88df-5718-4596-8c70-722ce0b487f2",
+    "createdAt": "2026-06-14T18:22:17.280Z",
+    "updatedAt": "2026-06-14T18:22:17.280Z"
+  },
+  {
+    "id": "75134853-b324-4544-bdb1-dd83138c7f7d",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Naushahro Feroze",
+    "name": "Naushahro Feroze",
+    "createdById": "84bd88df-5718-4596-8c70-722ce0b487f2",
+    "createdAt": "2026-06-14T18:21:48.649Z",
+    "updatedAt": "2026-06-14T18:21:48.649Z"
+  },
+  {
+    "id": "570065de-0a8b-4a5a-b142-ac4989a78d10",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Nausharo Feroz",
+    "name": "Moro",
+    "createdById": "a8ed71bd-f9ca-4b6d-b423-68fd6321fc2a",
+    "createdAt": "2026-06-12T10:13:17.088Z",
+    "updatedAt": "2026-06-12T10:13:17.088Z"
+  },
+  {
+    "id": "3c722cd8-ce13-4aef-844d-fdbe9e4e59a9",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Sanghar",
+    "name": "Khipro",
+    "createdById": "97853216-ef8f-4097-8731-774c349377af",
+    "createdAt": "2026-06-10T06:27:16.514Z",
+    "updatedAt": "2026-06-10T06:27:16.514Z"
+  },
+  {
+    "id": "8700e478-380a-4cab-ae8b-5af59915edf2",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Shahee",
+    "name": "Sakrand",
+    "createdById": "68a5b637-e400-4eb2-8e64-b2d87cf48935",
+    "createdAt": "2026-06-13T06:31:00.441Z",
+    "updatedAt": "2026-06-13T06:31:00.441Z"
+  },
+  {
+    "id": "50509eb9-bb22-49cf-9483-3f81d6c150fd",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Shaheed Benazir Abad",
+    "name": "Sakrand",
+    "createdById": "68a5b637-e400-4eb2-8e64-b2d87cf48935",
+    "createdAt": "2026-06-06T12:19:53.064Z",
+    "updatedAt": "2026-06-06T12:19:53.064Z"
+  },
+  {
+    "id": "241e4f5e-8c77-404e-ab43-cf48495e99f8",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Tando Allahyar",
+    "name": "Tando Allahyar",
+    "createdById": "38994e72-4444-40c0-91bb-fb220a11bf32",
+    "createdAt": "2026-06-09T09:02:40.574Z",
+    "updatedAt": "2026-06-09T09:02:40.574Z"
+  },
+  {
+    "id": "c13a86c5-f42f-4ab6-87ea-da47eff4c997",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Tharparkar",
+    "name": "Mithi",
+    "createdById": "eac31f2e-2050-422b-9f77-9699ee211d92",
+    "createdAt": "2026-06-15T05:41:29.567Z",
+    "updatedAt": "2026-06-15T05:41:29.567Z"
+  },
+  {
+    "id": "456ba97c-78d8-4abb-8fa0-6d694030c845",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "Umer Kot",
+    "name": "molha.daro",
+    "createdById": "f02b8188-7990-46ce-9200-52726bc7ce82",
+    "createdAt": "2026-06-04T13:48:13.258Z",
+    "updatedAt": "2026-06-04T13:48:13.258Z"
+  },
+  {
+    "id": "c92fcaa4-83d0-4f7f-9c00-71da636d2f56",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "West Karachi",
+    "name": "Orangi Town",
+    "createdById": "00ce8811-52ca-4d44-b7e3-cf59d4b9f8c0",
+    "createdAt": "2026-06-08T13:43:09.609Z",
+    "updatedAt": "2026-06-08T13:43:09.609Z"
+  },
+  {
+    "id": "aeb679f9-50e2-4b38-9030-6a4970262880",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "تارکو",
+    "name": "تارکو",
+    "createdById": "3d6af142-6bbc-4f0d-89fa-ef50f745d441",
+    "createdAt": "2026-06-09T12:23:06.718Z",
+    "updatedAt": "2026-06-09T12:23:06.718Z"
+  },
+  {
+    "id": "5dcb4b86-ddd1-41f6-9c66-9a216f5d1f63",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "تارکو",
+    "name": "ٹھری میروہ",
+    "createdById": "3d6af142-6bbc-4f0d-89fa-ef50f745d441",
+    "createdAt": "2026-06-09T12:24:01.319Z",
+    "updatedAt": "2026-06-09T12:24:01.319Z"
+  },
+  {
+    "id": "183a7332-3077-4938-aa8b-1ccbf50a6c22",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "جنوبی",
+    "name": "جمشید ٹاون",
+    "createdById": "55f5d0e2-6678-48bd-afbc-63f6be6fb006",
+    "createdAt": "2026-06-10T17:24:51.698Z",
+    "updatedAt": "2026-06-10T17:24:51.698Z"
+  },
+  {
+    "id": "fa1a9b86-20ff-472c-9b18-40b465bfe396",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "جنوبی",
+    "name": "لیاری",
+    "createdById": "208264e0-0ee3-4ec1-b4bb-924a082f14aa",
+    "createdAt": "2026-06-10T05:46:48.078Z",
+    "updatedAt": "2026-06-10T05:46:48.078Z"
+  },
+  {
+    "id": "8198cecb-d819-499e-b20f-adab9befc75a",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "جنوبی",
+    "name": "لیاری ٹاؤن",
+    "createdById": "208264e0-0ee3-4ec1-b4bb-924a082f14aa",
+    "createdAt": "2026-06-10T09:12:37.926Z",
+    "updatedAt": "2026-06-10T09:12:37.926Z"
+  },
+  {
+    "id": "ebf5731d-bb70-46ed-a660-fce76e8383d1",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "جنوبی",
+    "name": "کراچی جنوبی",
+    "createdById": "55f5d0e2-6678-48bd-afbc-63f6be6fb006",
+    "createdAt": "2026-06-10T17:39:24.243Z",
+    "updatedAt": "2026-06-10T17:39:24.243Z"
+  },
+  {
+    "id": "d03631e4-9ccb-4cf0-ada5-8e85ae3a3a70",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "جنوبی کراچی",
+    "name": "لیاری ٹاؤن",
+    "createdById": "208264e0-0ee3-4ec1-b4bb-924a082f14aa",
+    "createdAt": "2026-06-10T08:27:36.115Z",
+    "updatedAt": "2026-06-10T08:27:36.115Z"
+  },
+  {
+    "id": "7cbd70b7-5080-4cb6-8c2c-5875e1ff0248",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "جنوبی کراچی",
+    "name": "کراچی",
+    "createdById": "8f3d9916-c2ec-4543-841f-a99b4117b6b5",
+    "createdAt": "2026-06-16T05:02:46.582Z",
+    "updatedAt": "2026-06-16T05:02:46.582Z"
+  },
+  {
+    "id": "bf5f978e-0708-4fc4-afcf-a3267fbedc3e",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "خیرپور",
+    "name": "فیض گنج",
+    "createdById": "6fa2bd23-fbdb-420b-bca3-09531316a765",
+    "createdAt": "2026-06-10T14:20:07.225Z",
+    "updatedAt": "2026-06-10T14:20:07.225Z"
+  },
+  {
+    "id": "27ebe44c-d917-4537-969c-901fedf5cee9",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "خیرپور میرس",
+    "name": "تحصیل ٹھری میرواہ",
+    "createdById": "3d6af142-6bbc-4f0d-89fa-ef50f745d441",
+    "createdAt": "2026-06-11T17:26:15.375Z",
+    "updatedAt": "2026-06-11T17:26:15.375Z"
+  },
+  {
+    "id": "afb77c25-0b3f-4691-8a08-7e93ca61b1e2",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "خیرپور میرس",
+    "name": "صوبھودیرو",
+    "createdById": "014fa887-f730-40de-8d74-dbba967cad37",
+    "createdAt": "2026-06-16T05:22:51.748Z",
+    "updatedAt": "2026-06-16T05:22:51.748Z"
+  },
+  {
+    "id": "701d4c92-e9dd-4b33-89d5-67cea8b245c7",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "خیرپور میرس",
+    "name": "ٹھری میرواھ",
+    "createdById": "44940404-8906-4a6c-9539-e99834dcfc19",
+    "createdAt": "2026-05-26T03:35:28.793Z",
+    "updatedAt": "2026-05-26T03:35:28.793Z"
+  },
+  {
+    "id": "37293205-448e-4a1d-aaa7-2cc31c5a36cc",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "سانگھڑ",
+    "name": "سنجھورو",
+    "createdById": "97853216-ef8f-4097-8731-774c349377af",
+    "createdAt": "2026-06-08T16:07:07.937Z",
+    "updatedAt": "2026-06-08T16:07:07.937Z"
+  },
+  {
+    "id": "2c615d87-af10-4397-ac1b-aa704e5a20f5",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "سانگھڑ",
+    "name": "مٹھو کھوسو",
+    "createdById": "29e61ace-7f16-4da1-bae3-f6e96acbbece",
+    "createdAt": "2026-05-25T03:31:58.736Z",
+    "updatedAt": "2026-05-25T03:31:58.736Z"
+  },
+  {
+    "id": "77713324-a6f4-4c47-a125-9ddebbe4391b",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "شکارپور",
+    "name": "گڑھی یاسین",
+    "createdById": "f67f27a7-bd0a-46a7-b074-9b3db0e200ed",
+    "createdAt": "2026-06-04T04:13:09.707Z",
+    "updatedAt": "2026-06-04T04:13:09.707Z"
+  },
+  {
+    "id": "0c0b4fd7-57cf-4a6c-bca6-32454d8fe1ac",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "شہید بینظیر آباد",
+    "name": "دوڑ",
+    "createdById": "8f3d9916-c2ec-4543-841f-a99b4117b6b5",
+    "createdAt": "2026-06-15T05:05:50.593Z",
+    "updatedAt": "2026-06-15T05:05:50.593Z"
+  },
+  {
+    "id": "260eabee-85ce-42a4-ad08-c07104663a12",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "ضلع خیرپور میرس سندھ",
+    "name": "ٹھری میرواہ",
+    "createdById": "3d6af142-6bbc-4f0d-89fa-ef50f745d441",
+    "createdAt": "2026-06-10T11:58:06.917Z",
+    "updatedAt": "2026-06-10T11:58:06.917Z"
+  },
+  {
+    "id": "cda8d37c-e3bc-4087-85e3-d37b215ef7c6",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "عربی کراچی",
+    "name": "اتحاد ٹاون",
+    "createdById": "757fb868-5a2b-482c-be54-7700164ae96d",
+    "createdAt": "2026-06-12T10:44:00.893Z",
+    "updatedAt": "2026-06-12T10:44:00.893Z"
+  },
+  {
+    "id": "1e2962ff-c7aa-4103-a2ad-d604d6c22046",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "قمبر شھدادکوٹ",
+    "name": "وارہ",
+    "createdById": "df4500f4-a637-4a62-8198-14ee6020d828",
+    "createdAt": "2026-06-08T15:12:31.529Z",
+    "updatedAt": "2026-06-08T15:12:31.529Z"
+  },
+  {
+    "id": "995ee003-0cef-42f8-a16b-756175ea72df",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "قمبر شہدادکوٹ",
+    "name": "قمبر",
+    "createdById": "df4500f4-a637-4a62-8198-14ee6020d828",
+    "createdAt": "2026-06-11T05:07:08.724Z",
+    "updatedAt": "2026-06-11T05:07:08.724Z"
+  },
+  {
+    "id": "28813c02-dd65-4b73-87b8-5af935d86360",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "قمبر شہدادکوٹ",
+    "name": "وارہ",
+    "createdById": "df4500f4-a637-4a62-8198-14ee6020d828",
+    "createdAt": "2026-06-09T06:12:31.561Z",
+    "updatedAt": "2026-06-09T06:12:31.561Z"
+  },
+  {
+    "id": "5fa3439c-0806-4ccb-bb2f-21874aae8073",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "ملیر",
+    "name": "ابراھیم حیدری ٹاون",
+    "createdById": "cdf89bda-9a98-44c0-ac0c-82732c94fdee",
+    "createdAt": "2026-06-15T11:38:07.449Z",
+    "updatedAt": "2026-06-15T11:38:07.449Z"
+  },
+  {
+    "id": "4349c5b2-e0cc-45b9-9588-0fdbdf71ed7b",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "ملیر",
+    "name": "لانڈھی",
+    "createdById": "09e640d7-80aa-4cd8-a536-e8fbe871d7c8",
+    "createdAt": "2026-06-05T14:51:50.642Z",
+    "updatedAt": "2026-06-05T14:51:50.642Z"
+  },
+  {
+    "id": "cb030b70-114c-4bbb-ad95-0aec284a622f",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "ملیر",
+    "name": "ملیر",
+    "createdById": "568fcfae-cde2-40a6-805a-6a3540c832f2",
+    "createdAt": "2026-05-28T16:02:52.388Z",
+    "updatedAt": "2026-05-28T16:02:52.388Z"
+  },
+  {
+    "id": "1f666016-9030-417d-a8f5-4f8613e7d54c",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "ملیر",
+    "name": "ٹاٶن",
+    "createdById": "cdf89bda-9a98-44c0-ac0c-82732c94fdee",
+    "createdAt": "2026-06-15T11:37:08.278Z",
+    "updatedAt": "2026-06-15T11:37:08.278Z"
+  },
+  {
+    "id": "45fee261-2ae4-4b6e-9a31-8a9d8b3cbf0e",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "ملیر کراچی",
+    "name": "بن قاسم ٹاؤن",
+    "createdById": "08cb3314-3139-4c50-845a-991d9a268472",
+    "createdAt": "2026-06-09T17:06:48.241Z",
+    "updatedAt": "2026-06-09T17:06:48.241Z"
+  },
+  {
+    "id": "1be10ec9-eddc-4eed-b123-6a7e94f02cdb",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "ملیر کراچی",
+    "name": "ملیر",
+    "createdById": "16f505fc-5ed0-4b96-9f95-4b572b1c95c4",
+    "createdAt": "2026-06-09T17:07:31.418Z",
+    "updatedAt": "2026-06-09T17:07:31.418Z"
+  },
+  {
+    "id": "1f015215-1d6a-48d6-915c-0317e8918d61",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "ملیر کراچی",
+    "name": "پاکستان",
+    "createdById": "d02c3569-68e0-4510-ad1f-41900fec1862",
+    "createdAt": "2026-06-14T15:46:23.757Z",
+    "updatedAt": "2026-06-14T15:46:23.757Z"
+  },
+  {
+    "id": "0dfbbcce-a7a8-4fd5-8e27-0bf3874a7395",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "مٹیاری",
+    "name": "مٹیاری",
+    "createdById": "468601ad-c7ed-4463-8c69-8b88a739acfb",
+    "createdAt": "2026-06-15T10:23:25.654Z",
+    "updatedAt": "2026-06-15T10:23:25.654Z"
+  },
+  {
+    "id": "990b7fef-2790-43ae-9892-a40eb5e6a3c0",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "مٹیاری",
+    "name": "نیو سعید آباد",
+    "createdById": "d32463e3-5f9d-4696-9f66-181fa26ea6b9",
+    "createdAt": "2026-05-27T03:43:59.422Z",
+    "updatedAt": "2026-05-27T03:43:59.422Z"
+  },
+  {
+    "id": "ce7bf17a-9b09-48c8-90c3-b3d55021fd27",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "مٹیاری،",
+    "name": "نیو سعید آباد",
+    "createdById": "d7da4524-0812-4a1c-bb41-6cf0ec512fbb",
+    "createdAt": "2026-06-13T05:31:29.410Z",
+    "updatedAt": "2026-06-13T05:31:29.410Z"
+  },
+  {
+    "id": "252f705c-8ab5-442f-b55e-16886439c0a2",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "نواب شاہ",
+    "name": "نواب شاہ",
+    "createdById": "443c5884-b6ad-47a9-8fcf-7e370c25a6d1",
+    "createdAt": "2026-06-10T08:55:28.360Z",
+    "updatedAt": "2026-06-10T08:55:28.360Z"
+  },
+  {
+    "id": "e0466d94-6fba-47b5-bef5-471cf63493ca",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "نوشھرو فیروز",
+    "name": "نوشھرو فیروز",
+    "createdById": "79904c4b-4ee8-4da8-9638-ab3f56e31061",
+    "createdAt": "2026-06-02T05:53:59.993Z",
+    "updatedAt": "2026-06-02T05:53:59.993Z"
+  },
+  {
+    "id": "b47cc8e7-6adb-4bf5-ba38-231f459e6b86",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "نوشہرو فیروز",
+    "name": "نوشہرو فیروز",
+    "createdById": "79904c4b-4ee8-4da8-9638-ab3f56e31061",
+    "createdAt": "2026-06-02T11:33:17.706Z",
+    "updatedAt": "2026-06-02T11:33:17.706Z"
+  },
+  {
+    "id": "c39c6d45-686f-463f-b304-8dd4865d4124",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "کراچی",
+    "name": "کراچی",
+    "createdById": "4124e83c-1881-4696-9183-66ca79d13c6e",
+    "createdAt": "2026-06-10T13:47:47.386Z",
+    "updatedAt": "2026-06-10T13:47:47.386Z"
+  },
+  {
+    "id": "0f6f58ae-cc46-4d0d-b25e-09f69c02d046",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "کراچی جنوبی",
+    "name": "کراچی",
+    "createdById": "55f5d0e2-6678-48bd-afbc-63f6be6fb006",
+    "createdAt": "2026-06-13T12:52:24.937Z",
+    "updatedAt": "2026-06-13T12:52:24.937Z"
+  },
+  {
+    "id": "10cddfe0-2009-409b-a450-6d5486c7651d",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "کراچی ملیر",
+    "name": "ملیر",
+    "createdById": "68addf1d-d13e-4871-ade8-2e45e57504f4",
+    "createdAt": "2026-06-06T10:08:36.230Z",
+    "updatedAt": "2026-06-06T10:08:36.230Z"
+  },
+  {
+    "id": "b07a3544-a1a2-4c5b-84fc-6cfc49652340",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "کورنگی",
+    "name": "کورنگی",
+    "createdById": "42cf830e-aba8-472f-ae0d-b09db4727aff",
+    "createdAt": "2026-06-12T10:25:48.381Z",
+    "updatedAt": "2026-06-12T10:25:48.381Z"
+  },
+  {
+    "id": "d06891a7-0140-4727-a7e7-ef77c72d39f0",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "کیماڑی",
+    "name": "اتحاد ٹاون",
+    "createdById": "757fb868-5a2b-482c-be54-7700164ae96d",
+    "createdAt": "2026-06-14T10:34:49.148Z",
+    "updatedAt": "2026-06-14T10:34:49.148Z"
+  },
+  {
+    "id": "594621ce-eeed-4600-8b0d-b6098df0c996",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "کیماڑی",
+    "name": "بلدیہ ٹاؤن",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-07T09:59:58.026Z",
+    "updatedAt": "2026-06-07T09:59:58.026Z"
+  },
+  {
+    "id": "245f0348-73fc-4704-8be3-5c755273c24d",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "کیماڑی",
+    "name": "ویسٹ",
+    "createdById": "757fb868-5a2b-482c-be54-7700164ae96d",
+    "createdAt": "2026-06-14T04:57:47.597Z",
+    "updatedAt": "2026-06-14T04:57:47.597Z"
+  },
+  {
+    "id": "ee5b3c3e-350f-46eb-be38-d12378e0816a",
+    "type": "tehsil",
+    "province": "Sindh",
+    "district": "گھوٹکی",
+    "name": "ڈہرکی",
+    "createdById": "77e32426-3bd2-4e0e-a98b-9e4f4ea23d49",
+    "createdAt": "2026-06-02T12:22:34.507Z",
+    "updatedAt": "2026-06-02T12:22:34.507Z"
+  },
+  {
+    "id": "cf13debf-a92d-4c79-87af-183e88ccf122",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Badin",
+    "createdById": "55225e55-ee1f-40e4-b6c4-6d9d8d2245e6",
+    "createdAt": "2026-06-05T14:06:56.552Z",
+    "updatedAt": "2026-06-05T14:06:56.552Z"
+  },
+  {
+    "id": "c080d185-8053-4bff-b972-67e47bbc788e",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Central Karachi",
+    "createdById": "ef2cc711-0834-425d-a68f-58b7aba6772f",
+    "createdAt": "2026-05-22T00:55:31.921Z",
+    "updatedAt": "2026-05-22T00:55:31.921Z"
+  },
+  {
+    "id": "fb89106c-be02-4b73-8437-ac2d730cb81d",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "East Karachi",
+    "createdById": "0d22b0a2-e5a6-4260-afcb-bc2a2c3ec730",
+    "createdAt": "2026-05-31T16:26:11.758Z",
+    "updatedAt": "2026-05-31T16:26:11.758Z"
+  },
+  {
+    "id": "820dc6fe-74ea-4397-bae8-58c71fcac9d3",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Hyderabad",
+    "createdById": "1c563e10-6625-4d6d-acdc-0b7d3995e3f0",
+    "createdAt": "2026-06-12T10:40:01.837Z",
+    "updatedAt": "2026-06-12T10:40:01.837Z"
+  },
+  {
+    "id": "3bdb8048-945c-49fb-8d64-bcc272fd197e",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Jacobabad",
+    "createdById": "51973483-7363-4ce0-8d2c-bdb237f43771",
+    "createdAt": "2026-06-15T17:27:28.162Z",
+    "updatedAt": "2026-06-15T17:27:28.162Z"
+  },
+  {
+    "id": "e50fc62f-4828-49ec-8284-6cb023933af0",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Karachi",
+    "createdById": "baa10ee0-155c-430d-82bc-ef002138a69e",
+    "createdAt": "2026-06-06T11:25:03.871Z",
+    "updatedAt": "2026-06-06T11:25:03.871Z"
+  },
+  {
+    "id": "2ce60b3d-d0cb-4770-960a-f8614de9ecba",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Karachi Mair",
+    "createdById": "9c2356e7-f7ff-497a-8a47-f5b3a403d8b0",
+    "createdAt": "2026-06-13T11:56:08.035Z",
+    "updatedAt": "2026-06-13T11:56:08.035Z"
+  },
+  {
+    "id": "ff09d887-8a05-4e2d-a994-cc61323a28d3",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Karachi West",
+    "createdById": "05cabf7f-d03d-4571-aba9-0062db4a9fd8",
+    "createdAt": "2026-06-13T19:52:12.948Z",
+    "updatedAt": "2026-06-13T19:52:12.948Z"
+  },
+  {
+    "id": "11c07f7d-23a5-41c0-a2f3-f5d8c7f750f8",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Karachi garbi",
+    "createdById": "21b349de-c68c-4b8e-b671-229f9c3917e1",
+    "createdAt": "2026-06-06T10:40:43.831Z",
+    "updatedAt": "2026-06-06T10:40:43.831Z"
+  },
+  {
+    "id": "35234e76-afec-4e24-aff8-edb2d7c6ab8d",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Keamari",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-05T08:09:18.915Z",
+    "updatedAt": "2026-06-05T08:09:18.915Z"
+  },
+  {
+    "id": "06c2bf35-3555-4412-986a-ead4fbf7b12c",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Kemari district",
+    "createdById": "5ed6f84e-0596-4595-a888-8f3c3d0120d5",
+    "createdAt": "2026-06-10T13:33:36.558Z",
+    "updatedAt": "2026-06-10T13:33:36.558Z"
+  },
+  {
+    "id": "ae8cbbae-507d-4dad-8f80-a6ee213e85ae",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Kimari",
+    "createdById": "509a3e3e-5e7c-4272-a8d4-0224ed3cfcd0",
+    "createdAt": "2026-06-13T06:46:28.316Z",
+    "updatedAt": "2026-06-13T06:46:28.316Z"
+  },
+  {
+    "id": "e8458364-eb50-4714-9d4d-27f4abe96030",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Korangi",
+    "createdById": "2664a444-c4a5-4127-b715-6e712888656e",
+    "createdAt": "2026-06-11T12:40:05.597Z",
+    "updatedAt": "2026-06-11T12:40:05.597Z"
+  },
+  {
+    "id": "c4c2c6e2-015d-4548-8be6-7e2802abd96f",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Korangi Karachi",
+    "createdById": "df80de96-f231-483f-93f7-dfd883d6f6f1",
+    "createdAt": "2026-06-09T07:02:56.637Z",
+    "updatedAt": "2026-06-09T07:02:56.637Z"
+  },
+  {
+    "id": "4d9a5fdc-4b65-499b-88f8-ceab1ece724b",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Landhi",
+    "createdById": "a235a328-93c8-4f23-8095-3eb781fff927",
+    "createdAt": "2026-06-12T08:05:55.217Z",
+    "updatedAt": "2026-06-12T08:05:55.217Z"
+  },
+  {
+    "id": "3cb3f8ab-8dd4-430c-af8b-55c06998c0f4",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Liyari south",
+    "createdById": "4a3a88f9-64ab-4844-a239-b3e82079ffd2",
+    "createdAt": "2026-06-09T12:17:36.486Z",
+    "updatedAt": "2026-06-09T12:17:36.486Z"
+  },
+  {
+    "id": "44016aa3-2724-4203-a433-23d64fbba175",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Malir",
+    "createdById": "08cb3314-3139-4c50-845a-991d9a268472",
+    "createdAt": "2026-06-07T18:15:56.910Z",
+    "updatedAt": "2026-06-07T18:15:56.910Z"
+  },
+  {
+    "id": "63840d12-5419-46b1-b517-b3729fd106c8",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Malir Karachi",
+    "createdById": "ef2cc711-0834-425d-a68f-58b7aba6772f",
+    "createdAt": "2026-05-28T11:29:10.228Z",
+    "updatedAt": "2026-05-28T11:29:10.228Z"
+  },
+  {
+    "id": "0a3b37fe-4bab-4afa-b665-b45e641b1ad1",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Matiari",
+    "createdById": "e6711fa3-668a-48fb-ac05-8c378c636291",
+    "createdAt": "2026-06-02T15:52:36.918Z",
+    "updatedAt": "2026-06-02T15:52:36.918Z"
+  },
+  {
+    "id": "7a0c8f42-0045-4445-9eda-de9df747686e",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Mirpurkhas",
+    "createdById": "5dc232ec-6c2d-46c4-a09a-4761041a872a",
+    "createdAt": "2026-06-15T09:31:12.721Z",
+    "updatedAt": "2026-06-15T09:31:12.721Z"
+  },
+  {
+    "id": "d1597b9d-89f9-41f1-9380-8cf05799efc4",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Naushahro Feroze",
+    "createdById": "84bd88df-5718-4596-8c70-722ce0b487f2",
+    "createdAt": "2026-06-14T18:21:37.903Z",
+    "updatedAt": "2026-06-14T18:21:37.903Z"
+  },
+  {
+    "id": "d0aa83f0-f0a9-48ff-a0d4-2a418b7f0473",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Nausharo Feroz",
+    "createdById": "a8ed71bd-f9ca-4b6d-b423-68fd6321fc2a",
+    "createdAt": "2026-06-12T10:13:10.663Z",
+    "updatedAt": "2026-06-12T10:13:10.663Z"
+  },
+  {
+    "id": "72675e9b-0aa7-46fd-b865-5730f9139cf1",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Sanghar",
+    "createdById": "97853216-ef8f-4097-8731-774c349377af",
+    "createdAt": "2026-06-10T06:26:33.239Z",
+    "updatedAt": "2026-06-10T06:26:33.239Z"
+  },
+  {
+    "id": "24f83d2f-30b4-4801-ba0d-ebc4cf64f864",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Shahee",
+    "createdById": "68a5b637-e400-4eb2-8e64-b2d87cf48935",
+    "createdAt": "2026-06-13T06:30:45.923Z",
+    "updatedAt": "2026-06-13T06:30:45.923Z"
+  },
+  {
+    "id": "a8d9b874-b56b-47e8-8c71-afcb7ece0dff",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Shaheed Benazir Abad",
+    "createdById": "68a5b637-e400-4eb2-8e64-b2d87cf48935",
+    "createdAt": "2026-06-06T12:19:48.523Z",
+    "updatedAt": "2026-06-06T12:19:48.523Z"
+  },
+  {
+    "id": "6d7af3ca-1dac-4816-8a0d-56ec839777dd",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Tando Allahyar",
+    "createdById": "38994e72-4444-40c0-91bb-fb220a11bf32",
+    "createdAt": "2026-06-09T09:02:30.079Z",
+    "updatedAt": "2026-06-09T09:02:30.079Z"
+  },
+  {
+    "id": "7ff55536-7223-49d8-b7a6-3dbe11bd5a62",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Tharparkar",
+    "createdById": "eac31f2e-2050-422b-9f77-9699ee211d92",
+    "createdAt": "2026-06-15T05:41:13.681Z",
+    "updatedAt": "2026-06-15T05:41:13.681Z"
+  },
+  {
+    "id": "f8b5d563-50a5-40bc-a869-1f89de84eda5",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Umer Kot",
+    "createdById": "f02b8188-7990-46ce-9200-52726bc7ce82",
+    "createdAt": "2026-06-04T13:47:44.380Z",
+    "updatedAt": "2026-06-04T13:47:44.380Z"
+  },
+  {
+    "id": "64d60493-4178-4080-b8e1-76b14d884248",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "West Karachi",
+    "createdById": "6f8950c8-2446-4527-99b3-35d2dc7a361b",
+    "createdAt": "2026-06-06T07:15:36.633Z",
+    "updatedAt": "2026-06-06T07:15:36.633Z"
+  },
+  {
+    "id": "af8d78de-b813-4b74-a33e-1617610287a1",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "Zia colony",
+    "createdById": "fb4e05f6-4c94-4734-bcc9-8ce412e8a339",
+    "createdAt": "2026-06-14T19:17:44.598Z",
+    "updatedAt": "2026-06-14T19:17:44.598Z"
+  },
+  {
+    "id": "7e664ee2-0a7e-4903-8f4e-9d8f73936f6e",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "تارکو",
+    "createdById": "3d6af142-6bbc-4f0d-89fa-ef50f745d441",
+    "createdAt": "2026-06-09T12:22:44.975Z",
+    "updatedAt": "2026-06-09T12:22:44.975Z"
+  },
+  {
+    "id": "cb410a3d-b43d-46cc-8955-e8885a125ed0",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "جنوبی",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-09T18:34:36.086Z",
+    "updatedAt": "2026-06-09T18:34:36.086Z"
+  },
+  {
+    "id": "4324e751-08db-4d98-ab39-cc458e857ae8",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "جنوبی کراچی",
+    "createdById": "208264e0-0ee3-4ec1-b4bb-924a082f14aa",
+    "createdAt": "2026-06-10T08:27:28.715Z",
+    "updatedAt": "2026-06-10T08:27:28.715Z"
+  },
+  {
+    "id": "cadf17c6-0752-4143-890b-8b05515081b9",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "خیرپور",
+    "createdById": "6fa2bd23-fbdb-420b-bca3-09531316a765",
+    "createdAt": "2026-06-10T14:19:46.323Z",
+    "updatedAt": "2026-06-10T14:19:46.323Z"
+  },
+  {
+    "id": "b27f967a-8d93-48ec-8b53-521c35350d01",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "خیرپور میرس",
+    "createdById": "44940404-8906-4a6c-9539-e99834dcfc19",
+    "createdAt": "2026-05-26T03:35:21.859Z",
+    "updatedAt": "2026-05-26T03:35:21.859Z"
+  },
+  {
+    "id": "1e115c30-955a-492f-8aa5-2487b1d060ce",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "سانگھڑ",
+    "createdById": "29e61ace-7f16-4da1-bae3-f6e96acbbece",
+    "createdAt": "2026-05-25T03:31:47.306Z",
+    "updatedAt": "2026-05-25T03:31:47.306Z"
+  },
+  {
+    "id": "8d2c1ded-170b-46fc-a558-02a293dfd6a4",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "شکارپور",
+    "createdById": "f67f27a7-bd0a-46a7-b074-9b3db0e200ed",
+    "createdAt": "2026-06-04T04:12:51.200Z",
+    "updatedAt": "2026-06-04T04:12:51.200Z"
+  },
+  {
+    "id": "279a6beb-63de-4df9-88c5-d79b50d772d0",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "شہید بینظیر آباد",
+    "createdById": "8f3d9916-c2ec-4543-841f-a99b4117b6b5",
+    "createdAt": "2026-06-15T05:05:38.332Z",
+    "updatedAt": "2026-06-15T05:05:38.332Z"
+  },
+  {
+    "id": "514b260f-a1ee-45c3-9c43-798bdc779fbc",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "ضلع خیرپور میرس سندھ",
+    "createdById": "3d6af142-6bbc-4f0d-89fa-ef50f745d441",
+    "createdAt": "2026-06-10T11:57:44.064Z",
+    "updatedAt": "2026-06-10T11:57:44.064Z"
+  },
+  {
+    "id": "fbe89200-2e94-4ca3-872a-5604fb31a027",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "عربی کراچی",
+    "createdById": "757fb868-5a2b-482c-be54-7700164ae96d",
+    "createdAt": "2026-06-12T10:43:49.577Z",
+    "updatedAt": "2026-06-12T10:43:49.577Z"
+  },
+  {
+    "id": "bf792dd7-0f7b-4575-b814-c4962506cab7",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "غربی",
+    "createdById": "757fb868-5a2b-482c-be54-7700164ae96d",
+    "createdAt": "2026-06-12T10:44:31.848Z",
+    "updatedAt": "2026-06-12T10:44:31.848Z"
+  },
+  {
+    "id": "fedba185-8d15-4323-be6d-8c6402e23792",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "قمبر شھدادکوٹ",
+    "createdById": "df4500f4-a637-4a62-8198-14ee6020d828",
+    "createdAt": "2026-06-08T15:12:21.143Z",
+    "updatedAt": "2026-06-08T15:12:21.143Z"
+  },
+  {
+    "id": "ee2fdaa8-45ac-4ce0-af41-0c7ecde729b5",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "قمبر شہدادکوٹ",
+    "createdById": "df4500f4-a637-4a62-8198-14ee6020d828",
+    "createdAt": "2026-06-09T06:12:31.512Z",
+    "updatedAt": "2026-06-09T06:12:31.512Z"
+  },
+  {
+    "id": "2fa5b186-a75f-47eb-8270-e6e4d6962f99",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "لانڈھی",
+    "createdById": "71f62943-3d29-485e-bce6-8264434cdb17",
+    "createdAt": "2026-06-10T10:18:59.416Z",
+    "updatedAt": "2026-06-10T10:18:59.416Z"
+  },
+  {
+    "id": "f1908f55-4c6c-4a2e-a1ba-132195463f84",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "ملیر",
+    "createdById": "568fcfae-cde2-40a6-805a-6a3540c832f2",
+    "createdAt": "2026-05-28T16:02:48.096Z",
+    "updatedAt": "2026-05-28T16:02:48.096Z"
+  },
+  {
+    "id": "b1deffd6-7abc-42fc-bae1-678f0afb5351",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "ملیر کراچی",
+    "createdById": "08cb3314-3139-4c50-845a-991d9a268472",
+    "createdAt": "2026-06-09T17:06:07.825Z",
+    "updatedAt": "2026-06-09T17:06:07.825Z"
+  },
+  {
+    "id": "9d951473-4eb0-45b3-b0b2-d6b211f0746c",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "مٹیاری",
+    "createdById": "d32463e3-5f9d-4696-9f66-181fa26ea6b9",
+    "createdAt": "2026-05-27T03:43:47.235Z",
+    "updatedAt": "2026-05-27T03:43:47.235Z"
+  },
+  {
+    "id": "ee905d43-13cc-4b88-bfa7-ec88ee22bc13",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "مٹیاری،",
+    "createdById": "d7da4524-0812-4a1c-bb41-6cf0ec512fbb",
+    "createdAt": "2026-06-13T05:31:17.084Z",
+    "updatedAt": "2026-06-13T05:31:17.084Z"
+  },
+  {
+    "id": "d48b9a41-dda2-4ac2-b40a-9d9bfb8bf1d1",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "نواب شاہ",
+    "createdById": "443c5884-b6ad-47a9-8fcf-7e370c25a6d1",
+    "createdAt": "2026-06-10T08:54:50.003Z",
+    "updatedAt": "2026-06-10T08:54:50.003Z"
+  },
+  {
+    "id": "e7f69b61-1052-40eb-82a8-9640d6787bdb",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "نوشھرو فیروز",
+    "createdById": "79904c4b-4ee8-4da8-9638-ab3f56e31061",
+    "createdAt": "2026-06-02T05:53:52.871Z",
+    "updatedAt": "2026-06-02T05:53:52.871Z"
+  },
+  {
+    "id": "31866b65-5c55-4c4a-a479-31f08bee0b4b",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "نوشہرو فیروز",
+    "createdById": "79904c4b-4ee8-4da8-9638-ab3f56e31061",
+    "createdAt": "2026-06-02T11:33:11.860Z",
+    "updatedAt": "2026-06-02T11:33:11.860Z"
+  },
+  {
+    "id": "bff336fc-b699-44bb-bf18-1faf02e319b6",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "کراچی",
+    "createdById": "4124e83c-1881-4696-9183-66ca79d13c6e",
+    "createdAt": "2026-06-10T13:47:42.312Z",
+    "updatedAt": "2026-06-10T13:47:42.312Z"
+  },
+  {
+    "id": "570e8f40-549c-4cb9-91c8-9faf4a205721",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "کراچی جنوبی",
+    "createdById": "55f5d0e2-6678-48bd-afbc-63f6be6fb006",
+    "createdAt": "2026-06-10T17:39:48.726Z",
+    "updatedAt": "2026-06-10T17:39:48.726Z"
+  },
+  {
+    "id": "32315c2b-a26e-4287-86eb-561cce90226c",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "کراچی ملیر",
+    "createdById": "68addf1d-d13e-4871-ade8-2e45e57504f4",
+    "createdAt": "2026-06-06T10:08:29.085Z",
+    "updatedAt": "2026-06-06T10:08:29.085Z"
+  },
+  {
+    "id": "f3cf5f5e-31fd-434e-8b17-47a2f9f00eed",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "کورنگی",
+    "createdById": "71f62943-3d29-485e-bce6-8264434cdb17",
+    "createdAt": "2026-06-09T08:12:32.428Z",
+    "updatedAt": "2026-06-09T08:12:32.428Z"
+  },
+  {
+    "id": "bd0ca4f7-fc4f-481a-9f32-9da222a5cf05",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "کیماڑی",
+    "createdById": "3c877eca-7336-4309-ad7c-f80e376e0322",
+    "createdAt": "2026-06-07T09:59:42.452Z",
+    "updatedAt": "2026-06-07T09:59:42.452Z"
+  },
+  {
+    "id": "44db9643-9566-40e1-b29c-c22e8abbd7bc",
+    "type": "district",
+    "province": "Sindh",
+    "district": null,
+    "name": "گھوٹکی",
+    "createdById": "77e32426-3bd2-4e0e-a98b-9e4f4ea23d49",
+    "createdAt": "2026-06-02T12:22:26.390Z",
+    "updatedAt": "2026-06-02T12:22:26.390Z"
+  }
+]
