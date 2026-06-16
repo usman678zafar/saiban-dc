@@ -114,8 +114,8 @@ async function getAdminPortalData() {
     { label: 'Needs Correction', value: needsCorrectionApplications, tone: 'orange' },
     { label: 'Final Approved', value: adminApprovedApplications, tone: 'emerald' },
     { label: 'Rejected', value: rejectedApplications, tone: 'red' },
-    { label: 'Users', value: totalUsers, tone: 'amber' },
-    { label: 'Admins', value: adminUsers, tone: 'charcoal' },
+    { label: 'System Users', value: totalUsers, tone: 'amber' },
+    { label: 'System Admin', value: adminUsers, tone: 'charcoal' },
   ];
 
   return { metrics, fieldWorkers, recentApplications };
