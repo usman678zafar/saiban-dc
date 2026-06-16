@@ -37,10 +37,29 @@ const reviewerHistoryActions = [
   'rejected_by_reviewer',
 ];
 
-function reviewerViewWhere(view: ReviewerView): Prisma.OrphanApplicationWhereInput {
+function reviewerApprovedWhere(reviewerId?: string, isPrivilegedReviewerView = false): Prisma.OrphanApplicationWhereInput {
+  const where: Prisma.OrphanApplicationWhereInput = { status: { in: reviewerApprovedStatuses } };
+  if (isPrivilegedReviewerView) return where;
+
+  return {
+    ...where,
+    auditLogs: {
+      some: {
+        action: 'approved_by_reviewer',
+        actorId: reviewerId ?? '',
+      },
+    },
+  };
+}
+
+function reviewerViewWhere(
+  view: ReviewerView,
+  reviewerId?: string,
+  isPrivilegedReviewerView = false,
+): Prisma.OrphanApplicationWhereInput {
   switch (view) {
     case 'approved':
-      return { status: { in: reviewerApprovedStatuses } };
+      return reviewerApprovedWhere(reviewerId, isPrivilegedReviewerView);
     case 'rejected':
       return {
         status: ApplicationStatus.rejected,
@@ -50,7 +69,7 @@ function reviewerViewWhere(view: ReviewerView): Prisma.OrphanApplicationWhereInp
       return {
         OR: [
           { status: ApplicationStatus.supervisor_approved },
-          { status: { in: reviewerApprovedStatuses } },
+          reviewerApprovedWhere(reviewerId, isPrivilegedReviewerView),
           {
             status: ApplicationStatus.rejected,
             auditLogs: { some: { action: { in: reviewerHistoryActions } } },
@@ -108,7 +127,7 @@ export default async function ReviewerApplicationsPage({
     ...(!isPrivilegedReviewerView ? [{ createdById: { not: user?.id ?? '' } }] : []),
   ];
   const whereParts: Prisma.OrphanApplicationWhereInput[] = [
-    reviewerViewWhere(currentView),
+    reviewerViewWhere(currentView, user?.id, isPrivilegedReviewerView),
     ...baseWhereParts,
     ...(search ? [applicationSearchWhere(search)] : []),
   ];
@@ -158,7 +177,7 @@ export default async function ReviewerApplicationsPage({
     Promise.all(reviewerViews.map(async (view) => ({
       view: view.value,
       count: await withDatabaseRetry(() => prisma.orphanApplication.count({
-        where: { AND: [reviewerViewWhere(view.value), ...baseWhereParts] },
+        where: { AND: [reviewerViewWhere(view.value, user?.id, isPrivilegedReviewerView), ...baseWhereParts] },
       })),
     }))),
   ]);
