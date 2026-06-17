@@ -195,8 +195,15 @@ function locationLabel(point: ViewerGeoApplication, fallback: string, language: 
     .join(', ') || fallback;
 }
 
-export default function ViewerGeoStoryMap({ points }: { points: ViewerGeoApplication[] }) {
-  const { language } = useViewerLanguage();
+export default function ViewerGeoStoryMap({
+  points,
+  languageOverride,
+}: {
+  points: ViewerGeoApplication[];
+  languageOverride?: Language;
+}) {
+  const { language: selectedLanguage } = useViewerLanguage();
+  const language = languageOverride ?? selectedLanguage;
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [locationLevel, setLocationLevel] = useState<LocationLevel>('district');
   const [locationFilter, setLocationFilter] = useState<string>('all');

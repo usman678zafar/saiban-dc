@@ -2,12 +2,12 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { ApplicationStatus } from '@prisma/client';
-import { ArrowRight, CheckCircle2, ClipboardList, FileCheck2, FileText, RotateCcw, Send, ShieldCheck, UsersRound } from 'lucide-react';
+import { CheckCircle2, ClipboardList, FileCheck2, FileText, RotateCcw, Send, ShieldCheck, UsersRound } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
-import { applicationStatusLabel } from '@/lib/application-workflow';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
-import { formatDate } from '@/lib/date-format';
+import ViewerGeoStoryMap, { type ViewerGeoApplication } from '@/components/viewer-geo-story-map';
+import { ViewerLanguageProvider } from '@/components/viewer-language';
 
 type AdminMetric = {
   label: string;
@@ -15,32 +15,15 @@ type AdminMetric = {
   tone: 'blue' | 'steel' | 'violet' | 'indigo' | 'emerald' | 'sky' | 'red' | 'orange' | 'amber' | 'charcoal';
 };
 
-type RecentApplication = {
-  id: string;
-  registrationNumber: string | null;
-  childName: string | null;
-  status: string;
-  migrationStatus: string;
-  updatedAt: Date;
+const PAKISTAN_GEO_BOUNDS = {
+  minLat: 23.35,
+  maxLat: 37.1,
+  minLng: 60.75,
+  maxLng: 77.25,
 };
-
-type FieldWorker = {
-  id: string;
-  fieldWorkerId: string | null;
-  name: string | null;
-  phoneNumber: string | null;
-  cnic: string | null;
-  address: string | null;
-  project: string | null;
-  createdAt: Date;
-};
-
-function humanizeMigrationStatus(status: string) {
-  return status.replace(/_/g, ' ');
-}
 
 async function getAdminPortalData() {
-  const [applicationStatusCounts, allApplicationStatusCounts, submittedByFieldWorkersCount] = await Promise.all([
+  const [applicationStatusCounts, allApplicationStatusCounts, submittedByFieldWorkersCount, mappedApplications] = await Promise.all([
     prisma.orphanApplication.groupBy({
       by: ['status'],
       _count: { _all: true },
@@ -53,6 +36,29 @@ async function getAdminPortalData() {
       where: {
         status: ApplicationStatus.submitted,
         createdBy: { role: 'field_worker' },
+      },
+    }),
+    prisma.orphanApplication.findMany({
+      where: {
+        latitude: { gte: PAKISTAN_GEO_BOUNDS.minLat, lte: PAKISTAN_GEO_BOUNDS.maxLat },
+        longitude: { gte: PAKISTAN_GEO_BOUNDS.minLng, lte: PAKISTAN_GEO_BOUNDS.maxLng },
+      },
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        id: true,
+        registrationNumber: true,
+        childName: true,
+        status: true,
+        collectorProject: true,
+        province: true,
+        district: true,
+        tehsil: true,
+        city: true,
+        fullAddress: true,
+        latitude: true,
+        longitude: true,
+        gpsAccuracyMeters: true,
+        gpsCapturedAt: true,
       },
     }),
   ]);
@@ -77,34 +83,6 @@ async function getAdminPortalData() {
   const totalUsers = userRoleCounts.reduce((total, item) => total + item._count._all, 0);
   const adminUsers = (userCountByRole.get('admin') ?? 0) + (userCountByRole.get('super_admin') ?? 0);
 
-  const fieldWorkers = await prisma.user.findMany({
-    where: { role: 'field_worker' },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      fieldWorkerId: true,
-      name: true,
-      phoneNumber: true,
-      cnic: true,
-      address: true,
-      project: true,
-      createdAt: true,
-    },
-  }) as FieldWorker[];
-
-  const recentApplications = await prisma.orphanApplication.findMany({
-    orderBy: { updatedAt: 'desc' },
-    take: 8,
-    select: {
-      id: true,
-      registrationNumber: true,
-      childName: true,
-      status: true,
-      migrationStatus: true,
-      updatedAt: true,
-    },
-  }) as RecentApplication[];
-
   const metrics: AdminMetric[] = [
     { label: 'Total Applications', value: totalApplications, tone: 'blue' },
     { label: 'Drafts', value: draftApplications, tone: 'steel' },
@@ -118,7 +96,31 @@ async function getAdminPortalData() {
     { label: 'System Admin', value: adminUsers, tone: 'charcoal' },
   ];
 
-  return { metrics, fieldWorkers, recentApplications };
+  const geoApplications: ViewerGeoApplication[] = mappedApplications
+    .filter((application): application is typeof application & { latitude: number; longitude: number } => (
+      typeof application.latitude === 'number'
+      && typeof application.longitude === 'number'
+      && Number.isFinite(application.latitude)
+      && Number.isFinite(application.longitude)
+    ))
+    .map((application) => ({
+      id: application.id,
+      registrationNumber: application.registrationNumber,
+      childName: application.childName,
+      status: application.status,
+      collectorProject: application.collectorProject,
+      province: application.province,
+      district: application.district,
+      tehsil: application.tehsil,
+      city: application.city,
+      fullAddress: application.fullAddress,
+      latitude: application.latitude,
+      longitude: application.longitude,
+      gpsAccuracyMeters: application.gpsAccuracyMeters,
+      gpsCapturedAt: application.gpsCapturedAt?.toISOString() ?? null,
+    }));
+
+  return { metrics, geoApplications };
 }
 
 export default async function AdminPortalPage() {
@@ -131,7 +133,7 @@ export default async function AdminPortalPage() {
     redirect('/dashboard');
   }
 
-  const { metrics, fieldWorkers, recentApplications } = await getAdminPortalData();
+  const { metrics, geoApplications } = await getAdminPortalData();
   const metricStyles = {
     blue: { icon: ClipboardList, card: 'bg-[#2563eb]' },
     steel: { icon: FileText, card: 'bg-[#64748b]' },
@@ -185,87 +187,9 @@ export default async function AdminPortalPage() {
             })}
           </section>
 
-          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,0.85fr)_minmax(360px,0.55fr)] 2xl:grid-cols-[minmax(0,0.78fr)_minmax(420px,0.52fr)]">
-            <section className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
-              <div className="flex flex-col gap-2 border-b border-[#edf2f7] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-base font-semibold text-[#0f1f33]">Recent Applications</h2>
-                  <p className="mt-0.5 text-xs text-[#8a9bb3]">Latest records sorted by update time.</p>
-                </div>
-                <Link href="/admin/applications?status=all" className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 py-2 text-xs font-semibold text-[#0f1f33] hover:bg-[#eef4fb] sm:w-auto">
-                  View All
-                  <ArrowRight size={16} />
-                </Link>
-              </div>
-              <div className="divide-y divide-[#edf2f7]">
-                {recentApplications.length === 0 ? (
-                  <p className="px-4 py-10 text-center text-sm text-[#8a9bb3] sm:px-6">No applications found.</p>
-                ) : (
-                  recentApplications.map((application: RecentApplication) => (
-                    <div key={application.id} className="grid gap-2 px-4 py-3 hover:bg-[#f8fbff] sm:grid-cols-[minmax(0,1.4fr)_auto] sm:items-center lg:grid-cols-[minmax(0,1.2fr)_minmax(132px,0.48fr)_minmax(110px,0.4fr)_minmax(96px,0.36fr)_auto]">
-                      <div className="min-w-0">
-                        <p className="break-words text-base font-semibold leading-6 text-[#0f1f33] sm:text-sm">{application.registrationNumber ?? application.id}</p>
-                        <p className="mt-1 truncate text-sm text-[#8a9bb3] sm:text-xs">{application.childName ?? 'No child name'}</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2 text-xs sm:justify-end lg:contents">
-                        <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb] lg:min-w-0 lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium lg:text-[#506784] lg:truncate">
-                          {applicationStatusLabel(application.status)}
-                        </span>
-                        <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold capitalize text-[#506784] lg:min-w-0 lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium lg:truncate">
-                          {humanizeMigrationStatus(application.migrationStatus)}
-                        </span>
-                        <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#8a9bb3] lg:bg-transparent lg:px-0 lg:py-0 lg:text-sm lg:font-medium">{formatDate(application.updatedAt)}</span>
-                        <Link href={`/admin/applications/${application.id}`} className="inline-flex min-h-9 items-center justify-center rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff] lg:justify-self-end">
-                          Review
-                        </Link>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </section>
-
-            <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white xl:self-start">
-              <div className="flex flex-col gap-2 border-b border-[#edf2f7] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-base font-semibold text-[#0f1f33]">Field Workers</h2>
-                  <p className="mt-0.5 text-xs text-[#8a9bb3]">People with access to the field worker portal.</p>
-                </div>
-                <Link href="/admin/field-workers" className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 py-2 text-xs font-semibold text-[#0f1f33] hover:bg-[#eef4fb] sm:w-auto">
-                  View All
-                  <ArrowRight size={16} />
-                </Link>
-              </div>
-              <div>
-                {fieldWorkers.length === 0 ? (
-                  <p className="p-4 text-sm text-[#8a9bb3]">No field workers yet.</p>
-                ) : (
-                  <div className="grid gap-2 p-3">
-                    {fieldWorkers.slice(0, 5).map((worker: FieldWorker) => (
-                      <article key={worker.id} className="rounded-lg border border-[#edf2f7] bg-[#fbfdff] p-3">
-                        <div className="flex min-w-0 items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-[#0f1f33]">{worker.name ?? 'Unnamed worker'}</p>
-                            <p className="mt-0.5 truncate font-mono text-[11px] text-[#2563eb]">{worker.fieldWorkerId ?? worker.id}</p>
-                          </div>
-                          <span className="shrink-0 text-xs text-[#8a9bb3]">{formatDate(worker.createdAt)}</span>
-                        </div>
-                        <div className="mt-2 grid gap-2 text-xs text-[#506784] sm:grid-cols-2">
-                          <p className="min-w-0 truncate"><span className="font-semibold text-[#0f1f33]">Department:</span> {worker.project ?? '-'}</p>
-                          <p className="min-w-0 truncate"><span className="font-semibold text-[#0f1f33]">Phone:</span> {worker.phoneNumber ?? '-'}</p>
-                        </div>
-                      </article>
-                    ))}
-                    {fieldWorkers.length > 5 ? (
-                      <Link href="/admin/field-workers" className="rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 py-2 text-center text-xs font-semibold text-[#2563eb] hover:bg-[#eef4fb]">
-                        See all {fieldWorkers.length} field workers
-                      </Link>
-                    ) : null}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <ViewerLanguageProvider>
+            <ViewerGeoStoryMap points={geoApplications} languageOverride="en" />
+          </ViewerLanguageProvider>
     </AdminShell>
   );
 }
