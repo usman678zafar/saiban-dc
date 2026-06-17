@@ -17,6 +17,8 @@ type SuccessInfo = {
   password: string;
 };
 
+const SECURITY_CHECK_FAILED_MESSAGE = 'Security check failed. Please try again.';
+
 export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: string }) {
   const router = useRouter();
   const { startLoading } = useNavigationLoading();
@@ -53,7 +55,12 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
     setIsSubmitting(false);
 
     if (!response.ok) {
-      setError(result?.message ?? 'Registration failed. Please try again.');
+      const nextError = result?.message ?? 'Registration failed. Please try again.';
+      setError(nextError);
+      if (nextError === SECURITY_CHECK_FAILED_MESSAGE) {
+        setCaptchaToken('');
+        (window as { turnstile?: { reset?: () => void } }).turnstile?.reset?.();
+      }
       return;
     }
 
@@ -194,7 +201,12 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
             />
           </label>
 
-          {error ? <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 sm:col-span-2">{error}</p> : null}
+          {error ? (
+            <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 sm:col-span-2">
+              <p className="font-medium">{error}</p>
+              {error === SECURITY_CHECK_FAILED_MESSAGE ? <SecurityCheckHelp /> : null}
+            </div>
+          ) : null}
 
           {turnstileSiteKey ? (
             <div className="flex min-h-[65px] justify-center sm:col-span-2">
@@ -224,6 +236,29 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
           </p>
         </form>
         <AuthFooter />
+      </div>
+    </div>
+  );
+}
+
+function SecurityCheckHelp() {
+  return (
+    <div className="mt-2 space-y-2 border-t border-red-100 pt-2 text-[11px] leading-4 text-red-800">
+      <div>
+        <p className="font-semibold">Please try this:</p>
+        <ul className="mt-1 list-disc space-y-0.5 pl-4">
+          <li>Refresh the page and complete the Cloudflare check again.</li>
+          <li>Press Register only once.</li>
+          <li>If you waited too long, the security check may have expired.</li>
+        </ul>
+      </div>
+      <div className="text-right" dir="rtl" lang="ur">
+        <p className="font-semibold">براہِ کرم یہ کریں:</p>
+        <ul className="mt-1 list-disc space-y-0.5 pr-4">
+          <li>صفحہ ریفریش کریں اور Cloudflare چیک دوبارہ مکمل کریں۔</li>
+          <li>Register بٹن صرف ایک بار دبائیں۔</li>
+          <li>زیادہ دیر انتظار کرنے سے سیکیورٹی چیک ختم ہو سکتا ہے۔</li>
+        </ul>
       </div>
     </div>
   );
