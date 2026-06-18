@@ -3762,14 +3762,7 @@ export default function OrphanApplicationWizard({
             <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Home Details / گھر کی تفصیلات')}</h2>
             <p className="mt-1 text-sm text-slate-600">Capture the household address and property status.</p>
           </div>
-          {!readOnly && addressSelectionIssues.length > 0 ? (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
-              <p className="font-semibold">This address needs to be corrected.</p>
-              <p className="mt-1 leading-6">
-                Please reselect the invalid Home step address fields from the dropdowns below. Submission will stay blocked until these issues are fixed.
-              </p>
-            </div>
-          ) : null}
+  
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
