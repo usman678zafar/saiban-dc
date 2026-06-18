@@ -693,7 +693,9 @@ export async function POST(request: NextRequest) {
     if (status === 'submitted') {
       throw new Error('Save the application as a draft, upload all required documents and attestation, then submit.');
     }
-    await validateAddressSelection({ ...payload, status });
+    if (status === 'submitted') {
+      await validateAddressSelection({ ...payload, status });
+    }
     const application = await prisma.orphanApplication.create({
       data: {
         ...payload,
@@ -775,7 +777,10 @@ export async function PATCH(request: NextRequest) {
       updatedById: user.id,
       status: canOwnerEdit ? validated.status ?? application.status : application.status,
     };
-    await validateAddressSelection(updateData);
+    const shouldStrictlyValidateAddress = updateData.status === 'submitted' || !canOwnerEdit;
+    if (shouldStrictlyValidateAddress) {
+      await validateAddressSelection(updateData);
+    }
     await validateSubmittedDocuments(id, updateData);
 
     const shouldGenerateRegistrationNumber = application.status !== 'submitted' && updateData.status === 'submitted' && !application.registrationNumber;
