@@ -5,6 +5,7 @@ import { Edit2, Plus, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/date-format';
 import { formatCnic, formatPakistanMobile } from '@/lib/contact-format';
+import { AutofillTrap, fieldNoAutofillProps, formNoAutofillProps, passwordNoAutofillProps } from './autofill-guard';
 import PasswordInput from './password-input';
 
 export type ReviewerListItem = {
@@ -184,15 +185,17 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
               </button>
             </div>
 
-            <form onSubmit={submit} className="grid gap-4 px-6 py-5">
+            <form {...formNoAutofillProps} onSubmit={submit} className="relative grid gap-4 px-6 py-5">
+              <AutofillTrap />
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>Name <span className="text-rose-500">*</span></span>
-                  <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                  <input {...fieldNoAutofillProps} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                 </label>
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>Phone Number <span className="text-rose-500">*</span></span>
                   <input
+                    {...fieldNoAutofillProps}
                     value={form.phoneNumber}
                     onChange={(event) => setForm({ ...form, phoneNumber: formatPakistanMobile(event.target.value) })}
                     required
@@ -207,11 +210,11 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>CNIC <span className="text-xs text-slate-400">(optional)</span></span>
-                  <input value={form.cnic} onChange={(event) => setForm({ ...form, cnic: formatCnic(event.target.value) })} inputMode="numeric" placeholder="42101-0536155-7" maxLength={15} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                  <input {...fieldNoAutofillProps} value={form.cnic} onChange={(event) => setForm({ ...form, cnic: formatCnic(event.target.value) })} inputMode="numeric" placeholder="42101-0536155-7" maxLength={15} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                 </label>
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>Address <span className="text-xs text-slate-400">(optional)</span></span>
-                  <input value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                  <input {...fieldNoAutofillProps} value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                 </label>
               </div>
               <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
@@ -232,7 +235,7 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
               {selected ? (
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>New Password <span className="text-xs text-slate-400">(optional)</span></span>
-                  <PasswordInput value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} minLength={form.password ? 4 : undefined} placeholder="Leave blank to keep current password" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                  <PasswordInput {...passwordNoAutofillProps} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} minLength={form.password ? 4 : undefined} placeholder="Leave blank to keep current password" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                 </label>
               ) : null}
 

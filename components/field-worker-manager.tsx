@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/date-format';
 import { formatCnic, formatPakistanMobile } from '@/lib/contact-format';
 import { useNavigationLoading } from './navigation-loading';
+import { AutofillTrap, fieldNoAutofillProps, formNoAutofillProps, passwordNoAutofillProps } from './autofill-guard';
 import PasswordInput from './password-input';
 
 export type FieldWorkerListItem = {
@@ -536,11 +537,13 @@ export default function FieldWorkerManager({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid gap-4 px-6 py-5">
+            <form {...formNoAutofillProps} onSubmit={handleSubmit} className="relative grid gap-4 px-6 py-5">
+              <AutofillTrap />
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>Name <span className="text-rose-500">*</span></span>
                   <input
+                    {...fieldNoAutofillProps}
                     value={form.name}
                     onChange={(event) => updateForm('name', event.target.value)}
                     required
@@ -550,6 +553,7 @@ export default function FieldWorkerManager({
                 <label className="grid gap-2 text-sm text-slate-700">
                   <span>Phone Number <span className="text-rose-500">*</span></span>
                   <input
+                    {...fieldNoAutofillProps}
                     value={form.phoneNumber}
                     onChange={(event) => updateForm('phoneNumber', event.target.value)}
                     required
@@ -569,6 +573,7 @@ export default function FieldWorkerManager({
                     <span className="ml-1 text-xs text-slate-400">(optional)</span>
                   </span>
                   <input
+                    {...fieldNoAutofillProps}
                     value={form.cnic}
                     onChange={(event) => updateForm('cnic', event.target.value)}
                     inputMode="numeric"
@@ -620,6 +625,7 @@ export default function FieldWorkerManager({
                   <span className="ml-1 text-xs text-slate-400">(optional)</span>
                 </span>
                 <textarea
+                  {...fieldNoAutofillProps}
                   value={form.address}
                   onChange={(event) => updateForm('address', event.target.value)}
                   rows={3}
@@ -630,6 +636,7 @@ export default function FieldWorkerManager({
               <label className="grid gap-2 text-sm text-slate-700">
                 <span>Reference <span className="text-xs text-slate-400">(optional)</span></span>
                 <input
+                  {...fieldNoAutofillProps}
                   value={form.reference}
                   onChange={(event) => updateForm('reference', event.target.value)}
                   className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -642,6 +649,7 @@ export default function FieldWorkerManager({
                   {modalMode === 'add' ? <span className="text-rose-500"> *</span> : null}
                 </span>
                 <PasswordInput
+                  {...passwordNoAutofillProps}
                   value={form.password}
                   onChange={(event) => updateForm('password', event.target.value)}
                   minLength={form.password ? 4 : undefined}

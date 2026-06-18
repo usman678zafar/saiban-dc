@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { fieldWorkerProjects } from '@/lib/field-workers';
+import { AutofillTrap, fieldNoAutofillProps, formNoAutofillProps, passwordNoAutofillProps } from './autofill-guard';
 import PasswordInput, { PasswordValueReveal } from './password-input';
 
 function digitsOnly(value: string) {
@@ -60,10 +61,12 @@ export default function FieldWorkerForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4 grid gap-4">
+    <form {...formNoAutofillProps} onSubmit={handleSubmit} className="relative mt-4 grid gap-4">
+      <AutofillTrap />
       <label className="grid gap-2 text-sm text-slate-700">
         <span>Name</span>
         <input
+          {...fieldNoAutofillProps}
           value={name}
           onChange={(event) => setName(event.target.value)}
           required
@@ -73,6 +76,7 @@ export default function FieldWorkerForm() {
       <label className="grid gap-2 text-sm text-slate-700">
         <span>Phone Number</span>
         <input
+          {...fieldNoAutofillProps}
           value={phoneNumber}
           onChange={(event) => setPhoneNumber(event.target.value)}
           required
@@ -83,6 +87,7 @@ export default function FieldWorkerForm() {
       <label className="grid gap-2 text-sm text-slate-700">
         <span>CNIC <span className="text-xs text-slate-400">(optional)</span></span>
         <input
+          {...fieldNoAutofillProps}
           value={cnic}
           onChange={(event) => setCnic(event.target.value)}
           inputMode="numeric"
@@ -92,6 +97,7 @@ export default function FieldWorkerForm() {
       <label className="grid gap-2 text-sm text-slate-700">
         <span>Address/پتہ <span className="text-xs text-slate-400">(optional)</span></span>
         <textarea
+          {...fieldNoAutofillProps}
           value={address}
           onChange={(event) => setAddress(event.target.value)}
           rows={3}
@@ -101,6 +107,7 @@ export default function FieldWorkerForm() {
       <label className="grid gap-2 text-sm text-slate-700">
         <span>Reference <span className="text-xs text-slate-400">(optional)</span></span>
         <input
+          {...fieldNoAutofillProps}
           value={reference}
           onChange={(event) => setReference(event.target.value)}
           className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -141,6 +148,7 @@ export default function FieldWorkerForm() {
         </label>
         {useCustomPassword ? (
           <PasswordInput
+            {...passwordNoAutofillProps}
             value={customPassword}
             onChange={(event) => setCustomPassword(event.target.value)}
             required
