@@ -8,6 +8,7 @@ declare module 'next-auth' {
       email?: string | null;
       role?: 'super_admin' | 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer';
       sessionVersion?: number;
+      lastActiveAt?: number;
       passwordChangeRequired?: boolean;
       canCreateApplications?: boolean;
       canManageFieldWorkers?: boolean;

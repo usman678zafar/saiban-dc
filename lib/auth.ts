@@ -5,6 +5,11 @@ import { type NextAuthOptions } from 'next-auth';
 import type { Prisma } from '@prisma/client';
 import { prisma } from './prisma';
 import { getSessionVersion, getSessionVersionUpdateData, hasSessionVersionColumn } from './session-version';
+import {
+  SESSION_INACTIVITY_REFRESH_SECONDS,
+  SESSION_INACTIVITY_TIMEOUT_SECONDS,
+  isSessionIdleExpired,
+} from './session-timeout';
 
 export type Role = 'super_admin' | 'admin' | 'reviewer' | 'supervisor' | 'field_worker' | 'viewer';
 
@@ -28,6 +33,7 @@ declare module 'next-auth' {
       email?: string | null;
       role?: Role;
       sessionVersion?: number;
+      lastActiveAt?: number;
       passwordChangeRequired?: boolean;
       canCreateApplications?: boolean;
       canManageFieldWorkers?: boolean;
@@ -37,6 +43,7 @@ declare module 'next-auth' {
   interface User {
     role?: Role;
     sessionVersion?: number;
+    lastActiveAt?: number;
     passwordChangeRequired?: boolean;
     canCreateApplications?: boolean;
     canManageFieldWorkers?: boolean;
@@ -48,11 +55,23 @@ declare module 'next-auth/jwt' {
     id?: string;
     role?: Role;
     sessionVersion?: number;
+    lastActiveAt?: number;
     passwordChangeRequired?: boolean;
     canCreateApplications?: boolean;
     canManageFieldWorkers?: boolean;
     sessionInvalid?: boolean;
   }
+}
+
+function invalidateToken(token: import('next-auth/jwt').JWT) {
+  token.sessionInvalid = true;
+  delete token.id;
+  delete token.role;
+  delete token.sessionVersion;
+  delete token.lastActiveAt;
+  delete token.passwordChangeRequired;
+  delete token.canCreateApplications;
+  delete token.canManageFieldWorkers;
 }
 
 async function ensureBootstrapAdmin(email: string, password: string) {
@@ -90,6 +109,11 @@ function digitsOnly(value: string) {
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
+    maxAge: SESSION_INACTIVITY_TIMEOUT_SECONDS,
+    updateAge: SESSION_INACTIVITY_REFRESH_SECONDS,
+  },
+  jwt: {
+    maxAge: SESSION_INACTIVITY_TIMEOUT_SECONDS,
   },
   pages: {
     signIn: '/signin',
@@ -238,11 +262,12 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
         token.sessionVersion = user.sessionVersion ?? 0;
+        token.lastActiveAt = Date.now();
         token.passwordChangeRequired = user.passwordChangeRequired ?? false;
         token.canCreateApplications = user.canCreateApplications ?? false;
         token.canManageFieldWorkers = user.canManageFieldWorkers ?? false;
@@ -251,6 +276,15 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (token.id) {
+        if (isSessionIdleExpired(token.lastActiveAt)) {
+          invalidateToken(token);
+          return token;
+        }
+
+        if (trigger === 'update') {
+          token.lastActiveAt = Date.now();
+        }
+
         const sessionVersionEnabled = await hasSessionVersionColumn();
         const currentSessionVersion = sessionVersionEnabled ? await getSessionVersion(token.id) : token.sessionVersion ?? 0;
         const currentUser = await prisma.user.findUnique({
@@ -259,12 +293,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (sessionVersionEnabled && currentSessionVersion !== (token.sessionVersion ?? 0)) {
-          token.sessionInvalid = true;
-          delete token.id;
-          delete token.role;
-          delete token.passwordChangeRequired;
-          delete token.canCreateApplications;
-          delete token.canManageFieldWorkers;
+          invalidateToken(token);
         } else if (currentUser) {
           token.passwordChangeRequired = currentUser.passwordChangeRequired;
           token.canCreateApplications = currentUser.canCreateApplications;
@@ -284,6 +313,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id ?? token.sub ?? '';
         session.user.role = token.role;
         session.user.sessionVersion = token.sessionVersion;
+        session.user.lastActiveAt = token.lastActiveAt;
         session.user.passwordChangeRequired = token.passwordChangeRequired;
         session.user.canCreateApplications = token.canCreateApplications;
         session.user.canManageFieldWorkers = token.canManageFieldWorkers;
