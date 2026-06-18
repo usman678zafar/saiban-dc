@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useNavigationLoading } from './navigation-loading';
 import PasswordInput from './password-input';
+import { SESSION_BROWSER_STORAGE_KEY } from '@/lib/session-timeout';
 
 interface LoginFormProps {
   title?: string;
@@ -81,6 +82,7 @@ export default function LoginForm({
         return;
       }
 
+      window.sessionStorage.setItem(SESSION_BROWSER_STORAGE_KEY, String(Date.now()));
       const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl');
       router.push(callbackUrl ?? defaultRedirect ?? defaultRedirectForRole(loginRole));
       router.refresh();
