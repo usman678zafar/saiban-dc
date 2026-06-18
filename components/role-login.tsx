@@ -107,7 +107,7 @@ function AuthFooter() {
       <span>&copy; {new Date().getFullYear()} Saiban. All rights reserved.</span>
       <span className="mx-2 text-slate-300">|</span>
       <a href="tel:+923332552956" className="font-medium text-slate-600 hover:text-slate-900 hover:underline">
-        +923332552956
+        +92 333 2552956
       </a>
     </footer>
   );
