@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { isSessionIdleExpired } from './lib/session-timeout';
 
 function redirectTo(request: NextRequest, pathname: string, callbackPath?: string) {
   const url = request.nextUrl.clone();
@@ -20,10 +21,11 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   const { pathname, search } = request.nextUrl;
   const callbackPath = `${pathname}${search}`;
+  const hasInvalidSession = !token || token.sessionInvalid || isSessionIdleExpired(token.lastActiveAt);
   const mustChangePassword = Boolean(token?.passwordChangeRequired) && ['reviewer', 'supervisor'].includes(String(token?.role ?? ''));
 
   if (pathname === '/change-password') {
-    if (!token || token.sessionInvalid) {
+    if (hasInvalidSession) {
       return redirectTo(request, '/signin', callbackPath);
     }
     if (!mustChangePassword) {
@@ -33,14 +35,14 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname === '/admin/login') {
-    if (!token?.sessionInvalid && (token?.role === 'admin' || token?.role === 'super_admin')) {
+    if (!hasInvalidSession && (token?.role === 'admin' || token?.role === 'super_admin')) {
       return redirectTo(request, '/admin');
     }
     return redirectTo(request, '/signin', callbackPath);
   }
 
   if (pathname.startsWith('/admin')) {
-    if (!token || token.sessionInvalid) {
+    if (hasInvalidSession) {
       return redirectTo(request, '/signin', callbackPath);
     }
     if (token.role !== 'admin' && token.role !== 'super_admin') {
@@ -53,7 +55,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith('/viewer')) {
-    if (!token || token.sessionInvalid) {
+    if (hasInvalidSession) {
       return redirectTo(request, '/signin', callbackPath);
     }
     if (token.role !== 'viewer') {
@@ -63,7 +65,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith('/supervisor')) {
-    if (!token || token.sessionInvalid) {
+    if (hasInvalidSession) {
       return redirectTo(request, '/signin', callbackPath);
     }
     if (token.role !== 'supervisor' && token.role !== 'admin' && token.role !== 'super_admin') {
@@ -76,7 +78,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith('/reviewer')) {
-    if (!token || token.sessionInvalid) {
+    if (hasInvalidSession) {
       return redirectTo(request, '/signin', callbackPath);
     }
     if (token.role !== 'reviewer' && token.role !== 'admin' && token.role !== 'super_admin') {
@@ -88,7 +90,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!token || token.sessionInvalid) {
+  if (hasInvalidSession) {
     return redirectTo(request, '/signin', callbackPath);
   }
 
