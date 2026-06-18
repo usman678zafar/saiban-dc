@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import {
+  SESSION_BROWSER_STORAGE_KEY,
   SESSION_INACTIVITY_REFRESH_MS,
   SESSION_INACTIVITY_TIMEOUT_MS,
   isSessionIdleExpired,
@@ -21,6 +22,14 @@ function storeLastActivity(lastActiveAt: number) {
   window.localStorage.setItem(LAST_ACTIVITY_STORAGE_KEY, String(lastActiveAt));
 }
 
+function hasBrowserSession() {
+  return Boolean(window.sessionStorage.getItem(SESSION_BROWSER_STORAGE_KEY));
+}
+
+function refreshBrowserSession() {
+  window.sessionStorage.setItem(SESSION_BROWSER_STORAGE_KEY, String(Date.now()));
+}
+
 export default function SessionInactivityTimeout() {
   const { data: session, status, update } = useSession();
   const timeoutRef = useRef<number | null>(null);
@@ -36,7 +45,7 @@ export default function SessionInactivityTimeout() {
     }
   }, []);
 
-  const signOutForInactivity = useCallback(async () => {
+  const signOutToSignin = useCallback(async () => {
     if (signingOutRef.current) return;
     signingOutRef.current = true;
     clearIdleTimer();
@@ -54,12 +63,12 @@ export default function SessionInactivityTimeout() {
 
     timeoutRef.current = window.setTimeout(() => {
       if (isSessionIdleExpired(lastActivityRef.current)) {
-        void signOutForInactivity();
+        void signOutToSignin();
         return;
       }
       scheduleIdleTimer();
     }, delay);
-  }, [clearIdleTimer, signOutForInactivity]);
+  }, [clearIdleTimer, signOutToSignin]);
 
   const refreshServerActivity = useCallback((now: number) => {
     if (updateInFlightRef.current || now - lastServerRefreshRef.current < SESSION_INACTIVITY_REFRESH_MS) return;
@@ -80,6 +89,7 @@ export default function SessionInactivityTimeout() {
 
     const now = Date.now();
     lastActivityRef.current = now;
+    refreshBrowserSession();
     storeLastActivity(now);
     refreshServerActivity(now);
     scheduleIdleTimer();
@@ -92,12 +102,17 @@ export default function SessionInactivityTimeout() {
       return;
     }
 
+    if (!hasBrowserSession()) {
+      void signOutToSignin();
+      return;
+    }
+
     const sessionLastActiveAt = readLastActiveAt(session.user.lastActiveAt);
     const storedLastActiveAt = getStoredLastActivity();
     const initialLastActiveAt = sessionLastActiveAt ?? storedLastActiveAt ?? Date.now();
 
     if (isSessionIdleExpired(initialLastActiveAt)) {
-      void signOutForInactivity();
+      void signOutToSignin();
       return;
     }
 
@@ -107,7 +122,7 @@ export default function SessionInactivityTimeout() {
 
     const handleVisibilityOrFocus = () => {
       if (document.visibilityState === 'visible' && isSessionIdleExpired(lastActivityRef.current)) {
-        void signOutForInactivity();
+        void signOutToSignin();
         return;
       }
       markActivity();
@@ -137,7 +152,7 @@ export default function SessionInactivityTimeout() {
       window.removeEventListener('storage', handleStorage);
       clearIdleTimer();
     };
-  }, [clearIdleTimer, markActivity, scheduleIdleTimer, session?.user, signOutForInactivity, status]);
+  }, [clearIdleTimer, markActivity, scheduleIdleTimer, session?.user, signOutToSignin, status]);
 
   return null;
 }
