@@ -67,6 +67,11 @@ type AddressOptionInput = {
   name: string;
 };
 
+type AddressSelectionIssue = {
+  field: 'province' | 'district' | 'tehsil';
+  message: string;
+};
+
 const reviewFieldLabelUrdu: Record<string, string> = {
   'Registration Number': 'رجسٹریشن نمبر',
   'Collector ID': 'جمع کرنے والے کا آئی ڈی',
@@ -2346,6 +2351,10 @@ export default function OrphanApplicationWizard({
 
     try {
       if (saveStatus === 'submitted') {
+        if (addressSelectionIssues.length > 0) {
+          goToStep(5);
+          throw new Error('Correct the invalid Home step address selections before submitting the application.');
+        }
         const incompleteStep = firstIncompleteSubmissionStep();
         if (incompleteStep) {
           goToStep(incompleteStep);
@@ -2635,6 +2644,7 @@ export default function OrphanApplicationWizard({
         );
 
       case 5: // Home
+        if (addressSelectionIssues.length > 0) return false;
         return formData.residentialArea.trim() !== '' || formData.fullAddress.trim() !== '';
 
       case 6: // Household Assets
@@ -2757,6 +2767,58 @@ export default function OrphanApplicationWizard({
     return Array.from(new Set([...datasetOptions, ...customOptions])).sort((a, b) => a.localeCompare(b));
   }, [addressOptions, formData.district, formData.province]);
 
+  const addressSelectionIssues = useMemo<AddressSelectionIssue[]>(() => {
+    const issues: AddressSelectionIssue[] = [];
+    const province = normalizeAddressOption(formData.province);
+    const district = normalizeAddressOption(formData.district);
+    const tehsil = normalizeAddressOption(formData.tehsil);
+
+    if (!province) return issues;
+
+    const provinceExists = pakistanAddressData.some((item) => item.province === province);
+    if (!provinceExists) {
+      issues.push({
+        field: 'province',
+        message: 'Reselect province. / صوبہ دوبارہ منتخب کریں۔',
+      });
+      return issues;
+    }
+
+    if (!district) return issues;
+
+    if (!districtOptions.includes(district)) {
+      issues.push({
+        field: 'district',
+        message: 'Reselect district. / ضلع دوبارہ منتخب کریں۔',
+      });
+      return issues;
+    }
+
+    if (!tehsil || tehsil === 'unknown') return issues;
+
+    if (!tehsilOptions.includes(tehsil)) {
+      issues.push({
+        field: 'tehsil',
+        message: 'Reselect tehsil. / تحصیل دوبارہ منتخب کریں۔',
+      });
+    }
+
+    return issues;
+  }, [districtOptions, formData.district, formData.province, formData.tehsil, tehsilOptions]);
+
+  const addressIssueByField = useMemo(
+    () =>
+      addressSelectionIssues.reduce<Partial<Record<AddressSelectionIssue['field'], string>>>((accumulator, issue) => {
+        accumulator[issue.field] = issue.message;
+        return accumulator;
+      }, {}),
+    [addressSelectionIssues],
+  );
+  const submitBlockedByAddressIssues = !readOnly && addressSelectionIssues.length > 0;
+  const addressBlockMessage = addressSelectionIssues.length === 1
+    ? addressSelectionIssues[0].message
+    : 'Some address selections are no longer valid. Please fix the Home step before submitting.';
+
   const renderRequiredMark = (required = true) => (required ? <span className="text-rose-600"> *</span> : null);
   const fieldWrapperClass = 'grid min-w-0 content-start gap-2 text-sm leading-6 text-slate-700 [&>span:first-child]:block [&>span:first-child]:min-w-0 [&>span:first-child]:break-words [&>span:first-child]:font-medium';
   const fieldLabelClass = 'block min-w-0 break-words font-medium leading-6';
@@ -2848,6 +2910,7 @@ export default function OrphanApplicationWizard({
     options: Array<{ value: string; label: string }>,
     onChange: (value: string) => void,
     disabled = false,
+    errorMessage?: string,
   ) => (
     <label key={field} className={fieldWrapperClass}>
       {renderFieldLabel(field)}
@@ -2855,7 +2918,7 @@ export default function OrphanApplicationWizard({
         value={formData[field] as string}
         onChange={(event) => onChange(event.target.value)}
         disabled={readOnly || disabled}
-        className={`${fieldControlClass} ${disabledFieldControlClass}`}
+        className={`${fieldControlClass} ${disabledFieldControlClass} ${errorMessage ? 'border-rose-300 bg-rose-50 text-rose-950 focus:border-rose-500 focus:ring-rose-100' : ''}`}
       >
         {options.map((option, index) => (
           <option key={`${option.value}-${index}`} value={option.value}>
@@ -2863,6 +2926,7 @@ export default function OrphanApplicationWizard({
           </option>
         ))}
       </select>
+      {errorMessage ? <span className="text-sm leading-5 text-rose-700">{errorMessage}</span> : null}
     </label>
   );
 
@@ -3367,6 +3431,24 @@ export default function OrphanApplicationWizard({
         </div>
       </div>
 
+      {!readOnly && addressSelectionIssues.length > 0 ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <p className="font-semibold">Fix address before submit. / جمع کرانے سے پہلے پتہ درست کریں۔</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-amber-900">
+            {addressSelectionIssues.map((issue) => (
+              <li key={issue.field}>{issue.message}</li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => goToStep(5)}
+            className="mt-3 inline-flex min-h-10 items-center justify-center rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-100"
+          >
+            Open Home Step
+          </button>
+        </div>
+      ) : null}
+
       {message ? (
         <div className="fixed bottom-24 left-1/2 z-50 grid w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 gap-2 sm:bottom-8">
           <div className={`rounded-lg border p-4 text-sm shadow-lg ${message.toLowerCase().includes('success') ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
@@ -3680,6 +3762,14 @@ export default function OrphanApplicationWizard({
             <h2 className="text-xl font-semibold text-slate-900">{renderLocalizedLabel('Home Details / گھر کی تفصیلات')}</h2>
             <p className="mt-1 text-sm text-slate-600">Capture the household address and property status.</p>
           </div>
+          {!readOnly && addressSelectionIssues.length > 0 ? (
+            <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
+              <p className="font-semibold">This address needs to be corrected.</p>
+              <p className="mt-1 leading-6">
+                Please reselect the invalid Home step address fields from the dropdowns below. Submission will stay blocked until these issues are fixed.
+              </p>
+            </div>
+          ) : null}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -3730,6 +3820,8 @@ export default function OrphanApplicationWizard({
                 ...pakistanAddressData.map((item) => ({ value: item.province, label: item.province })),
               ],
               handleProvinceChange,
+              false,
+              addressIssueByField.province,
             )}
             {renderHomeSelectField(
               'district',
@@ -3739,6 +3831,7 @@ export default function OrphanApplicationWizard({
               ],
               commitDistrict,
               !formData.province,
+              addressIssueByField.district,
             )}
             {renderHomeSelectField(
               'tehsil',
@@ -3749,6 +3842,7 @@ export default function OrphanApplicationWizard({
               ],
               commitTehsil,
               !formData.district,
+              addressIssueByField.tehsil,
             )}
             {renderTextField('city')}
             {renderTextField('residentialArea', 'text', false, (value) => updateField('residentialArea', value.slice(0, 150)), 150)}
@@ -4600,8 +4694,9 @@ export default function OrphanApplicationWizard({
             <button
               type="button"
               onClick={() => submit('submitted')}
-              disabled={isSubmitting || isSaveBlockedByComment}
+              disabled={isSubmitting || isSaveBlockedByComment || submitBlockedByAddressIssues}
               className="h-10 min-w-0 rounded-lg bg-blue-600 px-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60 lg:h-12 lg:px-5"
+              title={submitBlockedByAddressIssues ? addressBlockMessage : undefined}
             >
               {submittingAction === 'submitted' ? (
                 'Submitting…'

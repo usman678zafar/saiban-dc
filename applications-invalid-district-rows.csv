@@ -1,0 +1,6 @@
+id,status,province,district,tehsil,city,problem
+016b73af-7174-4caa-9f17-6264439c8ae3,draft,Punjab,Dera ghazi khan,Kot chutta,بستی بھٹے والا,District does not belong to the selected province in built-in dataset
+2d813dcb-abab-4aee-9ad1-ebd460b2a7ff,draft,Khyber Pakhtunkhwa,buner,Mandanr,Kawga,District does not belong to the selected province in built-in dataset
+347eaa58-a15f-466e-a553-6909a18c2f6e,draft,Islamabad,Mardan,Takht bhai,City,District does not belong to the selected province in built-in dataset
+4726f7c5-da9a-42c3-b6e8-0b7477bc9c6b,draft,Gilgit Baltistan,فگھگگگ,فگگ,فبھںھ,District does not belong to the selected province in built-in dataset
+d795614f-5ab8-49fb-970a-2920f400e678,draft,Islamabad,West Karachi,Karachi west,Karachi.,District does not belong to the selected province in built-in dataset
