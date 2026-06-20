@@ -118,11 +118,6 @@ export default function SessionInactivityTimeout() {
       return;
     }
 
-    if (!hasBrowserSession()) {
-      void signOutToSignin();
-      return;
-    }
-
     const sessionLastActiveAt = readLastActiveAt(session.user.lastActiveAt);
     const storedLastActiveAt = getStoredLastActivity();
     const initialLastActiveAt = sessionLastActiveAt ?? storedLastActiveAt ?? Date.now();
@@ -130,6 +125,10 @@ export default function SessionInactivityTimeout() {
     if (isSessionIdleExpired(initialLastActiveAt)) {
       void signOutToSignin();
       return;
+    }
+
+    if (!hasBrowserSession()) {
+      refreshBrowserSession();
     }
 
     lastActivityRef.current = initialLastActiveAt;
