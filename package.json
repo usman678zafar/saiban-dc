@@ -12,6 +12,8 @@
     "start": "next start",
     "lint": "next lint",
     "prisma": "prisma",
+    "backfill:completion": "node scripts/backfill-application-completion.mjs",
+    "backfill:completion:apply": "node scripts/backfill-application-completion.mjs --confirm",
     "test:submit": "node scripts/smoke-submit-application.mjs"
   },
   "dependencies": {

@@ -289,6 +289,9 @@ model OrphanApplication {
   guardianSignatureFileKey      String?
   termsAccepted                 Boolean?              @default(false)
   termsAcceptedAt               DateTime?
+  filledFieldsPercentage        Int                   @default(0)
+  filledFieldsCount             Int                   @default(0)
+  totalMeaningfulFields         Int                   @default(0)
   status                        ApplicationStatus     @default(draft)
   migrationStatus               MigrationStatus       @default(pending)
   mainSaibanId                  String?
@@ -304,6 +307,10 @@ model OrphanApplication {
   auditLogs                     AuditLog[]
   createdAt                     DateTime              @default(now())
   updatedAt                     DateTime              @updatedAt
+
+  @@index([status, filledFieldsPercentage])
+  @@index([updatedAt])
+  @@index([createdAt])
 }
 
 model Sibling {
