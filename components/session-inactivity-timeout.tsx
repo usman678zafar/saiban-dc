@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { signOut, useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import {
   SESSION_BROWSER_STORAGE_KEY,
   SESSION_INACTIVITY_REFRESH_MS,
@@ -12,6 +13,16 @@ import {
 
 const LAST_ACTIVITY_STORAGE_KEY = 'saiban:last-active-at';
 const activityEvents = ['pointerdown', 'keydown', 'scroll', 'touchstart', 'input'] as const;
+const protectedPathPrefixes = ['/admin', '/viewer', '/supervisor', '/reviewer', '/applications'];
+const protectedExactPaths = new Set(['/dashboard', '/change-password']);
+
+function isProtectedPath(pathname: string) {
+  return protectedExactPaths.has(pathname) || protectedPathPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
+function signinUrl(callbackPath?: string) {
+  return callbackPath ? `/signin?callbackUrl=${encodeURIComponent(callbackPath)}` : '/signin';
+}
 
 function getStoredLastActivity() {
   if (typeof window === 'undefined') return null;
@@ -32,6 +43,7 @@ function refreshBrowserSession() {
 
 export default function SessionInactivityTimeout() {
   const { data: session, status, update } = useSession();
+  const pathname = usePathname();
   const timeoutRef = useRef<number | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const lastServerRefreshRef = useRef<number>(0);
@@ -49,10 +61,11 @@ export default function SessionInactivityTimeout() {
     if (signingOutRef.current) return;
     signingOutRef.current = true;
     clearIdleTimer();
+    const callbackPath = `${window.location.pathname}${window.location.search}`;
     try {
-      await signOut({ callbackUrl: '/signin' });
+      await signOut({ callbackUrl: signinUrl(callbackPath) });
     } catch {
-      window.location.href = '/signin';
+      window.location.href = signinUrl(callbackPath);
     }
   }, [clearIdleTimer]);
 
@@ -99,6 +112,9 @@ export default function SessionInactivityTimeout() {
     if (status !== 'authenticated' || !session?.user) {
       clearIdleTimer();
       signingOutRef.current = false;
+      if (status === 'unauthenticated' && pathname && isProtectedPath(pathname)) {
+        window.location.replace(signinUrl(`${window.location.pathname}${window.location.search}`));
+      }
       return;
     }
 
@@ -152,7 +168,7 @@ export default function SessionInactivityTimeout() {
       window.removeEventListener('storage', handleStorage);
       clearIdleTimer();
     };
-  }, [clearIdleTimer, markActivity, scheduleIdleTimer, session?.user, signOutToSignin, status]);
+  }, [clearIdleTimer, markActivity, pathname, scheduleIdleTimer, session?.user, signOutToSignin, status]);
 
   return null;
 }

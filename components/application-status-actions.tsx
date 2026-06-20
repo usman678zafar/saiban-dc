@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { Check, X, ArrowRight, RotateCcw } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 
@@ -61,6 +62,11 @@ const redirectAfterAction: Record<'super_admin' | 'admin' | 'reviewer' | 'superv
   field_worker: '/applications',
 };
 
+function currentSigninUrl() {
+  const callbackPath = `${window.location.pathname}${window.location.search}`;
+  return `/signin?callbackUrl=${encodeURIComponent(callbackPath)}`;
+}
+
 export default function ApplicationStatusActions({ applicationId, currentStatus, actorRole = 'admin', onUpdated }: ApplicationStatusActionsProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -79,6 +85,12 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setMessage('Your session has expired. Redirecting to sign in...');
+          await signOut({ callbackUrl: currentSigninUrl() });
+          return;
+        }
+
         const error = await response.json();
         throw new Error(error?.message ?? 'Status update failed');
       }
