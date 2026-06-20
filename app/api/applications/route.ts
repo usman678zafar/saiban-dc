@@ -9,6 +9,7 @@ import { deleteFromR2 } from '@/lib/r2';
 import { applicationStatuses } from '@/lib/application-workflow';
 import { projectMatchesAnyReviewAssignment } from '@/lib/field-workers';
 import { logSystemAudit } from '@/lib/system-audit';
+import { calculateFilledFields, completionSelect } from '@/lib/application-completion';
 
 async function getUser(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -699,6 +700,7 @@ export async function POST(request: NextRequest) {
     const application = await prisma.orphanApplication.create({
       data: {
         ...payload,
+        ...calculateFilledFields({ ...payload, siblings: siblings ?? [], relatives: relatives ?? [], householdAssets: householdAssets ?? [], documents: [] }),
         registrationNumber: status === 'submitted' ? await generateRegistrationNumber() : undefined,
         ...collectorPayload(user),
         createdById: user.id,
@@ -826,6 +828,13 @@ export async function PATCH(request: NextRequest) {
       const next = await tx.orphanApplication.update({
         where: { id },
         data: updateData,
+        include: completionSelect(),
+      });
+
+      const completion = calculateFilledFields(next);
+      const completedNext = await tx.orphanApplication.update({
+        where: { id },
+        data: completion,
       });
 
       if (user.role === 'reviewer' || user.role === 'admin' || user.role === 'super_admin') {
@@ -860,7 +869,7 @@ export async function PATCH(request: NextRequest) {
         });
       }
 
-      return next;
+      return completedNext;
     });
 
     return NextResponse.json(updated);

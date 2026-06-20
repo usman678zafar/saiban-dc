@@ -6,6 +6,7 @@ import { uploadToR2, deleteFromR2, generateFileKey } from '@/lib/r2';
 import { prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rate-limit';
 import { detectAllowedFileType, isAllowedDocumentType, MAX_UPLOAD_SIZE, uploadTypeLabel } from '@/lib/upload-policy';
+import { calculateFilledFields, completionSelect } from '@/lib/application-completion';
 import sharp from 'sharp';
 
 function canCreateApplications(user: Pick<User, 'role' | 'canCreateApplications'>) {
@@ -13,6 +14,20 @@ function canCreateApplications(user: Pick<User, 'role' | 'canCreateApplications'
     || user.role === 'admin'
     || user.role === 'super_admin'
     || ((user.role === 'supervisor' || user.role === 'reviewer') && user.canCreateApplications);
+}
+
+async function refreshApplicationCompletion(applicationId: string) {
+  const application = await prisma.orphanApplication.findUnique({
+    where: { id: applicationId },
+    include: completionSelect(),
+  });
+
+  if (!application) return;
+
+  await prisma.orphanApplication.update({
+    where: { id: applicationId },
+    data: calculateFilledFields(application),
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -105,6 +120,7 @@ export async function POST(request: NextRequest) {
         documentType,
       },
     });
+    await refreshApplicationCompletion(applicationId);
 
     return NextResponse.json(document);
   } catch (error) {
@@ -153,6 +169,7 @@ export async function DELETE(request: NextRequest) {
   try {
     await deleteFromR2(document.fileKey);
     await prisma.applicationDocument.delete({ where: { id: documentId } });
+    await refreshApplicationCompletion(document.applicationId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Delete error:', error);

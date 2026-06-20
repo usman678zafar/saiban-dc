@@ -8,16 +8,16 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
+import BulkDeleteApplicationsButton from '@/components/bulk-delete-applications-button';
 import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
 import { collectorProjectReviewWhere } from '@/lib/field-workers';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
-import { applicationToWizardData } from '@/lib/application-wizard-data';
-import { calculateApplicationCompletion } from '@/lib/application-review';
 
 const PAGE_SIZE = 50;
+const BULK_DELETE_FORM_ID = 'admin-applications-bulk-delete-form';
 const statusFilters = [
   { key: 'pending_admin_review', label: 'Pending Admin Review', detail: 'Approved by reviewers and ready for admin decision' },
   { key: 'all', label: 'All', detail: 'Every application stage' },
@@ -34,12 +34,45 @@ const statusFilters = [
 
 type StatusFilter = (typeof statusFilters)[number]['key'];
 
+const filledFilters = [
+  { key: 'all', label: 'Any filled %', min: undefined, max: undefined },
+  { key: '0-10', label: '0-10% filled', min: 0, max: 10 },
+  { key: '11-25', label: '11-25% filled', min: 11, max: 25 },
+  { key: '26-50', label: '26-50% filled', min: 26, max: 50 },
+  { key: '51-75', label: '51-75% filled', min: 51, max: 75 },
+  { key: '76-100', label: '76-100% filled', min: 76, max: 100 },
+] as const;
+
+type FilledFilter = (typeof filledFilters)[number]['key'];
+type DateFilterType = 'updatedAt' | 'createdAt';
+
 const finalApprovedWhere: Prisma.OrphanApplicationWhereInput = {
   status: { in: [ApplicationStatus.admin_approved, ApplicationStatus.validated, ApplicationStatus.migrated] },
 };
 
 function isStatusFilter(value: string | undefined): value is StatusFilter {
   return statusFilters.some((filter) => filter.key === value);
+}
+
+function isFilledFilter(value: string | undefined): value is FilledFilter {
+  return filledFilters.some((filter) => filter.key === value);
+}
+
+function isDateFilterType(value: string | undefined): value is DateFilterType {
+  return value === 'createdAt' || value === 'updatedAt';
+}
+
+function parseDateInput(value: string | undefined) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function endOfDateInput(value: string | undefined) {
+  const date = parseDateInput(value);
+  if (!date) return null;
+  date.setUTCHours(23, 59, 59, 999);
+  return date;
 }
 
 function applicationFilterWhere(filter: StatusFilter): Prisma.OrphanApplicationWhereInput {
@@ -71,9 +104,6 @@ function applicationFilterWhere(filter: StatusFilter): Prisma.OrphanApplicationW
 
 type ApplicationListRecord = Prisma.OrphanApplicationGetPayload<{
   include: {
-    siblings: true;
-    relatives: true;
-    householdAssets: true;
     createdBy: {
       select: {
         name: true;
@@ -82,17 +112,10 @@ type ApplicationListRecord = Prisma.OrphanApplicationGetPayload<{
         selfRegistered: true;
       };
     };
-    documents: {
-      select: {
-        documentType: true;
-      };
-    };
   };
 }>;
 
-type ApplicationListItem = ApplicationListRecord & {
-  completionPercentage: number;
-};
+type ApplicationListItem = ApplicationListRecord;
 
 function fieldWorkerLabel(application: ApplicationListItem) {
   return application.createdBy.name
@@ -112,7 +135,7 @@ function departmentLabel(application: ApplicationListItem) {
 export default async function AdminApplicationsPage({
   searchParams,
 }: {
-  searchParams: { page?: string; q?: string; status?: string; department?: string };
+  searchParams: { page?: string; q?: string; status?: string; department?: string; filled?: string; dateFrom?: string; dateTo?: string; dateType?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications');
@@ -127,12 +150,35 @@ export default async function AdminApplicationsPage({
   const selectedStatusFilter: StatusFilter = isStatusFilter(searchParams.status)
     ? searchParams.status
     : defaultStatusFilter;
+  const selectedFilledFilter: FilledFilter = isFilledFilter(searchParams.filled) ? searchParams.filled : 'all';
+  const selectedFilledDefinition = filledFilters.find((filter) => filter.key === selectedFilledFilter) ?? filledFilters[0];
+  const selectedDateType: DateFilterType = isDateFilterType(searchParams.dateType) ? searchParams.dateType : 'updatedAt';
+  const dateFrom = parseDateInput(searchParams.dateFrom);
+  const dateTo = endOfDateInput(searchParams.dateTo);
+  const dateRangeWhere: Prisma.OrphanApplicationWhereInput = dateFrom || dateTo
+    ? {
+      [selectedDateType]: {
+        ...(dateFrom ? { gte: dateFrom } : {}),
+        ...(dateTo ? { lte: dateTo } : {}),
+      },
+    }
+    : {};
+  const filledWhere: Prisma.OrphanApplicationWhereInput = selectedFilledFilter === 'all'
+    ? {}
+    : {
+      filledFieldsPercentage: {
+        ...(selectedFilledDefinition.min !== undefined ? { gte: selectedFilledDefinition.min } : {}),
+        ...(selectedFilledDefinition.max !== undefined ? { lte: selectedFilledDefinition.max } : {}),
+      },
+    };
   const statusWhere = applicationFilterWhere(selectedStatusFilter);
   const departmentWhere = selectedDepartment !== 'all' ? collectorProjectReviewWhere(selectedDepartment) : {};
   const whereParts: Prisma.OrphanApplicationWhereInput[] = [
     searchWhere,
     statusWhere,
     departmentWhere,
+    filledWhere,
+    dateRangeWhere,
   ].filter((part) => Object.keys(part).length > 0);
   const where: Prisma.OrphanApplicationWhereInput = whereParts.length ? { AND: whereParts } : {};
   const page = Math.max(1, Number(searchParams.page) || 1);
@@ -142,6 +188,10 @@ export default async function AdminApplicationsPage({
     if (search) params.set('q', search);
     if (selectedStatusFilter !== defaultStatusFilter) params.set('status', selectedStatusFilter);
     if (selectedDepartment !== 'all') params.set('department', selectedDepartment);
+    if (selectedFilledFilter !== 'all') params.set('filled', selectedFilledFilter);
+    if (searchParams.dateFrom) params.set('dateFrom', searchParams.dateFrom);
+    if (searchParams.dateTo) params.set('dateTo', searchParams.dateTo);
+    if (selectedDateType !== 'updatedAt') params.set('dateType', selectedDateType);
     if (nextPage > 1) params.set('page', String(nextPage));
     const query = params.toString();
     return query ? `/admin/applications?${query}` : '/admin/applications';
@@ -154,9 +204,6 @@ export default async function AdminApplicationsPage({
       skip,
       take: PAGE_SIZE,
       include: {
-        siblings: true,
-        relatives: true,
-        householdAssets: true,
         createdBy: {
           select: {
             name: true,
@@ -165,19 +212,14 @@ export default async function AdminApplicationsPage({
             selfRegistered: true,
           },
         },
-        documents: {
-          select: {
-            documentType: true,
-          },
-        },
       },
     }) as Promise<ApplicationListRecord[]>,
     prisma.orphanApplication.count({ where }),
   ]);
-  const applications: ApplicationListItem[] = applicationRecords.map((application) => ({
-    ...application,
-    completionPercentage: calculateApplicationCompletion(applicationToWizardData(application), application.documents).percentage,
-  }));
+  const applications: ApplicationListItem[] = applicationRecords;
+  const visibleDraftCount = isSuperAdmin
+    ? applications.filter((application) => application.status === ApplicationStatus.draft).length
+    : 0;
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasPrev = page > 1;
@@ -208,7 +250,7 @@ export default async function AdminApplicationsPage({
       </header>
 
       <form action="/admin/applications" className="mb-4 rounded-xl border border-[#dbe4ef] bg-white p-3">
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="grid gap-2 lg:grid-cols-[minmax(220px,1fr)_minmax(150px,220px)_minmax(150px,220px)_minmax(140px,190px)]">
           <label className="relative min-w-0 flex-1">
             <span className="sr-only">Search applications</span>
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9bb3]" aria-hidden="true" />
@@ -220,7 +262,7 @@ export default async function AdminApplicationsPage({
               className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] pl-10 pr-3 text-sm text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
             />
           </label>
-          <label className="min-w-0 sm:w-56">
+          <label className="min-w-0">
             <span className="sr-only">Filter by department</span>
             <select
               name="department"
@@ -233,7 +275,7 @@ export default async function AdminApplicationsPage({
               ))}
             </select>
           </label>
-          <label className="min-w-0 sm:w-60">
+          <label className="min-w-0">
             <span className="sr-only">Filter by application status</span>
             <select
               name="status"
@@ -245,10 +287,53 @@ export default async function AdminApplicationsPage({
               ))}
             </select>
           </label>
+          <label className="min-w-0">
+            <span className="sr-only">Filter by filled percentage</span>
+            <select
+              name="filled"
+              defaultValue={selectedFilledFilter}
+              className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
+            >
+              {filledFilters.map((filter) => (
+                <option key={filter.key} value={filter.key}>{filter.label}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(150px,190px)_minmax(140px,180px)_minmax(140px,180px)_auto_auto]">
+          <label className="min-w-0">
+            <span className="sr-only">Date type</span>
+            <select
+              name="dateType"
+              defaultValue={selectedDateType}
+              className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="updatedAt">Updated date</option>
+              <option value="createdAt">Created date</option>
+            </select>
+          </label>
+          <label className="min-w-0">
+            <span className="sr-only">Date from</span>
+            <input
+              type="date"
+              name="dateFrom"
+              defaultValue={searchParams.dateFrom ?? ''}
+              className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
+            />
+          </label>
+          <label className="min-w-0">
+            <span className="sr-only">Date to</span>
+            <input
+              type="date"
+              name="dateTo"
+              defaultValue={searchParams.dateTo ?? ''}
+              className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
+            />
+          </label>
           <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#3b82f6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2563eb]">
             Search
           </button>
-          {search || selectedDepartment !== 'all' || selectedStatusFilter !== defaultStatusFilter ? (
+          {search || selectedDepartment !== 'all' || selectedStatusFilter !== defaultStatusFilter || selectedFilledFilter !== 'all' || searchParams.dateFrom || searchParams.dateTo || selectedDateType !== 'updatedAt' ? (
             <Link href="/admin/applications" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-4 py-2 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd]">
               <X className="h-4 w-4" aria-hidden="true" />
               Clear
@@ -257,6 +342,10 @@ export default async function AdminApplicationsPage({
         </div>
       </form>
 
+      <form id={BULK_DELETE_FORM_ID}>
+      {isSuperAdmin ? (
+        <BulkDeleteApplicationsButton formId={BULK_DELETE_FORM_ID} visibleDraftCount={visibleDraftCount} />
+      ) : null}
       <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
         <div className="grid gap-3 p-3 md:hidden">
           {applications.length === 0 ? (
@@ -264,6 +353,18 @@ export default async function AdminApplicationsPage({
           ) : (
             applications.map((application: ApplicationListItem) => (
               <div key={application.id} className="rounded-xl border border-[#edf2f7] bg-white p-4">
+                {isSuperAdmin && application.status === ApplicationStatus.draft ? (
+                  <label className="mb-3 inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-xs font-semibold text-[#0f1f33]">
+                    <input
+                      type="checkbox"
+                      name="applicationId"
+                      data-draft-select="true"
+                      value={application.id}
+                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200"
+                    />
+                    Select
+                  </label>
+                ) : null}
                 <Link href={`/admin/applications/${application.id}`} className="block hover:bg-[#f8fbff]">
                   <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
                   <div className="mt-1 text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
@@ -271,7 +372,7 @@ export default async function AdminApplicationsPage({
                     <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
                     <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{departmentLabel(application) === '-' ? 'No department' : departmentLabel(application)}</span>
                     <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{fieldWorkerLabel(application)}</span>
-                    <span className="rounded-lg bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">{application.completionPercentage}% complete</span>
+                    <span className="rounded-lg bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">{application.filledFieldsPercentage}% filled</span>
                   </div>
                   <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
                 </Link>
@@ -301,23 +402,36 @@ export default async function AdminApplicationsPage({
           <table className="min-w-full text-left text-sm text-[#506784]">
             <thead className="bg-[#f6f9fd] text-xs uppercase tracking-[0.12em] text-[#7d8fa6]">
               <tr>
+                <th className="w-16 px-4 py-3">Select</th>
                 <th className="px-4 py-3">Application</th>
                 <th className="px-4 py-3">Field Worker</th>
                 <th className="px-4 py-3">Department</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Complete</th>
+                <th className="px-4 py-3">Filled</th>
                 <th className="px-4 py-3">Updated</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
             <tbody>
               {applications.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
+              <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
                 </tr>
               ) : (
                 applications.map((application: ApplicationListItem) => (
                   <tr key={application.id} className="border-t border-[#edf2f7] hover:bg-[#f8fbff]">
+                    <td className="px-4 py-4">
+                      {isSuperAdmin && application.status === ApplicationStatus.draft ? (
+                        <input
+                          type="checkbox"
+                          name="applicationId"
+                          data-draft-select="true"
+                          value={application.id}
+                          aria-label={`Select ${application.registrationNumber ?? application.id} for delete`}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200"
+                        />
+                      ) : null}
+                    </td>
                     <td className="px-4 py-4">
                       <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
                       <div className="text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
@@ -327,7 +441,7 @@ export default async function AdminApplicationsPage({
                     <td className="px-4 py-4">{applicationStatusLabel(application.status)}</td>
                     <td className="px-4 py-4">
                       <span className="inline-flex min-w-14 justify-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                        {application.completionPercentage}%
+                        {application.filledFieldsPercentage}%
                       </span>
                     </td>
                     <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(application.updatedAt)}</td>
@@ -390,6 +504,7 @@ export default async function AdminApplicationsPage({
           </div>
         </div>
       </div>
+      </form>
     </AdminShell>
   );
 }
