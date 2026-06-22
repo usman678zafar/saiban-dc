@@ -25,6 +25,7 @@ const statusFilters = [
   { key: 'needs_correction', label: 'Needs Correction', detail: 'Returned for volunteer correction' },
   { key: 'supervisor_approved', label: 'Supervisor Approved', detail: 'Ready for reviewer flow' },
   { key: 'pending_admin_review', label: 'Pending Admin Review', detail: 'Approved by reviewers and ready for admin decision' },
+  { key: 'admin_on_hold', label: 'On Hold', detail: 'Held by admin for later or special review' },
   { key: 'admin_approved', label: 'Admin Approved', detail: 'Final admin approval completed' },
   { key: 'validated', label: 'Validated', detail: 'Validated records' },
   { key: 'migrated', label: 'Migrated', detail: 'Migrated records' },
@@ -84,6 +85,8 @@ function applicationFilterWhere(filter: StatusFilter): Prisma.OrphanApplicationW
       return { status: ApplicationStatus.supervisor_approved };
     case 'admin_approved':
       return { status: ApplicationStatus.admin_approved };
+    case 'admin_on_hold':
+      return { status: ApplicationStatus.admin_on_hold };
     case 'validated':
       return { status: ApplicationStatus.validated };
     case 'rejected':
@@ -409,7 +412,7 @@ export default async function AdminApplicationsPage({
                     label="Download"
                     className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-70"
                   />
-                  {(isSuperAdmin || application.status === ApplicationStatus.reviewer_approved) ? (
+                  {(isSuperAdmin || application.status === ApplicationStatus.reviewer_approved || application.status === ApplicationStatus.admin_on_hold) ? (
                     <Link
                       href={`/applications/${application.id}/edit`}
                       className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100"
@@ -481,7 +484,7 @@ export default async function AdminApplicationsPage({
                           fileName={application.registrationNumber ?? application.id}
                           className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-70"
                         />
-                        {(isSuperAdmin || application.status === ApplicationStatus.reviewer_approved) ? (
+                        {(isSuperAdmin || application.status === ApplicationStatus.reviewer_approved || application.status === ApplicationStatus.admin_on_hold) ? (
                           <>
                             <Link
                               href={`/applications/${application.id}/edit`}

@@ -62,6 +62,12 @@ function actionLabel(action: string, details: Record<string, unknown>) {
       return 'Approved by super admin';
     case 'rejected_by_reviewer':
       return 'Rejected by reviewer';
+    case 'held_by_admin':
+      return 'Put on hold by admin';
+    case 'held_by_super_admin':
+      return 'Put on hold by super admin';
+    case 'returned_by_admin':
+      return 'Returned by admin';
     case 'approved_by_admin':
       return 'Approved by admin';
     case 'approved_by_super_admin':
