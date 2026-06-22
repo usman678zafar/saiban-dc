@@ -27,17 +27,12 @@ const statusFilters = [
   { key: 'reviewer_approved', label: 'Reviewer Approved' },
   { key: 'admin_approved', label: 'Admin Approved' },
   { key: 'validated', label: 'Validated' },
-  { key: 'rejected', label: 'Rejected' },
   { key: 'migrated', label: 'Migrated' },
-  { key: 'final_approved', label: 'Final Approved' },
+  { key: 'rejected', label: 'Rejected' },
 ] as const;
 
 type StatusFilter = (typeof statusFilters)[number]['key'];
 type ViewMode = 'list' | 'grid';
-
-const finalApprovedWhere: Prisma.OrphanApplicationWhereInput = {
-  status: { in: [ApplicationStatus.admin_approved, ApplicationStatus.validated, ApplicationStatus.migrated] },
-};
 
 function isStatusFilter(value: string | undefined): value is StatusFilter {
   return statusFilters.some((filter) => filter.key === value);
@@ -67,8 +62,6 @@ function applicationFilterWhere(filter: StatusFilter): Prisma.OrphanApplicationW
       return { status: ApplicationStatus.rejected };
     case 'migrated':
       return { status: ApplicationStatus.migrated };
-    case 'final_approved':
-      return finalApprovedWhere;
     default:
       return {};
   }

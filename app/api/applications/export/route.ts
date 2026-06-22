@@ -43,25 +43,31 @@ export async function GET(request: NextRequest) {
 
   if (format === 'json') {
     return NextResponse.json(applications.map((application) => {
-      const { documents, ...applicationExport } = application;
+      const {
+        documents,
+        createdBy,
+        filledFieldsPercentage,
+        filledFieldsCount,
+        totalMeaningfulFields,
+        ...applicationExport
+      } = application;
       return {
         ...applicationExport,
-        createdByPhoneNumber: application.createdBy.phoneNumber,
-        createdByCnic: application.createdBy.cnic,
-        filledFieldsPercentage: application.filledFieldsPercentage,
+        createdByPhoneNumber: createdBy.phoneNumber,
+        createdByCnic: createdBy.cnic,
+        completionPercentage: filledFieldsPercentage,
+        completionCompleteItems: filledFieldsCount,
+        completionTotalItems: totalMeaningfulFields,
       };
     }));
   }
 
   type ApplicationRow = (typeof applications)[number];
-  type ComputedHeader = 'createdByPhoneNumber' | 'createdByCnic';
+  type ComputedHeader = 'createdByPhoneNumber' | 'createdByCnic' | 'completionPercentage' | 'completionCompleteItems' | 'completionTotalItems';
 
   const scalarHeaders: Array<keyof ApplicationRow> = [
     'id',
     'registrationNumber',
-    'filledFieldsPercentage',
-    'filledFieldsCount',
-    'totalMeaningfulFields',
     'collectorId',
     'collectorContact',
     'collectorCnic',
@@ -95,7 +101,7 @@ export async function GET(request: NextRequest) {
     'updatedAt',
   ];
 
-  const computedHeaders: ComputedHeader[] = ['createdByPhoneNumber', 'createdByCnic'];
+  const computedHeaders: ComputedHeader[] = ['completionPercentage', 'completionCompleteItems', 'completionTotalItems', 'createdByPhoneNumber', 'createdByCnic'];
   const nestedHeaders = ['siblings', 'relatives', 'householdAssets'] as const;
   const allHeaders = [
     ...scalarHeaders,
@@ -111,9 +117,16 @@ export async function GET(request: NextRequest) {
         return csvEscape(value);
       });
       const computedValues = computedHeaders.map((header) => {
-        const value = header === 'createdByPhoneNumber'
-          ? application.createdBy.phoneNumber
-          : application.createdBy.cnic;
+        const value =
+          header === 'createdByPhoneNumber'
+            ? application.createdBy.phoneNumber
+            : header === 'createdByCnic'
+              ? application.createdBy.cnic
+              : header === 'completionPercentage'
+                ? application.filledFieldsPercentage
+                : header === 'completionCompleteItems'
+                  ? application.filledFieldsCount
+                  : application.totalMeaningfulFields;
         return csvEscape(value);
       });
       const nestedValues = nestedHeaders.map((header) =>
