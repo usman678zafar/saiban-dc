@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { compare } from 'bcryptjs';
 import { ZodError } from 'zod';
+import type { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getOrphanApplicationSchema } from '@/lib/validation';
 import { isValidDistrictForProvince, isValidProvince, isValidTehsilForDistrict } from '@/lib/address-utils';
 import { deleteFromR2 } from '@/lib/r2';
 import { applicationStatuses } from '@/lib/application-workflow';
-import { projectMatchesAnyReviewAssignment } from '@/lib/field-workers';
+import { collectorProjectReviewWhere, projectMatchesAnyReviewAssignment } from '@/lib/field-workers';
 import { logSystemAudit } from '@/lib/system-audit';
 import { calculateFilledFields, completionSelect } from '@/lib/application-completion';
+import { applicationSearchWhere } from '@/lib/application-search';
 
 async function getUser(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -884,6 +887,220 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
+type BulkDeleteFilters = {
+  q?: unknown;
+  status?: unknown;
+  department?: unknown;
+  completion?: unknown;
+  filled?: unknown;
+  dateType?: unknown;
+  dateFrom?: unknown;
+  dateTo?: unknown;
+};
+
+const bulkCompletionFilters = {
+  '0-10': { min: 0, max: 10 },
+  '11-25': { min: 11, max: 25 },
+  '26-50': { min: 26, max: 50 },
+  '51-75': { min: 51, max: 75 },
+  '76-100': { min: 76, max: 100 },
+} as const;
+
+function stringFilter(value: unknown) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function parseBulkDeleteDate(value: unknown) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function endOfBulkDeleteDate(value: unknown) {
+  const date = parseBulkDeleteDate(value);
+  if (!date) return null;
+  date.setUTCHours(23, 59, 59, 999);
+  return date;
+}
+
+function bulkStatusWhere(status: string): Prisma.OrphanApplicationWhereInput {
+  switch (status) {
+    case 'pending_admin_review':
+      return { status: 'reviewer_approved' };
+    case 'drafts':
+      return { status: 'draft' };
+    case 'submitted':
+      return { status: 'submitted' };
+    case 'needs_correction':
+      return { status: 'needs_correction' };
+    case 'supervisor_approved':
+      return { status: 'supervisor_approved' };
+    case 'admin_approved':
+      return { status: 'admin_approved' };
+    case 'validated':
+      return { status: 'validated' };
+    case 'rejected':
+      return { status: 'rejected' };
+    case 'migrated':
+      return { status: 'migrated' };
+    default:
+      return {};
+  }
+}
+
+function buildBulkDeleteWhere(filters: BulkDeleteFilters): Prisma.OrphanApplicationWhereInput {
+  const search = stringFilter(filters.q);
+  const status = stringFilter(filters.status);
+  const department = stringFilter(filters.department);
+  const completion = stringFilter(filters.completion ?? filters.filled);
+  const dateType = filters.dateType === 'createdAt' ? 'createdAt' : 'updatedAt';
+  const dateFrom = parseBulkDeleteDate(filters.dateFrom);
+  const dateTo = endOfBulkDeleteDate(filters.dateTo);
+  const completionDefinition = bulkCompletionFilters[completion as keyof typeof bulkCompletionFilters];
+
+  const whereParts: Prisma.OrphanApplicationWhereInput[] = [
+    applicationSearchWhere(search),
+    bulkStatusWhere(status),
+    department && department !== 'all' ? collectorProjectReviewWhere(department) : {},
+    completionDefinition
+      ? {
+        filledFieldsPercentage: {
+          ...(completionDefinition.min !== undefined ? { gte: completionDefinition.min } : {}),
+          ...(completionDefinition.max !== undefined ? { lte: completionDefinition.max } : {}),
+        },
+      }
+      : {},
+    dateFrom || dateTo
+      ? {
+        [dateType]: {
+          ...(dateFrom ? { gte: dateFrom } : {}),
+          ...(dateTo ? { lte: dateTo } : {}),
+        },
+      }
+      : {},
+  ].filter((part) => Object.keys(part).length > 0);
+
+  return whereParts.length ? { AND: whereParts } : {};
+}
+
+function hasActiveBulkDeleteFilter(filters: BulkDeleteFilters) {
+  return Boolean(
+    stringFilter(filters.q)
+    || (stringFilter(filters.status) && stringFilter(filters.status) !== 'all')
+    || (stringFilter(filters.department) && stringFilter(filters.department) !== 'all')
+    || (stringFilter(filters.completion ?? filters.filled) && stringFilter(filters.completion ?? filters.filled) !== 'all')
+    || parseBulkDeleteDate(filters.dateFrom)
+    || parseBulkDeleteDate(filters.dateTo),
+  );
+}
+
+async function deleteApplicationRecords(applications: Array<{
+  id: string;
+  documents: { fileKey: string }[];
+}>) {
+  for (const application of applications) {
+    await Promise.allSettled(application.documents.map((document) => deleteFromR2(document.fileKey)));
+
+    await prisma.$transaction([
+      prisma.applicationDocument.deleteMany({ where: { applicationId: application.id } }),
+      prisma.sibling.deleteMany({ where: { applicationId: application.id } }),
+      prisma.relative.deleteMany({ where: { applicationId: application.id } }),
+      prisma.householdAsset.deleteMany({ where: { applicationId: application.id } }),
+      prisma.auditLog.deleteMany({ where: { applicationId: application.id } }),
+      prisma.orphanApplication.delete({ where: { id: application.id } }),
+    ]);
+  }
+}
+
+async function handleBulkDeleteApplications(
+  user: NonNullable<Awaited<ReturnType<typeof getUser>>>,
+  body: any,
+) {
+  if (user.role !== 'super_admin') {
+    return NextResponse.json({ message: 'Super admin access required for bulk deletion.' }, { status: 403 });
+  }
+
+  const filters = body?.filters && typeof body.filters === 'object' ? body.filters as BulkDeleteFilters : {};
+  if (!hasActiveBulkDeleteFilter(filters)) {
+    return NextResponse.json({ message: 'Apply at least one filter before deleting all matching applications.' }, { status: 422 });
+  }
+
+  const where = buildBulkDeleteWhere(filters);
+  const [total, nonDraftCount] = await Promise.all([
+    prisma.orphanApplication.count({ where }),
+    prisma.orphanApplication.count({ where: { AND: [where, { status: { not: 'draft' } }] } }),
+  ]);
+
+  if (total === 0) {
+    return NextResponse.json({ message: 'No applications match these filters.' }, { status: 422 });
+  }
+
+  const expectedConfirmation = `DELETE ${total}`;
+  if (body?.confirmationText !== expectedConfirmation) {
+    return NextResponse.json({ message: `Type ${expectedConfirmation} to confirm this bulk deletion.` }, { status: 422 });
+  }
+
+  if (nonDraftCount > 0) {
+    if (typeof body?.adminPassword !== 'string' || body.adminPassword.length === 0) {
+      return NextResponse.json({ message: 'Admin password is required because this delete includes non-draft applications.' }, { status: 422 });
+    }
+
+    const passwordMatches = await compare(body.adminPassword, user.passwordHash);
+    if (!passwordMatches) {
+      return NextResponse.json({ message: 'Admin password is incorrect.' }, { status: 403 });
+    }
+  }
+
+  let deletedCount = 0;
+  const batchSize = 25;
+  while (true) {
+    const applications = await prisma.orphanApplication.findMany({
+      where,
+      take: batchSize,
+      orderBy: { updatedAt: 'asc' },
+      select: {
+        id: true,
+        documents: {
+          select: {
+            fileKey: true,
+          },
+        },
+      },
+    });
+
+    if (applications.length === 0) break;
+    await deleteApplicationRecords(applications);
+    deletedCount += applications.length;
+  }
+
+  await logSystemAudit({
+    action: nonDraftCount > 0 ? 'bulk_applications_deleted_by_super_admin' : 'bulk_draft_applications_deleted_by_super_admin',
+    entityType: 'application',
+    entityId: 'bulk-delete',
+    entityLabel: `${deletedCount} applications`,
+    actorId: user.id,
+    details: {
+      deletedCount,
+      nonDraftCount,
+      filters: {
+        q: stringFilter(filters.q),
+        status: stringFilter(filters.status),
+        department: stringFilter(filters.department),
+        completion: stringFilter(filters.completion ?? filters.filled),
+        dateType: filters.dateType === 'createdAt' ? 'createdAt' : 'updatedAt',
+        dateFrom: stringFilter(filters.dateFrom),
+        dateTo: stringFilter(filters.dateTo),
+      },
+    },
+  });
+
+  return NextResponse.json({
+    message: `Deleted ${deletedCount} application${deletedCount === 1 ? '' : 's'} successfully.`,
+    deletedCount,
+    nonDraftCount,
+  });
+}
+
 export async function DELETE(request: NextRequest) {
   const user = await getUser(request);
   if (!user) {
@@ -891,6 +1108,10 @@ export async function DELETE(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => null);
+  if (body?.deleteMatching === true) {
+    return handleBulkDeleteApplications(user, body);
+  }
+
   const id = body?.id;
   if (!id || typeof id !== 'string') {
     return NextResponse.json({ message: 'Missing application id' }, { status: 400 });
@@ -920,6 +1141,17 @@ export async function DELETE(request: NextRequest) {
 
   if (application.status !== 'draft' && user.role !== 'super_admin') {
     return NextResponse.json({ message: 'Only draft applications can be deleted.' }, { status: 409 });
+  }
+
+  if (application.status !== 'draft') {
+    if (typeof body?.adminPassword !== 'string' || body.adminPassword.length === 0) {
+      return NextResponse.json({ message: 'Admin password is required to delete non-draft applications.' }, { status: 422 });
+    }
+
+    const passwordMatches = await compare(body.adminPassword, user.passwordHash);
+    if (!passwordMatches) {
+      return NextResponse.json({ message: 'Admin password is incorrect.' }, { status: 403 });
+    }
   }
 
   if (application.createdById !== user.id && !['admin', 'super_admin'].includes(user.role)) {

@@ -136,7 +136,7 @@ export default async function ApplicationsPage({
               type="search"
               name="q"
               defaultValue={search}
-              placeholder="Search by name, registration, B-form, CNIC, department"
+              placeholder="Search by name, registration, B-form, parent CNIC, department"
               className="h-9 w-full rounded-lg border border-slate-300 bg-slate-50 pl-9 pr-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:h-10 sm:pl-10"
             />
           </label>
@@ -209,6 +209,7 @@ export default async function ApplicationsPage({
                   <DeleteDraftApplicationButton
                     applicationId={application.id}
                     title="Delete application"
+                    requiresPassword={isSuperAdmin && application.status !== 'draft'}
                     confirmationText={isSuperAdmin ? 'Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone.' : undefined}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
                   />
@@ -282,6 +283,7 @@ export default async function ApplicationsPage({
                       <DeleteDraftApplicationButton
                         applicationId={application.id}
                         title="Delete application"
+                        requiresPassword={isSuperAdmin && application.status !== 'draft'}
                         confirmationText={isSuperAdmin ? 'Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone.' : undefined}
                       />
                     ) : null}

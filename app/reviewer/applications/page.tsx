@@ -224,7 +224,7 @@ export default async function ReviewerApplicationsPage({
               type="search"
               name="q"
               defaultValue={search}
-              placeholder="Search by name, registration, B-form, CNIC, department"
+              placeholder="Search by name, registration, B-form, parent CNIC, department"
               className="min-h-11 w-full rounded-lg border border-slate-300 bg-slate-50 pl-10 pr-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </label>

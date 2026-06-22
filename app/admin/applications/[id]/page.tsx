@@ -84,6 +84,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
               applicationId={application.id}
               redirectTo="/admin/applications"
               title="Delete application"
+              requiresPassword={application.status !== 'draft'}
               confirmationText="Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone."
               className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-3 text-sm font-semibold text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
             />
