@@ -457,19 +457,21 @@ export function getStepCompletionItems(data: ApplicationReviewData, documents: A
     case 1:
       return requiredFieldCompletionItems(data, ['fatherName', 'fatherDob', 'fatherCnic', 'fatherEducation', 'fatherTongue', 'fatherNativeArea', 'fatherOccupation', 'fatherDateOfDeath', 'fatherCauseOfDeath']);
     case 2: {
-      const fields: ReviewField[] = ['motherName', 'motherDob', 'motherAlive', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea'];
+      const fields: ReviewField[] = ['motherName', 'motherDob', 'motherAlive', 'motherCnic', 'motherEducation', 'motherTongue', 'motherNativeArea', 'motherHealthStatus'];
       if (data.motherAlive === 'no') fields.push('motherDeathDate', 'motherDeathCause');
       if (data.motherAlive === 'separated') fields.push('motherSeparationReason');
       if (data.motherAlive === 'yes') {
         fields.push('motherContact', 'motherOccupation');
         if (motherOccupationNeedsIncome(text(data.motherOccupation))) fields.push('motherMonthlyIncome');
       }
+      if (data.motherHealthStatus === 'disabled') fields.push('motherDisabilityRemarks');
       return requiredFieldCompletionItems(data, fields);
     }
     case 3: {
       if (!guardianDetailsNeeded(data)) return [completionItem('Mother marked as guardian', true)];
-      const fields: ReviewField[] = ['guardianName', 'guardianDob', 'guardianAge', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianContact', 'guardianMonthlyIncome'];
+      const fields: ReviewField[] = ['guardianName', 'guardianDob', 'guardianAge', 'guardianRelationship', 'guardianGender', 'guardianCnic', 'guardianContact', 'guardianMonthlyIncome', 'guardianHealthStatus'];
       if (data.guardianFamilyHolder === 'yes') fields.push('guardianFamilyMembersCount');
+      if (data.guardianHealthStatus === 'disabled') fields.push('guardianDisabilityRemarks');
       return requiredFieldCompletionItems(data, fields);
     }
     case 4: {

@@ -19,43 +19,38 @@ import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 const PAGE_SIZE = 50;
 const BULK_DELETE_FORM_ID = 'admin-applications-bulk-delete-form';
 const statusFilters = [
-  { key: 'pending_admin_review', label: 'Pending Admin Review', detail: 'Approved by reviewers and ready for admin decision' },
   { key: 'all', label: 'All', detail: 'Every application stage' },
   { key: 'drafts', label: 'Drafts', detail: 'Saved but not submitted' },
   { key: 'submitted', label: 'Submitted', detail: 'Waiting for supervisor review' },
   { key: 'needs_correction', label: 'Needs Correction', detail: 'Returned for volunteer correction' },
   { key: 'supervisor_approved', label: 'Supervisor Approved', detail: 'Ready for reviewer flow' },
+  { key: 'pending_admin_review', label: 'Pending Admin Review', detail: 'Approved by reviewers and ready for admin decision' },
   { key: 'admin_approved', label: 'Admin Approved', detail: 'Final admin approval completed' },
   { key: 'validated', label: 'Validated', detail: 'Validated records' },
-  { key: 'rejected', label: 'Rejected', detail: 'Rejected records' },
   { key: 'migrated', label: 'Migrated', detail: 'Migrated records' },
-  { key: 'final_approved', label: 'Final Approved', detail: 'Admin approved, validated, migrated' },
+  { key: 'rejected', label: 'Rejected', detail: 'Rejected records' },
 ] as const;
 
 type StatusFilter = (typeof statusFilters)[number]['key'];
 
-const filledFilters = [
-  { key: 'all', label: 'Any filled %', min: undefined, max: undefined },
-  { key: '0-10', label: '0-10% filled', min: 0, max: 10 },
-  { key: '11-25', label: '11-25% filled', min: 11, max: 25 },
-  { key: '26-50', label: '26-50% filled', min: 26, max: 50 },
-  { key: '51-75', label: '51-75% filled', min: 51, max: 75 },
-  { key: '76-100', label: '76-100% filled', min: 76, max: 100 },
+const completionFilters = [
+  { key: 'all', label: 'Any completion %', min: undefined, max: undefined },
+  { key: '0-10', label: '0-10% complete', min: 0, max: 10 },
+  { key: '11-25', label: '11-25% complete', min: 11, max: 25 },
+  { key: '26-50', label: '26-50% complete', min: 26, max: 50 },
+  { key: '51-75', label: '51-75% complete', min: 51, max: 75 },
+  { key: '76-100', label: '76-100% complete', min: 76, max: 100 },
 ] as const;
 
-type FilledFilter = (typeof filledFilters)[number]['key'];
+type CompletionFilter = (typeof completionFilters)[number]['key'];
 type DateFilterType = 'updatedAt' | 'createdAt';
-
-const finalApprovedWhere: Prisma.OrphanApplicationWhereInput = {
-  status: { in: [ApplicationStatus.admin_approved, ApplicationStatus.validated, ApplicationStatus.migrated] },
-};
 
 function isStatusFilter(value: string | undefined): value is StatusFilter {
   return statusFilters.some((filter) => filter.key === value);
 }
 
-function isFilledFilter(value: string | undefined): value is FilledFilter {
-  return filledFilters.some((filter) => filter.key === value);
+function isCompletionFilter(value: string | undefined): value is CompletionFilter {
+  return completionFilters.some((filter) => filter.key === value);
 }
 
 function isDateFilterType(value: string | undefined): value is DateFilterType {
@@ -95,8 +90,6 @@ function applicationFilterWhere(filter: StatusFilter): Prisma.OrphanApplicationW
       return { status: ApplicationStatus.rejected };
     case 'migrated':
       return { status: ApplicationStatus.migrated };
-    case 'final_approved':
-      return finalApprovedWhere;
     default:
       return {};
   }
@@ -135,7 +128,7 @@ function departmentLabel(application: ApplicationListItem) {
 export default async function AdminApplicationsPage({
   searchParams,
 }: {
-  searchParams: { page?: string; q?: string; status?: string; department?: string; filled?: string; dateFrom?: string; dateTo?: string; dateType?: string };
+  searchParams: { page?: string; q?: string; status?: string; department?: string; completion?: string; filled?: string; dateFrom?: string; dateTo?: string; dateType?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/signin?callbackUrl=/admin/applications');
@@ -150,8 +143,9 @@ export default async function AdminApplicationsPage({
   const selectedStatusFilter: StatusFilter = isStatusFilter(searchParams.status)
     ? searchParams.status
     : defaultStatusFilter;
-  const selectedFilledFilter: FilledFilter = isFilledFilter(searchParams.filled) ? searchParams.filled : 'all';
-  const selectedFilledDefinition = filledFilters.find((filter) => filter.key === selectedFilledFilter) ?? filledFilters[0];
+  const completionParam = searchParams.completion ?? searchParams.filled;
+  const selectedCompletionFilter: CompletionFilter = isCompletionFilter(completionParam) ? completionParam : 'all';
+  const selectedCompletionDefinition = completionFilters.find((filter) => filter.key === selectedCompletionFilter) ?? completionFilters[0];
   const selectedDateType: DateFilterType = isDateFilterType(searchParams.dateType) ? searchParams.dateType : 'updatedAt';
   const dateFrom = parseDateInput(searchParams.dateFrom);
   const dateTo = endOfDateInput(searchParams.dateTo);
@@ -163,12 +157,12 @@ export default async function AdminApplicationsPage({
       },
     }
     : {};
-  const filledWhere: Prisma.OrphanApplicationWhereInput = selectedFilledFilter === 'all'
+  const completionWhere: Prisma.OrphanApplicationWhereInput = selectedCompletionFilter === 'all'
     ? {}
     : {
       filledFieldsPercentage: {
-        ...(selectedFilledDefinition.min !== undefined ? { gte: selectedFilledDefinition.min } : {}),
-        ...(selectedFilledDefinition.max !== undefined ? { lte: selectedFilledDefinition.max } : {}),
+        ...(selectedCompletionDefinition.min !== undefined ? { gte: selectedCompletionDefinition.min } : {}),
+        ...(selectedCompletionDefinition.max !== undefined ? { lte: selectedCompletionDefinition.max } : {}),
       },
     };
   const statusWhere = applicationFilterWhere(selectedStatusFilter);
@@ -177,7 +171,7 @@ export default async function AdminApplicationsPage({
     searchWhere,
     statusWhere,
     departmentWhere,
-    filledWhere,
+    completionWhere,
     dateRangeWhere,
   ].filter((part) => Object.keys(part).length > 0);
   const where: Prisma.OrphanApplicationWhereInput = whereParts.length ? { AND: whereParts } : {};
@@ -188,7 +182,7 @@ export default async function AdminApplicationsPage({
     if (search) params.set('q', search);
     if (selectedStatusFilter !== defaultStatusFilter) params.set('status', selectedStatusFilter);
     if (selectedDepartment !== 'all') params.set('department', selectedDepartment);
-    if (selectedFilledFilter !== 'all') params.set('filled', selectedFilledFilter);
+    if (selectedCompletionFilter !== 'all') params.set('completion', selectedCompletionFilter);
     if (searchParams.dateFrom) params.set('dateFrom', searchParams.dateFrom);
     if (searchParams.dateTo) params.set('dateTo', searchParams.dateTo);
     if (selectedDateType !== 'updatedAt') params.set('dateType', selectedDateType);
@@ -288,13 +282,13 @@ export default async function AdminApplicationsPage({
             </select>
           </label>
           <label className="min-w-0">
-            <span className="sr-only">Filter by filled percentage</span>
+            <span className="sr-only">Filter by completion percentage</span>
             <select
-              name="filled"
-              defaultValue={selectedFilledFilter}
+              name="completion"
+              defaultValue={selectedCompletionFilter}
               className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
             >
-              {filledFilters.map((filter) => (
+              {completionFilters.map((filter) => (
                 <option key={filter.key} value={filter.key}>{filter.label}</option>
               ))}
             </select>
@@ -333,7 +327,7 @@ export default async function AdminApplicationsPage({
           <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#3b82f6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2563eb]">
             Search
           </button>
-          {search || selectedDepartment !== 'all' || selectedStatusFilter !== defaultStatusFilter || selectedFilledFilter !== 'all' || searchParams.dateFrom || searchParams.dateTo || selectedDateType !== 'updatedAt' ? (
+          {search || selectedDepartment !== 'all' || selectedStatusFilter !== defaultStatusFilter || selectedCompletionFilter !== 'all' || searchParams.dateFrom || searchParams.dateTo || selectedDateType !== 'updatedAt' ? (
             <Link href="/admin/applications" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-4 py-2 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd]">
               <X className="h-4 w-4" aria-hidden="true" />
               Clear
@@ -372,7 +366,7 @@ export default async function AdminApplicationsPage({
                     <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
                     <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{departmentLabel(application) === '-' ? 'No department' : departmentLabel(application)}</span>
                     <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{fieldWorkerLabel(application)}</span>
-                    <span className="rounded-lg bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">{application.filledFieldsPercentage}% filled</span>
+                    <span className="rounded-lg bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">{application.filledFieldsPercentage}% complete</span>
                   </div>
                   <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
                 </Link>
@@ -407,7 +401,7 @@ export default async function AdminApplicationsPage({
                 <th className="px-4 py-3">Field Worker</th>
                 <th className="px-4 py-3">Department</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Filled</th>
+                <th className="px-4 py-3">Completion</th>
                 <th className="px-4 py-3">Updated</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
