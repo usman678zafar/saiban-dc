@@ -610,15 +610,29 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
   }
 
   if (user.role === 'admin') {
-    allowed = application.status === 'reviewer_approved' && ['admin_approved', 'rejected'].includes(status);
-    action = status === 'admin_approved' ? 'approved_by_admin' : 'rejected_by_admin';
+    allowed = (
+      (application.status === 'reviewer_approved' && ['admin_on_hold', 'admin_approved', 'rejected'].includes(status)) ||
+      (application.status === 'admin_on_hold' && ['needs_correction', 'admin_approved', 'rejected'].includes(status))
+    );
+    action = status === 'admin_on_hold'
+      ? 'held_by_admin'
+      : status === 'needs_correction'
+        ? 'returned_by_admin'
+        : status === 'admin_approved'
+          ? 'approved_by_admin'
+          : 'rejected_by_admin';
+
+    if (['admin_on_hold', 'needs_correction'].includes(status) && !comment) {
+      return NextResponse.json({ message: status === 'admin_on_hold' ? 'Hold reason is required.' : 'Correction comment is required.' }, { status: 422 });
+    }
   }
 
   if (user.role === 'super_admin') {
     allowed = (
       (application.status === 'submitted' && ['needs_correction', 'supervisor_approved', 'rejected'].includes(status)) ||
       (application.status === 'supervisor_approved' && ['reviewer_approved', 'rejected'].includes(status)) ||
-      (application.status === 'reviewer_approved' && ['admin_approved', 'rejected'].includes(status)) ||
+      (application.status === 'reviewer_approved' && ['admin_on_hold', 'admin_approved', 'rejected'].includes(status)) ||
+      (application.status === 'admin_on_hold' && ['needs_correction', 'admin_approved', 'rejected'].includes(status)) ||
       (application.status === 'admin_approved' && status === 'migrated') ||
       (application.status === 'validated' && status === 'migrated')
     );
@@ -628,14 +642,16 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
         ? 'supervisor_approved_by_super_admin'
         : status === 'reviewer_approved'
           ? 'reviewer_approved_by_super_admin'
-          : status === 'admin_approved'
-            ? 'approved_by_super_admin'
-            : status === 'rejected'
-              ? 'rejected_by_super_admin'
-              : 'status_changed_by_super_admin';
+          : status === 'admin_on_hold'
+            ? 'held_by_super_admin'
+            : status === 'admin_approved'
+              ? 'approved_by_super_admin'
+              : status === 'rejected'
+                ? 'rejected_by_super_admin'
+                : 'status_changed_by_super_admin';
 
-    if (status === 'needs_correction' && !comment) {
-      return NextResponse.json({ message: 'Correction comment is required.' }, { status: 422 });
+    if (['admin_on_hold', 'needs_correction'].includes(status) && !comment) {
+      return NextResponse.json({ message: status === 'admin_on_hold' ? 'Hold reason is required.' : 'Correction comment is required.' }, { status: 422 });
     }
   }
 
@@ -760,7 +776,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const canReviewerEdit = user.role === 'reviewer' && application.status === 'supervisor_approved';
-    const canAdminEdit = user.role === 'admin' && application.status === 'reviewer_approved';
+    const canAdminEdit = user.role === 'admin' && ['reviewer_approved', 'admin_on_hold'].includes(application.status);
     const canSuperAdminEdit = user.role === 'super_admin';
     const canOwnerEdit = user.role !== 'admin' && application.createdById === user.id && canCreateApplications(user);
     const comment = typeof body.reviewComment === 'string' ? body.reviewComment.trim() : '';
@@ -937,6 +953,8 @@ function bulkStatusWhere(status: string): Prisma.OrphanApplicationWhereInput {
       return { status: 'supervisor_approved' };
     case 'admin_approved':
       return { status: 'admin_approved' };
+    case 'admin_on_hold':
+      return { status: 'admin_on_hold' };
     case 'validated':
       return { status: 'validated' };
     case 'rejected':

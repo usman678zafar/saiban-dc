@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { Check, X, ArrowRight, RotateCcw } from 'lucide-react';
+import { Check, X, ArrowRight, RotateCcw, PauseCircle } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 
 type WorkflowAction = {
@@ -28,8 +28,12 @@ const adminWorkflowActions: WorkflowAction[] = [
   { from: 'submitted', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
   { from: 'supervisor_approved', to: 'reviewer_approved', label: 'Approve for Admin', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
   { from: 'supervisor_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
+  { from: 'reviewer_approved', to: 'admin_on_hold', label: 'Put On Hold', icon: PauseCircle, color: 'bg-amber-600 hover:bg-amber-500', requiresComment: true },
   { from: 'reviewer_approved', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
   { from: 'reviewer_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
+  { from: 'admin_on_hold', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
+  { from: 'admin_on_hold', to: 'needs_correction', label: 'Return with Comment', icon: ArrowRight, color: 'bg-amber-600 hover:bg-amber-500', requiresComment: true },
+  { from: 'admin_on_hold', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
   { from: 'admin_approved', to: 'migrated', label: 'Migrate', icon: RotateCcw, color: 'bg-slate-800 hover:bg-slate-700' },
   { from: 'validated', to: 'migrated', label: 'Migrate Legacy Validated', icon: RotateCcw, color: 'bg-slate-800 hover:bg-slate-700' },
 ];
@@ -46,8 +50,12 @@ const actionButtons: Record<'super_admin' | 'admin' | 'reviewer' | 'supervisor' 
     { from: 'supervisor_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
   ],
   admin: [
+    { from: 'reviewer_approved', to: 'admin_on_hold', label: 'Put On Hold', icon: PauseCircle, color: 'bg-amber-600 hover:bg-amber-500', requiresComment: true },
     { from: 'reviewer_approved', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
     { from: 'reviewer_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
+    { from: 'admin_on_hold', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
+    { from: 'admin_on_hold', to: 'needs_correction', label: 'Return with Comment', icon: ArrowRight, color: 'bg-amber-600 hover:bg-amber-500', requiresComment: true },
+    { from: 'admin_on_hold', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
   ],
   field_worker: [
     { from: 'needs_correction', to: 'submitted', label: 'Resubmit Application', icon: ArrowRight, color: 'bg-blue-600 hover:bg-blue-500' },
@@ -111,9 +119,12 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
   const acceptsReviewRemarks = actorRole === 'admin' || actorRole === 'reviewer';
   const requiresCorrectionComment = availableActions.some((action) => action.requiresComment);
   const showCommentBox = requiresCorrectionComment || acceptsReviewRemarks;
-  const commentLabel = requiresCorrectionComment ? 'Correction comment' : 'Remarks';
+  const isHoldActionAvailable = availableActions.some((action) => action.to === 'admin_on_hold');
+  const commentLabel = isHoldActionAvailable ? 'Remarks / hold reason' : requiresCorrectionComment ? 'Correction comment' : 'Remarks';
   const commentPlaceholder = requiresCorrectionComment
-    ? 'Explain what the field worker needs to correct.'
+    ? isHoldActionAvailable
+      ? 'Add remarks, or explain why this application is being held for later or special review.'
+      : 'Explain what the field worker needs to correct.'
     : actorRole === 'reviewer'
       ? 'Add reviewer remarks for this decision.'
       : 'Add admin remarks for this decision.';

@@ -70,6 +70,7 @@ async function getAdminPortalData() {
   const needsCorrectionApplications = applicationCountByStatus.get(ApplicationStatus.needs_correction) ?? 0;
   const supervisorApprovedApplications = applicationCountByStatus.get(ApplicationStatus.supervisor_approved) ?? 0;
   const reviewerApprovedApplications = applicationCountByStatus.get(ApplicationStatus.reviewer_approved) ?? 0;
+  const onHoldApplications = applicationCountByStatus.get(ApplicationStatus.admin_on_hold) ?? 0;
   const adminApprovedApplications =
     (applicationCountByStatus.get(ApplicationStatus.admin_approved) ?? 0) +
     (applicationCountByStatus.get(ApplicationStatus.validated) ?? 0);
@@ -89,6 +90,7 @@ async function getAdminPortalData() {
     { label: 'Applications Submitted', value: submittedByFieldWorkersCount, tone: 'violet' },
     { label: 'Supervisor Approved', value: supervisorApprovedApplications, tone: 'sky' },
     { label: 'Reviewer Approved', value: reviewerApprovedApplications, tone: 'indigo' },
+    { label: 'On Hold', value: onHoldApplications, tone: 'amber' },
     { label: 'Needs Correction', value: needsCorrectionApplications, tone: 'orange' },
     { label: 'Final Approved', value: adminApprovedApplications, tone: 'emerald' },
     { label: 'Rejected', value: rejectedApplications, tone: 'red' },

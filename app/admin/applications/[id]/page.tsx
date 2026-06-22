@@ -51,7 +51,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   if (!application) notFound();
 
   const applicationDocuments = await getApplicationDocuments(application.id);
-  const canEdit = isSuperAdmin || application.status === 'reviewer_approved';
+  const canEdit = isSuperAdmin || ['reviewer_approved', 'admin_on_hold'].includes(application.status);
 
   return (
     <AdminShell email={session.user.email} role={session.user.role}>

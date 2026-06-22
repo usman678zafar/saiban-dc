@@ -25,6 +25,7 @@ const statusFilters = [
   { key: 'needs_correction', label: 'Needs Correction' },
   { key: 'supervisor_approved', label: 'Supervisor Approved' },
   { key: 'reviewer_approved', label: 'Reviewer Approved' },
+  { key: 'admin_on_hold', label: 'On Hold' },
   { key: 'admin_approved', label: 'Admin Approved' },
   { key: 'validated', label: 'Validated' },
   { key: 'migrated', label: 'Migrated' },
@@ -56,6 +57,8 @@ function applicationFilterWhere(filter: StatusFilter): Prisma.OrphanApplicationW
       return { status: ApplicationStatus.reviewer_approved };
     case 'admin_approved':
       return { status: ApplicationStatus.admin_approved };
+    case 'admin_on_hold':
+      return { status: ApplicationStatus.admin_on_hold };
     case 'validated':
       return { status: ApplicationStatus.validated };
     case 'rejected':

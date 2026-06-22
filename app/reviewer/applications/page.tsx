@@ -26,6 +26,7 @@ type ReviewerView = (typeof reviewerViews)[number]['value'];
 
 const reviewerApprovedStatuses = [
   ApplicationStatus.reviewer_approved,
+  ApplicationStatus.admin_on_hold,
   ApplicationStatus.admin_approved,
   ApplicationStatus.validated,
   ApplicationStatus.migrated,

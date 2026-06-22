@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import ReviewerShell from '@/components/reviewer-shell';
 import BackButton from '@/components/back-button';
+import ApplicationActivityTimeline from '@/components/application-activity-timeline';
 import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationFieldWorkerDetails from '@/components/application-field-worker-details';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
@@ -22,6 +23,7 @@ interface ReviewerApplicationPageProps {
 
 const reviewerVisibleApprovedStatuses = new Set<string>([
   ApplicationStatus.reviewer_approved,
+  ApplicationStatus.admin_on_hold,
   ApplicationStatus.admin_approved,
   ApplicationStatus.validated,
   ApplicationStatus.migrated,
@@ -53,7 +55,11 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
       },
       auditLogs: {
         orderBy: { createdAt: 'desc' },
-        select: { action: true },
+        include: {
+          actor: {
+            select: { name: true, role: true, fieldWorkerId: true },
+          },
+        },
       },
     },
   });
@@ -105,6 +111,13 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
         <aside className="min-w-0 space-y-5">
           <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} />
           {canActOnApplication ? <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="reviewer" /> : null}
+          <ApplicationActivityTimeline
+            createdAt={application.createdAt}
+            updatedAt={application.updatedAt}
+            status={application.status}
+            createdByName={application.createdBy.name ?? application.createdBy.fieldWorkerId}
+            auditLogs={application.auditLogs}
+          />
         </aside>
       </div>
     </ReviewerShell>

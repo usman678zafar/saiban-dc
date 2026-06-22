@@ -27,6 +27,7 @@ type SupervisorView = (typeof supervisorViews)[number]['value'];
 const supervisorApprovedStatuses = [
   ApplicationStatus.supervisor_approved,
   ApplicationStatus.reviewer_approved,
+  ApplicationStatus.admin_on_hold,
   ApplicationStatus.admin_approved,
   ApplicationStatus.validated,
   ApplicationStatus.migrated,

@@ -148,7 +148,7 @@ function displayStatusLabel(status: string, language: Language) {
 function statusGroup(status: string): StatusFilter {
   if (['admin_approved', 'validated', 'migrated'].includes(status)) return 'final_approved';
   if (status === 'rejected') return 'rejected';
-  if (['submitted', 'supervisor_approved', 'reviewer_approved', 'needs_correction'].includes(status)) return 'pending';
+  if (['submitted', 'supervisor_approved', 'reviewer_approved', 'admin_on_hold', 'needs_correction'].includes(status)) return 'pending';
   return 'active';
 }
 

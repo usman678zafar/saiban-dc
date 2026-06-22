@@ -21,6 +21,7 @@ enum ApplicationStatus {
   needs_correction
   supervisor_approved
   reviewer_approved
+  admin_on_hold
   admin_approved
   validated
   rejected

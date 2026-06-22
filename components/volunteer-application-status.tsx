@@ -3,7 +3,7 @@
 import { Info } from 'lucide-react';
 import { useState } from 'react';
 
-const underReviewStatuses = new Set(['submitted', 'supervisor_approved', 'reviewer_approved']);
+const underReviewStatuses = new Set(['submitted', 'supervisor_approved', 'reviewer_approved', 'admin_on_hold']);
 const approvedStatuses = new Set(['admin_approved', 'validated']);
 
 const statusLabels: Record<string, string> = {
@@ -12,6 +12,7 @@ const statusLabels: Record<string, string> = {
   needs_correction: 'Correction Required',
   supervisor_approved: 'Under Review',
   reviewer_approved: 'Under Review',
+  admin_on_hold: 'Under Review',
   admin_approved: 'Approved',
   validated: 'Approved',
   rejected: 'Not Approved',
@@ -24,6 +25,7 @@ const statusClasses: Record<string, string> = {
   needs_correction: 'bg-amber-50 text-amber-800 ring-amber-100',
   supervisor_approved: 'bg-blue-50 text-blue-700 ring-blue-100',
   reviewer_approved: 'bg-blue-50 text-blue-700 ring-blue-100',
+  admin_on_hold: 'bg-amber-50 text-amber-800 ring-amber-100',
   admin_approved: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
   validated: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
   rejected: 'bg-rose-50 text-rose-700 ring-rose-100',
