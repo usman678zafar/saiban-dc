@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
+import { ApplicationStatus } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -18,6 +19,14 @@ interface SupervisorApplicationPageProps {
     id: string;
   };
 }
+
+const supervisorApprovedStatuses = new Set<string>([
+  ApplicationStatus.supervisor_approved,
+  ApplicationStatus.reviewer_approved,
+  ApplicationStatus.admin_approved,
+  ApplicationStatus.validated,
+  ApplicationStatus.migrated,
+]);
 
 export default async function SupervisorApplicationPage({ params }: SupervisorApplicationPageProps) {
   const session = await getServerSession(authOptions);
@@ -62,12 +71,31 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
   });
 
   if (!application) notFound();
-  if (application.status === 'draft') notFound();
-  if (!['admin', 'super_admin'].includes(user?.role ?? '') && application.createdById === user?.id) notFound();
+  if (application.status === ApplicationStatus.draft) notFound();
+  const isPrivilegedSupervisorView = ['admin', 'super_admin'].includes(user?.role ?? '');
+  if (!isPrivilegedSupervisorView && application.createdById === user?.id) notFound();
   const assignedProjects = user?.supervisorDepartments.length
     ? user.supervisorDepartments.map((department) => department.project)
     : user?.project ? [user.project] : [];
-  if (!['admin', 'super_admin'].includes(user?.role ?? '') && !projectMatchesAnyReviewAssignment(application.collectorProject, assignedProjects, application.createdBy.selfRegistered)) notFound();
+  if (!isPrivilegedSupervisorView && !projectMatchesAnyReviewAssignment(application.collectorProject, assignedProjects, application.createdBy.selfRegistered)) notFound();
+
+  if (!isPrivilegedSupervisorView) {
+    const hasSupervisorReturn = application.auditLogs.some((log) => log.action === 'returned_by_supervisor');
+    const hasOwnReturn = application.auditLogs.some((log) => log.action === 'returned_by_supervisor' && log.actorId === user?.id);
+    const hasOwnApproval = application.auditLogs.some((log) => log.action === 'approved_by_supervisor' && log.actorId === user?.id);
+    const hasOwnRejection = application.auditLogs.some((log) => log.action === 'rejected_by_supervisor' && log.actorId === user?.id);
+    const isVisibleToSupervisor = application.status === ApplicationStatus.submitted
+      ? !hasSupervisorReturn || hasOwnReturn
+      : application.status === ApplicationStatus.needs_correction
+        ? hasOwnReturn
+        : supervisorApprovedStatuses.has(application.status)
+          ? hasOwnApproval
+          : application.status === ApplicationStatus.rejected
+            ? hasOwnRejection || hasOwnApproval
+            : hasOwnApproval;
+
+    if (!isVisibleToSupervisor) notFound();
+  }
 
   const applicationDocuments = await getApplicationDocuments(application.id);
 
