@@ -19,7 +19,7 @@ import { calculateApplicationCompletion } from '@/lib/application-review';
 
 const PAGE_SIZE = 50;
 const statusFilters = [
-  { key: 'all', label: 'All' },
+  { key: 'all', label: 'All Statuses' },
   { key: 'drafts', label: 'Drafts' },
   { key: 'submitted', label: 'Submitted' },
   { key: 'needs_correction', label: 'Needs Correction' },
