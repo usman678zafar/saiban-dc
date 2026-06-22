@@ -19,7 +19,7 @@ import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 const PAGE_SIZE = 50;
 const BULK_DELETE_FORM_ID = 'admin-applications-bulk-delete-form';
 const statusFilters = [
-  { key: 'all', label: 'All', detail: 'Every application stage' },
+  { key: 'all', label: 'All Statuses', detail: 'Every application stage' },
   { key: 'drafts', label: 'Drafts', detail: 'Saved but not submitted' },
   { key: 'submitted', label: 'Submitted', detail: 'Waiting for supervisor review' },
   { key: 'needs_correction', label: 'Needs Correction', detail: 'Returned for volunteer correction' },
@@ -294,7 +294,7 @@ export default async function AdminApplicationsPage({
             </select>
           </label>
         </div>
-        <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(150px,190px)_minmax(140px,180px)_minmax(140px,180px)_auto_auto]">
+        <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(150px,190px)_minmax(180px,220px)_minmax(180px,220px)_auto_auto]">
           <label className="min-w-0">
             <span className="sr-only">Date type</span>
             <select
@@ -307,22 +307,28 @@ export default async function AdminApplicationsPage({
             </select>
           </label>
           <label className="min-w-0">
-            <span className="sr-only">Date from</span>
-            <input
-              type="date"
-              name="dateFrom"
-              defaultValue={searchParams.dateFrom ?? ''}
-              className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
-            />
+            <span className="sr-only">Start date</span>
+            <div className="flex min-h-11 items-center rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] focus-within:border-[#3b82f6] focus-within:ring-2 focus-within:ring-blue-100">
+              <span className="shrink-0 border-r border-[#dbe4ef] px-3 text-xs font-semibold text-[#6b7f99]">From</span>
+              <input
+                type="date"
+                name="dateFrom"
+                defaultValue={searchParams.dateFrom ?? ''}
+                className="min-h-11 w-full rounded-r-lg bg-transparent px-3 text-sm font-semibold text-[#0f1f33] outline-none"
+              />
+            </div>
           </label>
           <label className="min-w-0">
-            <span className="sr-only">Date to</span>
-            <input
-              type="date"
-              name="dateTo"
-              defaultValue={searchParams.dateTo ?? ''}
-              className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
-            />
+            <span className="sr-only">End date</span>
+            <div className="flex min-h-11 items-center rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] focus-within:border-[#3b82f6] focus-within:ring-2 focus-within:ring-blue-100">
+              <span className="shrink-0 border-r border-[#dbe4ef] px-3 text-xs font-semibold text-[#6b7f99]">To</span>
+              <input
+                type="date"
+                name="dateTo"
+                defaultValue={searchParams.dateTo ?? ''}
+                className="min-h-11 w-full rounded-r-lg bg-transparent px-3 text-sm font-semibold text-[#0f1f33] outline-none"
+              />
+            </div>
           </label>
           <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#3b82f6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2563eb]">
             Search

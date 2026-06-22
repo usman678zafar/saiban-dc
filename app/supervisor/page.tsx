@@ -19,7 +19,7 @@ const supervisorViews = [
   { value: 'returned', label: 'Returned' },
   { value: 'approved', label: 'Approved' },
   { value: 'rejected', label: 'Rejected' },
-  { value: 'all', label: 'All' },
+  { value: 'all', label: 'All Statuses' },
 ] as const;
 
 type SupervisorView = (typeof supervisorViews)[number]['value'];
