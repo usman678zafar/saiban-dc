@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { Prisma } from '@prisma/client';
+import { ApplicationStatus, type Prisma } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { Search, X } from 'lucide-react';
@@ -24,6 +24,24 @@ const supervisorViews = [
 
 type SupervisorView = (typeof supervisorViews)[number]['value'];
 
+const supervisorApprovedStatuses = [
+  ApplicationStatus.supervisor_approved,
+  ApplicationStatus.reviewer_approved,
+  ApplicationStatus.admin_approved,
+  ApplicationStatus.validated,
+  ApplicationStatus.migrated,
+];
+
+function supervisorPendingWhere(supervisorId?: string): Prisma.OrphanApplicationWhereInput {
+  return {
+    status: ApplicationStatus.submitted,
+    OR: [
+      { auditLogs: { none: { action: 'returned_by_supervisor' } } },
+      { auditLogs: { some: { action: 'returned_by_supervisor', actorId: supervisorId ?? '' } } },
+    ],
+  };
+}
+
 function isTransientDatabaseError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   return /connection terminated|connection closed|ECONNRESET|ECONNREFUSED|timeout/i.test(message);
@@ -45,21 +63,65 @@ async function withDatabaseRetry<T>(operation: () => Promise<T>, attempts = 3): 
   throw lastError;
 }
 
-function supervisorViewWhere(view: SupervisorView): Prisma.OrphanApplicationWhereInput {
+function supervisorViewWhere(
+  view: SupervisorView,
+  supervisorId?: string,
+  isPrivilegedSupervisorView = false,
+): Prisma.OrphanApplicationWhereInput {
+  if (isPrivilegedSupervisorView) {
+    switch (view) {
+      case 'resubmitted':
+        return { status: ApplicationStatus.submitted, auditLogs: { some: { action: 'resubmitted' } } };
+      case 'returned':
+        return { status: ApplicationStatus.needs_correction };
+      case 'approved':
+        return { status: { in: supervisorApprovedStatuses } };
+      case 'rejected':
+        return { status: ApplicationStatus.rejected };
+      case 'all':
+        return { status: { not: ApplicationStatus.draft } };
+      case 'pending':
+      default:
+        return { status: ApplicationStatus.submitted };
+    }
+  }
+
   switch (view) {
     case 'resubmitted':
-      return { status: 'submitted', auditLogs: { some: { action: 'resubmitted' } } };
+      return {
+        AND: [
+          { status: ApplicationStatus.submitted },
+          { auditLogs: { some: { action: 'resubmitted' } } },
+          { auditLogs: { some: { action: 'returned_by_supervisor', actorId: supervisorId ?? '' } } },
+        ],
+      };
     case 'returned':
-      return { status: 'needs_correction' };
+      return {
+        status: ApplicationStatus.needs_correction,
+        auditLogs: { some: { action: 'returned_by_supervisor', actorId: supervisorId ?? '' } },
+      };
     case 'approved':
-      return { status: { in: ['supervisor_approved', 'reviewer_approved', 'admin_approved', 'validated', 'migrated'] } };
+      return {
+        status: { not: ApplicationStatus.draft },
+        auditLogs: { some: { action: 'approved_by_supervisor', actorId: supervisorId ?? '' } },
+      };
     case 'rejected':
-      return { status: 'rejected' };
+      return {
+        status: ApplicationStatus.rejected,
+        auditLogs: { some: { action: 'rejected_by_supervisor', actorId: supervisorId ?? '' } },
+      };
     case 'all':
-      return { status: { not: 'draft' } };
+      return {
+        OR: [
+          supervisorPendingWhere(supervisorId),
+          supervisorViewWhere('returned', supervisorId),
+          supervisorViewWhere('approved', supervisorId),
+          supervisorViewWhere('rejected', supervisorId),
+        ],
+      };
     case 'pending':
     default:
-      return { status: 'submitted' };
+      return supervisorPendingWhere(supervisorId);
   }
 }
 
@@ -112,12 +174,13 @@ export default async function SupervisorPage({
   const currentView = supervisorViews.some((view) => view.value === searchParams.status)
     ? searchParams.status as SupervisorView
     : 'pending';
+  const isPrivilegedSupervisorView = ['admin', 'super_admin'].includes(user?.role ?? '');
   const baseWhereParts: Prisma.OrphanApplicationWhereInput[] = [
     ...(assignedProjects.length ? [collectorProjectsReviewWhere(assignedProjects)] : []),
-    ...(!['admin', 'super_admin'].includes(user?.role ?? '') ? [{ createdById: { not: user?.id ?? '' } }] : []),
+    ...(!isPrivilegedSupervisorView ? [{ createdById: { not: user?.id ?? '' } }] : []),
   ];
   const whereParts: Prisma.OrphanApplicationWhereInput[] = [
-    supervisorViewWhere(currentView),
+    supervisorViewWhere(currentView, user?.id, isPrivilegedSupervisorView),
     ...baseWhereParts,
     ...(search ? [applicationSearchWhere(search)] : []),
   ];
@@ -158,7 +221,7 @@ export default async function SupervisorPage({
       count: await withDatabaseRetry(() => prisma.orphanApplication.count({
         where: {
           AND: [
-            supervisorViewWhere(view.value),
+            supervisorViewWhere(view.value, user?.id, isPrivilegedSupervisorView),
             ...baseWhereParts,
           ],
         },
