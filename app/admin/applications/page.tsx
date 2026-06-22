@@ -190,8 +190,16 @@ export default async function AdminApplicationsPage({
     const query = params.toString();
     return query ? `/admin/applications?${query}` : '/admin/applications';
   };
+  const hasActiveBulkDeleteFilter = Boolean(
+    search
+    || selectedDepartment !== 'all'
+    || selectedStatusFilter !== 'all'
+    || selectedCompletionFilter !== 'all'
+    || searchParams.dateFrom
+    || searchParams.dateTo,
+  );
 
-  const [applicationRecords, total] = await Promise.all([
+  const [applicationRecords, total, matchingNonDraftCount] = await Promise.all([
     prisma.orphanApplication.findMany({
       where,
       orderBy: { updatedAt: 'desc' },
@@ -209,6 +217,9 @@ export default async function AdminApplicationsPage({
       },
     }) as Promise<ApplicationListRecord[]>,
     prisma.orphanApplication.count({ where }),
+    isSuperAdmin
+      ? prisma.orphanApplication.count({ where: { AND: [where, { status: { not: ApplicationStatus.draft } }] } })
+      : Promise.resolve(0),
   ]);
   const applications: ApplicationListItem[] = applicationRecords;
   const visibleDraftCount = isSuperAdmin
@@ -252,7 +263,7 @@ export default async function AdminApplicationsPage({
               type="search"
               name="q"
               defaultValue={search}
-              placeholder="Search by name, registration, B-form, CNIC, department"
+              placeholder="Search by name, registration, B-form, parent CNIC, department"
               className="min-h-11 w-full rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] pl-10 pr-3 text-sm text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-100"
             />
           </label>
@@ -343,9 +354,24 @@ export default async function AdminApplicationsPage({
       </form>
 
       <form id={BULK_DELETE_FORM_ID}>
-      {isSuperAdmin ? (
-        <BulkDeleteApplicationsButton formId={BULK_DELETE_FORM_ID} visibleDraftCount={visibleDraftCount} />
-      ) : null}
+        {isSuperAdmin ? (
+          <BulkDeleteApplicationsButton
+            formId={BULK_DELETE_FORM_ID}
+            visibleDraftCount={visibleDraftCount}
+            matchingCount={total}
+            matchingNonDraftCount={matchingNonDraftCount}
+            hasActiveFilter={hasActiveBulkDeleteFilter}
+            filters={{
+              q: search,
+              status: selectedStatusFilter,
+              department: selectedDepartment,
+              completion: selectedCompletionFilter,
+              dateType: selectedDateType,
+              dateFrom: searchParams.dateFrom ?? '',
+              dateTo: searchParams.dateTo ?? '',
+            }}
+          />
+        ) : null}
       <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
         <div className="grid gap-3 p-3 md:hidden">
           {applications.length === 0 ? (
@@ -469,6 +495,7 @@ export default async function AdminApplicationsPage({
                             <DeleteDraftApplicationButton
                               applicationId={application.id}
                               title="Delete application"
+                              requiresPassword={application.status !== ApplicationStatus.draft}
                               confirmationText="Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone."
                               className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
                             />

@@ -10,6 +10,7 @@ interface DeleteDraftApplicationButtonProps {
   redirectTo?: string;
   confirmationText?: string;
   title?: string;
+  requiresPassword?: boolean;
 }
 
 export default function DeleteDraftApplicationButton({
@@ -18,18 +19,22 @@ export default function DeleteDraftApplicationButton({
   redirectTo,
   confirmationText = 'Are you sure you want to delete this draft application? This action cannot be undone.',
   title = 'Delete draft',
+  requiresPassword = false,
 }: DeleteDraftApplicationButtonProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
 
   const handleDelete = async () => {
+    if (requiresPassword && !adminPassword) return;
+
     setIsDeleting(true);
     try {
       const response = await fetch('/api/applications', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: applicationId }),
+        body: JSON.stringify({ id: applicationId, adminPassword }),
       });
 
       if (!response.ok) {
@@ -38,6 +43,7 @@ export default function DeleteDraftApplicationButton({
       }
 
       setShowModal(false);
+      setAdminPassword('');
       if (redirectTo) {
         router.push(redirectTo);
         router.refresh();
@@ -70,10 +76,26 @@ export default function DeleteDraftApplicationButton({
             <p className="mt-2 text-sm text-slate-600">
               {confirmationText}
             </p>
+            {requiresPassword ? (
+              <label className="mt-4 block text-sm font-semibold text-slate-800">
+                Super admin password
+                <input
+                  type="password"
+                  value={adminPassword}
+                  onChange={(event) => setAdminPassword(event.target.value)}
+                  disabled={isDeleting}
+                  className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-rose-400 focus:ring-2 focus:ring-rose-100 disabled:cursor-not-allowed disabled:bg-slate-50"
+                  autoComplete="current-password"
+                />
+              </label>
+            ) : null}
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setAdminPassword('');
+                }}
                 disabled={isDeleting}
                 className="inline-flex w-full items-center justify-center rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 disabled:opacity-60 sm:w-auto"
               >
@@ -82,7 +104,7 @@ export default function DeleteDraftApplicationButton({
               <button
                 type="button"
                 onClick={handleDelete}
-                disabled={isDeleting}
+                disabled={isDeleting || (requiresPassword && !adminPassword)}
                 className="inline-flex w-full items-center justify-center rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               >
                 {isDeleting ? 'Deleting...' : 'Delete'}

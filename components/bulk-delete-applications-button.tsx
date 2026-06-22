@@ -8,15 +8,38 @@ import { AlertTriangle, Loader2, Trash2, X } from 'lucide-react';
 interface BulkDeleteApplicationsButtonProps {
   formId: string;
   visibleDraftCount: number;
+  matchingCount: number;
+  matchingNonDraftCount: number;
+  hasActiveFilter: boolean;
+  filters: {
+    q: string;
+    status: string;
+    department: string;
+    completion: string;
+    dateType: 'updatedAt' | 'createdAt';
+    dateFrom: string;
+    dateTo: string;
+  };
 }
 
-export default function BulkDeleteApplicationsButton({ formId, visibleDraftCount }: BulkDeleteApplicationsButtonProps) {
+type DeleteMode = 'selected' | 'matching';
+
+export default function BulkDeleteApplicationsButton({
+  formId,
+  visibleDraftCount,
+  matchingCount,
+  matchingNonDraftCount,
+  hasActiveFilter,
+  filters,
+}: BulkDeleteApplicationsButtonProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteMode, setDeleteMode] = useState<DeleteMode>('selected');
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
   const [confirmationText, setConfirmationText] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const selectAllRef = useRef<HTMLInputElement>(null);
   const confirmationInputRef = useRef<HTMLInputElement>(null);
@@ -104,8 +127,21 @@ export default function BulkDeleteApplicationsButton({ formId, visibleDraftCount
     const ids = selectedApplicationIds();
     if (ids.length === 0) return;
 
+    setDeleteMode('selected');
     setPendingDeleteIds(ids);
     setConfirmationText('');
+    setAdminPassword('');
+    setDeleteError(null);
+    setDeleteDialogOpen(true);
+  };
+
+  const openMatchingDeleteDialog = () => {
+    if (matchingCount === 0 || !hasActiveFilter) return;
+
+    setDeleteMode('matching');
+    setPendingDeleteIds([]);
+    setConfirmationText('');
+    setAdminPassword('');
     setDeleteError(null);
     setDeleteDialogOpen(true);
   };
@@ -113,12 +149,52 @@ export default function BulkDeleteApplicationsButton({ formId, visibleDraftCount
   const closeDeleteDialog = () => {
     if (isDeleting) return;
     setDeleteDialogOpen(false);
+    setDeleteMode('selected');
     setPendingDeleteIds([]);
     setConfirmationText('');
+    setAdminPassword('');
     setDeleteError(null);
   };
 
   const handleConfirmDelete = async () => {
+    if (deleteMode === 'matching') {
+      if (matchingCount === 0 || confirmationText !== `DELETE ${matchingCount}`) return;
+      if (matchingNonDraftCount > 0 && !adminPassword) return;
+
+      setIsDeleting(true);
+      setDeleteError(null);
+
+      try {
+        const response = await fetch('/api/applications', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deleteMatching: true,
+            filters,
+            confirmationText,
+            adminPassword,
+          }),
+        });
+
+        const result = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error(result?.message ?? 'Bulk delete failed');
+        }
+
+        setDeleteDialogOpen(false);
+        setDeleteMode('selected');
+        setConfirmationText('');
+        setAdminPassword('');
+        setAllVisibleDrafts(false);
+        router.refresh();
+      } catch (error) {
+        setDeleteError(error instanceof Error ? error.message : 'Bulk delete failed');
+      } finally {
+        setIsDeleting(false);
+      }
+      return;
+    }
+
     const ids = pendingDeleteIds;
     if (ids.length === 0 || confirmationText !== `DELETE ${ids.length}`) return;
 
@@ -151,61 +227,91 @@ export default function BulkDeleteApplicationsButton({ formId, visibleDraftCount
       return;
     } else {
       setDeleteDialogOpen(false);
+      setDeleteMode('selected');
       setPendingDeleteIds([]);
       setConfirmationText('');
+      setAdminPassword('');
       setAllVisibleDrafts(false);
     }
 
     router.refresh();
   };
 
-  if (visibleDraftCount === 0) return null;
+  if (visibleDraftCount === 0 && matchingCount === 0) return null;
 
-  const expectedConfirmation = `DELETE ${pendingDeleteIds.length}`;
-  const canConfirmDelete = confirmationText === expectedConfirmation && pendingDeleteIds.length > 0 && !isDeleting;
+  const affectedCount = deleteMode === 'matching' ? matchingCount : pendingDeleteIds.length;
+  const expectedConfirmation = `DELETE ${affectedCount}`;
+  const passwordRequired = deleteMode === 'matching' && matchingNonDraftCount > 0;
+  const canConfirmDelete = confirmationText === expectedConfirmation
+    && affectedCount > 0
+    && (!passwordRequired || adminPassword.length > 0)
+    && !isDeleting;
 
   return (
     <>
       <div className="mb-3 flex flex-col gap-3 rounded-lg border border-[#dbe4ef] bg-white px-3 py-2 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33]">
-            <input
-              ref={selectAllRef}
-              type="checkbox"
-              onChange={handleSelectAll}
-              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200"
-            />
-            Select all visible drafts
-          </label>
+          {visibleDraftCount > 0 ? (
+            <>
+              <label className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-sm font-semibold text-[#0f1f33]">
+                <input
+                  ref={selectAllRef}
+                  type="checkbox"
+                  onChange={handleSelectAll}
+                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200"
+                />
+                Select all visible drafts
+              </label>
+              <span className="text-sm font-medium text-[#5f718a]">
+                {selectedCount === 0
+                  ? `${visibleDraftCount} draft${visibleDraftCount === 1 ? '' : 's'} available on this page`
+                  : `${selectedCount} selected`}
+              </span>
+            </>
+          ) : (
+            <span className="text-sm font-medium text-[#5f718a]">No visible drafts on this page</span>
+          )}
           <span className="text-sm font-medium text-[#5f718a]">
-            {selectedCount === 0
-              ? `${visibleDraftCount} draft${visibleDraftCount === 1 ? '' : 's'} available on this page`
-              : `${selectedCount} selected`}
+            {matchingCount} application{matchingCount === 1 ? '' : 's'} match current filters
           </span>
         </div>
 
-        {selectedCount > 0 ? (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          {selectedCount > 0 ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setAllVisibleDrafts(false)}
+                disabled={isDeleting}
+                className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-3 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={openDeleteDialog}
+                disabled={isDeleting}
+                className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-rose-600 px-3 text-sm font-semibold text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                Delete {selectedCount} draft{selectedCount === 1 ? '' : 's'}
+              </button>
+            </>
+          ) : null}
+          {matchingCount > 0 ? (
             <button
               type="button"
-              onClick={() => setAllVisibleDrafts(false)}
-              disabled={isDeleting}
-              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-[#dbe4ef] px-3 text-sm font-semibold text-[#506784] hover:bg-[#f6f9fd] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <X className="h-4 w-4" aria-hidden="true" />
-              Clear
-            </button>
-            <button
-              type="button"
-              onClick={openDeleteDialog}
-              disabled={isDeleting}
-              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-rose-600 px-3 text-sm font-semibold text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={openMatchingDeleteDialog}
+              disabled={isDeleting || !hasActiveFilter}
+              title={hasActiveFilter ? 'Delete all applications matching the current filters' : 'Apply at least one filter before deleting all matching applications'}
+              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" />
-              Delete {selectedCount} draft{selectedCount === 1 ? '' : 's'}
+              {hasActiveFilter ? 'Delete all matching' : 'Apply filter to delete all'}
             </button>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
 
       {deleteDialogOpen ? (
@@ -223,10 +329,12 @@ export default function BulkDeleteApplicationsButton({ formId, visibleDraftCount
               </div>
               <div className="min-w-0 flex-1">
                 <h2 id="bulk-delete-dialog-title" className="text-base font-bold text-slate-950">
-                  Delete selected draft applications?
+                  {deleteMode === 'matching' ? 'Delete all matching applications?' : 'Delete selected draft applications?'}
                 </h2>
                 <p id="bulk-delete-dialog-description" className="mt-1 text-sm leading-5 text-slate-600">
-                  This will permanently delete {pendingDeleteIds.length} draft application{pendingDeleteIds.length === 1 ? '' : 's'}, including uploaded R2 files and activity history.
+                  {deleteMode === 'matching'
+                    ? `This will permanently delete ${matchingCount} application${matchingCount === 1 ? '' : 's'} matching the current filters, including uploaded R2 files and activity history.`
+                    : `This will permanently delete ${pendingDeleteIds.length} draft application${pendingDeleteIds.length === 1 ? '' : 's'}, including uploaded R2 files and activity history.`}
                 </p>
               </div>
               <button
@@ -242,7 +350,9 @@ export default function BulkDeleteApplicationsButton({ formId, visibleDraftCount
 
             <div className="space-y-4 px-5 py-5">
               <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-5 text-amber-900">
-                This action cannot be undone. Only continue if these filtered draft applications should be removed from the system.
+                {deleteMode === 'matching'
+                  ? `This action cannot be undone. ${matchingNonDraftCount > 0 ? `${matchingNonDraftCount} non-draft application${matchingNonDraftCount === 1 ? '' : 's'} will be deleted and require password confirmation.` : 'Only draft applications match these filters.'}`
+                  : 'This action cannot be undone. Only continue if these selected draft applications should be removed from the system.'}
               </div>
 
               <label className="block text-sm font-semibold text-slate-800">
@@ -258,6 +368,20 @@ export default function BulkDeleteApplicationsButton({ formId, visibleDraftCount
                   spellCheck={false}
                 />
               </label>
+
+              {passwordRequired ? (
+                <label className="block text-sm font-semibold text-slate-800">
+                  Super admin password
+                  <input
+                    type="password"
+                    value={adminPassword}
+                    onChange={(event) => setAdminPassword(event.target.value)}
+                    disabled={isDeleting}
+                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-rose-400 focus:ring-2 focus:ring-rose-100 disabled:cursor-not-allowed disabled:bg-slate-50"
+                    autoComplete="current-password"
+                  />
+                </label>
+              ) : null}
 
               {deleteError ? (
                 <div className="max-h-28 overflow-auto rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm leading-5 text-rose-700">
@@ -282,7 +406,11 @@ export default function BulkDeleteApplicationsButton({ formId, visibleDraftCount
                 className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-rose-600 px-4 text-sm font-semibold text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Trash2 className="h-4 w-4" aria-hidden="true" />}
-                {isDeleting ? 'Deleting...' : `Delete ${pendingDeleteIds.length} draft${pendingDeleteIds.length === 1 ? '' : 's'}`}
+                {isDeleting
+                  ? 'Deleting...'
+                  : deleteMode === 'matching'
+                    ? `Delete ${matchingCount} matching`
+                    : `Delete ${pendingDeleteIds.length} draft${pendingDeleteIds.length === 1 ? '' : 's'}`}
               </button>
             </div>
           </div>
