@@ -35,14 +35,9 @@ const supervisorApprovedStatuses = [
   ApplicationStatus.migrated,
 ];
 
-function supervisorPendingWhere(supervisorId?: string): Prisma.OrphanApplicationWhereInput {
+function supervisorPendingWhere(): Prisma.OrphanApplicationWhereInput {
   return {
     status: ApplicationStatus.submitted,
-    OR: [
-      { auditLogs: { none: { action: 'returned_by_supervisor' } } },
-      { auditLogs: { some: { action: 'returned_by_supervisor', actorId: supervisorId ?? '' } } },
-      { auditLogs: { some: { action: { in: ['returned_by_admin_to_supervisor', 'returned_by_super_admin_to_supervisor'] } } } },
-    ],
   };
 }
 
@@ -96,7 +91,6 @@ function supervisorViewWhere(
         AND: [
           { status: ApplicationStatus.submitted },
           { auditLogs: { some: { action: 'resubmitted' } } },
-          { auditLogs: { some: { action: 'returned_by_supervisor', actorId: supervisorId ?? '' } } },
         ],
       };
     case 'returned':
@@ -117,7 +111,7 @@ function supervisorViewWhere(
     case 'all':
       return {
         OR: [
-          supervisorPendingWhere(supervisorId),
+          supervisorPendingWhere(),
           supervisorViewWhere('returned', supervisorId),
           supervisorViewWhere('approved', supervisorId),
           supervisorViewWhere('rejected', supervisorId),
@@ -125,7 +119,7 @@ function supervisorViewWhere(
       };
     case 'pending':
     default:
-      return supervisorPendingWhere(supervisorId);
+      return supervisorPendingWhere();
   }
 }
 
@@ -214,8 +208,19 @@ export default async function SupervisorPage({
         status: true,
         auditLogs: {
           orderBy: { createdAt: 'desc' },
-          take: 1,
-          select: { action: true, details: true, createdAt: true },
+          take: 8,
+          select: {
+            action: true,
+            details: true,
+            createdAt: true,
+            actor: {
+              select: {
+                name: true,
+                fieldWorkerId: true,
+                role: true,
+              },
+            },
+          },
         },
       },
     }));
@@ -305,6 +310,10 @@ export default async function SupervisorPage({
                 applications.map((application) => {
                   const latestDetails = application.auditLogs[0]?.details as { comment?: unknown } | undefined;
                   const latestComment = typeof latestDetails?.comment === 'string' && latestDetails.comment.trim() ? latestDetails.comment.trim() : null;
+                  const latestSupervisorReturn = application.auditLogs.find((log) => log.action === 'returned_by_supervisor');
+                  const latestReturnActor = latestSupervisorReturn?.actor?.name
+                    ?? latestSupervisorReturn?.actor?.fieldWorkerId
+                    ?? latestSupervisorReturn?.actor?.role?.replace(/_/g, ' ');
                   return (
                     <tr key={application.id} className="border-t border-slate-100 hover:bg-slate-50">
                       <td className="px-4 py-4">
@@ -313,6 +322,9 @@ export default async function SupervisorPage({
                         <div className="mt-2">
                           <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
                         </div>
+                        {application.status === ApplicationStatus.submitted && latestReturnActor ? (
+                          <p className="mt-2 text-xs leading-5 text-amber-700">Previously returned by {latestReturnActor}</p>
+                        ) : null}
                       </td>
                       <td className="px-4 py-4">{application.collectorProject ?? '-'}</td>
                       <td className="px-4 py-4">{application.collectorName ?? '-'}</td>
@@ -341,6 +353,10 @@ export default async function SupervisorPage({
             applications.map((application) => {
               const latestDetails = application.auditLogs[0]?.details as { comment?: unknown } | undefined;
               const latestComment = typeof latestDetails?.comment === 'string' && latestDetails.comment.trim() ? latestDetails.comment.trim() : null;
+              const latestSupervisorReturn = application.auditLogs.find((log) => log.action === 'returned_by_supervisor');
+              const latestReturnActor = latestSupervisorReturn?.actor?.name
+                ?? latestSupervisorReturn?.actor?.fieldWorkerId
+                ?? latestSupervisorReturn?.actor?.role?.replace(/_/g, ' ');
               return (
                 <Link key={application.id} href={`/supervisor/applications/${application.id}`} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                   <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
@@ -351,6 +367,9 @@ export default async function SupervisorPage({
                     <span>{application.collectorProject ?? '-'}</span>
                     <span>{formatDate(application.updatedAt)}</span>
                   </div>
+                  {application.status === ApplicationStatus.submitted && latestReturnActor ? (
+                    <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">Previously returned by {latestReturnActor}</p>
+                  ) : null}
                   {latestComment ? <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">{latestComment}</p> : null}
                 </Link>
               );

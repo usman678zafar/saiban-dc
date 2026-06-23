@@ -83,13 +83,11 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
   if (!isPrivilegedSupervisorView && !projectMatchesAnyReviewAssignment(application.collectorProject, assignedProjects, application.createdBy.selfRegistered)) notFound();
 
   if (!isPrivilegedSupervisorView) {
-    const hasSupervisorReturn = application.auditLogs.some((log) => log.action === 'returned_by_supervisor');
-    const hasAdminReturnToSupervisor = application.auditLogs.some((log) => log.action === 'returned_by_admin_to_supervisor' || log.action === 'returned_by_super_admin_to_supervisor');
     const hasOwnReturn = application.auditLogs.some((log) => log.action === 'returned_by_supervisor' && log.actorId === user?.id);
     const hasOwnApproval = application.auditLogs.some((log) => log.action === 'approved_by_supervisor' && log.actorId === user?.id);
     const hasOwnRejection = application.auditLogs.some((log) => log.action === 'rejected_by_supervisor' && log.actorId === user?.id);
     const isVisibleToSupervisor = application.status === ApplicationStatus.submitted
-      ? hasAdminReturnToSupervisor || !hasSupervisorReturn || hasOwnReturn
+      ? true
       : application.status === ApplicationStatus.needs_correction
         ? hasOwnReturn
         : supervisorApprovedStatuses.has(application.status)
