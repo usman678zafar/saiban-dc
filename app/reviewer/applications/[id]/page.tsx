@@ -82,18 +82,18 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
           <h1 className="break-words text-2xl font-semibold tracking-tight text-[#0f1f33] [overflow-wrap:anywhere] sm:text-3xl">{application.registrationNumber ?? application.id}</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a]">Review the supervisor-approved record and revisit approved or rejected reviewer decisions.</p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-          <BackButton fallbackHref="/reviewer/applications" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+        <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:w-auto sm:grid-cols-2 lg:flex lg:flex-wrap lg:justify-end">
+          <BackButton fallbackHref="/reviewer/applications" className="inline-flex min-h-11 w-full min-w-0 items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-center text-sm font-semibold leading-5 text-white hover:bg-slate-800 lg:w-auto">
             Back
           </BackButton>
           <ApplicationReviewDownloadButton
             applicationId={application.id}
             fileName={application.registrationNumber ?? application.id}
             label="Download"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70"
+            className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold leading-5 text-slate-700 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70 lg:w-auto"
           />
           {canActOnApplication ? (
-            <Link href={`/applications/${application.id}/edit`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+            <Link href={`/applications/${application.id}/edit`} className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-center text-sm font-semibold leading-5 text-white hover:bg-blue-500 lg:w-auto">
               <Edit2 className="h-4 w-4" aria-hidden="true" />
               Edit
             </Link>

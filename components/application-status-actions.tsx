@@ -153,7 +153,7 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
           />
         </label>
       ) : null}
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
         {availableActions.map((action) => {
           const Icon = action.icon;
           return (
@@ -162,10 +162,10 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
               type="button"
               onClick={() => handleTransition(action.to)}
               disabled={loading || (action.requiresComment && !comment.trim())}
-              className={`${action.color} inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto`}
+              className={`${action.color} inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-lg px-3 py-3 text-center text-sm font-semibold leading-5 text-white transition disabled:cursor-not-allowed disabled:opacity-60`}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              {action.label}
+              <span className="whitespace-normal">{action.label}</span>
             </button>
           );
         })}
