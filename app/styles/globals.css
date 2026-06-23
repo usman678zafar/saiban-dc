@@ -83,3 +83,27 @@ body {
     transform: translateX(220%);
   }
 }
+
+@keyframes portal-logo-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-8px) scale(1.035);
+  }
+}
+
+@keyframes portal-logo-halo {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.86);
+  }
+
+  50% {
+    opacity: 0.78;
+    transform: scale(1);
+  }
+}

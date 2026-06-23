@@ -1,10 +1,14 @@
 'use client';
 
 import { createContext, ReactNode, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import { usePathname, useSearchParams } from 'next/navigation';
+import logo from '@/assests/logo.png';
+
+type LoadingMode = 'default' | 'portal';
 
 type NavigationLoadingContextValue = {
-  startLoading: () => void;
+  startLoading: (mode?: LoadingMode) => void;
   stopLoading: () => void;
 };
 
@@ -32,6 +36,7 @@ function NavigationLoadingInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMode, setLoadingMode] = useState<LoadingMode>('default');
   const timeoutRef = useRef<number | null>(null);
 
   const stopLoading = useCallback(() => {
@@ -40,13 +45,16 @@ function NavigationLoadingInner({ children }: { children: ReactNode }) {
       timeoutRef.current = null;
     }
     setIsLoading(false);
+    setLoadingMode('default');
   }, []);
 
-  const startLoading = useCallback(() => {
+  const startLoading = useCallback((mode: LoadingMode = 'default') => {
     if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    setLoadingMode(mode);
     setIsLoading(true);
     timeoutRef.current = window.setTimeout(() => {
       setIsLoading(false);
+      setLoadingMode('default');
       timeoutRef.current = null;
     }, 15000);
   }, []);
@@ -74,7 +82,25 @@ function NavigationLoadingInner({ children }: { children: ReactNode }) {
   return (
     <NavigationLoadingContext.Provider value={value}>
       {children}
-      {isLoading ? (
+      {isLoading && loadingMode === 'portal' ? (
+        <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-white" role="status" aria-live="polite" aria-label="Opening portal">
+          <div className="flex flex-col items-center gap-5">
+            <div className="relative flex h-40 w-40 items-center justify-center sm:h-48 sm:w-48">
+              <span className="absolute inset-0 animate-[portal-logo-halo_1.8s_ease-in-out_infinite] rounded-full bg-blue-50" aria-hidden="true" />
+              <span className="absolute inset-4 animate-[portal-logo-halo_1.8s_ease-in-out_infinite_0.25s] rounded-full bg-emerald-50" aria-hidden="true" />
+              <Image
+                src={logo}
+                alt="Saiban"
+                priority
+                className="relative h-28 w-auto animate-[portal-logo-float_1.9s_ease-in-out_infinite] object-contain drop-shadow-[0_18px_28px_rgba(15,23,42,0.14)] sm:h-36"
+              />
+            </div>
+            <span className="h-1.5 w-28 overflow-hidden rounded-full bg-slate-100">
+              <span className="block h-full w-1/2 animate-[navigation-progress_1.1s_ease-in-out_infinite] rounded-full bg-blue-600" />
+            </span>
+          </div>
+        </div>
+      ) : isLoading ? (
         <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]" role="status" aria-live="polite" aria-label="Loading">
           <div className="absolute left-0 top-0 h-1 w-full overflow-hidden bg-blue-100">
             <div className="h-full w-1/2 animate-[navigation-progress_1.1s_ease-in-out_infinite] bg-blue-600" />
@@ -101,7 +127,7 @@ export function useNavigationLoading() {
   const context = useContext(NavigationLoadingContext);
   if (!context) {
     return {
-      startLoading: () => {},
+      startLoading: (_mode?: LoadingMode) => {},
       stopLoading: () => {},
     };
   }

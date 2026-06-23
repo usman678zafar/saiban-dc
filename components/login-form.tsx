@@ -84,6 +84,7 @@ export default function LoginForm({
 
       window.sessionStorage.setItem(SESSION_BROWSER_STORAGE_KEY, String(Date.now()));
       const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl');
+      startLoading('portal');
       router.push(callbackUrl ?? defaultRedirect ?? defaultRedirectForRole(loginRole));
       router.refresh();
     } catch {
