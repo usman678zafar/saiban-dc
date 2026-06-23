@@ -56,6 +56,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
 
   const applicationDocuments = await getApplicationDocuments(application.id);
   const canEdit = isSuperAdmin || (!isAdmin && (application.status === 'draft' || application.status === 'needs_correction'));
+  const shouldCollapseSideDetails = ['supervisor', 'reviewer', 'admin', 'super_admin'].includes(session.user.role ?? '');
   const actions = (
     <>
       {!isAdmin ? <VolunteerApplicationStatus status={application.status} /> : null}
@@ -99,13 +100,14 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       />
 
       <aside className="min-w-0 space-y-5">
-        <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} />
+        <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} defaultCollapsed={shouldCollapseSideDetails} />
         <ApplicationActivityTimeline
           createdAt={application.createdAt}
           updatedAt={application.updatedAt}
           status={application.status}
           createdByName={application.createdBy.name ?? application.createdBy.fieldWorkerId}
           auditLogs={application.auditLogs}
+          defaultCollapsed={shouldCollapseSideDetails}
         />
         {isSuperAdmin ? (
           <>

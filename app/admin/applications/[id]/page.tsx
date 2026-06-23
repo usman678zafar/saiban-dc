@@ -101,13 +101,14 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
         />
 
         <aside className="space-y-6">
-          <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} />
+          <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} defaultCollapsed />
           <ApplicationActivityTimeline
             createdAt={application.createdAt}
             updatedAt={application.updatedAt}
             status={application.status}
             createdByName={application.createdBy.name ?? application.createdBy.fieldWorkerId}
             auditLogs={application.auditLogs}
+            defaultCollapsed
           />
           <ApplicationStatusActions
             applicationId={application.id}
