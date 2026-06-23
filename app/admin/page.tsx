@@ -22,7 +22,7 @@ const PAKISTAN_GEO_BOUNDS = {
   maxLng: 77.25,
 };
 
-async function getAdminPortalData() {
+async function getAdminPortalData(showSystemAdminMetric: boolean) {
   const [applicationStatusCounts, allApplicationStatusCounts, submittedByFieldWorkersCount, mappedApplications] = await Promise.all([
     prisma.orphanApplication.groupBy({
       by: ['status'],
@@ -95,7 +95,7 @@ async function getAdminPortalData() {
     { label: 'Final Approved', value: adminApprovedApplications, tone: 'emerald' },
     { label: 'Rejected', value: rejectedApplications, tone: 'red' },
     { label: 'System Users', value: totalUsers, tone: 'amber' },
-    { label: 'System Admin', value: adminUsers, tone: 'charcoal' },
+    ...(showSystemAdminMetric ? [{ label: 'System Admin', value: adminUsers, tone: 'charcoal' } satisfies AdminMetric] : []),
   ];
 
   const geoApplications: ViewerGeoApplication[] = mappedApplications
@@ -135,7 +135,7 @@ export default async function AdminPortalPage() {
     redirect('/dashboard');
   }
 
-  const { metrics, geoApplications } = await getAdminPortalData();
+  const { metrics, geoApplications } = await getAdminPortalData(session.user.role === 'super_admin');
   const metricStyles = {
     blue: { icon: ClipboardList, card: 'bg-[#2563eb]' },
     steel: { icon: FileText, card: 'bg-[#64748b]' },

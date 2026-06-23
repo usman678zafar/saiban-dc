@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 
 type TimelineActor = {
@@ -20,6 +21,7 @@ interface ApplicationActivityTimelineProps {
   status: string;
   createdByName?: string | null;
   auditLogs: TimelineAuditLog[];
+  defaultCollapsed?: boolean;
 }
 
 const dateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
@@ -105,7 +107,7 @@ function hasSubmittedEntry(auditLogs: TimelineAuditLog[]) {
   });
 }
 
-export default function ApplicationActivityTimeline({ createdAt, updatedAt, status, createdByName, auditLogs }: ApplicationActivityTimelineProps) {
+export default function ApplicationActivityTimeline({ createdAt, updatedAt, status, createdByName, auditLogs, defaultCollapsed = false }: ApplicationActivityTimelineProps) {
   const shouldShowLegacySubmit = status !== 'draft' && !hasSubmittedEntry(auditLogs);
   const items = [
     {
@@ -139,8 +141,11 @@ export default function ApplicationActivityTimeline({ createdAt, updatedAt, stat
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
-    <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-      <h2 className="text-base font-semibold leading-6 text-slate-900">Activity</h2>
+    <details className="group min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5" open={!defaultCollapsed}>
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+        <h2 className="text-base font-semibold leading-6 text-slate-900">Activity</h2>
+        <ChevronDown className="h-5 w-5 flex-none text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
       <ol className="mt-4 space-y-4">
         {items.map((item) => (
           <li key={item.id} className="border-l-2 border-slate-200 pl-3">
@@ -159,6 +164,6 @@ export default function ApplicationActivityTimeline({ createdAt, updatedAt, stat
           </li>
         ))}
       </ol>
-    </section>
+    </details>
   );
 }

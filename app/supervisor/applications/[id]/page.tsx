@@ -128,7 +128,7 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
         />
 
         <aside className="min-w-0 space-y-5">
-          <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} />
+          <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} defaultCollapsed />
           <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="supervisor" />
           <ApplicationActivityTimeline
             createdAt={application.createdAt}
@@ -136,6 +136,7 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
             status={application.status}
             createdByName={application.createdBy.name ?? application.createdBy.fieldWorkerId}
             auditLogs={application.auditLogs}
+            defaultCollapsed
           />
         </aside>
       </div>

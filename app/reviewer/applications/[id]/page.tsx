@@ -109,7 +109,7 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
         />
 
         <aside className="min-w-0 space-y-5">
-          <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} />
+          <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} defaultCollapsed />
           {canActOnApplication ? <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="reviewer" /> : null}
           <ApplicationActivityTimeline
             createdAt={application.createdAt}
@@ -117,6 +117,7 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
             status={application.status}
             createdByName={application.createdBy.name ?? application.createdBy.fieldWorkerId}
             auditLogs={application.auditLogs}
+            defaultCollapsed
           />
         </aside>
       </div>

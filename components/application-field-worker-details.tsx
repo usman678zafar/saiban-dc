@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import { formatCnic } from '@/lib/contact-format';
 
 type FieldWorkerDetailsUser = {
@@ -22,6 +23,7 @@ type FieldWorkerDetailsApplication = {
 interface ApplicationFieldWorkerDetailsProps {
   application: FieldWorkerDetailsApplication;
   createdBy: FieldWorkerDetailsUser;
+  defaultCollapsed?: boolean;
 }
 
 const dateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
@@ -52,7 +54,7 @@ function row(label: string, content: string) {
   );
 }
 
-export default function ApplicationFieldWorkerDetails({ application, createdBy }: ApplicationFieldWorkerDetailsProps) {
+export default function ApplicationFieldWorkerDetails({ application, createdBy, defaultCollapsed = false }: ApplicationFieldWorkerDetailsProps) {
   const source = createdBy?.selfRegistered ? 'Self registered' : 'Field worker';
   const name = value(application.collectorName ?? createdBy?.name);
   const workerId = value(application.collectorId ?? createdBy?.fieldWorkerId);
@@ -61,11 +63,14 @@ export default function ApplicationFieldWorkerDetails({ application, createdBy }
   const workerCnic = cnic(application.collectorCnic ?? createdBy?.cnic);
 
   return (
-    <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-base font-semibold leading-6 text-slate-900">Filled By</h2>
-        <p className="text-xs leading-5 text-slate-500">{source} details captured with this application.</p>
-      </div>
+    <details className="group min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5" open={!defaultCollapsed}>
+      <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold leading-6 text-slate-900">Filled By</h2>
+          <p className="text-xs leading-5 text-slate-500">{source} details captured with this application.</p>
+        </div>
+        <ChevronDown className="mt-0.5 h-5 w-5 flex-none text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
 
       <dl className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
         {row('Name', name)}
@@ -82,6 +87,6 @@ export default function ApplicationFieldWorkerDetails({ application, createdBy }
           <p className="mt-1 break-words text-sm leading-5 text-slate-700 [overflow-wrap:anywhere]">{application.collectorAddress}</p>
         </div>
       ) : null}
-    </section>
+    </details>
   );
 }
