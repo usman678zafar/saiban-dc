@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AlertTriangle, UsersRound } from 'lucide-react';
+import { AlertTriangle, ChevronDown, UsersRound } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { formatDate } from '@/lib/date-format';
 import type { SameFamilyApplicationListItem, SameFamilySummary } from '@/lib/same-family-applications';
@@ -30,9 +30,11 @@ export function SameFamilyBadge({ summary }: { summary?: SameFamilySummary }) {
 export default function SameFamilyApplicationsPanel({
   applications,
   hrefPrefix,
+  defaultCollapsed = true,
 }: {
   applications: SameFamilyApplicationListItem[];
   hrefPrefix: string;
+  defaultCollapsed?: boolean;
 }) {
   if (applications.length === 0) return null;
 
@@ -41,18 +43,18 @@ export default function SameFamilyApplicationsPanel({
   const rejectedCount = applications.filter((application) => application.status === 'rejected').length;
 
   return (
-    <section className="min-w-0 rounded-lg border border-amber-200 bg-white p-4 shadow-sm sm:p-5">
-      <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-amber-100 text-amber-700">
-          <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+    <details className="group min-w-0 rounded-lg border border-amber-200 bg-white p-4 shadow-sm sm:p-5" open={!defaultCollapsed}>
+      <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+            <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold leading-6 text-slate-900">Same Family Applications</h2>
+          </div>
         </div>
-        <div className="min-w-0">
-          <h2 className="text-base font-semibold leading-6 text-slate-900">Same Family Applications</h2>
-          <p className="mt-1 text-xs leading-5 text-slate-600">
-            {applications.length} related orphan {applications.length === 1 ? 'application was' : 'applications were'} found. Review them before approval; hold this application if verification is needed.
-          </p>
-        </div>
-      </div>
+        <ChevronDown className="mt-1 h-5 w-5 flex-none text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
 
       <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
         {approvedCount ? <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">{approvedCount} approved/migrated</span> : null}
@@ -82,6 +84,6 @@ export default function SameFamilyApplicationsPanel({
           </Link>
         ))}
       </div>
-    </section>
+    </details>
   );
 }
