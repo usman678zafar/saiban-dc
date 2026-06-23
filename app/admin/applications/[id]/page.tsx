@@ -56,26 +56,28 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   return (
     <AdminShell email={session.user.email} role={session.user.role}>
       <header className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{application.registrationNumber ?? application.id}</h1>
+        <div className="min-w-0">
+          <h1 className="break-words text-3xl font-semibold tracking-tight text-slate-950 [overflow-wrap:anywhere]">{application.registrationNumber ?? application.id}</h1>
           <p className="mt-2 text-sm text-slate-600">Open the full application record, activity history, and available review actions.</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <BackButton fallbackHref="/admin/applications" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+        <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:w-auto lg:flex-wrap lg:justify-end">
+          <BackButton fallbackHref="/admin/applications" className="inline-flex min-h-11 w-full min-w-0 items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-center text-sm font-semibold leading-5 text-white hover:bg-slate-800 lg:w-auto">
             Back
           </BackButton>
           <ApplicationReviewDownloadButton
             applicationId={application.id}
             fileName={application.registrationNumber ?? application.id}
             label="Download"
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70"
+            className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold leading-5 text-slate-700 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70 lg:w-auto"
           />
-          <Link href={`/applications/${application.id}/duplicate`} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-100">
-            <CopyPlus className="h-4 w-4" aria-hidden="true" />
-            Add Child Same Family
+          <Link href={`/applications/${application.id}/duplicate`} className="group inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-blue-700 bg-blue-600 px-4 py-3 text-center text-sm font-semibold leading-5 text-white shadow-sm shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 lg:w-auto">
+            <span className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-white/15 transition group-hover:bg-white/20">
+              <CopyPlus className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <span className="whitespace-normal">Add Orphan From Same Family</span>
           </Link>
           {canEdit ? (
-            <Link href={`/applications/${application.id}/edit`} className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+            <Link href={`/applications/${application.id}/edit`} className="inline-flex min-h-11 w-full min-w-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-center text-sm font-semibold leading-5 text-white hover:bg-blue-500 lg:w-auto">
               Edit
             </Link>
           ) : null}
@@ -86,7 +88,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
               title="Delete application"
               requiresPassword={application.status !== 'draft'}
               confirmationText="Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone."
-              className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-3 text-sm font-semibold text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 w-full min-w-0 items-center justify-center rounded-lg bg-rose-600 px-4 py-3 text-center text-sm font-semibold leading-5 text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60 lg:w-auto"
             />
           ) : null}
         </div>

@@ -37,8 +37,8 @@ export default function DuplicateApplicationButton({ applicationId, className, i
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        aria-label="Add child from same family"
-        title="Add child from same family"
+        aria-label="Add orphan from same family"
+        title="Add orphan from same family"
         className={className}
       >
         <CopyPlus className={iconClassName} />
