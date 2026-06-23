@@ -7,9 +7,11 @@ import { FilePlus2, Search, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import ReviewerShell from '@/components/reviewer-shell';
+import { SameFamilyBadge } from '@/components/same-family-indicator';
 import { applicationStatusLabel, badgeClass } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
+import { getSameFamilySummaries, sameFamilyApplicationSelect } from '@/lib/same-family-applications';
 
 export const dynamic = 'force-dynamic';
 
@@ -160,6 +162,7 @@ export default async function ReviewerApplicationsPage({
       skip,
       take: PAGE_SIZE,
       select: {
+        ...sameFamilyApplicationSelect,
         id: true,
         registrationNumber: true,
         childName: true,
@@ -182,6 +185,7 @@ export default async function ReviewerApplicationsPage({
       })),
     }))),
   ]);
+  const sameFamilySummaries = await getSameFamilySummaries(applications);
   const countsByView = new Map(viewCounts.map((item) => [item.view, item.count]));
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasPrev = page > 1;
@@ -268,6 +272,9 @@ export default async function ReviewerApplicationsPage({
                       <td className="px-4 py-4">
                         <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
                         <div className="mt-1 text-xs text-slate-500">{application.childName ?? 'No child name'}</div>
+                        <div className="mt-2">
+                          <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
+                        </div>
                       </td>
                       <td className="px-4 py-4">{application.collectorProject ?? '-'}</td>
                       <td className="px-4 py-4">{application.collectorName ?? '-'}</td>
@@ -301,6 +308,7 @@ export default async function ReviewerApplicationsPage({
                   <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
                   <div className="mt-1 text-sm text-slate-600">{application.childName ?? 'No child name'}</div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                    <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
                     <span className={`rounded-full px-2.5 py-1 font-semibold ${badgeClass(application.status)}`}>{applicationStatusLabel(application.status)}</span>
                     <span>{application.collectorProject ?? '-'}</span>
                     <span>{formatDate(application.updatedAt)}</span>

@@ -32,7 +32,6 @@ const adminWorkflowActions: WorkflowAction[] = [
   { from: 'reviewer_approved', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
   { from: 'reviewer_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
   { from: 'admin_on_hold', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
-  { from: 'admin_on_hold', to: 'needs_correction', label: 'Return with Comment', icon: ArrowRight, color: 'bg-amber-600 hover:bg-amber-500', requiresComment: true },
   { from: 'admin_on_hold', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
   { from: 'admin_approved', to: 'migrated', label: 'Migrate', icon: RotateCcw, color: 'bg-slate-800 hover:bg-slate-700' },
   { from: 'validated', to: 'migrated', label: 'Migrate Legacy Validated', icon: RotateCcw, color: 'bg-slate-800 hover:bg-slate-700' },
@@ -54,7 +53,6 @@ const actionButtons: Record<'super_admin' | 'admin' | 'reviewer' | 'supervisor' 
     { from: 'reviewer_approved', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
     { from: 'reviewer_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
     { from: 'admin_on_hold', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
-    { from: 'admin_on_hold', to: 'needs_correction', label: 'Return with Comment', icon: ArrowRight, color: 'bg-amber-600 hover:bg-amber-500', requiresComment: true },
     { from: 'admin_on_hold', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
   ],
   field_worker: [
@@ -80,6 +78,9 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [comment, setComment] = useState('');
+  const [isReturnOpen, setIsReturnOpen] = useState(false);
+  const [returnTo, setReturnTo] = useState<'reviewer' | 'supervisor'>('reviewer');
+  const [returnComment, setReturnComment] = useState('');
 
   const handleTransition = async (newStatus: string) => {
     setLoading(true);
@@ -115,7 +116,54 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
     }
   };
 
+  const handleReturn = async () => {
+    const trimmedComment = returnComment.trim();
+    if (!trimmedComment) {
+      setMessage('Return remarks are required.');
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch('/api/applications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: applicationId,
+          status: returnTo === 'supervisor' ? 'submitted' : 'supervisor_approved',
+          returnTo,
+          reviewComment: trimmedComment,
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setMessage('Your session has expired. Redirecting to sign in...');
+          await signOut({ callbackUrl: currentSigninUrl() });
+          return;
+        }
+
+        const error = await response.json();
+        throw new Error(error?.message ?? 'Return failed');
+      }
+
+      setMessage(`Application returned to ${returnTo}.`);
+      setReturnComment('');
+      setIsReturnOpen(false);
+      onUpdated?.();
+      router.push(redirectAfterAction[actorRole]);
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Return failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const availableActions = actionButtons[actorRole].filter((action) => action.from === currentStatus);
+  const canRouteReturn = (actorRole === 'admin' || actorRole === 'super_admin') && ['reviewer_approved', 'admin_on_hold'].includes(currentStatus);
   const acceptsReviewRemarks = actorRole === 'admin' || actorRole === 'reviewer';
   const requiresCorrectionComment = availableActions.some((action) => action.requiresComment);
   const showCommentBox = requiresCorrectionComment || acceptsReviewRemarks;
@@ -129,7 +177,7 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
       ? 'Add reviewer remarks for this decision.'
       : 'Add admin remarks for this decision.';
 
-  if (availableActions.length === 0) {
+  if (availableActions.length === 0 && !canRouteReturn) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600 shadow-sm">
         No status transitions available for this application.
@@ -154,6 +202,20 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
         </label>
       ) : null}
       <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+        {canRouteReturn ? (
+          <button
+            type="button"
+            onClick={() => {
+              setMessage(null);
+              setIsReturnOpen(true);
+            }}
+            disabled={loading}
+            className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-3 text-center text-sm font-semibold leading-5 text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <RotateCcw className="h-4 w-4 shrink-0" />
+            <span className="whitespace-normal">Return</span>
+          </button>
+        ) : null}
         {availableActions.map((action) => {
           const Icon = action.icon;
           return (
@@ -171,6 +233,57 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
         })}
       </div>
       {message ? <p className="break-words text-sm leading-6 text-slate-700 [overflow-wrap:anywhere]">{message}</p> : null}
+      {isReturnOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white shadow-2xl">
+            <div className="border-b border-slate-100 px-4 py-4 sm:px-5">
+              <h4 className="text-base font-semibold text-slate-950">Return application</h4>
+              <p className="mt-1 text-sm leading-5 text-slate-600">Choose where this application should go next. Remarks are required and will appear in activity history.</p>
+            </div>
+            <div className="space-y-4 px-4 py-4 sm:px-5">
+              <label className="grid gap-2 text-sm font-semibold text-slate-700">
+                Return to
+                <select
+                  value={returnTo}
+                  onChange={(event) => setReturnTo(event.target.value as 'reviewer' | 'supervisor')}
+                  className="min-h-11 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm font-semibold text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="reviewer">Reviewer</option>
+                  <option value="supervisor">Supervisor</option>
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm font-semibold text-slate-700">
+                Required remarks
+                <textarea
+                  value={returnComment}
+                  onChange={(event) => setReturnComment(event.target.value)}
+                  rows={4}
+                  className="resize-none rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-normal text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  placeholder={returnTo === 'supervisor' ? 'Explain what supervisor should verify before sending forward again.' : 'Explain what reviewer should re-check before admin review.'}
+                />
+              </label>
+            </div>
+            <div className="grid gap-2 border-t border-slate-100 px-4 py-4 sm:grid-cols-2 sm:px-5">
+              <button
+                type="button"
+                onClick={() => setIsReturnOpen(false)}
+                disabled={loading}
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleReturn}
+                disabled={loading || !returnComment.trim()}
+                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Return to {returnTo === 'supervisor' ? 'Supervisor' : 'Reviewer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

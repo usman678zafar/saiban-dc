@@ -10,9 +10,11 @@ import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationFieldWorkerDetails from '@/components/application-field-worker-details';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
+import SameFamilyApplicationsPanel from '@/components/same-family-indicator';
 import { getApplicationDocuments } from '@/lib/application-documents';
 import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
 import { projectMatchesAnyReviewAssignment } from '@/lib/field-workers';
+import { getSameFamilyApplications } from '@/lib/same-family-applications';
 
 interface SupervisorApplicationPageProps {
   params: {
@@ -82,11 +84,12 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
 
   if (!isPrivilegedSupervisorView) {
     const hasSupervisorReturn = application.auditLogs.some((log) => log.action === 'returned_by_supervisor');
+    const hasAdminReturnToSupervisor = application.auditLogs.some((log) => log.action === 'returned_by_admin_to_supervisor' || log.action === 'returned_by_super_admin_to_supervisor');
     const hasOwnReturn = application.auditLogs.some((log) => log.action === 'returned_by_supervisor' && log.actorId === user?.id);
     const hasOwnApproval = application.auditLogs.some((log) => log.action === 'approved_by_supervisor' && log.actorId === user?.id);
     const hasOwnRejection = application.auditLogs.some((log) => log.action === 'rejected_by_supervisor' && log.actorId === user?.id);
     const isVisibleToSupervisor = application.status === ApplicationStatus.submitted
-      ? !hasSupervisorReturn || hasOwnReturn
+      ? hasAdminReturnToSupervisor || !hasSupervisorReturn || hasOwnReturn
       : application.status === ApplicationStatus.needs_correction
         ? hasOwnReturn
         : supervisorApprovedStatuses.has(application.status)
@@ -98,7 +101,10 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
     if (!isVisibleToSupervisor) notFound();
   }
 
-  const applicationDocuments = await getApplicationDocuments(application.id);
+  const [applicationDocuments, sameFamilyApplications] = await Promise.all([
+    getApplicationDocuments(application.id),
+    getSameFamilyApplications(application),
+  ]);
 
   return (
     <SupervisorShell email={session.user.email} name={user?.name} canCreateApplications={user?.canCreateApplications} canManageFieldWorkers={user?.canManageFieldWorkers}>
@@ -129,6 +135,7 @@ export default async function SupervisorApplicationPage({ params }: SupervisorAp
 
         <aside className="min-w-0 space-y-5">
           <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} defaultCollapsed />
+          <SameFamilyApplicationsPanel applications={sameFamilyApplications} hrefPrefix="/supervisor/applications" />
           <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="supervisor" />
           <ApplicationActivityTimeline
             createdAt={application.createdAt}

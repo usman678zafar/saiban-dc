@@ -15,8 +15,10 @@ import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import VolunteerApplicationStatus from '@/components/volunteer-application-status';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
+import SameFamilyApplicationsPanel from '@/components/same-family-indicator';
 import { getApplicationDocuments } from '@/lib/application-documents';
 import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
+import { getSameFamilyApplications } from '@/lib/same-family-applications';
 
 interface ApplicationDetailPageProps {
   params: {
@@ -54,9 +56,13 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
   const isSuperAdmin = session.user.role === 'super_admin';
   if (!isAdmin && application.createdById !== session.user.id) notFound();
 
-  const applicationDocuments = await getApplicationDocuments(application.id);
+  const [applicationDocuments, sameFamilyApplications] = await Promise.all([
+    getApplicationDocuments(application.id),
+    getSameFamilyApplications(application),
+  ]);
   const canEdit = isSuperAdmin || (!isAdmin && (application.status === 'draft' || application.status === 'needs_correction'));
   const shouldCollapseSideDetails = ['supervisor', 'reviewer', 'admin', 'super_admin'].includes(session.user.role ?? '');
+  const sameFamilyHrefPrefix = isAdmin ? '/admin/applications' : session.user.role === 'supervisor' ? '/supervisor/applications' : session.user.role === 'reviewer' ? '/reviewer/applications' : '/applications';
   const actions = (
     <>
       {!isAdmin ? <VolunteerApplicationStatus status={application.status} /> : null}
@@ -103,6 +109,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
 
       <aside className="min-w-0 space-y-5">
         <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} defaultCollapsed={shouldCollapseSideDetails} />
+        {shouldCollapseSideDetails ? <SameFamilyApplicationsPanel applications={sameFamilyApplications} hrefPrefix={sameFamilyHrefPrefix} /> : null}
         <ApplicationActivityTimeline
           createdAt={application.createdAt}
           updatedAt={application.updatedAt}

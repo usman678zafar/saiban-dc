@@ -13,8 +13,10 @@ import ApplicationFieldWorkerDetails from '@/components/application-field-worker
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
+import SameFamilyApplicationsPanel from '@/components/same-family-indicator';
 import { getApplicationDocuments } from '@/lib/application-documents';
 import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
+import { getSameFamilyApplications } from '@/lib/same-family-applications';
 
 interface AdminApplicationDetailPageProps {
   params: {
@@ -50,7 +52,10 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
 
   if (!application) notFound();
 
-  const applicationDocuments = await getApplicationDocuments(application.id);
+  const [applicationDocuments, sameFamilyApplications] = await Promise.all([
+    getApplicationDocuments(application.id),
+    getSameFamilyApplications(application),
+  ]);
   const canEdit = isSuperAdmin || ['reviewer_approved', 'admin_on_hold'].includes(application.status);
 
   return (
@@ -104,6 +109,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
 
         <aside className="space-y-6">
           <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} defaultCollapsed />
+          <SameFamilyApplicationsPanel applications={sameFamilyApplications} hrefPrefix="/admin/applications" />
           <ApplicationActivityTimeline
             createdAt={application.createdAt}
             updatedAt={application.updatedAt}

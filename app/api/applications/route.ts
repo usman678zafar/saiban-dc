@@ -539,7 +539,7 @@ async function validateAddressSelection(payload: any) {
 
 function isStatusOnlyRequest(body: any) {
   const keys = Object.keys(body);
-  return keys.every((key) => ['id', 'status', 'reviewComment'].includes(key));
+  return keys.every((key) => ['id', 'status', 'reviewComment', 'returnTo'].includes(key));
 }
 
 async function getSupervisorReviewProjects(user: NonNullable<Awaited<ReturnType<typeof getUser>>>) {
@@ -553,7 +553,13 @@ async function getSupervisorReviewProjects(user: NonNullable<Awaited<ReturnType<
 }
 
 async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<typeof getUser>>>, body: any) {
-  const { id, status, reviewComment } = body;
+  const { id, reviewComment } = body;
+  const returnTo = body.returnTo === 'supervisor' || body.returnTo === 'reviewer' ? body.returnTo as 'supervisor' | 'reviewer' : null;
+  const status = returnTo === 'supervisor'
+    ? 'submitted'
+    : returnTo === 'reviewer'
+      ? 'supervisor_approved'
+      : body.status;
   if (!applicationStatuses.includes(status)) {
     return NextResponse.json({ message: 'Invalid application status' }, { status: 422 });
   }
@@ -610,48 +616,62 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
   }
 
   if (user.role === 'admin') {
-    allowed = (
-      (application.status === 'reviewer_approved' && ['admin_on_hold', 'admin_approved', 'rejected'].includes(status)) ||
-      (application.status === 'admin_on_hold' && ['needs_correction', 'admin_approved', 'rejected'].includes(status))
-    );
-    action = status === 'admin_on_hold'
-      ? 'held_by_admin'
-      : status === 'needs_correction'
-        ? 'returned_by_admin'
+    if (returnTo) {
+      allowed = ['reviewer_approved', 'admin_on_hold'].includes(application.status);
+      action = returnTo === 'supervisor' ? 'returned_by_admin_to_supervisor' : 'returned_by_admin_to_reviewer';
+      if (!comment) {
+        return NextResponse.json({ message: 'Return remarks are required.' }, { status: 422 });
+      }
+    } else {
+      allowed = (
+        (application.status === 'reviewer_approved' && ['admin_on_hold', 'admin_approved', 'rejected'].includes(status)) ||
+        (application.status === 'admin_on_hold' && ['admin_approved', 'rejected'].includes(status))
+      );
+      action = status === 'admin_on_hold'
+        ? 'held_by_admin'
         : status === 'admin_approved'
           ? 'approved_by_admin'
           : 'rejected_by_admin';
 
-    if (['admin_on_hold', 'needs_correction'].includes(status) && !comment) {
-      return NextResponse.json({ message: status === 'admin_on_hold' ? 'Hold reason is required.' : 'Correction comment is required.' }, { status: 422 });
+      if (status === 'admin_on_hold' && !comment) {
+        return NextResponse.json({ message: 'Hold reason is required.' }, { status: 422 });
+      }
     }
   }
 
   if (user.role === 'super_admin') {
-    allowed = (
-      (application.status === 'submitted' && ['needs_correction', 'supervisor_approved', 'rejected'].includes(status)) ||
-      (application.status === 'supervisor_approved' && ['reviewer_approved', 'rejected'].includes(status)) ||
-      (application.status === 'reviewer_approved' && ['admin_on_hold', 'admin_approved', 'rejected'].includes(status)) ||
-      (application.status === 'admin_on_hold' && ['needs_correction', 'admin_approved', 'rejected'].includes(status)) ||
-      (application.status === 'admin_approved' && status === 'migrated') ||
-      (application.status === 'validated' && status === 'migrated')
-    );
-    action = status === 'needs_correction'
-      ? 'returned_by_super_admin'
-      : status === 'supervisor_approved'
-        ? 'supervisor_approved_by_super_admin'
-        : status === 'reviewer_approved'
-          ? 'reviewer_approved_by_super_admin'
-          : status === 'admin_on_hold'
-            ? 'held_by_super_admin'
-            : status === 'admin_approved'
-              ? 'approved_by_super_admin'
-              : status === 'rejected'
-                ? 'rejected_by_super_admin'
-                : 'status_changed_by_super_admin';
+    if (returnTo) {
+      allowed = ['reviewer_approved', 'admin_on_hold'].includes(application.status);
+      action = returnTo === 'supervisor' ? 'returned_by_super_admin_to_supervisor' : 'returned_by_super_admin_to_reviewer';
+      if (!comment) {
+        return NextResponse.json({ message: 'Return remarks are required.' }, { status: 422 });
+      }
+    } else {
+      allowed = (
+        (application.status === 'submitted' && ['needs_correction', 'supervisor_approved', 'rejected'].includes(status)) ||
+        (application.status === 'supervisor_approved' && ['reviewer_approved', 'rejected'].includes(status)) ||
+        (application.status === 'reviewer_approved' && ['admin_on_hold', 'admin_approved', 'rejected'].includes(status)) ||
+        (application.status === 'admin_on_hold' && ['admin_approved', 'rejected'].includes(status)) ||
+        (application.status === 'admin_approved' && status === 'migrated') ||
+        (application.status === 'validated' && status === 'migrated')
+      );
+      action = status === 'needs_correction'
+        ? 'returned_by_super_admin'
+        : status === 'supervisor_approved'
+          ? 'supervisor_approved_by_super_admin'
+          : status === 'reviewer_approved'
+            ? 'reviewer_approved_by_super_admin'
+            : status === 'admin_on_hold'
+              ? 'held_by_super_admin'
+              : status === 'admin_approved'
+                ? 'approved_by_super_admin'
+                : status === 'rejected'
+                  ? 'rejected_by_super_admin'
+                  : 'status_changed_by_super_admin';
 
-    if (['admin_on_hold', 'needs_correction'].includes(status) && !comment) {
-      return NextResponse.json({ message: status === 'admin_on_hold' ? 'Hold reason is required.' : 'Correction comment is required.' }, { status: 422 });
+      if (['admin_on_hold', 'needs_correction'].includes(status) && !comment) {
+        return NextResponse.json({ message: status === 'admin_on_hold' ? 'Hold reason is required.' : 'Correction comment is required.' }, { status: 422 });
+      }
     }
   }
 
@@ -679,6 +699,7 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
           from: application.status,
           to: status,
           comment,
+          ...(returnTo ? { returnTo } : {}),
         },
       },
     });

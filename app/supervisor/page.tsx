@@ -6,10 +6,12 @@ import { Search, X } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import SupervisorShell from '@/components/supervisor-shell';
+import { SameFamilyBadge } from '@/components/same-family-indicator';
 import { applicationStatusLabel, badgeClass } from '@/lib/application-workflow';
 import { collectorProjectsReviewWhere } from '@/lib/field-workers';
 import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
+import { getSameFamilySummaries, sameFamilyApplicationSelect } from '@/lib/same-family-applications';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +41,7 @@ function supervisorPendingWhere(supervisorId?: string): Prisma.OrphanApplication
     OR: [
       { auditLogs: { none: { action: 'returned_by_supervisor' } } },
       { auditLogs: { some: { action: 'returned_by_supervisor', actorId: supervisorId ?? '' } } },
+      { auditLogs: { some: { action: { in: ['returned_by_admin_to_supervisor', 'returned_by_super_admin_to_supervisor'] } } } },
     ],
   };
 }
@@ -201,6 +204,7 @@ export default async function SupervisorPage({
       },
       orderBy: { updatedAt: currentView === 'pending' || currentView === 'resubmitted' ? 'asc' : 'desc' },
       select: {
+        ...sameFamilyApplicationSelect,
         id: true,
         registrationNumber: true,
         childName: true,
@@ -215,6 +219,7 @@ export default async function SupervisorPage({
         },
       },
     }));
+  const sameFamilySummaries = await getSameFamilySummaries(applications);
   const viewCounts = [];
   for (const view of supervisorViews) {
     viewCounts.push({
@@ -305,6 +310,9 @@ export default async function SupervisorPage({
                       <td className="px-4 py-4">
                         <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
                         <div className="mt-1 text-xs text-slate-500">{application.childName ?? 'No child name'}</div>
+                        <div className="mt-2">
+                          <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
+                        </div>
                       </td>
                       <td className="px-4 py-4">{application.collectorProject ?? '-'}</td>
                       <td className="px-4 py-4">{application.collectorName ?? '-'}</td>
@@ -338,6 +346,7 @@ export default async function SupervisorPage({
                   <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
                   <div className="mt-1 text-sm text-slate-600">{application.childName ?? 'No child name'}</div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                    <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
                     <span className={`rounded-full px-2.5 py-1 font-semibold ${badgeClass(application.status)}`}>{applicationStatusLabel(application.status)}</span>
                     <span>{application.collectorProject ?? '-'}</span>
                     <span>{formatDate(application.updatedAt)}</span>

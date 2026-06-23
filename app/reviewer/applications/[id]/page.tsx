@@ -12,8 +12,10 @@ import ApplicationStatusActions from '@/components/application-status-actions';
 import ApplicationFieldWorkerDetails from '@/components/application-field-worker-details';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
+import SameFamilyApplicationsPanel from '@/components/same-family-indicator';
 import { getApplicationDocuments } from '@/lib/application-documents';
 import { applicationToWizardData, documentsToWizardDocuments } from '@/lib/application-wizard-data';
+import { getSameFamilyApplications } from '@/lib/same-family-applications';
 
 interface ReviewerApplicationPageProps {
   params: {
@@ -73,7 +75,10 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
   if (!['admin', 'super_admin'].includes(user?.role ?? '') && application.createdById === user?.id) notFound();
   const canActOnApplication = application.status === ApplicationStatus.supervisor_approved;
 
-  const applicationDocuments = await getApplicationDocuments(application.id);
+  const [applicationDocuments, sameFamilyApplications] = await Promise.all([
+    getApplicationDocuments(application.id),
+    getSameFamilyApplications(application),
+  ]);
 
   return (
     <ReviewerShell email={session.user.email} name={user?.name} canCreateApplications={user?.canCreateApplications}>
@@ -110,6 +115,7 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
 
         <aside className="min-w-0 space-y-5">
           <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} defaultCollapsed />
+          <SameFamilyApplicationsPanel applications={sameFamilyApplications} hrefPrefix="/reviewer/applications" />
           {canActOnApplication ? <ApplicationStatusActions applicationId={application.id} currentStatus={application.status} actorRole="reviewer" /> : null}
           <ApplicationActivityTimeline
             createdAt={application.createdAt}

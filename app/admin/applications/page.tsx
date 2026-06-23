@@ -10,11 +10,13 @@ import AdminShell from '@/components/admin-shell';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 import BulkDeleteApplicationsButton from '@/components/bulk-delete-applications-button';
 import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
+import { SameFamilyBadge } from '@/components/same-family-indicator';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
 import { collectorProjectReviewWhere } from '@/lib/field-workers';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
+import { getSameFamilySummaries } from '@/lib/same-family-applications';
 
 const PAGE_SIZE = 50;
 const BULK_DELETE_FORM_ID = 'admin-applications-bulk-delete-form';
@@ -225,6 +227,7 @@ export default async function AdminApplicationsPage({
       : Promise.resolve(0),
   ]);
   const applications: ApplicationListItem[] = applicationRecords;
+  const sameFamilySummaries = await getSameFamilySummaries(applications);
   const visibleDraftCount = isSuperAdmin
     ? applications.filter((application) => application.status === ApplicationStatus.draft).length
     : 0;
@@ -398,6 +401,7 @@ export default async function AdminApplicationsPage({
                   <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
                   <div className="mt-1 text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
                     <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
                     <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{departmentLabel(application) === '-' ? 'No department' : departmentLabel(application)}</span>
                     <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{fieldWorkerLabel(application)}</span>
@@ -464,6 +468,9 @@ export default async function AdminApplicationsPage({
                     <td className="px-4 py-4">
                       <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
                       <div className="text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
+                      <div className="mt-2">
+                        <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
+                      </div>
                     </td>
                     <td className="px-4 py-4">{fieldWorkerLabel(application)}</td>
                     <td className="px-4 py-4">{departmentLabel(application)}</td>
