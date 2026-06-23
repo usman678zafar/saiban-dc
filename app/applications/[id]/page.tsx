@@ -69,8 +69,10 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
         label="Download"
         className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold leading-5 text-slate-700 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70 sm:w-auto"
       />
-      <Link href={`/applications/${application.id}/duplicate`} className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-center text-sm font-semibold leading-5 text-blue-700 hover:bg-blue-100 sm:w-auto">
-        <CopyPlus className="h-4 w-4" aria-hidden="true" />
+      <Link href={`/applications/${application.id}/duplicate`} className="group inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-blue-700 bg-blue-600 px-4 py-3 text-center text-sm font-semibold leading-5 text-white shadow-sm shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto">
+        <span className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-white/15 transition group-hover:bg-white/20">
+          <CopyPlus className="h-4 w-4" aria-hidden="true" />
+        </span>
         <span className="whitespace-normal">Add Orphan From Same Family</span>
       </Link>
       {canEdit ? (
