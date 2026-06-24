@@ -13,8 +13,7 @@ export type ViewerMetricKey =
   | 'reviewerApproved'
   | 'finalApproved'
   | 'rejected'
-  | 'users'
-  | 'admins';
+  | 'users';
 
 export type ViewerMetric = {
   key: ViewerMetricKey;
@@ -36,7 +35,6 @@ const copy = {
       finalApproved: 'Final Approved',
       rejected: 'Rejected',
       users: 'System Users',
-      admins: 'System Admin',
     },
   },
   ur: {
@@ -52,7 +50,6 @@ const copy = {
       finalApproved: 'حتمی منظور شدہ',
       rejected: 'مسترد',
       users: 'صارفین',
-      admins: 'ایڈمنز',
     },
   },
 };

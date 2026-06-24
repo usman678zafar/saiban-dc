@@ -291,7 +291,7 @@ export default async function SupervisorPage({
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="hidden overflow-x-auto md:block">
           <table className="min-w-full text-left text-sm text-slate-700">
-            <thead className="bg-slate-50 text-slate-700">
+            <thead className="bg-blue-600 text-white">
               <tr>
                 <th className="px-4 py-3">Application</th>
                 <th className="px-4 py-3">Department</th>

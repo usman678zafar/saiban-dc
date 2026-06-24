@@ -143,7 +143,7 @@ export default function AddressOptionManager({ options }: { options: AddressOpti
           <h2 className="text-sm font-semibold text-[#0f1f33]">Admin Added Options</h2>
         </div>
         <table className="min-w-full text-left text-sm text-[#506784]">
-          <thead className="bg-[#f6f9fd] text-xs uppercase tracking-[0.12em] text-[#7d8fa6]">
+          <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
             <tr>
               <th className="px-4 py-3">Type</th>
               <th className="px-4 py-3">Province</th>

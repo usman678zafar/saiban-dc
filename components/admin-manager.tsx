@@ -106,7 +106,7 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
 
       <section className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
         <table className="min-w-full text-left text-sm text-[#506784]">
-          <thead className="bg-[#f6f9fd] text-xs uppercase tracking-[0.12em] text-[#7d8fa6]">
+          <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
             <tr>
               <th className="px-4 py-3">Admin</th>
               <th className="px-4 py-3">Email</th>

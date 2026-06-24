@@ -22,8 +22,8 @@ const PAKISTAN_GEO_BOUNDS = {
   maxLng: 77.25,
 };
 
-async function getAdminPortalData(showSystemAdminMetric: boolean) {
-  const [applicationStatusCounts, allApplicationStatusCounts, submittedByFieldWorkersCount, mappedApplications] = await Promise.all([
+async function getAdminPortalData() {
+  const [applicationStatusCounts, allApplicationStatusCounts, submittedByFieldWorkersCount, totalUsers, mappedApplications] = await Promise.all([
     prisma.orphanApplication.groupBy({
       by: ['status'],
       _count: { _all: true },
@@ -38,6 +38,7 @@ async function getAdminPortalData(showSystemAdminMetric: boolean) {
         createdBy: { role: 'field_worker' },
       },
     }),
+    prisma.user.count(),
     prisma.orphanApplication.findMany({
       where: {
         latitude: { gte: PAKISTAN_GEO_BOUNDS.minLat, lte: PAKISTAN_GEO_BOUNDS.maxLat },
@@ -76,14 +77,6 @@ async function getAdminPortalData(showSystemAdminMetric: boolean) {
     (applicationCountByStatus.get(ApplicationStatus.validated) ?? 0);
   const rejectedApplications = applicationCountByStatus.get(ApplicationStatus.rejected) ?? 0;
 
-  const userRoleCounts = await prisma.user.groupBy({
-    by: ['role'],
-    _count: { _all: true },
-  });
-  const userCountByRole = new Map(userRoleCounts.map((item) => [item.role, item._count._all]));
-  const totalUsers = userRoleCounts.reduce((total, item) => total + item._count._all, 0);
-  const adminUsers = (userCountByRole.get('admin') ?? 0) + (userCountByRole.get('super_admin') ?? 0);
-
   const metrics: AdminMetric[] = [
     { label: 'Total Applications', value: totalApplications, tone: 'blue' },
     { label: 'Drafts', value: draftApplications, tone: 'steel' },
@@ -95,7 +88,6 @@ async function getAdminPortalData(showSystemAdminMetric: boolean) {
     { label: 'Final Approved', value: adminApprovedApplications, tone: 'emerald' },
     { label: 'Rejected', value: rejectedApplications, tone: 'red' },
     { label: 'System Users', value: totalUsers, tone: 'amber' },
-    ...(showSystemAdminMetric ? [{ label: 'System Admin', value: adminUsers, tone: 'charcoal' } satisfies AdminMetric] : []),
   ];
 
   const geoApplications: ViewerGeoApplication[] = mappedApplications
@@ -135,7 +127,7 @@ export default async function AdminPortalPage() {
     redirect('/dashboard');
   }
 
-  const { metrics, geoApplications } = await getAdminPortalData(session.user.role === 'super_admin');
+  const { metrics, geoApplications } = await getAdminPortalData();
   const metricStyles = {
     blue: { icon: ClipboardList, card: 'bg-[#2563eb]' },
     steel: { icon: FileText, card: 'bg-[#64748b]' },
