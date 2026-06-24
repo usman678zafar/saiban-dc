@@ -8,12 +8,13 @@ import ReviewerShell from '@/components/reviewer-shell';
 import { authOptions } from '@/lib/auth';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 import DuplicateApplicationButton from '@/components/duplicate-application-button';
-import { Eye, Pencil, Search, X } from 'lucide-react';
+import { AlertTriangle, Eye, Pencil, Search, X } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
 import VolunteerApplicationStatus from '@/components/volunteer-application-status';
 import ApplicationDeadlineNotice from '@/components/application-deadline-notice';
 import { isValidDate } from '@/lib/safe-date';
+import { APPLICATION_COMPLETION_DEADLINE_DAYS } from '@/lib/application-deadline';
 
 export const dynamic = 'force-dynamic';
 
@@ -136,6 +137,8 @@ export default async function ApplicationsPage({
 
   const content = (
     <>
+      <DraftDeletionBanner />
+
       <form action="/applications" className="mb-3 rounded-lg border border-slate-200 bg-white p-2 shadow-sm sm:p-3">
         <div className="flex flex-col gap-2 sm:flex-row">
           <label className="relative min-w-0 flex-1">
@@ -252,7 +255,7 @@ export default async function ApplicationsPage({
               <th className="px-4 py-3 font-semibold">Application</th>
               <th className="px-4 py-3 font-semibold">Status</th>
               <th className="px-4 py-3 font-semibold">Updated</th>
-              <th className="px-4 py-3 font-semibold">Actions</th>
+              <th className="w-48 px-4 py-3 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -284,8 +287,8 @@ export default async function ApplicationsPage({
                     ) : null}
                   </td>
                   <td className="px-4 py-4 align-top text-slate-500">{application.updatedAt}</td>
-                  <td className="px-4 py-4 align-top">
-                    <div className="flex flex-wrap gap-2">
+                  <td className="w-48 px-4 py-4 align-top">
+                    <div className="flex flex-nowrap gap-2">
                     <Link
                       href={`/applications/${application.id}`}
                       aria-label="View application"
@@ -416,6 +419,24 @@ export default async function ApplicationsPage({
     >
       {content}
     </AppShell>
+  );
+}
+
+function DraftDeletionBanner() {
+  return (
+    <section className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-amber-950 shadow-sm sm:px-4" aria-label="Draft application deletion warning">
+      <div className="flex gap-3">
+        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
+        <div className="grid min-w-0 gap-2 md:grid-cols-2 md:items-start md:gap-4">
+          <p className="text-sm font-semibold leading-6">
+            Draft applications must be completed and submitted within {APPLICATION_COMPLETION_DEADLINE_DAYS} days, otherwise they will be removed.
+          </p>
+          <p className="text-right text-sm font-semibold leading-7" dir="rtl" lang="ur">
+            ڈرافٹ درخواستیں {APPLICATION_COMPLETION_DEADLINE_DAYS} دن کے اندر مکمل کر کے جمع نہ کرائی گئیں تو حذف کر دی جائیں گی۔
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 

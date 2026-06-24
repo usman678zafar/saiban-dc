@@ -44,10 +44,17 @@ export default function ApplicationDeadlineNotice({
 
   if (info.isExemptByCompletion) {
     if (compact) {
+      const compactText = `Submit for review - ${info.completionPercentage}% filled`;
+      const compactTitle = `This draft is ${info.completionPercentage}% filled. Finish and submit it for review. Drafts at ${APPLICATION_DELETION_COMPLETION_THRESHOLD}% or less can be deleted if they are not submitted within ${APPLICATION_COMPLETION_DEADLINE_DAYS} days.`;
+
       return (
-        <div className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold leading-5 text-blue-700">
+        <div
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold leading-5 text-blue-700"
+          title={compactTitle}
+          aria-label={compactTitle}
+        >
           <ClipboardCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="min-w-0 truncate">Finish & submit - {info.completionPercentage}% complete</span>
+          <span className="min-w-0 truncate">{compactText}</span>
         </div>
       );
     }
@@ -59,7 +66,7 @@ export default function ApplicationDeadlineNotice({
           <div>
             <p className="font-semibold text-blue-950">Complete this application</p>
             <p className="mt-1">
-              This application is {info.completionPercentage}% complete. Please complete and submit it. Applications at {APPLICATION_DELETION_COMPLETION_THRESHOLD}% or less must be submitted within {APPLICATION_COMPLETION_DEADLINE_DAYS} days.
+              This draft is {info.completionPercentage}% filled. Finish it and submit it for review. Drafts at {APPLICATION_DELETION_COMPLETION_THRESHOLD}% or less can be deleted if they are not submitted within {APPLICATION_COMPLETION_DEADLINE_DAYS} days.
             </p>
           </div>
         </div>
@@ -78,11 +85,18 @@ export default function ApplicationDeadlineNotice({
       ? 'border-rose-200 bg-rose-50 text-rose-700'
       : 'border-amber-200 bg-amber-50 text-amber-700';
     const compactText = info.isExpired
-      ? `Deadline passed - ${info.completionPercentage}% complete`
-      : `${info.daysLeft} day${info.daysLeft === 1 ? '' : 's'} left - ${info.completionPercentage}% complete`;
+      ? `Delete warning: deadline passed (${info.completionPercentage}% filled)`
+      : `Delete warning: submit in ${info.daysLeft} day${info.daysLeft === 1 ? '' : 's'} (${info.completionPercentage}% filled)`;
+    const compactTitle = info.isExpired
+      ? `This draft is only ${info.completionPercentage}% filled and the ${APPLICATION_COMPLETION_DEADLINE_DAYS}-day deadline has passed. It can be deleted unless it is submitted.`
+      : `This draft is only ${info.completionPercentage}% filled. Submit it within ${info.daysLeft} day${info.daysLeft === 1 ? '' : 's'} or it can be deleted after ${deadlineLabel}.`;
 
     return (
-      <div className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-5 ${compactToneClass}`}>
+      <div
+        className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-5 ${compactToneClass}`}
+        title={compactTitle}
+        aria-label={compactTitle}
+      >
         {info.isExpired ? (
           <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         ) : (
@@ -106,7 +120,7 @@ export default function ApplicationDeadlineNotice({
             {info.isExpired ? 'Deadline passed' : `${info.daysLeft} day${info.daysLeft === 1 ? '' : 's'} left to complete and submit`}
           </p>
           <p className="mt-1">
-            This application is {info.completionPercentage}% complete. Applications at {APPLICATION_DELETION_COMPLETION_THRESHOLD}% or less must be completed and submitted by {deadlineLabel}, otherwise they will be removed.
+            This draft is {info.completionPercentage}% filled. Because it is at {APPLICATION_DELETION_COMPLETION_THRESHOLD}% or less, it must be completed and submitted by {deadlineLabel}, otherwise it can be deleted.
           </p>
         </div>
       </div>
