@@ -1,0 +1,394 @@
+'use client';
+
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { AlertTriangle, Check, PauseCircle, RotateCcw, UsersRound, X } from 'lucide-react';
+import { applicationStatusLabel } from '@/lib/application-workflow';
+import { formatCnic } from '@/lib/contact-format';
+import { formatDate } from '@/lib/date-format';
+import type { SameFamilyApplicationListItem } from '@/lib/same-family-applications';
+
+type AdminActorRole = 'admin' | 'super_admin';
+type ModalAction = 'approve' | 'hold' | 'return' | 'reject';
+
+type SameFamilyApplicationsModalProps = {
+  applications: SameFamilyApplicationListItem[];
+  currentApplicationId: string;
+  hrefPrefix: string;
+  actorRole: AdminActorRole;
+  triggerClassName?: string;
+  triggerLabel?: string;
+};
+
+const statusTone: Record<string, string> = {
+  admin_on_hold: 'bg-amber-100 text-amber-800',
+  admin_approved: 'bg-emerald-100 text-emerald-800',
+  validated: 'bg-emerald-100 text-emerald-800',
+  migrated: 'bg-slate-100 text-slate-700',
+  rejected: 'bg-rose-100 text-rose-800',
+  reviewer_approved: 'bg-blue-100 text-blue-800',
+};
+
+function text(value: string | null | undefined) {
+  return value?.trim() || '-';
+}
+
+function cnic(value: string | null | undefined) {
+  const next = value?.trim();
+  return next ? formatCnic(next) : '-';
+}
+
+function guardianCnicLabel(application: SameFamilyApplicationListItem) {
+  if (application.motherIsGuardian === 'yes') {
+    return `Mother is guardian (${cnic(application.motherCnic)})`;
+  }
+
+  return cnic(application.guardianCnic);
+}
+
+function canUseAdminFinalActions(status: string) {
+  return status === 'reviewer_approved' || status === 'admin_on_hold';
+}
+
+const reviewLinkClass = 'inline-flex min-h-9 w-full items-center justify-center rounded-md bg-slate-100 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-200';
+const modalActionButtonClass = 'inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60';
+
+function actionTitle(action: ModalAction) {
+  switch (action) {
+    case 'approve':
+      return 'Approve this application?';
+    case 'hold':
+      return 'Put this application on hold';
+    case 'return':
+      return 'Return this application';
+    case 'reject':
+      return 'Reject this application?';
+  }
+}
+
+function actionStatus(action: ModalAction, returnTo: 'reviewer' | 'supervisor') {
+  if (action === 'approve') return 'admin_approved';
+  if (action === 'hold') return 'admin_on_hold';
+  if (action === 'reject') return 'rejected';
+  return returnTo === 'supervisor' ? 'submitted' : 'supervisor_approved';
+}
+
+export default function SameFamilyApplicationsModal({
+  applications,
+  currentApplicationId,
+  hrefPrefix,
+  actorRole,
+  triggerClassName,
+  triggerLabel,
+}: SameFamilyApplicationsModalProps) {
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
+  const [items, setItems] = useState(applications);
+  const [message, setMessage] = useState<string | null>(null);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [pending, setPending] = useState<{ id: string; action: ModalAction } | null>(null);
+  const [comment, setComment] = useState('');
+  const [returnTo, setReturnTo] = useState<'reviewer' | 'supervisor'>('reviewer');
+
+  const youngestKnownAge = useMemo(() => {
+    const ages = items.map((item) => item.age).filter((age): age is number => typeof age === 'number');
+    return ages.length ? Math.min(...ages) : null;
+  }, [items]);
+
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      const aAge = typeof a.age === 'number' ? a.age : Number.POSITIVE_INFINITY;
+      const bAge = typeof b.age === 'number' ? b.age : Number.POSITIVE_INFINITY;
+      if (aAge !== bAge) return aAge - bAge;
+      return text(a.childName).localeCompare(text(b.childName));
+    });
+  }, [items]);
+
+  const resetAction = () => {
+    setPending(null);
+    setComment('');
+    setReturnTo('reviewer');
+  };
+
+  const submitAction = async (application: SameFamilyApplicationListItem, action: ModalAction) => {
+    const needsComment = action === 'hold' || action === 'return';
+    const trimmedComment = comment.trim();
+    if (needsComment && !trimmedComment) {
+      setMessage(action === 'hold' ? 'Hold reason is required.' : 'Return remarks are required.');
+      return;
+    }
+
+    if ((action === 'approve' || action === 'reject') && !window.confirm(actionTitle(action))) {
+      return;
+    }
+
+    setLoadingId(application.id);
+    setMessage(null);
+
+    try {
+      const body: Record<string, string> = {
+        id: application.id,
+        status: actionStatus(action, returnTo),
+        reviewComment: trimmedComment,
+      };
+      if (action === 'return') body.returnTo = returnTo;
+
+      const response = await fetch('/api/applications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(result?.message ?? 'Unable to update application.');
+      }
+
+      setItems((current) => current.map((item) => (
+        item.id === application.id
+          ? { ...item, status: result.status ?? actionStatus(action, returnTo), updatedAt: result.updatedAt ? new Date(result.updatedAt) : new Date() }
+          : item
+      )));
+      resetAction();
+      setMessage('Application updated successfully.');
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to update application.');
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  if (applications.length <= 1) return null;
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className={triggerClassName ?? 'inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-800 hover:bg-blue-100'}
+      >
+        <UsersRound className="h-3.5 w-3.5" aria-hidden="true" />
+        {triggerLabel ?? `Same family: ${applications.length} orphans`}
+      </button>
+
+      {isOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-sm">
+          <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-5">
+              <div className="min-w-0">
+                <h2 className="text-lg font-bold text-slate-950">Same Family Applications</h2>
+                <p className="mt-1 text-sm leading-5 text-slate-600">
+                  Review all matched orphans together. Youngest known age is highlighted; admin still decides which application to approve.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
+                aria-label="Close same family applications"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+
+            <div className="overflow-auto px-4 py-4 sm:px-5">
+              {message ? (
+                <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm leading-6 text-blue-900">
+                  {message}
+                </div>
+              ) : null}
+
+              <div className="hidden overflow-hidden rounded-lg border border-slate-200 md:block">
+                <table className="min-w-full text-left text-sm text-slate-700">
+                  <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
+                    <tr>
+                      <th className="px-3 py-3">Orphan</th>
+                      <th className="px-3 py-3">Age</th>
+                      <th className="px-3 py-3">Father CNIC</th>
+                      <th className="px-3 py-3">Mother CNIC</th>
+                      <th className="px-3 py-3">Guardian CNIC</th>
+                      <th className="px-3 py-3">Status</th>
+                      <th className="px-3 py-3">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedItems.map((application) => {
+                      const isCurrent = application.id === currentApplicationId;
+                      const isYoungest = youngestKnownAge !== null && application.age === youngestKnownAge;
+                      const canAct = canUseAdminFinalActions(application.status);
+                      return (
+                        <tr key={application.id} className={`border-t border-slate-100 ${isCurrent ? 'bg-blue-50/60' : ''}`}>
+                          <td className="px-3 py-3 align-top">
+                            <p className="font-semibold text-slate-950">{application.registrationNumber ?? application.id}</p>
+                            <p className="mt-1 text-xs text-slate-600">{text(application.childName)}</p>
+                            {isCurrent ? <span className="mt-2 inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700">Current application</span> : null}
+                          </td>
+                          <td className="px-3 py-3 align-top">
+                            <span className="font-semibold text-slate-900">{typeof application.age === 'number' ? `${application.age} years` : '-'}</span>
+                            {isYoungest ? <span className="mt-2 block w-fit rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">Youngest</span> : null}
+                          </td>
+                          <td className="px-3 py-3 align-top">
+                            <p>{cnic(application.fatherCnic)}</p>
+                            <p className="mt-1 text-xs text-slate-500">{text(application.fatherName)}</p>
+                          </td>
+                          <td className="px-3 py-3 align-top">
+                            <p>{cnic(application.motherCnic)}</p>
+                            <p className="mt-1 text-xs text-slate-500">{text(application.motherName)}</p>
+                          </td>
+                          <td className="px-3 py-3 align-top">
+                            <p>{guardianCnicLabel(application)}</p>
+                            {application.motherIsGuardian !== 'yes' ? <p className="mt-1 text-xs text-slate-500">{text(application.guardianName)}</p> : null}
+                          </td>
+                          <td className="px-3 py-3 align-top">
+                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone[application.status] ?? 'bg-slate-100 text-slate-700'}`}>
+                              {applicationStatusLabel(application.status)}
+                            </span>
+                            <p className="mt-2 text-xs text-slate-500">Updated {formatDate(application.updatedAt)}</p>
+                          </td>
+                          <td className="w-64 px-3 py-3 align-top">
+                            <div className="w-56 space-y-2">
+                              <Link href={`${hrefPrefix}/${application.id}`} className={reviewLinkClass}>
+                                Review
+                              </Link>
+                              {canAct ? (
+                                <div className="grid grid-cols-2 gap-2">
+                                  <button type="button" onClick={() => submitAction(application, 'approve')} disabled={loadingId === application.id} className={`${modalActionButtonClass} bg-emerald-600 hover:bg-emerald-500`}>
+                                    <Check className="h-3.5 w-3.5" /> Approve
+                                  </button>
+                                  {application.status === 'reviewer_approved' ? (
+                                    <button type="button" onClick={() => { setPending({ id: application.id, action: 'hold' }); setComment(''); }} disabled={loadingId === application.id} className={`${modalActionButtonClass} bg-amber-600 hover:bg-amber-500`}>
+                                      <PauseCircle className="h-3.5 w-3.5" /> Hold
+                                    </button>
+                                  ) : null}
+                                  <button type="button" onClick={() => { setPending({ id: application.id, action: 'return' }); setComment(''); setReturnTo('reviewer'); }} disabled={loadingId === application.id} className={`${modalActionButtonClass} bg-blue-600 hover:bg-blue-500`}>
+                                    <RotateCcw className="h-3.5 w-3.5" /> Return
+                                  </button>
+                                  <button type="button" onClick={() => submitAction(application, 'reject')} disabled={loadingId === application.id} className={`${modalActionButtonClass} bg-rose-600 hover:bg-rose-500`}>
+                                    <X className="h-3.5 w-3.5" /> Reject
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="inline-flex min-h-9 w-full items-center justify-center gap-1 rounded-md bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-500">
+                                  <AlertTriangle className="h-3.5 w-3.5" /> No direct admin action
+                                </span>
+                              )}
+                            </div>
+                            {pending?.id === application.id ? (
+                              <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+                                <p className="text-xs font-semibold text-slate-900">{actionTitle(pending.action)}</p>
+                                {pending.action === 'return' ? (
+                                  <select
+                                    value={returnTo}
+                                    onChange={(event) => setReturnTo(event.target.value as 'reviewer' | 'supervisor')}
+                                    className="mt-2 min-h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                  >
+                                    <option value="reviewer">Return to reviewer</option>
+                                    <option value="supervisor">Return to supervisor</option>
+                                  </select>
+                                ) : null}
+                                <textarea
+                                  value={comment}
+                                  onChange={(event) => setComment(event.target.value)}
+                                  rows={3}
+                                  className="mt-2 w-full resize-none rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                  placeholder={pending.action === 'hold' ? 'Required hold reason' : 'Required return remarks'}
+                                />
+                                <div className="mt-2 flex gap-2">
+                                  <button type="button" onClick={() => submitAction(application, pending.action)} disabled={loadingId === application.id || !comment.trim()} className="inline-flex min-h-8 flex-1 items-center justify-center rounded-md bg-slate-900 px-2 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-60">
+                                    Confirm
+                                  </button>
+                                  <button type="button" onClick={resetAction} className="inline-flex min-h-8 flex-1 items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : null}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="grid gap-3 md:hidden">
+                {sortedItems.map((application) => (
+                  <div key={application.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-slate-950">{application.registrationNumber ?? application.id}</p>
+                        <p className="mt-1 text-sm text-slate-600">{text(application.childName)}</p>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${statusTone[application.status] ?? 'bg-slate-100 text-slate-700'}`}>
+                        {applicationStatusLabel(application.status)}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid gap-2 text-sm text-slate-700">
+                      <p><span className="font-semibold">Age:</span> {typeof application.age === 'number' ? `${application.age} years` : '-'}</p>
+                      <p><span className="font-semibold">Father CNIC:</span> {cnic(application.fatherCnic)}</p>
+                      <p><span className="font-semibold">Mother CNIC:</span> {cnic(application.motherCnic)}</p>
+                      <p><span className="font-semibold">Guardian CNIC:</span> {guardianCnicLabel(application)}</p>
+                    </div>
+                    <Link href={`${hrefPrefix}/${application.id}`} className={`${reviewLinkClass} mt-3 text-sm`}>
+                      Open review
+                    </Link>
+                    {canUseAdminFinalActions(application.status) ? (
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <button type="button" onClick={() => submitAction(application, 'approve')} disabled={loadingId === application.id} className={`${modalActionButtonClass} bg-emerald-600 hover:bg-emerald-500`}>
+                          <Check className="h-3.5 w-3.5" /> Approve
+                        </button>
+                        {application.status === 'reviewer_approved' ? (
+                          <button type="button" onClick={() => { setPending({ id: application.id, action: 'hold' }); setComment(''); }} disabled={loadingId === application.id} className={`${modalActionButtonClass} bg-amber-600 hover:bg-amber-500`}>
+                            <PauseCircle className="h-3.5 w-3.5" /> Hold
+                          </button>
+                        ) : null}
+                        <button type="button" onClick={() => { setPending({ id: application.id, action: 'return' }); setComment(''); setReturnTo('reviewer'); }} disabled={loadingId === application.id} className={`${modalActionButtonClass} bg-blue-600 hover:bg-blue-500`}>
+                          <RotateCcw className="h-3.5 w-3.5" /> Return
+                        </button>
+                        <button type="button" onClick={() => submitAction(application, 'reject')} disabled={loadingId === application.id} className={`${modalActionButtonClass} bg-rose-600 hover:bg-rose-500`}>
+                          <X className="h-3.5 w-3.5" /> Reject
+                        </button>
+                      </div>
+                    ) : null}
+                    {pending?.id === application.id ? (
+                      <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-2">
+                        <p className="text-xs font-semibold text-slate-900">{actionTitle(pending.action)}</p>
+                        {pending.action === 'return' ? (
+                          <select
+                            value={returnTo}
+                            onChange={(event) => setReturnTo(event.target.value as 'reviewer' | 'supervisor')}
+                            className="mt-2 min-h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                          >
+                            <option value="reviewer">Return to reviewer</option>
+                            <option value="supervisor">Return to supervisor</option>
+                          </select>
+                        ) : null}
+                        <textarea
+                          value={comment}
+                          onChange={(event) => setComment(event.target.value)}
+                          rows={3}
+                          className="mt-2 w-full resize-none rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                          placeholder={pending.action === 'hold' ? 'Required hold reason' : 'Required return remarks'}
+                        />
+                        <div className="mt-2 flex gap-2">
+                          <button type="button" onClick={() => submitAction(application, pending.action)} disabled={loadingId === application.id || !comment.trim()} className="inline-flex min-h-8 flex-1 items-center justify-center rounded-md bg-slate-900 px-2 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-60">
+                            Confirm
+                          </button>
+                          <button type="button" onClick={resetAction} className="inline-flex min-h-8 flex-1 items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
