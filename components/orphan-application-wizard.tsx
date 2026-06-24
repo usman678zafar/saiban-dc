@@ -19,9 +19,10 @@ import {
   type OtherHouseholdAssetInput,
 } from '@/lib/household-assets';
 import FileUpload from './file-upload';
+import ApplicationDeadlineNotice from './application-deadline-notice';
 import { useNavigationLoading } from './navigation-loading';
 import { downloadAttestationPdf, printAttestationForm } from './attestation-form';
-import { buildApplicationReview, type ApplicationReviewItem } from '@/lib/application-review';
+import { buildApplicationReview, calculateApplicationCompletion, type ApplicationReviewItem } from '@/lib/application-review';
 
 type SiblingInput = {
   id?: string;
@@ -699,6 +700,9 @@ interface OrphanApplicationWizardProps {
   showInstructionsOnStart?: boolean;
   readOnly?: boolean;
   editCommentRequired?: boolean;
+  initialCreatedAt?: Date | string | null;
+  initialCompletionPercentage?: number | null;
+  initialApplicationStatus?: string | null;
 }
 
 type PersistedWizardState = {
@@ -1302,6 +1306,9 @@ export default function OrphanApplicationWizard({
   showInstructionsOnStart,
   readOnly = false,
   editCommentRequired = false,
+  initialCreatedAt = null,
+  initialCompletionPercentage = null,
+  initialApplicationStatus = null,
 }: OrphanApplicationWizardProps) {
   const router = useRouter();
   const { startLoading } = useNavigationLoading();
@@ -1325,6 +1332,9 @@ export default function OrphanApplicationWizard({
   const [instructionSlide, setInstructionSlide] = useState(0);
   const [submissionDoneLoading, setSubmissionDoneLoading] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(initialApplicationId ?? null);
+  const [applicationCreatedAt, setApplicationCreatedAt] = useState<Date | string | null>(initialCreatedAt);
+  const [applicationCompletionPercentage, setApplicationCompletionPercentage] = useState<number | null>(initialCompletionPercentage);
+  const [applicationStatus, setApplicationStatus] = useState<string | null>(initialApplicationStatus ?? mergedData.status ?? null);
   const applicationStepStorageKey = useMemo(
     () => (applicationId ? `saiban-orphan-application:step:${applicationId}` : null),
     [applicationId],
@@ -1354,6 +1364,16 @@ export default function OrphanApplicationWizard({
     .reduce((total, slide) => total + slide.length, 0);
   const isFirstInstructionSlide = instructionSlide === 0;
   const isLastInstructionSlide = instructionSlide === NEW_APPLICATION_INSTRUCTION_SLIDES.length - 1;
+
+  const syncPersistedApplicationMetadata = (application: any) => {
+    if (application?.createdAt) setApplicationCreatedAt(application.createdAt);
+    if (typeof application?.filledFieldsPercentage === 'number') {
+      setApplicationCompletionPercentage(application.filledFieldsPercentage);
+    }
+    if (typeof application?.status === 'string') {
+      setApplicationStatus(application.status);
+    }
+  };
 
   const markFormChanged = () => {
     if (readOnly) return;
@@ -2150,6 +2170,7 @@ export default function OrphanApplicationWizard({
       }
 
       const application = await response.json();
+      syncPersistedApplicationMetadata(application);
       latestApplicationIdRef.current = application.id;
       setApplicationId(application.id);
       setShouldPersistNewApplication(false);
@@ -2218,6 +2239,7 @@ export default function OrphanApplicationWizard({
         }
 
         const application = await response.json();
+        syncPersistedApplicationMetadata(application);
         latestApplicationIdRef.current = application.id;
         setApplicationId(application.id);
         setShouldPersistNewApplication(false);
@@ -2311,6 +2333,7 @@ export default function OrphanApplicationWizard({
       }
 
       const application = await response.json();
+      syncPersistedApplicationMetadata(application);
       window.localStorage.removeItem(storageKey);
       if (editStorageKey) window.localStorage.removeItem(editStorageKey);
       setShouldPersistNewApplication(false);
@@ -2385,6 +2408,7 @@ export default function OrphanApplicationWizard({
       }
 
       const application = await response.json();
+      syncPersistedApplicationMetadata(application);
       setApplicationId(application.id);
       latestApplicationIdRef.current = application.id;
       lastAutosavedPayloadRef.current = JSON.stringify({
@@ -3043,6 +3067,10 @@ export default function OrphanApplicationWizard({
   );
 
   const reviewSteps = useMemo(() => buildApplicationReview(formData, documents), [documents, formData]);
+  const currentCompletionPercentage = useMemo(() => calculateApplicationCompletion(formData, documents).percentage, [documents, formData]);
+  const deadlineCompletionPercentage = readOnly
+    ? applicationCompletionPercentage ?? currentCompletionPercentage
+    : currentCompletionPercentage;
   const isExpandedReviewItem = (item: { label: string; value: string }) =>
     item.value.includes('\n') || item.value.length > 180 || ['Siblings', 'Relatives', 'Household Assets'].includes(item.label);
   const renderReviewFact = (label: string, value: unknown, valueFormatter = readableReviewValue) => {
@@ -3430,6 +3458,12 @@ export default function OrphanApplicationWizard({
           })}
         </div>
       </div>
+
+      <ApplicationDeadlineNotice
+        createdAt={applicationCreatedAt}
+        status={applicationStatus ?? formData.status}
+        completionPercentage={deadlineCompletionPercentage}
+      />
 
       {!readOnly && addressSelectionIssues.length > 0 ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">

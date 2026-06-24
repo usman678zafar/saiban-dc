@@ -1,5 +1,14 @@
 {
+  "crons": [
+    {
+      "path": "/api/applications/cleanup-expired",
+      "schedule": "0 0 * * *"
+    }
+  ],
   "functions": {
+    "app/api/applications/cleanup-expired/route.ts": {
+      "maxDuration": 60
+    },
     "app/api/applications/[id]/review/route.ts": {
       "maxDuration": 60,
       "memory": 1024

@@ -110,6 +110,9 @@ export default async function ReviewerApplicationPage({ params }: ReviewerApplic
           initialData={applicationToWizardData(application)}
           initialDocuments={documentsToWizardDocuments(applicationDocuments)}
           initialApplicationId={application.id}
+          initialCreatedAt={application.createdAt}
+          initialCompletionPercentage={application.filledFieldsPercentage}
+          initialApplicationStatus={application.status}
           readOnly
         />
 
