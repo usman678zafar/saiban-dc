@@ -19,13 +19,12 @@ function countStatus(counts: Map<ApplicationStatus, number>, status: Application
 }
 
 async function getViewerPortalData() {
-  const [applicationStatusCounts, totalUsers, adminUsers, mappedApplications] = await Promise.all([
+  const [applicationStatusCounts, totalUsers, mappedApplications] = await Promise.all([
     prisma.orphanApplication.groupBy({
       by: ['status'],
       _count: { _all: true },
     }),
     prisma.user.count(),
-    prisma.user.count({ where: { role: { in: ['admin', 'super_admin'] } } }),
     prisma.orphanApplication.findMany({
       where: {
         latitude: { gte: PAKISTAN_GEO_BOUNDS.minLat, lte: PAKISTAN_GEO_BOUNDS.maxLat },
@@ -68,7 +67,6 @@ async function getViewerPortalData() {
     { key: 'finalApproved', value: finalApprovedApplications, tone: 'emerald' },
     { key: 'rejected', value: countStatus(applicationCountByStatus, ApplicationStatus.rejected), tone: 'red' },
     { key: 'users', value: totalUsers, tone: 'orange' },
-    { key: 'admins', value: adminUsers, tone: 'sky' },
   ];
 
   const geoApplications: ViewerGeoApplication[] = mappedApplications

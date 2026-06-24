@@ -440,7 +440,7 @@ export default async function AdminApplicationsPage({
 
         <div className="hidden overflow-x-auto md:block">
           <table className="min-w-full text-left text-sm text-[#506784]">
-            <thead className="bg-[#f6f9fd] text-xs uppercase tracking-[0.12em] text-[#7d8fa6]">
+            <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
               <tr>
                 <th className="w-16 px-4 py-3">Select</th>
                 <th className="px-4 py-3">Application</th>

@@ -45,9 +45,9 @@ export default function ApplicationDeadlineNotice({
   if (info.isExemptByCompletion) {
     if (compact) {
       return (
-        <div className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold leading-5 text-blue-700">
+        <div className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold leading-5 text-blue-700">
           <ClipboardCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="min-w-0 truncate">Complete this application - {info.completionPercentage}% complete</span>
+          <span className="min-w-0 truncate">Finish & submit - {info.completionPercentage}% complete</span>
         </div>
       );
     }
@@ -79,10 +79,10 @@ export default function ApplicationDeadlineNotice({
       : 'border-amber-200 bg-amber-50 text-amber-700';
     const compactText = info.isExpired
       ? `Deadline passed - ${info.completionPercentage}% complete`
-      : `Removal risk: ${info.daysLeft} day${info.daysLeft === 1 ? '' : 's'} left - ${info.completionPercentage}% complete`;
+      : `${info.daysLeft} day${info.daysLeft === 1 ? '' : 's'} left - ${info.completionPercentage}% complete`;
 
     return (
-      <div className={`mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-5 ${compactToneClass}`}>
+      <div className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-5 ${compactToneClass}`}>
         {info.isExpired ? (
           <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         ) : (

@@ -186,12 +186,14 @@ export default async function ApplicationsPage({
                 {application.correctionComment ? (
                   <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">{application.correctionComment}</p>
                 ) : null}
-                <ApplicationDeadlineNotice
-                  createdAt={application.createdAt}
-                  status={application.status}
-                  completionPercentage={application.filledFieldsPercentage}
-                  compact
-                />
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <ApplicationDeadlineNotice
+                    createdAt={application.createdAt}
+                    status={application.status}
+                    completionPercentage={application.filledFieldsPercentage}
+                    compact
+                  />
+                </div>
               </div>
               <div className="mt-4 flex items-center gap-2">
                 <Link
@@ -245,12 +247,12 @@ export default async function ApplicationsPage({
 
       <div className="hidden min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:block">
         <table className="min-w-full text-left text-sm text-slate-700">
-          <thead className="bg-slate-50 text-slate-700">
+          <thead className="bg-blue-600 text-white">
             <tr>
-              <th className="px-4 py-3">Application</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Updated</th>
-              <th className="px-4 py-3">Actions</th>
+              <th className="px-4 py-3 font-semibold">Application</th>
+              <th className="px-4 py-3 font-semibold">Status</th>
+              <th className="px-4 py-3 font-semibold">Updated</th>
+              <th className="px-4 py-3 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -268,16 +270,18 @@ export default async function ApplicationsPage({
                     <div className="mt-1 break-words text-xs text-slate-500 [overflow-wrap:anywhere]">{application.childName}</div>
                   </td>
                   <td className="px-4 py-4 align-top text-slate-700">
-                    {isAdmin ? <span>{applicationStatusLabel(application.status)}</span> : <VolunteerApplicationStatus status={application.status} />}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {isAdmin ? <span>{applicationStatusLabel(application.status)}</span> : <VolunteerApplicationStatus status={application.status} />}
+                      <ApplicationDeadlineNotice
+                        createdAt={application.createdAt}
+                        status={application.status}
+                        completionPercentage={application.filledFieldsPercentage}
+                        compact
+                      />
+                    </div>
                     {application.correctionComment ? (
                       <p className="mt-1 max-w-xs text-xs leading-5 text-amber-700">{application.correctionComment}</p>
                     ) : null}
-                    <ApplicationDeadlineNotice
-                      createdAt={application.createdAt}
-                      status={application.status}
-                      completionPercentage={application.filledFieldsPercentage}
-                      compact
-                    />
                   </td>
                   <td className="px-4 py-4 align-top text-slate-500">{application.updatedAt}</td>
                   <td className="px-4 py-4 align-top">
