@@ -5,12 +5,14 @@ export const sameFamilyApplicationSelect = {
   id: true,
   registrationNumber: true,
   childName: true,
+  age: true,
   status: true,
   updatedAt: true,
   fatherName: true,
   fatherCnic: true,
   motherName: true,
   motherCnic: true,
+  motherIsGuardian: true,
   motherContact: true,
   guardianName: true,
   guardianCnic: true,
@@ -35,8 +37,16 @@ export type SameFamilyApplicationListItem = {
   id: string;
   registrationNumber: string | null;
   childName: string | null;
+  age: number | null;
   status: ApplicationStatus;
-  updatedAt: Date;
+  updatedAt: Date | string;
+  fatherName: string | null;
+  fatherCnic: string | null;
+  motherName: string | null;
+  motherCnic: string | null;
+  motherIsGuardian: string | null;
+  guardianName: string | null;
+  guardianCnic: string | null;
 };
 
 export type SameFamilySummary = {
@@ -140,13 +150,7 @@ export async function getSameFamilyApplications(application: SameFamilyApplicati
   return prisma.orphanApplication.findMany({
     where,
     orderBy: { updatedAt: 'desc' },
-    select: {
-      id: true,
-      registrationNumber: true,
-      childName: true,
-      status: true,
-      updatedAt: true,
-    },
+    select: sameFamilyApplicationSelect,
   });
 }
 

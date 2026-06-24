@@ -17,7 +17,7 @@ import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
 import { collectorProjectReviewWhere } from '@/lib/field-workers';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
-import { getSameFamilySummaries } from '@/lib/same-family-applications';
+import { getSameFamilyApplications, getSameFamilySummaries, type SameFamilyApplicationListItem } from '@/lib/same-family-applications';
 
 const PAGE_SIZE = 50;
 const BULK_DELETE_FORM_ID = 'admin-applications-bulk-delete-form';
@@ -229,6 +229,14 @@ export default async function AdminApplicationsPage({
   ]);
   const applications: ApplicationListItem[] = applicationRecords;
   const sameFamilySummaries = await getSameFamilySummaries(applications);
+  const sameFamilyModalEntries: Array<readonly [string, SameFamilyApplicationListItem[]]> = await Promise.all(applications.map(async (application) => {
+    const summary = sameFamilySummaries.get(application.id);
+    if (!summary?.count) return [application.id, [] as SameFamilyApplicationListItem[]] as const;
+
+    const sameFamilyApplications = await getSameFamilyApplications(application);
+    return [application.id, [application, ...sameFamilyApplications] satisfies SameFamilyApplicationListItem[]] as const;
+  }));
+  const sameFamilyModalApplications = new Map<string, SameFamilyApplicationListItem[]>(sameFamilyModalEntries);
   const visibleDraftCount = isSuperAdmin
     ? applications.filter((application) => application.status === ApplicationStatus.draft).length
     : 0;
@@ -402,7 +410,6 @@ export default async function AdminApplicationsPage({
                   <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
                   <div className="mt-1 text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                    <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
                     <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
                     <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{departmentLabel(application) === '-' ? 'No department' : departmentLabel(application)}</span>
                     <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{fieldWorkerLabel(application)}</span>
@@ -416,6 +423,14 @@ export default async function AdminApplicationsPage({
                   />
                   <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
                 </Link>
+                <div className="mt-3">
+                  <SameFamilyBadge
+                    summary={sameFamilySummaries.get(application.id)}
+                    modalApplications={sameFamilyModalApplications.get(application.id)}
+                    currentApplicationId={application.id}
+                    actorRole={isSuperAdmin ? 'super_admin' : 'admin'}
+                  />
+                </div>
                 <div className="mt-3 flex gap-2">
                   <ApplicationReviewDownloadButton
                     applicationId={application.id}
@@ -476,7 +491,12 @@ export default async function AdminApplicationsPage({
                       <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
                       <div className="text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
                       <div className="mt-2">
-                        <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
+                        <SameFamilyBadge
+                          summary={sameFamilySummaries.get(application.id)}
+                          modalApplications={sameFamilyModalApplications.get(application.id)}
+                          currentApplicationId={application.id}
+                          actorRole={isSuperAdmin ? 'super_admin' : 'admin'}
+                        />
                       </div>
                     </td>
                     <td className="px-4 py-4">{fieldWorkerLabel(application)}</td>

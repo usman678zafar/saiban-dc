@@ -112,7 +112,12 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
 
         <aside className="space-y-6">
           <ApplicationFieldWorkerDetails application={application} createdBy={application.createdBy} defaultCollapsed />
-          <SameFamilyApplicationsPanel applications={sameFamilyApplications} hrefPrefix="/admin/applications" />
+          <SameFamilyApplicationsPanel
+            applications={sameFamilyApplications}
+            hrefPrefix="/admin/applications"
+            currentApplication={application}
+            actorRole={isSuperAdmin ? 'super_admin' : 'admin'}
+          />
           <ApplicationActivityTimeline
             createdAt={application.createdAt}
             updatedAt={application.updatedAt}

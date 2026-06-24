@@ -3,6 +3,7 @@ import { AlertTriangle, ChevronDown, UsersRound } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { formatDate } from '@/lib/date-format';
 import type { SameFamilyApplicationListItem, SameFamilySummary } from '@/lib/same-family-applications';
+import SameFamilyApplicationsModal from './same-family-applications-modal';
 
 const statusTone: Record<string, string> = {
   admin_on_hold: 'bg-amber-100 text-amber-800',
@@ -12,17 +13,64 @@ const statusTone: Record<string, string> = {
   rejected: 'bg-rose-100 text-rose-800',
 };
 
-export function SameFamilyBadge({ summary }: { summary?: SameFamilySummary }) {
+function modalItem(application: SameFamilyApplicationListItem): SameFamilyApplicationListItem {
+  return {
+    id: application.id,
+    registrationNumber: application.registrationNumber,
+    childName: application.childName,
+    age: application.age,
+    status: application.status,
+    updatedAt: application.updatedAt instanceof Date ? application.updatedAt.toISOString() : application.updatedAt,
+    fatherName: application.fatherName,
+    fatherCnic: application.fatherCnic,
+    motherName: application.motherName,
+    motherCnic: application.motherCnic,
+    motherIsGuardian: application.motherIsGuardian,
+    guardianName: application.guardianName,
+    guardianCnic: application.guardianCnic,
+  };
+}
+
+export function SameFamilyBadge({
+  summary,
+  modalApplications,
+  currentApplicationId,
+  hrefPrefix = '/admin/applications',
+  actorRole,
+}: {
+  summary?: SameFamilySummary;
+  modalApplications?: SameFamilyApplicationListItem[];
+  currentApplicationId?: string;
+  hrefPrefix?: string;
+  actorRole?: 'admin' | 'super_admin';
+}) {
   if (!summary?.count) return null;
 
   const approvedCount = (summary.statuses.admin_approved ?? 0) + (summary.statuses.validated ?? 0) + (summary.statuses.migrated ?? 0);
   const holdCount = summary.statuses.admin_on_hold ?? 0;
   const tone = holdCount ? 'border-amber-200 bg-amber-50 text-amber-800' : approvedCount ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-blue-200 bg-blue-50 text-blue-800';
 
+  const label = `Same family: ${summary.count + 1} orphans`;
+
+  if (actorRole && currentApplicationId && modalApplications && modalApplications.length > 1) {
+    const serializedApplications = modalApplications.map(modalItem);
+
+    return (
+      <SameFamilyApplicationsModal
+        applications={serializedApplications}
+        currentApplicationId={currentApplicationId}
+        hrefPrefix={hrefPrefix}
+        actorRole={actorRole}
+        triggerLabel={label}
+        triggerClassName={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${tone} hover:bg-white/60`}
+      />
+    );
+  }
+
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${tone}`}>
       <UsersRound className="h-3.5 w-3.5" aria-hidden="true" />
-      Same family: {summary.count + 1} orphans
+      {label}
     </span>
   );
 }
@@ -31,12 +79,19 @@ export default function SameFamilyApplicationsPanel({
   applications,
   hrefPrefix,
   defaultCollapsed = true,
+  currentApplication,
+  actorRole,
 }: {
   applications: SameFamilyApplicationListItem[];
   hrefPrefix: string;
   defaultCollapsed?: boolean;
+  currentApplication?: SameFamilyApplicationListItem;
+  actorRole?: 'admin' | 'super_admin';
 }) {
   if (applications.length === 0) return null;
+
+  const modalApplications = currentApplication ? [currentApplication, ...applications] : applications;
+  const serializedModalApplications = modalApplications.map(modalItem);
 
   const holdCount = applications.filter((application) => application.status === 'admin_on_hold').length;
   const approvedCount = applications.filter((application) => ['admin_approved', 'validated', 'migrated'].includes(application.status)).length;
@@ -61,6 +116,19 @@ export default function SameFamilyApplicationsPanel({
         {holdCount ? <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-700">{holdCount} on hold</span> : null}
         {rejectedCount ? <span className="rounded-full bg-rose-50 px-2.5 py-1 text-rose-700">{rejectedCount} rejected</span> : null}
       </div>
+
+      {actorRole && currentApplication ? (
+        <div className="mt-4">
+          <SameFamilyApplicationsModal
+            applications={serializedModalApplications}
+            currentApplicationId={currentApplication.id}
+            hrefPrefix={hrefPrefix}
+            actorRole={actorRole}
+            triggerLabel={`Review family: ${modalApplications.length} orphans`}
+            triggerClassName="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-500"
+          />
+        </div>
+      ) : null}
 
       <div className="mt-4 space-y-2">
         {applications.map((application) => (
