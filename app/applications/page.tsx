@@ -12,6 +12,7 @@ import { Eye, Pencil, Search, X } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
 import VolunteerApplicationStatus from '@/components/volunteer-application-status';
+import ApplicationDeadlineNotice from '@/components/application-deadline-notice';
 import { isValidDate } from '@/lib/safe-date';
 
 export const dynamic = 'force-dynamic';
@@ -37,7 +38,9 @@ type ApplicationListRecord = {
   registrationNumber: string | null;
   childName: string | null;
   status: string;
+  createdAt: Date;
   updatedAt: Date;
+  filledFieldsPercentage: number;
   auditLogs?: Array<{ details: unknown; createdAt: Date }>;
 };
 
@@ -46,7 +49,9 @@ type ApplicationListItem = {
   registrationNumber: string;
   childName: string;
   status: string;
+  createdAt: Date;
   updatedAt: string;
+  filledFieldsPercentage: number;
   correctionComment: string | null;
 };
 
@@ -100,7 +105,9 @@ export default async function ApplicationsPage({
         registrationNumber: true,
         childName: true,
         status: true,
+        createdAt: true,
         updatedAt: true,
+        filledFieldsPercentage: true,
         auditLogs: {
           where: { action: { in: ['returned_by_supervisor', 'returned_by_admin'] } },
           orderBy: { createdAt: 'desc' },
@@ -117,7 +124,9 @@ export default async function ApplicationsPage({
     registrationNumber: application.registrationNumber ?? application.id,
     childName: application.childName ?? 'No child name',
     status: application.status,
+    createdAt: application.createdAt,
     updatedAt: formatApplicationDateTime(application.updatedAt),
+    filledFieldsPercentage: application.filledFieldsPercentage,
     correctionComment: typeof (application.auditLogs?.[0]?.details as any)?.comment === 'string' ? (application.auditLogs?.[0]?.details as any).comment : null,
   }));
 
@@ -177,6 +186,12 @@ export default async function ApplicationsPage({
                 {application.correctionComment ? (
                   <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">{application.correctionComment}</p>
                 ) : null}
+                <ApplicationDeadlineNotice
+                  createdAt={application.createdAt}
+                  status={application.status}
+                  completionPercentage={application.filledFieldsPercentage}
+                  compact
+                />
               </div>
               <div className="mt-4 flex items-center gap-2">
                 <Link
@@ -257,6 +272,12 @@ export default async function ApplicationsPage({
                     {application.correctionComment ? (
                       <p className="mt-1 max-w-xs text-xs leading-5 text-amber-700">{application.correctionComment}</p>
                     ) : null}
+                    <ApplicationDeadlineNotice
+                      createdAt={application.createdAt}
+                      status={application.status}
+                      completionPercentage={application.filledFieldsPercentage}
+                      compact
+                    />
                   </td>
                   <td className="px-4 py-4 align-top text-slate-500">{application.updatedAt}</td>
                   <td className="px-4 py-4 align-top">

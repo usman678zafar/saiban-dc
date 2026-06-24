@@ -104,6 +104,9 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
         initialData={applicationToWizardData(application)}
         initialDocuments={documentsToWizardDocuments(applicationDocuments)}
         initialApplicationId={application.id}
+        initialCreatedAt={application.createdAt}
+        initialCompletionPercentage={application.filledFieldsPercentage}
+        initialApplicationStatus={application.status}
         readOnly
       />
 

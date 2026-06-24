@@ -72,6 +72,9 @@ export default async function ViewerApplicationDetailPage({ params }: ViewerAppl
           initialData={applicationToWizardData(application)}
           initialDocuments={documentsToWizardDocuments(applicationDocuments)}
           initialApplicationId={application.id}
+          initialCreatedAt={application.createdAt}
+          initialCompletionPercentage={application.filledFieldsPercentage}
+          initialApplicationStatus={application.status}
           readOnly
         />
 

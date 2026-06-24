@@ -61,6 +61,9 @@ export default async function EditApplicationPage({ params }: EditApplicationPag
       initialData={initialData}
       initialDocuments={initialDocuments}
       initialApplicationId={application.id}
+      initialCreatedAt={application.createdAt}
+      initialCompletionPercentage={application.filledFieldsPercentage}
+      initialApplicationStatus={application.status}
       editCommentRequired={canAdminEdit}
     />
   );

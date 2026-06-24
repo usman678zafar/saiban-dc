@@ -7,12 +7,12 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getOrphanApplicationSchema } from '@/lib/validation';
 import { isValidDistrictForProvince, isValidProvince, isValidTehsilForDistrict } from '@/lib/address-utils';
-import { deleteFromR2 } from '@/lib/r2';
 import { applicationStatuses } from '@/lib/application-workflow';
 import { collectorProjectReviewWhere, projectMatchesAnyReviewAssignment } from '@/lib/field-workers';
 import { logSystemAudit } from '@/lib/system-audit';
 import { calculateFilledFields, completionSelect } from '@/lib/application-completion';
 import { applicationSearchWhere } from '@/lib/application-search';
+import { applicationDeletionSelect, deleteApplicationRecords } from '@/lib/application-deletion';
 
 async function getUser(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -1033,24 +1033,6 @@ function hasActiveBulkDeleteFilter(filters: BulkDeleteFilters) {
   );
 }
 
-async function deleteApplicationRecords(applications: Array<{
-  id: string;
-  documents: { fileKey: string }[];
-}>) {
-  for (const application of applications) {
-    await Promise.allSettled(application.documents.map((document) => deleteFromR2(document.fileKey)));
-
-    await prisma.$transaction([
-      prisma.applicationDocument.deleteMany({ where: { applicationId: application.id } }),
-      prisma.sibling.deleteMany({ where: { applicationId: application.id } }),
-      prisma.relative.deleteMany({ where: { applicationId: application.id } }),
-      prisma.householdAsset.deleteMany({ where: { applicationId: application.id } }),
-      prisma.auditLog.deleteMany({ where: { applicationId: application.id } }),
-      prisma.orphanApplication.delete({ where: { id: application.id } }),
-    ]);
-  }
-}
-
 async function handleBulkDeleteApplications(
   user: NonNullable<Awaited<ReturnType<typeof getUser>>>,
   body: any,
@@ -1097,14 +1079,7 @@ async function handleBulkDeleteApplications(
       where,
       take: batchSize,
       orderBy: { updatedAt: 'asc' },
-      select: {
-        id: true,
-        documents: {
-          select: {
-            fileKey: true,
-          },
-        },
-      },
+      select: applicationDeletionSelect,
     });
 
     if (applications.length === 0) break;
@@ -1158,20 +1133,7 @@ export async function DELETE(request: NextRequest) {
 
   const application = await prisma.orphanApplication.findUnique({
     where: { id },
-    select: {
-      id: true,
-      status: true,
-      createdById: true,
-      registrationNumber: true,
-      childName: true,
-      collectorName: true,
-      collectorProject: true,
-      documents: {
-        select: {
-          fileKey: true,
-        },
-      },
-    },
+    select: applicationDeletionSelect,
   });
 
   if (!application) {
@@ -1200,16 +1162,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ message: 'You do not have permission to manage application drafts.' }, { status: 403 });
   }
 
-  await Promise.allSettled(application.documents.map((document) => deleteFromR2(document.fileKey)));
-
-  await prisma.$transaction([
-    prisma.applicationDocument.deleteMany({ where: { applicationId: id } }),
-    prisma.sibling.deleteMany({ where: { applicationId: id } }),
-    prisma.relative.deleteMany({ where: { applicationId: id } }),
-    prisma.householdAsset.deleteMany({ where: { applicationId: id } }),
-    prisma.auditLog.deleteMany({ where: { applicationId: id } }),
-    prisma.orphanApplication.delete({ where: { id } }),
-  ]);
+  await deleteApplicationRecords([application]);
 
   await logSystemAudit({
     action: user.role === 'super_admin' ? 'application_deleted_by_super_admin' : 'draft_application_deleted',

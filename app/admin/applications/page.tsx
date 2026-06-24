@@ -10,6 +10,7 @@ import AdminShell from '@/components/admin-shell';
 import DeleteDraftApplicationButton from '@/components/delete-draft-application-button';
 import BulkDeleteApplicationsButton from '@/components/bulk-delete-applications-button';
 import ApplicationReviewDownloadButton from '@/components/application-review-download-button';
+import ApplicationDeadlineNotice from '@/components/application-deadline-notice';
 import { SameFamilyBadge } from '@/components/same-family-indicator';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
@@ -407,6 +408,12 @@ export default async function AdminApplicationsPage({
                     <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{fieldWorkerLabel(application)}</span>
                     <span className="rounded-lg bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">{application.filledFieldsPercentage}% complete</span>
                   </div>
+                  <ApplicationDeadlineNotice
+                    createdAt={application.createdAt}
+                    status={application.status}
+                    completionPercentage={application.filledFieldsPercentage}
+                    compact
+                  />
                   <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
                 </Link>
                 <div className="mt-3 flex gap-2">
@@ -479,6 +486,12 @@ export default async function AdminApplicationsPage({
                       <span className="inline-flex min-w-14 justify-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                         {application.filledFieldsPercentage}%
                       </span>
+                      <ApplicationDeadlineNotice
+                        createdAt={application.createdAt}
+                        status={application.status}
+                        completionPercentage={application.filledFieldsPercentage}
+                        compact
+                      />
                     </td>
                     <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(application.updatedAt)}</td>
                     <td className="px-4 py-4">
