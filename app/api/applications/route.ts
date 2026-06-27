@@ -617,7 +617,7 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
 
   if (user.role === 'admin') {
     if (returnTo) {
-      allowed = ['reviewer_approved', 'admin_on_hold'].includes(application.status);
+      allowed = ['reviewer_approved', 'admin_on_hold', 'admin_approved'].includes(application.status);
       action = returnTo === 'supervisor' ? 'returned_by_admin_to_supervisor' : 'returned_by_admin_to_reviewer';
       if (!comment) {
         return NextResponse.json({ message: 'Return remarks are required.' }, { status: 422 });
@@ -625,7 +625,8 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
     } else {
       allowed = (
         (application.status === 'reviewer_approved' && ['admin_on_hold', 'admin_approved', 'rejected'].includes(status)) ||
-        (application.status === 'admin_on_hold' && ['admin_approved', 'rejected'].includes(status))
+        (application.status === 'admin_on_hold' && ['admin_approved', 'rejected'].includes(status)) ||
+        (application.status === 'admin_approved' && ['admin_on_hold', 'rejected'].includes(status))
       );
       action = status === 'admin_on_hold'
         ? 'held_by_admin'
@@ -636,12 +637,16 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
       if (status === 'admin_on_hold' && !comment) {
         return NextResponse.json({ message: 'Hold reason is required.' }, { status: 422 });
       }
+
+      if (application.status === 'admin_approved' && status === 'rejected' && !comment) {
+        return NextResponse.json({ message: 'Reason for changing an approved application is required.' }, { status: 422 });
+      }
     }
   }
 
   if (user.role === 'super_admin') {
     if (returnTo) {
-      allowed = ['reviewer_approved', 'admin_on_hold'].includes(application.status);
+      allowed = ['reviewer_approved', 'admin_on_hold', 'admin_approved'].includes(application.status);
       action = returnTo === 'supervisor' ? 'returned_by_super_admin_to_supervisor' : 'returned_by_super_admin_to_reviewer';
       if (!comment) {
         return NextResponse.json({ message: 'Return remarks are required.' }, { status: 422 });
@@ -652,7 +657,7 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
         (application.status === 'supervisor_approved' && ['reviewer_approved', 'rejected'].includes(status)) ||
         (application.status === 'reviewer_approved' && ['admin_on_hold', 'admin_approved', 'rejected'].includes(status)) ||
         (application.status === 'admin_on_hold' && ['admin_approved', 'rejected'].includes(status)) ||
-        (application.status === 'admin_approved' && status === 'migrated') ||
+        (application.status === 'admin_approved' && ['admin_on_hold', 'rejected', 'migrated'].includes(status)) ||
         (application.status === 'validated' && status === 'migrated')
       );
       action = status === 'needs_correction'
@@ -671,6 +676,10 @@ async function updateApplicationStatus(user: NonNullable<Awaited<ReturnType<type
 
       if (['admin_on_hold', 'needs_correction'].includes(status) && !comment) {
         return NextResponse.json({ message: status === 'admin_on_hold' ? 'Hold reason is required.' : 'Correction comment is required.' }, { status: 422 });
+      }
+
+      if (application.status === 'admin_approved' && status === 'rejected' && !comment) {
+        return NextResponse.json({ message: 'Reason for changing an approved application is required.' }, { status: 422 });
       }
     }
   }

@@ -33,6 +33,8 @@ const adminWorkflowActions: WorkflowAction[] = [
   { from: 'reviewer_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
   { from: 'admin_on_hold', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
   { from: 'admin_on_hold', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
+  { from: 'admin_approved', to: 'admin_on_hold', label: 'Put On Hold', icon: PauseCircle, color: 'bg-amber-600 hover:bg-amber-500', requiresComment: true },
+  { from: 'admin_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500', requiresComment: true },
   { from: 'admin_approved', to: 'migrated', label: 'Migrate', icon: RotateCcw, color: 'bg-slate-800 hover:bg-slate-700' },
   { from: 'validated', to: 'migrated', label: 'Migrate Legacy Validated', icon: RotateCcw, color: 'bg-slate-800 hover:bg-slate-700' },
 ];
@@ -54,6 +56,8 @@ const actionButtons: Record<'super_admin' | 'admin' | 'reviewer' | 'supervisor' 
     { from: 'reviewer_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
     { from: 'admin_on_hold', to: 'admin_approved', label: 'Final Approve', icon: Check, color: 'bg-emerald-600 hover:bg-emerald-500' },
     { from: 'admin_on_hold', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500' },
+    { from: 'admin_approved', to: 'admin_on_hold', label: 'Put On Hold', icon: PauseCircle, color: 'bg-amber-600 hover:bg-amber-500', requiresComment: true },
+    { from: 'admin_approved', to: 'rejected', label: 'Reject', icon: X, color: 'bg-rose-600 hover:bg-rose-500', requiresComment: true },
   ],
   field_worker: [
     { from: 'needs_correction', to: 'submitted', label: 'Resubmit Application', icon: ArrowRight, color: 'bg-blue-600 hover:bg-blue-500' },
@@ -83,6 +87,11 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
   const [returnComment, setReturnComment] = useState('');
 
   const handleTransition = async (newStatus: string) => {
+    const isApprovedReversal = currentStatus === 'admin_approved' && ['admin_on_hold', 'rejected'].includes(newStatus);
+    if (isApprovedReversal && !window.confirm(`Change this approved application to ${applicationStatusLabel(newStatus)}?`)) {
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
 
@@ -163,13 +172,16 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
   };
 
   const availableActions = actionButtons[actorRole].filter((action) => action.from === currentStatus);
-  const canRouteReturn = (actorRole === 'admin' || actorRole === 'super_admin') && ['reviewer_approved', 'admin_on_hold'].includes(currentStatus);
+  const canRouteReturn = (actorRole === 'admin' || actorRole === 'super_admin') && ['reviewer_approved', 'admin_on_hold', 'admin_approved'].includes(currentStatus);
   const acceptsReviewRemarks = actorRole === 'admin' || actorRole === 'reviewer';
   const requiresCorrectionComment = availableActions.some((action) => action.requiresComment);
   const showCommentBox = requiresCorrectionComment || acceptsReviewRemarks;
   const isHoldActionAvailable = availableActions.some((action) => action.to === 'admin_on_hold');
-  const commentLabel = isHoldActionAvailable ? 'Remarks / hold reason' : requiresCorrectionComment ? 'Correction comment' : 'Remarks';
-  const commentPlaceholder = requiresCorrectionComment
+  const isChangingApprovedDecision = currentStatus === 'admin_approved';
+  const commentLabel = isChangingApprovedDecision ? 'Required reason for changing approval' : isHoldActionAvailable ? 'Remarks / hold reason' : requiresCorrectionComment ? 'Correction comment' : 'Remarks';
+  const commentPlaceholder = isChangingApprovedDecision
+    ? 'Explain why this approved application is being put on hold or rejected.'
+    : requiresCorrectionComment
     ? isHoldActionAvailable
       ? 'Add remarks, or explain why this application is being held for later or special review.'
       : 'Explain what the field worker needs to correct.'
@@ -189,6 +201,11 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
     <div className="min-w-0 space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
       <h3 className="text-lg font-semibold leading-7 text-slate-900">{actorRole === 'supervisor' ? 'Supervisor Actions' : actorRole === 'reviewer' ? 'Reviewer Actions' : actorRole === 'field_worker' ? 'Correction Actions' : actorRole === 'super_admin' ? 'Super Admin Actions' : 'Admin Actions'}</h3>
       <p className="text-sm leading-6 text-slate-600">Current status: {applicationStatusLabel(currentStatus)}.</p>
+      {isChangingApprovedDecision ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-900">
+          This application is already approved. Hold, return, or rejection will be recorded in its activity history.
+        </p>
+      ) : null}
       {showCommentBox ? (
         <label className="grid gap-2 text-sm text-slate-700">
           <span>{commentLabel}</span>
@@ -239,6 +256,11 @@ export default function ApplicationStatusActions({ applicationId, currentStatus,
             <div className="border-b border-slate-100 px-4 py-4 sm:px-5">
               <h4 className="text-base font-semibold text-slate-950">Return application</h4>
               <p className="mt-1 text-sm leading-5 text-slate-600">Choose where this application should go next. Remarks are required and will appear in activity history.</p>
+              {isChangingApprovedDecision ? (
+                <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-5 text-amber-900">
+                  This will change an already approved decision.
+                </p>
+              ) : null}
             </div>
             <div className="space-y-4 px-4 py-4 sm:px-5">
               <label className="grid gap-2 text-sm font-semibold text-slate-700">
