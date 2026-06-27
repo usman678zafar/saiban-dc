@@ -33,12 +33,14 @@ function modalItem(application: SameFamilyApplicationListItem): SameFamilyApplic
 
 export function SameFamilyBadge({
   summary,
+  currentStatus,
   modalApplications,
   currentApplicationId,
   hrefPrefix = '/admin/applications',
   actorRole,
 }: {
   summary?: SameFamilySummary;
+  currentStatus: SameFamilyApplicationListItem['status'];
   modalApplications?: SameFamilyApplicationListItem[];
   currentApplicationId?: string;
   hrefPrefix?: string;
@@ -46,9 +48,14 @@ export function SameFamilyBadge({
 }) {
   if (!summary?.count) return null;
 
-  const approvedCount = (summary.statuses.admin_approved ?? 0) + (summary.statuses.validated ?? 0) + (summary.statuses.migrated ?? 0);
-  const holdCount = summary.statuses.admin_on_hold ?? 0;
-  const tone = holdCount ? 'border-amber-200 bg-amber-50 text-amber-800' : approvedCount ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-blue-200 bg-blue-50 text-blue-800';
+  const relatedApprovedCount = (summary.statuses.admin_approved ?? 0) + (summary.statuses.validated ?? 0) + (summary.statuses.migrated ?? 0);
+  const currentApplicationIsApproved = ['admin_approved', 'validated', 'migrated'].includes(currentStatus);
+  const approvedCount = relatedApprovedCount + (currentApplicationIsApproved ? 1 : 0);
+  const tone = approvedCount > 1
+    ? 'border-amber-300 bg-amber-50 text-amber-800'
+    : approvedCount === 1
+      ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+      : 'border-blue-200 bg-blue-50 text-blue-800';
 
   const label = `Same family: ${summary.count + 1} orphans`;
 

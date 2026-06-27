@@ -320,7 +320,7 @@ export default async function SupervisorPage({
                         <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
                         <div className="mt-1 text-xs text-slate-500">{application.childName ?? 'No child name'}</div>
                         <div className="mt-2">
-                          <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
+                          <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} currentStatus={application.status} />
                         </div>
                         {application.status === ApplicationStatus.submitted && latestReturnActor ? (
                           <p className="mt-2 text-xs leading-5 text-amber-700">Previously returned by {latestReturnActor}</p>
@@ -362,7 +362,7 @@ export default async function SupervisorPage({
                   <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
                   <div className="mt-1 text-sm text-slate-600">{application.childName ?? 'No child name'}</div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
-                    <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
+                    <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} currentStatus={application.status} />
                     <span className={`rounded-full px-2.5 py-1 font-semibold ${badgeClass(application.status)}`}>{applicationStatusLabel(application.status)}</span>
                     <span>{application.collectorProject ?? '-'}</span>
                     <span>{formatDate(application.updatedAt)}</span>

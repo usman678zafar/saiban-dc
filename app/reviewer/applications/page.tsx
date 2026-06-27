@@ -273,7 +273,7 @@ export default async function ReviewerApplicationsPage({
                         <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
                         <div className="mt-1 text-xs text-slate-500">{application.childName ?? 'No child name'}</div>
                         <div className="mt-2">
-                          <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
+                          <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} currentStatus={application.status} />
                         </div>
                       </td>
                       <td className="px-4 py-4">{application.collectorProject ?? '-'}</td>
@@ -308,7 +308,7 @@ export default async function ReviewerApplicationsPage({
                   <div className="font-semibold text-slate-900">{application.registrationNumber ?? application.id}</div>
                   <div className="mt-1 text-sm text-slate-600">{application.childName ?? 'No child name'}</div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
-                    <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} />
+                    <SameFamilyBadge summary={sameFamilySummaries.get(application.id)} currentStatus={application.status} />
                     <span className={`rounded-full px-2.5 py-1 font-semibold ${badgeClass(application.status)}`}>{applicationStatusLabel(application.status)}</span>
                     <span>{application.collectorProject ?? '-'}</span>
                     <span>{formatDate(application.updatedAt)}</span>
