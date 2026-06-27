@@ -426,6 +426,7 @@ export default async function AdminApplicationsPage({
                 <div className="mt-3">
                   <SameFamilyBadge
                     summary={sameFamilySummaries.get(application.id)}
+                    currentStatus={application.status}
                     modalApplications={sameFamilyModalApplications.get(application.id)}
                     currentApplicationId={application.id}
                     actorRole={isSuperAdmin ? 'super_admin' : 'admin'}
@@ -493,6 +494,7 @@ export default async function AdminApplicationsPage({
                       <div className="mt-2">
                         <SameFamilyBadge
                           summary={sameFamilySummaries.get(application.id)}
+                          currentStatus={application.status}
                           modalApplications={sameFamilyModalApplications.get(application.id)}
                           currentApplicationId={application.id}
                           actorRole={isSuperAdmin ? 'super_admin' : 'admin'}
