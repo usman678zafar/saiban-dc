@@ -189,12 +189,12 @@ export default function SameFamilyApplicationsModal({
           <div
             role="dialog"
             aria-modal="true"
-            aria-labelledby="same-family-applications-title"
+            aria-labelledby="family-orphan-records-title"
             className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl"
           >
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-5">
               <div className="min-w-0">
-                <h2 id="same-family-applications-title" className="text-lg font-bold text-slate-950">Same Family Applications</h2>
+                <h2 id="family-orphan-records-title" className="text-lg font-bold text-slate-950">Orphans From This Family</h2>
                 <p className="mt-1 text-sm leading-5 text-slate-600">
                   Review all matched orphans together. Youngest known age is highlighted; admin still decides which application to approve.
                 </p>
