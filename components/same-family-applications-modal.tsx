@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, Check, PauseCircle, RotateCcw, UsersRound, X } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, Baby, Check, PauseCircle, RotateCcw, UsersRound, X } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { formatCnic } from '@/lib/contact-format';
 import { formatDate } from '@/lib/date-format';
@@ -39,19 +39,23 @@ function cnic(value: string | null | undefined) {
   return next ? formatCnic(next) : '-';
 }
 
-function guardianCnicLabel(application: SameFamilyApplicationListItem) {
-  if (application.motherIsGuardian === 'yes') {
-    return `Mother is guardian (${cnic(application.motherCnic)})`;
-  }
+function guardianCnic(application: SameFamilyApplicationListItem) {
+  return application.motherIsGuardian === 'yes' ? cnic(application.motherCnic) : cnic(application.guardianCnic);
+}
 
-  return cnic(application.guardianCnic);
+function guardianName(application: SameFamilyApplicationListItem) {
+  return application.motherIsGuardian === 'yes' ? 'Mother is guardian' : text(application.guardianName);
 }
 
 function canUseAdminFinalActions(status: string) {
   return status === 'reviewer_approved' || status === 'admin_on_hold' || status === 'admin_approved';
 }
 
-const reviewLinkClass = 'inline-flex min-h-9 w-full items-center justify-center rounded-md bg-slate-100 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-200';
+function actionGridClass(status: string) {
+  return status === 'reviewer_approved' ? 'grid-cols-2' : 'grid-cols-3';
+}
+
+const reviewLinkClass = 'inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700';
 const modalActionButtonClass = 'inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60';
 
 function actionTitle(action: ModalAction, isApproved = false) {
@@ -185,48 +189,57 @@ export default function SameFamilyApplicationsModal({
       </button>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-2 backdrop-blur-sm sm:p-4">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="family-orphan-records-title"
-            className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl"
+            className="flex max-h-[94vh] w-full max-w-[1380px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl"
           >
-            <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-5">
-              <div className="min-w-0">
-                <h2 id="family-orphan-records-title" className="text-lg font-bold text-slate-950">Orphans From This Family</h2>
-                <p className="mt-1 text-sm leading-5 text-slate-600">
-                  Review all matched orphans together. Youngest known age is highlighted; admin still decides which application to approve.
-                </p>
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100">
+                  <Baby className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <h2 id="family-orphan-records-title" className="text-lg font-bold leading-6 text-slate-950">Orphans From This Family</h2>
+                  <p className="mt-1 text-sm leading-5 text-slate-600">
+                    Compare related orphan records and make the appropriate admin decision.
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold">
+                    <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">{items.length} orphan records</span>
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">Youngest highlighted</span>
+                  </div>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                 aria-label="Close same family applications"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
 
-            <div className="overflow-auto px-4 py-4 sm:px-5">
+            <div className="min-h-0 overflow-auto bg-slate-50/70 p-3 sm:p-5">
               {message ? (
                 <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm leading-6 text-blue-900">
                   {message}
                 </div>
               ) : null}
 
-              <div className="hidden overflow-hidden rounded-lg border border-slate-200 md:block">
-                <table className="min-w-full text-left text-sm text-slate-700">
-                  <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
+              <div className="hidden rounded-lg border border-slate-200 bg-white shadow-sm md:block">
+                <table className="w-full min-w-[1180px] table-fixed text-left text-sm text-slate-700">
+                  <thead className="sticky top-0 z-10 bg-blue-600 text-xs uppercase text-white shadow-sm">
                     <tr>
-                      <th className="px-3 py-3">Orphan</th>
-                      <th className="px-3 py-3">Age</th>
-                      <th className="px-3 py-3">Father CNIC</th>
-                      <th className="px-3 py-3">Mother CNIC</th>
-                      <th className="px-3 py-3">Guardian CNIC</th>
-                      <th className="px-3 py-3">Status</th>
-                      <th className="px-3 py-3">Action</th>
+                      <th className="w-[190px] px-4 py-3">Orphan</th>
+                      <th className="w-[90px] px-3 py-3">Age</th>
+                      <th className="w-[155px] px-3 py-3">Father CNIC</th>
+                      <th className="w-[155px] px-3 py-3">Mother CNIC</th>
+                      <th className="w-[175px] px-3 py-3">Guardian CNIC</th>
+                      <th className="w-[150px] px-3 py-3">Status</th>
+                      <th className="w-[245px] px-3 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -235,41 +248,41 @@ export default function SameFamilyApplicationsModal({
                       const isYoungest = youngestKnownAge !== null && application.age === youngestKnownAge;
                       const canAct = canUseAdminFinalActions(application.status);
                       return (
-                        <tr key={application.id} className={`border-t border-slate-100 ${isCurrent ? 'bg-blue-50/60' : ''}`}>
-                          <td className="px-3 py-3 align-top">
-                            <p className="font-semibold text-slate-950">{application.registrationNumber ?? application.id}</p>
+                        <tr key={application.id} className={`border-b border-slate-100 last:border-b-0 ${isCurrent ? 'bg-blue-50' : isYoungest ? 'bg-emerald-50/40' : 'bg-white hover:bg-slate-50/80'}`}>
+                          <td className={`border-l-4 px-3 py-4 align-top ${isCurrent ? 'border-l-blue-500' : isYoungest ? 'border-l-emerald-400' : 'border-l-transparent'}`}>
+                            <p className="break-words font-semibold leading-5 text-slate-950 [overflow-wrap:anywhere]">{application.registrationNumber ?? application.id}</p>
                             <p className="mt-1 text-xs text-slate-600">{text(application.childName)}</p>
                             {isCurrent ? <span className="mt-2 inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700">Current application</span> : null}
                           </td>
-                          <td className="px-3 py-3 align-top">
+                          <td className="px-3 py-4 align-top">
                             <span className="font-semibold text-slate-900">{typeof application.age === 'number' ? `${application.age} years` : '-'}</span>
                             {isYoungest ? <span className="mt-2 block w-fit rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">Youngest</span> : null}
                           </td>
-                          <td className="px-3 py-3 align-top">
-                            <p>{cnic(application.fatherCnic)}</p>
+                          <td className="px-3 py-4 align-top">
+                            <p className="whitespace-nowrap tabular-nums text-slate-700">{cnic(application.fatherCnic)}</p>
                             <p className="mt-1 text-xs text-slate-500">{text(application.fatherName)}</p>
                           </td>
-                          <td className="px-3 py-3 align-top">
-                            <p>{cnic(application.motherCnic)}</p>
+                          <td className="px-3 py-4 align-top">
+                            <p className="whitespace-nowrap tabular-nums text-slate-700">{cnic(application.motherCnic)}</p>
                             <p className="mt-1 text-xs text-slate-500">{text(application.motherName)}</p>
                           </td>
-                          <td className="px-3 py-3 align-top">
-                            <p>{guardianCnicLabel(application)}</p>
-                            {application.motherIsGuardian !== 'yes' ? <p className="mt-1 text-xs text-slate-500">{text(application.guardianName)}</p> : null}
+                          <td className="px-3 py-4 align-top">
+                            <p className="whitespace-nowrap tabular-nums text-slate-700">{guardianCnic(application)}</p>
+                            <p className="mt-1 text-xs text-slate-500">{guardianName(application)}</p>
                           </td>
-                          <td className="px-3 py-3 align-top">
+                          <td className="px-3 py-4 align-top">
                             <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone[application.status] ?? 'bg-slate-100 text-slate-700'}`}>
                               {applicationStatusLabel(application.status)}
                             </span>
                             <p className="mt-2 text-xs text-slate-500">Updated {formatDate(application.updatedAt)}</p>
                           </td>
-                          <td className="w-64 px-3 py-3 align-top">
-                            <div className="w-56 space-y-2">
+                          <td className="px-3 py-3 align-top">
+                            <div className="space-y-2">
                               <Link href={`${hrefPrefix}/${application.id}`} className={reviewLinkClass}>
-                                Review
+                                Open review <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                               </Link>
                               {canAct ? (
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className={`grid gap-2 ${actionGridClass(application.status)}`}>
                                   {application.status !== 'admin_approved' ? (
                                     <button type="button" onClick={() => submitAction(application, 'approve')} disabled={loadingId === application.id} className={`${modalActionButtonClass} bg-emerald-600 hover:bg-emerald-500`}>
                                       <Check className="h-3.5 w-3.5" /> Approve
@@ -288,13 +301,13 @@ export default function SameFamilyApplicationsModal({
                                   </button>
                                 </div>
                               ) : (
-                                <span className="inline-flex min-h-9 w-full items-center justify-center gap-1 rounded-md bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-500">
-                                  <AlertTriangle className="h-3.5 w-3.5" /> No direct admin action
+                                <span className="inline-flex min-h-8 w-full items-center justify-center gap-1.5 px-2 text-center text-xs font-medium leading-4 text-slate-500">
+                                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> No admin action at this stage
                                 </span>
                               )}
                             </div>
                             {pending?.id === application.id ? (
-                              <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+                              <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50/60 p-3">
                                 <p className="text-xs font-semibold text-slate-900">{actionTitle(pending.action, application.status === 'admin_approved')}</p>
                                 {application.status === 'admin_approved' ? (
                                   <p className="mt-1 text-xs leading-5 text-amber-800">This changes an approved decision. Required remarks will be saved in activity history.</p>
@@ -336,7 +349,7 @@ export default function SameFamilyApplicationsModal({
 
               <div className="grid gap-3 md:hidden">
                 {sortedItems.map((application) => (
-                  <div key={application.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                  <div key={application.id} className={`rounded-lg border bg-white p-3 shadow-sm ${application.id === currentApplicationId ? 'border-blue-300' : 'border-slate-200'}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="font-semibold text-slate-950">{application.registrationNumber ?? application.id}</p>
@@ -350,13 +363,13 @@ export default function SameFamilyApplicationsModal({
                       <p><span className="font-semibold">Age:</span> {typeof application.age === 'number' ? `${application.age} years` : '-'}</p>
                       <p><span className="font-semibold">Father CNIC:</span> {cnic(application.fatherCnic)}</p>
                       <p><span className="font-semibold">Mother CNIC:</span> {cnic(application.motherCnic)}</p>
-                      <p><span className="font-semibold">Guardian CNIC:</span> {guardianCnicLabel(application)}</p>
+                      <p><span className="font-semibold">Guardian CNIC:</span> {guardianCnic(application)}</p>
                     </div>
                     <Link href={`${hrefPrefix}/${application.id}`} className={`${reviewLinkClass} mt-3 text-sm`}>
-                      Open review
+                      Open review <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                     {canUseAdminFinalActions(application.status) ? (
-                      <div className="mt-3 grid grid-cols-2 gap-2">
+                      <div className={`mt-3 grid gap-2 ${actionGridClass(application.status)}`}>
                         {application.status !== 'admin_approved' ? (
                           <button type="button" onClick={() => submitAction(application, 'approve')} disabled={loadingId === application.id} className={`${modalActionButtonClass} bg-emerald-600 hover:bg-emerald-500`}>
                             <Check className="h-3.5 w-3.5" /> Approve
