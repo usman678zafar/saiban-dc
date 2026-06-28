@@ -10,6 +10,7 @@ import { useViewerLanguage } from './viewer-language';
 import logo from '@/assests/logo.png';
 import { useSidebarCollapse } from './use-sidebar-collapse';
 import type { LucideIcon } from 'lucide-react';
+import PortalMobileMenu from './portal-mobile-menu';
 
 interface ViewerSidebarProps {
   email?: string | null;
@@ -87,34 +88,23 @@ export default function ViewerSidebar({ email }: ViewerSidebarProps) {
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#dbe4ef] bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActivePath(pathname, item.href, item.exact);
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-label={item.label[language]}
-                className={clsx(
-                  'flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-semibold transition sm:text-xs',
-                  active ? 'bg-[#e8f1ff] text-[#2563eb]' : 'text-[#63758d] hover:bg-[#f4f7fb] hover:text-[#0f1f33]',
-                )}
-              >
-                <Icon className="h-5 w-5" aria-hidden="true" />
-                <span className="max-w-full truncate" dir={language === 'ur' ? 'rtl' : 'ltr'}>{item.mobileLabel[language]}</span>
-              </Link>
-            );
-          })}
-
-          <SignOutButton className="flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-semibold text-[#63758d] transition hover:bg-[#f4f7fb] hover:text-[#0f1f33] sm:text-xs">
-            <LogOut className="h-5 w-5" aria-hidden="true" />
-            <span dir={language === 'ur' ? 'rtl' : 'ltr'}>{t.mobileSignOut}</span>
-          </SignOutButton>
-        </div>
-      </nav>
+      <PortalMobileMenu
+        currentLabel={navItems.find((item) => isActivePath(pathname, item.href, item.exact))?.label[language] ?? t.portal}
+        navItems={navItems.map((item) => ({
+          href: item.href,
+          label: item.label[language],
+          icon: item.icon,
+          active: isActivePath(pathname, item.href, item.exact),
+        }))}
+        portalLabel={t.portal}
+        portalCaption={t.readOnly}
+        profileLabel={profileLabel}
+        profileMeta={t.readOnly}
+        signOutLabel={t.signOut}
+        menuLabel={language === 'ur' ? 'مینو کھولیں' : 'Open menu'}
+        closeLabel={language === 'ur' ? 'مینو بند کریں' : 'Close menu'}
+        dir={language === 'ur' ? 'rtl' : 'ltr'}
+      />
     </>
   );
 }

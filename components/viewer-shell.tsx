@@ -13,11 +13,11 @@ interface ViewerShellProps {
 export default function ViewerShell({ email, children }: ViewerShellProps) {
   return (
     <ViewerLanguageProvider>
-      <main className="min-h-dvh bg-[#f2f6fb] text-[#0f1f33]">
+      <main className="min-h-dvh bg-[#f3f7fc] text-[#0f1f33]">
         <ViewerSidebar email={email} />
-        <div className="sidebar-content min-h-dvh [--mobile-nav-offset:5rem] lg:[--mobile-nav-offset:0px]">
+        <div className="sidebar-content min-h-dvh">
           <NavigationLoadingScope>
-            <section className="mx-auto min-w-0 max-w-[1500px] px-3 py-3 pb-24 sm:px-4 sm:py-5 lg:px-5 lg:pb-5 xl:px-6">
+            <section className="mx-auto min-w-0 max-w-[1500px] px-3 pb-6 pt-20 sm:px-4 sm:pb-8 sm:pt-24 lg:px-5 lg:py-5 xl:px-6">
               {children}
             </section>
           </NavigationLoadingScope>
