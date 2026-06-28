@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { fieldWorkerProjects } from '@/lib/field-workers';
 import AdminShell from '@/components/admin-shell';
 import ProjectManager from '@/components/project-manager';
+import AdminManagementTabs from '@/components/admin-management-tabs';
 
 export default async function AdminDepartmentsPage() {
   const session = await getServerSession(authOptions);
@@ -37,13 +38,7 @@ export default async function AdminDepartmentsPage() {
 
   return (
     <AdminShell email={session.user.email} role={session.user.role}>
-      <header className="mb-6 flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Manage Departments</h1>
-        <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
-          Add department names used when creating supervisors and assigning field workers.
-        </p>
-      </header>
-
+      <AdminManagementTabs active="departments" isSuperAdmin={session.user.role === 'super_admin'} />
       <ProjectManager projects={[...defaultDepartments, ...customItems]} />
     </AdminShell>
   );

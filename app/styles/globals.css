@@ -39,7 +39,7 @@ body {
 
 .admin-sidebar-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(184, 199, 219, 0.72) rgba(255, 255, 255, 0.06);
+  scrollbar-color: #cbd5e1 #f8fafc;
   scrollbar-gutter: stable;
 }
 
@@ -48,18 +48,253 @@ body {
 }
 
 .admin-sidebar-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.06);
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  background: #f8fafc;
+  border-left: 1px solid #e5ebf3;
 }
 
 .admin-sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(184, 199, 219, 0.9), rgba(137, 157, 184, 0.92));
-  border: 2px solid rgba(31, 43, 61, 0.92);
+  background: linear-gradient(180deg, #cbd5e1, #94a3b8);
+  border: 2px solid #f8fafc;
   border-radius: 999px;
 }
 
 .admin-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(206, 216, 231, 0.96), rgba(160, 177, 201, 0.98));
+  background: linear-gradient(180deg, #b8c4d4, #7b8ca3);
+}
+
+@media (max-width: 639px) {
+  .admin-overview-density h1 {
+    font-size: 1rem !important;
+    line-height: 1.35rem !important;
+  }
+
+  .admin-overview-density .overview-metric-card {
+    border-radius: 0.875rem !important;
+  }
+
+  .admin-overview-density .overview-metric-label {
+    font-size: 0.8125rem !important;
+    line-height: 1rem !important;
+    min-height: 2rem !important;
+  }
+
+  .admin-overview-density .overview-metric-value {
+    font-size: 1.65rem !important;
+    line-height: 1.65rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sidebar-content {
+    padding-left: 12rem;
+    transition: padding-left 200ms ease;
+  }
+
+  [data-sidebar-collapsed='true'] .sidebar-content {
+    padding-left: 4.75rem;
+  }
+
+  /* Compact desktop density for admin page content. Mobile sizing remains touch-friendly. */
+  .admin-page-content h1 {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
+  }
+
+  .admin-page-content h2 {
+    font-size: 1.125rem !important;
+    line-height: 1.625rem !important;
+  }
+
+  .admin-page-content h3 {
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+  }
+
+  .admin-page-content :where(input:not([type='checkbox']):not([type='radio']), select) {
+    min-height: 2.5rem !important;
+    font-size: 0.8125rem !important;
+  }
+
+  .admin-page-content textarea {
+    font-size: 0.8125rem !important;
+  }
+
+  .admin-page-content .min-h-14,
+  .admin-page-content .min-h-12,
+  .admin-page-content .min-h-11 {
+    min-height: 2.5rem !important;
+  }
+
+  .admin-page-content .min-h-10 {
+    min-height: 2.25rem !important;
+  }
+
+  .admin-page-content .p-6,
+  .admin-page-content .p-5 {
+    padding: 1rem !important;
+  }
+
+  .admin-page-content .p-4 {
+    padding: 0.875rem !important;
+  }
+
+  .admin-page-content .px-6,
+  .admin-page-content .px-5 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .admin-page-content .px-4 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .admin-page-content .py-6,
+  .admin-page-content .py-5 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  .admin-page-content .py-4 {
+    padding-top: 0.625rem !important;
+    padding-bottom: 0.625rem !important;
+  }
+
+  .admin-page-content .py-3 {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  .admin-page-content .gap-6,
+  .admin-page-content .gap-5 {
+    gap: 1rem !important;
+  }
+
+  .admin-page-content .gap-4 {
+    gap: 0.75rem !important;
+  }
+
+  .admin-page-content .mb-8 {
+    margin-bottom: 1.25rem !important;
+  }
+
+  .admin-page-content .mb-6,
+  .admin-page-content .mb-5 {
+    margin-bottom: 1rem !important;
+  }
+
+  .admin-page-content .mt-8 {
+    margin-top: 1.25rem !important;
+  }
+
+  .admin-page-content .mt-6,
+  .admin-page-content .mt-5 {
+    margin-top: 1rem !important;
+  }
+
+  .admin-page-content .rounded-2xl {
+    border-radius: 0.75rem !important;
+  }
+
+  .admin-page-content .rounded-xl {
+    border-radius: 0.625rem !important;
+  }
+
+  .admin-page-content table {
+    font-size: 0.8125rem !important;
+    line-height: 1.25rem !important;
+  }
+
+  .admin-page-content table th {
+    font-size: 0.6875rem !important;
+    line-height: 1rem !important;
+  }
+
+  .admin-page-content table :where(th, td) {
+    padding-top: 0.625rem !important;
+    padding-bottom: 0.625rem !important;
+  }
+
+  .admin-management-density h1 {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
+  }
+
+  .admin-management-density .management-tab {
+    min-height: 2.25rem !important;
+    padding: 0.375rem 0.75rem !important;
+    border-radius: 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .field-worker-density h2 {
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+  }
+
+  .field-worker-density .field-worker-control {
+    min-height: 2.25rem !important;
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+    border-radius: 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .field-worker-density .field-worker-chip {
+    min-height: 1.875rem !important;
+    padding: 0.25rem 0.625rem !important;
+    font-size: 0.6875rem !important;
+  }
+
+  .field-worker-density table :where(th, td) {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  .admin-overview-density h1 {
+    font-size: 1.125rem !important;
+    line-height: 1.5rem !important;
+  }
+
+  .admin-overview-density .overview-metric-card {
+    min-height: 6.5rem !important;
+    padding: 0.875rem 1rem !important;
+    border-radius: 0.75rem !important;
+  }
+
+  .admin-overview-density .overview-metric-icon {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+
+  .admin-overview-density .overview-metric-label {
+    font-size: 0.875rem !important;
+    line-height: 1.2rem !important;
+  }
+
+  .admin-overview-density .overview-metric-value {
+    margin-top: 0.375rem !important;
+    font-size: 1.875rem !important;
+    line-height: 1.9rem !important;
+  }
+
+  .overview-map-density h2 {
+    font-size: 1.25rem !important;
+    line-height: 1.625rem !important;
+  }
+
+  .overview-map-density .min-h-\[560px\],
+  .overview-map-density .min-h-\[500px\] {
+    min-height: 26rem !important;
+  }
+
+  .overview-map-density .rounded-2xl {
+    border-radius: 0.875rem !important;
+  }
+
+  .overview-map-density .rounded-xl {
+    border-radius: 0.75rem !important;
+  }
 }
 
 :where([lang='ur'], [dir='rtl']) {

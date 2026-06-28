@@ -260,19 +260,19 @@ export default function BulkDeleteApplicationsButton({
                   onChange={handleSelectAll}
                   className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200"
                 />
-                Select all visible drafts
+                Select all visible drafts only
               </label>
               <span className="text-sm font-medium text-[#5f718a]">
                 {selectedCount === 0
-                  ? `${visibleDraftCount} draft${visibleDraftCount === 1 ? '' : 's'} available on this page`
-                  : `${selectedCount} selected`}
+                  ? `${visibleDraftCount} draft${visibleDraftCount === 1 ? '' : 's'} can be selected on this page`
+                  : `${selectedCount} draft${selectedCount === 1 ? '' : 's'} selected`}
               </span>
             </>
           ) : (
-            <span className="text-sm font-medium text-[#5f718a]">No visible drafts on this page</span>
+            <span className="text-sm font-medium text-[#5f718a]">No draft applications are selectable on this page</span>
           )}
           <span className="text-sm font-medium text-[#5f718a]">
-            {matchingCount} application{matchingCount === 1 ? '' : 's'} match current filters
+            {matchingCount} application{matchingCount === 1 ? '' : 's'} match current filters for filter-based delete
           </span>
         </div>
 
@@ -308,7 +308,7 @@ export default function BulkDeleteApplicationsButton({
               className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" />
-              {hasActiveFilter ? 'Delete all matching' : 'Apply filter to delete all'}
+              {hasActiveFilter ? 'Delete all matching applications' : 'Apply filter to delete matching applications'}
             </button>
           ) : null}
         </div>
@@ -329,11 +329,11 @@ export default function BulkDeleteApplicationsButton({
               </div>
               <div className="min-w-0 flex-1">
                 <h2 id="bulk-delete-dialog-title" className="text-base font-bold text-slate-950">
-                  {deleteMode === 'matching' ? 'Delete all matching applications?' : 'Delete selected draft applications?'}
+                  {deleteMode === 'matching' ? 'Delete all applications matching these filters?' : 'Delete selected draft applications?'}
                 </h2>
                 <p id="bulk-delete-dialog-description" className="mt-1 text-sm leading-5 text-slate-600">
                   {deleteMode === 'matching'
-                    ? `This will permanently delete ${matchingCount} application${matchingCount === 1 ? '' : 's'} matching the current filters, including uploaded R2 files and activity history.`
+                    ? `This will permanently delete ${matchingCount} application${matchingCount === 1 ? '' : 's'} matching the current filters, including uploaded R2 files and activity history. This filter-based delete is not limited to drafts.`
                     : `This will permanently delete ${pendingDeleteIds.length} draft application${pendingDeleteIds.length === 1 ? '' : 's'}, including uploaded R2 files and activity history.`}
                 </p>
               </div>
@@ -351,7 +351,7 @@ export default function BulkDeleteApplicationsButton({
             <div className="space-y-4 px-5 py-5">
               <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-5 text-amber-900">
                 {deleteMode === 'matching'
-                  ? `This action cannot be undone. ${matchingNonDraftCount > 0 ? `${matchingNonDraftCount} non-draft application${matchingNonDraftCount === 1 ? '' : 's'} will be deleted and require password confirmation.` : 'Only draft applications match these filters.'}`
+                  ? `This action cannot be undone. ${matchingNonDraftCount > 0 ? `${matchingNonDraftCount} non-draft application${matchingNonDraftCount === 1 ? '' : 's'} are included and require password confirmation.` : 'These current filters match draft applications only.'}`
                   : 'This action cannot be undone. Only continue if these selected draft applications should be removed from the system.'}
               </div>
 

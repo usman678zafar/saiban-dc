@@ -108,11 +108,11 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
         <table className="min-w-full text-left text-sm text-[#506784]">
           <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
             <tr>
-              <th className="px-4 py-3">Admin</th>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Role</th>
-              <th className="px-4 py-3">Added</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-4 py-4">Admin</th>
+              <th className="px-4 py-4">Email</th>
+              <th className="px-4 py-4">Role</th>
+              <th className="px-4 py-4">Added</th>
+              <th className="px-4 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>

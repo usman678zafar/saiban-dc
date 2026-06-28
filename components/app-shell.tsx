@@ -8,6 +8,7 @@ import { authOptions } from '@/lib/auth';
 import SignOutButton from './sign-out-button';
 import HeaderHelpMenu from './header-help-menu';
 import logo from '@/assests/logo.png';
+import { NavigationLoadingScope } from './navigation-loading';
 
 interface AppShellProps {
   title: string;
@@ -93,18 +94,20 @@ export default async function AppShell({ title, titleBadge, description, actions
       </header>
 
       <div className={`mx-auto w-full flex-1 ${maxWidth} px-4 pb-16 pt-4 sm:px-8 sm:pb-8 sm:pr-24 sm:pt-6`}>
-        <section className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="min-w-0 break-words text-xl font-semibold tracking-tight text-slate-950 [overflow-wrap:anywhere] sm:text-2xl">{title}</h1>
-              {titleBadge}
+        <NavigationLoadingScope>
+          <section className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="min-w-0 break-words text-xl font-semibold tracking-tight text-slate-950 [overflow-wrap:anywhere] sm:text-2xl">{title}</h1>
+                {titleBadge}
+              </div>
+              {description ? <p className="mt-1 max-w-3xl text-sm leading-5 text-slate-600">{description}</p> : null}
             </div>
-            {description ? <p className="mt-1 max-w-3xl text-sm leading-5 text-slate-600">{description}</p> : null}
-          </div>
-          {actions ? <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">{actions}</div> : null}
-        </section>
+            {actions ? <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">{actions}</div> : null}
+          </section>
 
-        {children}
+          {children}
+        </NavigationLoadingScope>
       </div>
 
       <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur sm:hidden">

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, ArrowUpRight, Baby, Check, PauseCircle, RotateCcw, UsersRound, X } from 'lucide-react';
+import { ArrowUpRight, Baby, Check, PauseCircle, RotateCcw, UsersRound, X } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { formatCnic } from '@/lib/contact-format';
 import { formatDate } from '@/lib/date-format';
@@ -233,13 +233,13 @@ export default function SameFamilyApplicationsModal({
                 <table className="w-full min-w-[1180px] table-fixed text-left text-sm text-slate-700">
                   <thead className="sticky top-0 z-10 bg-blue-600 text-xs uppercase text-white shadow-sm">
                     <tr>
-                      <th className="w-[190px] px-4 py-3">Orphan</th>
-                      <th className="w-[90px] px-3 py-3">Age</th>
-                      <th className="w-[155px] px-3 py-3">Father CNIC</th>
-                      <th className="w-[155px] px-3 py-3">Mother CNIC</th>
-                      <th className="w-[175px] px-3 py-3">Guardian CNIC</th>
-                      <th className="w-[150px] px-3 py-3">Status</th>
-                      <th className="w-[245px] px-3 py-3">Actions</th>
+                      <th className="w-[190px] px-4 py-4">Orphan</th>
+                      <th className="w-[90px] px-3 py-4">Age</th>
+                      <th className="w-[155px] px-3 py-4">Father CNIC</th>
+                      <th className="w-[155px] px-3 py-4">Mother CNIC</th>
+                      <th className="w-[175px] px-3 py-4">Guardian CNIC</th>
+                      <th className="w-[150px] px-3 py-4">Status</th>
+                      <th className="w-[245px] px-3 py-4">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -300,11 +300,7 @@ export default function SameFamilyApplicationsModal({
                                     <X className="h-3.5 w-3.5" /> Reject
                                   </button>
                                 </div>
-                              ) : (
-                                <span className="inline-flex min-h-8 w-full items-center justify-center gap-1.5 px-2 text-center text-xs font-medium leading-4 text-slate-500">
-                                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> No admin action at this stage
-                                </span>
-                              )}
+                              ) : null}
                             </div>
                             {pending?.id === application.id ? (
                               <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50/60 p-3">

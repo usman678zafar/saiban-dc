@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, ReactNode, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { usePathname, useSearchParams } from 'next/navigation';
 import logo from '@/assests/logo.png';
@@ -37,6 +38,7 @@ function NavigationLoadingInner({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMode, setLoadingMode] = useState<LoadingMode>('default');
+  const [scopeNode, setScopeNode] = useState<HTMLElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
 
   const stopLoading = useCallback(() => {
@@ -77,7 +79,24 @@ function NavigationLoadingInner({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('click', handleClick, true);
   }, [startLoading]);
 
+  useEffect(() => {
+    setScopeNode(document.querySelector<HTMLElement>('[data-navigation-loading-scope]'));
+  }, [pathname, searchParams]);
+
   const value = useMemo(() => ({ startLoading, stopLoading }), [startLoading, stopLoading]);
+
+  const scopedLoadingOverlay = scopeNode ? createPortal(
+    <div className="pointer-events-none absolute inset-0 z-[100] flex items-center justify-center bg-white/72" role="status" aria-live="polite" aria-label="Loading">
+      <div className="absolute left-0 top-0 h-1 w-full overflow-hidden bg-blue-100/90">
+        <div className="h-full w-1/2 animate-[navigation-progress_1.1s_ease-in-out_infinite] bg-blue-600" />
+      </div>
+      <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-lg">
+        <span className="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600" aria-hidden="true" />
+        Loading...
+      </div>
+    </div>,
+    scopeNode,
+  ) : null;
 
   return (
     <NavigationLoadingContext.Provider value={value}>
@@ -101,15 +120,7 @@ function NavigationLoadingInner({ children }: { children: ReactNode }) {
           </div>
         </div>
       ) : isLoading ? (
-        <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]" role="status" aria-live="polite" aria-label="Loading">
-          <div className="absolute left-0 top-0 h-1 w-full overflow-hidden bg-blue-100">
-            <div className="h-full w-1/2 animate-[navigation-progress_1.1s_ease-in-out_infinite] bg-blue-600" />
-          </div>
-          <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-lg">
-            <span className="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600" aria-hidden="true" />
-            Loading...
-          </div>
-        </div>
+        scopedLoadingOverlay
       ) : null}
     </NavigationLoadingContext.Provider>
   );
@@ -132,5 +143,13 @@ export function useNavigationLoading() {
     };
   }
   return context;
+}
+
+export function NavigationLoadingScope({ children }: { children: ReactNode }) {
+  return (
+    <div data-navigation-loading-scope className="relative min-h-full">
+      {children}
+    </div>
+  );
 }
 

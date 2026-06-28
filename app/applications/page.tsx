@@ -68,6 +68,7 @@ export default async function ApplicationsPage({
   const isSuperAdmin = session?.user?.role === 'super_admin';
   const isSupervisor = session.user.role === 'supervisor';
   const isReviewer = session.user.role === 'reviewer';
+  const isFieldWorker = session.user.role === 'field_worker';
   const canCreateApplications = session.user.role === 'field_worker'
     || isAdmin
     || ((session.user.role === 'supervisor' || session.user.role === 'reviewer') && Boolean(session.user.canCreateApplications));
@@ -190,12 +191,14 @@ export default async function ApplicationsPage({
                   <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">{application.correctionComment}</p>
                 ) : null}
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <ApplicationDeadlineNotice
-                    createdAt={application.createdAt}
-                    status={application.status}
-                    completionPercentage={application.filledFieldsPercentage}
-                    compact
-                  />
+                  {isFieldWorker ? (
+                    <ApplicationDeadlineNotice
+                      createdAt={application.createdAt}
+                      status={application.status}
+                      completionPercentage={application.filledFieldsPercentage}
+                      compact
+                    />
+                  ) : null}
                 </div>
               </div>
               <div className="mt-4 flex items-center gap-2">
@@ -252,10 +255,10 @@ export default async function ApplicationsPage({
         <table className="min-w-full text-left text-sm text-slate-700">
           <thead className="bg-blue-600 text-white">
             <tr>
-              <th className="px-4 py-3 font-semibold">Application</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Updated</th>
-              <th className="w-48 px-4 py-3 font-semibold">Actions</th>
+              <th className="px-4 py-4 font-semibold">Application</th>
+              <th className="px-4 py-4 font-semibold">Status</th>
+              <th className="px-4 py-4 font-semibold">Updated</th>
+              <th className="w-48 px-4 py-4 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -275,12 +278,14 @@ export default async function ApplicationsPage({
                   <td className="px-4 py-4 align-top text-slate-700">
                     <div className="flex flex-wrap items-center gap-1.5">
                       {isAdmin ? <span>{applicationStatusLabel(application.status)}</span> : <VolunteerApplicationStatus status={application.status} />}
-                      <ApplicationDeadlineNotice
-                        createdAt={application.createdAt}
-                        status={application.status}
-                        completionPercentage={application.filledFieldsPercentage}
-                        compact
-                      />
+                      {isFieldWorker ? (
+                        <ApplicationDeadlineNotice
+                          createdAt={application.createdAt}
+                          status={application.status}
+                          completionPercentage={application.filledFieldsPercentage}
+                          compact
+                        />
+                      ) : null}
                     </div>
                     {application.correctionComment ? (
                       <p className="mt-1 max-w-xs text-xs leading-5 text-amber-700">{application.correctionComment}</p>

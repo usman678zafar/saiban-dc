@@ -123,9 +123,9 @@ export default function ProjectManager({ projects }: { projects: ProjectItem[] }
         <table className="min-w-full text-left text-sm text-[#506784]">
           <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
             <tr>
-              <th className="px-4 py-3">Department</th>
-              <th className="px-4 py-3">Type</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-4 py-4">Department</th>
+              <th className="px-4 py-4">Type</th>
+              <th className="px-4 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>

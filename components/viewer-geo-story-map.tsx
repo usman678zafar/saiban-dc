@@ -401,20 +401,20 @@ export default function ViewerGeoStoryMap({
   }
 
   return (
-    <section className="mt-5 overflow-hidden rounded-2xl border border-[#c8d7ea] bg-[#eef5fb] shadow-[0_22px_60px_rgba(15,31,51,0.14)]">
-      <div className="border-b border-[#d9e5f2] bg-gradient-to-r from-[#06264a] via-[#082e59] to-[#0b3b73] px-4 py-5 sm:px-6">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+    <section className="overview-map-density mt-4 overflow-hidden rounded-2xl border border-[#c8d7ea] bg-[#eef5fb] shadow-[0_20px_48px_rgba(15,31,51,0.12)]">
+      <div className="border-b border-[#d9e5f2] bg-gradient-to-r from-[#06264a] via-[#082e59] to-[#0b3b73] px-4 py-4 sm:px-5">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
           <div className={`min-w-0 w-full ${isRtl ? 'text-right' : 'text-left'}`}>
             <p className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8fc7ff] ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
               <Navigation className="h-4 w-4" aria-hidden="true" />
               {t.eyebrow}
             </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl" dir={isRtl ? 'rtl' : 'ltr'}>{t.title}</h2>
-            <p className={`mt-2 max-w-4xl text-sm leading-6 text-[#c9d8ea] ${isRtl ? 'ml-auto' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>{t.subtitle}</p>
+            <h2 className="mt-1.5 text-2xl font-semibold tracking-tight text-white sm:text-3xl" dir={isRtl ? 'rtl' : 'ltr'}>{t.title}</h2>
+            <p className={`mt-1.5 max-w-4xl text-sm leading-6 text-[#c9d8ea] ${isRtl ? 'ml-auto' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>{t.subtitle}</p>
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-4 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
           <SummaryTile icon={MapPinned} label={t.mappedHomes} value={filteredPoints.length.toLocaleString(numberLocale)} tone="blue" />
           <SummaryTile icon={LocateFixed} label={`${selectedLocationLevel.label[language]} ${t.coverage}`} value={summary.areas.toLocaleString(numberLocale)} tone="violet" />
           <SummaryTile icon={ShieldCheck} label={t.finalApproved} value={summary.finalApproved.toLocaleString(numberLocale)} tone="emerald" />
@@ -422,16 +422,16 @@ export default function ViewerGeoStoryMap({
         </div>
       </div>
 
-      <div className="grid gap-4 p-3 xl:grid-cols-[minmax(0,1fr)_330px]">
+      <div className="grid gap-3 p-3 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[#cddbeb] bg-white shadow-[0_16px_40px_rgba(15,31,51,0.08)]">
-          <div className="shrink-0 space-y-3 border-b border-[#d7e3ef] bg-white px-4 py-3">
-            <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
+          <div className="shrink-0 space-y-2.5 border-b border-[#d7e3ef] bg-white px-3 py-2.5">
+            <div className="flex flex-col gap-2.5 2xl:flex-row 2xl:items-center 2xl:justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#506784]">
                 <LocateFixed className="h-4 w-4" aria-hidden="true" />
                 {t.locationLens}
               </div>
               <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-end">
-                <div className="flex gap-2 overflow-x-auto pb-1 lg:pb-0">
+                <div className="flex gap-1.5 overflow-x-auto pb-1 lg:pb-0">
                   {locationLevels.map((item) => (
                     <button
                       key={item.value}
@@ -441,7 +441,7 @@ export default function ViewerGeoStoryMap({
                         setLocationFilter('all');
                         setSelectedId(null);
                       }}
-                      className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${locationLevel === item.value ? 'border-[#0b3b73] bg-[#0b3b73] text-white shadow-[0_10px_24px_rgba(11,59,115,0.18)]' : 'border-[#dbe4ef] bg-white text-[#0f1f33] hover:bg-[#f6f9fd]'}`}
+                      className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${locationLevel === item.value ? 'border-[#0b3b73] bg-[#0b3b73] text-white shadow-[0_8px_20px_rgba(11,59,115,0.16)]' : 'border-[#dbe4ef] bg-white text-[#0f1f33] hover:bg-[#f6f9fd]'}`}
                     >
                       {item.label[language]}
                     </button>
@@ -455,7 +455,7 @@ export default function ViewerGeoStoryMap({
                     setLocationFilter(event.target.value);
                     setSelectedId(null);
                   }}
-                  className="min-h-9 w-full rounded-lg border border-[#dbe4ef] bg-white px-3 text-xs font-semibold text-[#0f1f33] shadow-sm outline-none transition focus:border-[#2563eb] focus:ring-2 focus:ring-[#bfdbfe] lg:w-[240px]"
+                  className="min-h-9 w-full rounded-lg border border-[#dbe4ef] bg-white px-3 text-xs font-semibold text-[#0f1f33] shadow-sm outline-none transition focus:border-[#2563eb] focus:ring-2 focus:ring-[#bfdbfe] lg:w-[220px]"
                 >
                   <option value="all">{t.allLocations}</option>
                   {locationOptions.map((option) => (
@@ -479,12 +479,12 @@ export default function ViewerGeoStoryMap({
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#506784]">
                 <Filter className="h-4 w-4" aria-hidden="true" />
                 {t.filter}
               </div>
-              <div className="flex gap-2 overflow-x-auto pb-1 sm:justify-end sm:pb-0">
+              <div className="flex gap-1.5 overflow-x-auto pb-1 sm:justify-end sm:pb-0">
                 {statusFilters.map((item) => {
                   const count = filterCounts.get(item.value) ?? 0;
                   return (
@@ -495,7 +495,7 @@ export default function ViewerGeoStoryMap({
                         setFilter(item.value);
                         setSelectedId(null);
                       }}
-                      className={`inline-flex min-h-9 shrink-0 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition ${filter === item.value ? 'border-[#2563eb] bg-[#2563eb] text-white shadow-[0_10px_24px_rgba(37,99,235,0.24)]' : 'border-[#dbe4ef] bg-white text-[#0f1f33] hover:bg-[#f6f9fd]'}`}
+                      className={`inline-flex min-h-9 shrink-0 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition ${filter === item.value ? 'border-[#2563eb] bg-[#2563eb] text-white shadow-[0_8px_20px_rgba(37,99,235,0.2)]' : 'border-[#dbe4ef] bg-white text-[#0f1f33] hover:bg-[#f6f9fd]'}`}
                     >
                       <span>{item.label[language]}</span>
                       <span className={`rounded-full px-2 py-0.5 text-[11px] ${filter === item.value ? 'bg-white/20 text-white' : 'bg-[#edf4ff] text-[#2563eb]'}`}>
@@ -508,7 +508,7 @@ export default function ViewerGeoStoryMap({
             </div>
           </div>
 
-          <div className="relative min-h-[560px] flex-1 bg-[#dfeaf2]">
+          <div className="relative min-h-[500px] flex-1 bg-[#dfeaf2]">
             <div ref={mapNodeRef} className="h-full w-full" role="img" aria-label={t.mapAria} />
             <div className="pointer-events-none absolute left-4 top-4 rounded-lg border border-white/80 bg-white/95 px-3 py-2 text-xs font-semibold text-[#0f1f33] shadow-[0_10px_24px_rgba(15,31,51,0.12)] backdrop-blur">
               {locationFilter === 'all' ? t.pakistanOnly : locationFilter}
@@ -525,7 +525,7 @@ export default function ViewerGeoStoryMap({
           </div>
         </div>
 
-        <aside className="min-w-0 space-y-3">
+        <aside className="min-w-0 space-y-2.5">
           <section className="rounded-xl border border-[#cddbeb] bg-white p-4 shadow-[0_14px_30px_rgba(15,31,51,0.08)]">
             <div className={`flex items-center justify-between gap-3 ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}>
               <div>

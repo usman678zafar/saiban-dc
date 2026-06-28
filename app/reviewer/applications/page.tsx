@@ -250,12 +250,12 @@ export default async function ReviewerApplicationsPage({
           <table className="min-w-full text-left text-sm text-slate-700">
             <thead className="bg-blue-600 text-white">
               <tr>
-                <th className="px-4 py-3">Application</th>
-                <th className="px-4 py-3">Department</th>
-                <th className="px-4 py-3">Collector</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Updated</th>
-                <th className="px-4 py-3">Action</th>
+                <th className="px-4 py-4">Application</th>
+                <th className="px-4 py-4">Department</th>
+                <th className="px-4 py-4">Collector</th>
+                <th className="px-4 py-4">Status</th>
+                <th className="px-4 py-4">Updated</th>
+                <th className="px-4 py-4">Action</th>
               </tr>
             </thead>
             <tbody>

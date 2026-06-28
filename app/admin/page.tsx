@@ -11,6 +11,7 @@ import { ViewerLanguageProvider } from '@/components/viewer-language';
 
 type AdminMetric = {
   label: string;
+  mobileLabel: string;
   value: number;
   tone: 'blue' | 'steel' | 'violet' | 'indigo' | 'emerald' | 'sky' | 'red' | 'orange' | 'amber' | 'charcoal';
 };
@@ -78,16 +79,16 @@ async function getAdminPortalData() {
   const rejectedApplications = applicationCountByStatus.get(ApplicationStatus.rejected) ?? 0;
 
   const metrics: AdminMetric[] = [
-    { label: 'Total Applications', value: totalApplications, tone: 'blue' },
-    { label: 'Drafts', value: draftApplications, tone: 'steel' },
-    { label: 'Applications Submitted', value: submittedByFieldWorkersCount, tone: 'violet' },
-    { label: 'Supervisor Approved', value: supervisorApprovedApplications, tone: 'sky' },
-    { label: 'Reviewer Approved', value: reviewerApprovedApplications, tone: 'indigo' },
-    { label: 'On Hold', value: onHoldApplications, tone: 'amber' },
-    { label: 'Needs Correction', value: needsCorrectionApplications, tone: 'orange' },
-    { label: 'Final Approved', value: adminApprovedApplications, tone: 'emerald' },
-    { label: 'Rejected', value: rejectedApplications, tone: 'red' },
-    { label: 'System Users', value: totalUsers, tone: 'amber' },
+    { label: 'Total Applications', mobileLabel: 'Total Apps', value: totalApplications, tone: 'blue' },
+    { label: 'Drafts', mobileLabel: 'Drafts', value: draftApplications, tone: 'steel' },
+    { label: 'Applications Submitted', mobileLabel: 'Submitted', value: submittedByFieldWorkersCount, tone: 'violet' },
+    { label: 'Supervisor Approved', mobileLabel: 'Supervisor OK', value: supervisorApprovedApplications, tone: 'sky' },
+    { label: 'Reviewer Approved', mobileLabel: 'Reviewer OK', value: reviewerApprovedApplications, tone: 'indigo' },
+    { label: 'On Hold', mobileLabel: 'On Hold', value: onHoldApplications, tone: 'amber' },
+    { label: 'Needs Correction', mobileLabel: 'Needs Fix', value: needsCorrectionApplications, tone: 'orange' },
+    { label: 'Final Approved', mobileLabel: 'Approved', value: adminApprovedApplications, tone: 'emerald' },
+    { label: 'Rejected', mobileLabel: 'Rejected', value: rejectedApplications, tone: 'red' },
+    { label: 'System Users', mobileLabel: 'Users', value: totalUsers, tone: 'amber' },
   ];
 
   const geoApplications: ViewerGeoApplication[] = mappedApplications
@@ -143,37 +144,41 @@ export default async function AdminPortalPage() {
 
   return (
     <AdminShell email={session.user.email} role={session.user.role}>
-          <header className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="admin-overview-density">
+          <header className="mb-3 flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Admin Overview</h1>
-              <p className="mt-1 max-w-3xl text-xs leading-5 text-[#5f718a] sm:text-sm">
+              <p className="mt-1 max-w-3xl text-sm leading-7 text-[#5f718a] sm:text-sm">
                 Review application movement, manage field access, and open records that need attention.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-              <Link href="/admin/applications/new" className="rounded-lg bg-[#3b82f6] px-3 py-2 text-center text-xs font-semibold text-white shadow-[0_10px_20px_rgba(59,130,246,0.18)] hover:bg-[#2563eb]">
+              <Link href="/admin/applications/new" className="rounded-lg bg-[#3b82f6] px-3 py-2 text-center text-xs font-semibold text-white shadow-[0_10px_20px_rgba(59,130,246,0.18)] transition hover:bg-[#2563eb]">
                 New Application
               </Link>
-              <Link href="/admin/applications?status=all" className="rounded-lg border border-[#dbe4ef] bg-white px-3 py-2 text-center text-xs font-semibold text-[#0f1f33] hover:bg-[#f6f9fd]">
+              <Link href="/admin/applications?status=all" className="rounded-lg border border-[#dbe4ef] bg-white px-3 py-2 text-center text-xs font-semibold text-[#0f1f33] transition hover:bg-[#f6f9fd]">
                 View All
               </Link>
             </div>
           </header>
 
-          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <section className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-3 xl:grid-cols-5">
             {metrics.map((metric: AdminMetric) => {
               const style = metricStyles[metric.tone];
               const Icon = style.icon;
 
               return (
-              <div key={metric.label} className={`min-h-[132px] rounded-lg px-5 py-7 text-white shadow-[0_18px_32px_rgba(15,31,51,0.10)] 2xl:px-8 ${style.card}`}>
-                <div className="flex h-full items-center gap-5 2xl:gap-8">
-                  <div className="flex size-16 shrink-0 items-center justify-center text-white/95">
-                    <Icon size={52} strokeWidth={1.9} />
+              <div key={metric.label} className={`overview-metric-card min-h-[92px] rounded-lg px-3 py-3.5 text-white shadow-[0_14px_24px_rgba(15,31,51,0.09)] sm:min-h-[118px] sm:px-4 sm:py-5 ${style.card}`}>
+                <div className="flex h-full items-center gap-2.5 sm:gap-4">
+                  <div className="overview-metric-icon flex size-10 shrink-0 items-center justify-center text-white/95 sm:size-14">
+                    <Icon size={30} strokeWidth={2} />
                   </div>
                   <div className="min-w-0 flex-1 text-left">
-                    <p className="break-words text-xl font-medium leading-6 text-white">{metric.label}</p>
-                    <p className="mt-2 truncate text-3xl font-semibold leading-none text-white">{metric.value.toLocaleString()}</p>
+                    <p className="overview-metric-label text-balance text-[13px] font-medium leading-4 text-white sm:text-lg sm:leading-6">
+                      <span className="sm:hidden">{metric.mobileLabel}</span>
+                      <span className="hidden sm:inline">{metric.label}</span>
+                    </p>
+                    <p className="overview-metric-value mt-1.5 text-[28px] font-semibold leading-none tracking-tight text-white sm:mt-2 sm:text-3xl">{metric.value.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
@@ -184,6 +189,7 @@ export default async function AdminPortalPage() {
           <ViewerLanguageProvider>
             <ViewerGeoStoryMap points={geoApplications} languageOverride="en" />
           </ViewerLanguageProvider>
+          </div>
     </AdminShell>
   );
 }

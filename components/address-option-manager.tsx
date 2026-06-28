@@ -14,11 +14,24 @@ type AddressOptionItem = {
   name: string;
 };
 
+type DefaultAddressRow = {
+  province: string;
+  district: string;
+  tehsilCount: number;
+  tehsils: string[];
+};
+
 function normalizeOptionName(value: string) {
   return value.trim().replace(/\s+/g, ' ');
 }
 
-export default function AddressOptionManager({ options }: { options: AddressOptionItem[] }) {
+export default function AddressOptionManager({
+  options,
+  defaultRows,
+}: {
+  options: AddressOptionItem[];
+  defaultRows: DefaultAddressRow[];
+}) {
   const router = useRouter();
   const [type, setType] = useState<'district' | 'tehsil'>('district');
   const [province, setProvince] = useState('');
@@ -26,6 +39,7 @@ export default function AddressOptionManager({ options }: { options: AddressOpti
   const [name, setName] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [defaultSearch, setDefaultSearch] = useState('');
 
   const districtOptions = useMemo(() => {
     if (!province) return [];
@@ -37,6 +51,24 @@ export default function AddressOptionManager({ options }: { options: AddressOpti
 
     return Array.from(new Set([...defaultDistricts, ...customDistricts])).sort((a, b) => a.localeCompare(b));
   }, [options, province]);
+
+  const filteredDefaultRows = useMemo(() => {
+    const query = defaultSearch.trim().toLowerCase();
+    if (!query) return defaultRows;
+
+    return defaultRows.filter((row) => (
+      row.province.toLowerCase().includes(query)
+      || row.district.toLowerCase().includes(query)
+      || row.tehsils.some((tehsil) => tehsil.toLowerCase().includes(query))
+    ));
+  }, [defaultRows, defaultSearch]);
+
+  const defaultSummary = useMemo(() => {
+    const provinceCount = new Set(defaultRows.map((row) => row.province)).size;
+    const districtCount = defaultRows.length;
+    const tehsilCount = defaultRows.reduce((total, row) => total + row.tehsilCount, 0);
+    return { provinceCount, districtCount, tehsilCount };
+  }, [defaultRows]);
 
   const addAddressOption = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -145,10 +177,10 @@ export default function AddressOptionManager({ options }: { options: AddressOpti
         <table className="min-w-full text-left text-sm text-[#506784]">
           <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
             <tr>
-              <th className="px-4 py-3">Type</th>
-              <th className="px-4 py-3">Province</th>
-              <th className="px-4 py-3">District</th>
-              <th className="px-4 py-3">Name</th>
+              <th className="px-4 py-4">Type</th>
+              <th className="px-4 py-4">Province</th>
+              <th className="px-4 py-4">District</th>
+              <th className="px-4 py-4">Name</th>
             </tr>
           </thead>
           <tbody>
@@ -168,6 +200,77 @@ export default function AddressOptionManager({ options }: { options: AddressOpti
             )}
           </tbody>
         </table>
+      </section>
+
+      <section className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
+        <div className="border-b border-[#edf2f7] bg-[#f6f9fd] px-4 py-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-[#3b82f6]" aria-hidden="true" />
+              <div>
+                <h2 className="text-sm font-semibold text-[#0f1f33]">Default Address Options</h2>
+                <p className="mt-0.5 text-xs text-[#6b7f99]">System defaults used in application forms. Read only.</p>
+              </div>
+            </div>
+            <input
+              value={defaultSearch}
+              onChange={(event) => setDefaultSearch(event.target.value)}
+              placeholder="Search province, district, or tehsil"
+              className="min-h-10 w-full rounded-lg border border-[#dbe4ef] bg-white px-3 py-2 text-sm text-[#0f1f33] outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff] lg:w-[320px]"
+            />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full bg-[#edf4ff] px-3 py-1 text-xs font-semibold text-[#2563eb]">
+              {defaultSummary.provinceCount} provinces
+            </span>
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              {defaultSummary.districtCount} districts
+            </span>
+            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+              {defaultSummary.tehsilCount} tehsils
+            </span>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-sm text-[#506784]">
+            <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
+              <tr>
+                <th className="px-4 py-4">Province</th>
+                <th className="px-4 py-4">District</th>
+                <th className="px-4 py-4">Tehsils</th>
+                <th className="px-4 py-4">Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredDefaultRows.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-[#8a9bb3]">No default address options match this search.</td>
+                </tr>
+              ) : (
+                filteredDefaultRows.map((row) => (
+                  <tr key={`${row.province}-${row.district}`} className="border-t border-[#edf2f7] align-top">
+                    <td className="px-4 py-4 font-medium text-[#0f1f33]">{row.province}</td>
+                    <td className="px-4 py-4 font-semibold text-[#0f1f33]">{row.district}</td>
+                    <td className="px-4 py-4">
+                      <div className="flex flex-wrap gap-1.5">
+                        {row.tehsils.map((tehsil) => (
+                          <span key={tehsil} className="rounded-full bg-[#f6f9fd] px-2.5 py-1 text-xs font-medium text-[#506784]">
+                            {tehsil}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="rounded-full bg-[#edf4ff] px-2.5 py-1 text-xs font-semibold text-[#2563eb]">
+                        {row.tehsilCount}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );

@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import AddressOptionManager from '@/components/address-option-manager';
+import AdminManagementTabs from '@/components/admin-management-tabs';
+import { pakistanAddressData } from '@/lib/pakistan-address-data';
 
 export default async function AdminAddressOptionsPage() {
   const session = await getServerSession(authOptions);
@@ -21,16 +23,19 @@ export default async function AdminAddressOptionsPage() {
     },
   });
 
+  const defaultRows = pakistanAddressData.flatMap((province) => (
+    province.districts.map((district) => ({
+      province: province.province,
+      district: district.name,
+      tehsilCount: district.tehsils.length,
+      tehsils: district.tehsils.map((tehsil) => tehsil.name),
+    }))
+  ));
+
   return (
     <AdminShell email={session.user.email} role={session.user.role}>
-      <header className="mb-6 flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Manage Locations</h1>
-        <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
-          Add approved district and tehsil options for the application home step.
-        </p>
-      </header>
-
-      <AddressOptionManager options={options} />
+      <AdminManagementTabs active="locations" isSuperAdmin={session.user.role === 'super_admin'} />
+      <AddressOptionManager options={options} defaultRows={defaultRows} />
     </AdminShell>
   );
 }

@@ -374,13 +374,13 @@ export default async function AdminAuditPage({
         </div>
       </section>
 
-      <section className="mb-5 rounded-xl border border-[#dbe4ef] bg-white p-4 shadow-sm sm:p-5">
+      <section className="mb-5 min-w-0 rounded-xl border border-[#dbe4ef] bg-white p-4 shadow-sm sm:p-5">
         {!systemAuditAvailable ? (
           <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
             Management audit logs are not available in this running server process yet. Restart the server after Prisma generation to load the audit model.
           </div>
         ) : null}
-        <form className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_180px_180px_180px_minmax(150px,180px)_auto]" action="/admin/audit">
+        <form className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_minmax(160px,180px)_minmax(160px,180px)_minmax(160px,180px)_minmax(140px,180px)_auto]" action="/admin/audit">
           <label className="relative block min-w-0">
             <span className="sr-only">Search audit trail</span>
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9bb3]" aria-hidden="true" />
@@ -391,17 +391,17 @@ export default async function AdminAuditPage({
               className="w-full rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] py-3 pl-10 pr-4 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
             />
           </label>
-          <select name="source" defaultValue={source} className="rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]">
+          <select name="source" defaultValue={source} className="min-w-0 rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]">
             {sourceOptions.map((option) => (
               <option key={option} value={option}>{sourceLabels[option]}</option>
             ))}
           </select>
-          <select name="entity" defaultValue={entity} className="rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]">
+          <select name="entity" defaultValue={entity} className="min-w-0 rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]">
             {entityOptions.map((option) => (
               <option key={option} value={option}>{entityLabels[option]}</option>
             ))}
           </select>
-          <select name="role" defaultValue={role} className="rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]">
+          <select name="role" defaultValue={role} className="min-w-0 rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]">
             {roleOptions.map((option) => (
               <option key={option} value={option}>{roleLabels[option]}</option>
             ))}
@@ -410,9 +410,9 @@ export default async function AdminAuditPage({
             name="action"
             defaultValue={action}
             placeholder="Action"
-            className="rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
+            className="min-w-0 rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
           />
-          <button type="submit" className="rounded-xl bg-[#0f1f33] px-4 py-3 text-sm font-semibold text-white hover:bg-[#1f2f46]">
+          <button type="submit" className="rounded-xl bg-[#0f1f33] px-4 py-3 text-sm font-semibold text-white hover:bg-[#1f2f46] xl:min-w-[96px]">
             Filter
           </button>
         </form>
@@ -424,7 +424,7 @@ export default async function AdminAuditPage({
         ) : null}
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
+      <section className="min-w-0 overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
         <div className="flex flex-col gap-1 border-b border-[#edf2f7] bg-[#fbfdff] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-semibold text-[#0f1f33]">Audit events</p>
           <p className="text-sm text-[#5f718a]">
@@ -438,7 +438,7 @@ export default async function AdminAuditPage({
             items.map((item) => {
               const summary = detailsSummary(item.details);
               return (
-                <article key={item.id} className="grid gap-3 px-4 py-4 transition hover:bg-[#f8fbff] lg:grid-cols-[210px_minmax(0,1fr)_220px] lg:items-start">
+                <article key={item.id} className="grid min-w-0 gap-3 px-4 py-4 transition hover:bg-[#f8fbff] lg:grid-cols-[minmax(150px,190px)_minmax(0,1fr)_minmax(140px,200px)] lg:items-start">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8a9bb3]">{sourceLabels[item.source]}</p>
                     <p className="mt-1 text-sm font-semibold text-[#0f1f33]">{dateTimeFormatter.format(item.createdAt)}</p>
@@ -458,8 +458,8 @@ export default async function AdminAuditPage({
                       </Link>
                     ) : null}
                   </div>
-                  <div className="text-sm text-[#5f718a] lg:text-right">
-                    <p className="font-semibold text-[#0f1f33]">{item.actorLabel}</p>
+                  <div className="min-w-0 text-sm text-[#5f718a] lg:text-right">
+                    <p className="break-words font-semibold text-[#0f1f33] [overflow-wrap:anywhere]">{item.actorLabel}</p>
                     <p className="mt-1 text-xs capitalize text-[#8a9bb3]">{roleLabel(item.actorRole)}</p>
                   </div>
                 </article>

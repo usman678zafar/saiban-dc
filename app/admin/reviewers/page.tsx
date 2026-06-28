@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import ReviewerManager, { ReviewerListItem } from '@/components/reviewer-manager';
+import AdminManagementTabs from '@/components/admin-management-tabs';
 
 export default async function AdminReviewersPage() {
   const session = await getServerSession(authOptions);
@@ -33,13 +34,7 @@ export default async function AdminReviewersPage() {
 
   return (
     <AdminShell email={session.user.email} role={session.user.role}>
-      <header className="mb-6 flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Manage Reviewers</h1>
-        <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
-          Add reviewers who approve supervisor-reviewed applications before admin final review.
-        </p>
-      </header>
-
+      <AdminManagementTabs active="reviewers" isSuperAdmin={session.user.role === 'super_admin'} />
       <ReviewerManager reviewers={items} />
     </AdminShell>
   );

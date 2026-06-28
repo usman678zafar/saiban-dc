@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import AdminManager, { AdminListItem } from '@/components/admin-manager';
+import AdminManagementTabs from '@/components/admin-management-tabs';
 
 export default async function AdminAdminsPage() {
   const session = await getServerSession(authOptions);
@@ -33,13 +34,7 @@ export default async function AdminAdminsPage() {
 
   return (
     <AdminShell email={session.user.email} role={session.user.role}>
-      <header className="mb-6 flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Manage Admins & Viewers</h1>
-        <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
-          Create and maintain admin and read-only viewer accounts. Super admin accounts are intentionally not editable here.
-        </p>
-      </header>
-
+      <AdminManagementTabs active="admins" isSuperAdmin />
       <AdminManager admins={items} />
     </AdminShell>
   );
