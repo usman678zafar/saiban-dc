@@ -228,6 +228,51 @@ body {
     padding-top: 0.5rem !important;
     padding-bottom: 0.5rem !important;
   }
+
+  .admin-overview-density h1 {
+    font-size: 1.125rem !important;
+    line-height: 1.5rem !important;
+  }
+
+  .admin-overview-density .overview-metric-card {
+    min-height: 6.5rem !important;
+    padding: 0.875rem 1rem !important;
+    border-radius: 0.75rem !important;
+  }
+
+  .admin-overview-density .overview-metric-icon {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+
+  .admin-overview-density .overview-metric-label {
+    font-size: 0.875rem !important;
+    line-height: 1.2rem !important;
+  }
+
+  .admin-overview-density .overview-metric-value {
+    margin-top: 0.375rem !important;
+    font-size: 1.875rem !important;
+    line-height: 1.9rem !important;
+  }
+
+  .overview-map-density h2 {
+    font-size: 1.25rem !important;
+    line-height: 1.625rem !important;
+  }
+
+  .overview-map-density .min-h-\[560px\],
+  .overview-map-density .min-h-\[500px\] {
+    min-height: 26rem !important;
+  }
+
+  .overview-map-density .rounded-2xl {
+    border-radius: 0.875rem !important;
+  }
+
+  .overview-map-density .rounded-xl {
+    border-radius: 0.75rem !important;
+  }
 }
 
 :where([lang='ur'], [dir='rtl']) {

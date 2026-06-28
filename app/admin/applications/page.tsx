@@ -225,6 +225,7 @@ export default async function AdminApplicationsPage({
   const selectedStatusFilter: StatusFilter = isStatusFilter(searchParams.status)
     ? searchParams.status
     : defaultStatusFilter;
+  const canBulkSelectDrafts = isSuperAdmin && selectedStatusFilter === 'drafts';
   const completionParam = searchParams.completion ?? searchParams.filled;
   const selectedCompletionFilter: CompletionFilter = isCompletionFilter(completionParam) ? completionParam : 'all';
   const selectedCompletionDefinition = completionFilters.find((filter) => filter.key === selectedCompletionFilter) ?? completionFilters[0];
@@ -350,9 +351,7 @@ export default async function AdminApplicationsPage({
     return [application.id, [application, ...sameFamilyApplications] satisfies SameFamilyApplicationListItem[]] as const;
   });
   const sameFamilyModalApplications = new Map<string, SameFamilyApplicationListItem[]>(sameFamilyModalEntries);
-  const visibleDraftCount = isSuperAdmin
-    ? applications.filter((application) => application.status === ApplicationStatus.draft).length
-    : 0;
+  const visibleDraftCount = canBulkSelectDrafts ? applications.length : 0;
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasPrev = page > 1;
@@ -494,7 +493,7 @@ export default async function AdminApplicationsPage({
       </form>
 
       <form id={BULK_DELETE_FORM_ID}>
-        {isSuperAdmin ? (
+        {canBulkSelectDrafts ? (
           <BulkDeleteApplicationsButton
             formId={BULK_DELETE_FORM_ID}
             visibleDraftCount={visibleDraftCount}
@@ -519,7 +518,7 @@ export default async function AdminApplicationsPage({
           ) : (
             applications.map((application: ApplicationListItem) => (
               <div key={application.id} className="rounded-xl border border-[#edf2f7] bg-white p-4">
-                {isSuperAdmin && application.status === ApplicationStatus.draft ? (
+                {canBulkSelectDrafts ? (
                   <label className="mb-3 inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-xs font-semibold text-[#0f1f33]">
                     <input
                       type="checkbox"
@@ -540,12 +539,6 @@ export default async function AdminApplicationsPage({
                     <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{fieldWorkerLabel(application)}</span>
                     <span className="rounded-lg bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">{application.filledFieldsPercentage}% complete</span>
                   </div>
-                  <ApplicationDeadlineNotice
-                    createdAt={application.createdAt}
-                    status={application.status}
-                    completionPercentage={application.filledFieldsPercentage}
-                    compact
-                  />
                   <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
                 </Link>
                 <div className="mt-3">
@@ -583,7 +576,7 @@ export default async function AdminApplicationsPage({
           <table className="min-w-full text-left text-sm text-[#506784]">
             <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
               <tr>
-                {isSuperAdmin ? <th className="w-16 px-4 py-4">Select</th> : null}
+                {canBulkSelectDrafts ? <th className="w-16 px-4 py-4">Select</th> : null}
                 <th className="px-4 py-4">Application</th>
                 <th className="px-4 py-4">Field Worker</th>
                 <th className="px-4 py-4">Department</th>
@@ -596,14 +589,13 @@ export default async function AdminApplicationsPage({
             <tbody>
               {applications.length === 0 ? (
               <tr>
-                  <td colSpan={isSuperAdmin ? 8 : 7} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
+                  <td colSpan={canBulkSelectDrafts ? 8 : 7} className="px-4 py-8 text-center text-[#8a9bb3]">No applications found.</td>
                 </tr>
               ) : (
                 applications.map((application: ApplicationListItem) => (
                   <tr key={application.id} className="border-t border-[#edf2f7] hover:bg-[#f8fbff]">
-                    {isSuperAdmin ? (
+                    {canBulkSelectDrafts ? (
                       <td className="px-4 py-4">
-                      {application.status === ApplicationStatus.draft ? (
                         <input
                           type="checkbox"
                           name="applicationId"
@@ -612,7 +604,6 @@ export default async function AdminApplicationsPage({
                           aria-label={`Select ${application.registrationNumber ?? application.id} for delete`}
                           className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200"
                         />
-                      ) : null}
                       </td>
                     ) : null}
                     <td className="px-4 py-4">
@@ -635,16 +626,10 @@ export default async function AdminApplicationsPage({
                       <span className="inline-flex min-w-14 justify-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                         {application.filledFieldsPercentage}%
                       </span>
-                      <ApplicationDeadlineNotice
-                        createdAt={application.createdAt}
-                        status={application.status}
-                        completionPercentage={application.filledFieldsPercentage}
-                        compact
-                      />
                     </td>
                     <td className="px-4 py-4 text-[#8a9bb3]">{formatDate(application.updatedAt)}</td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-wrap gap-2">
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2 whitespace-nowrap">
                         <Link href={`/admin/applications/${application.id}`} className="rounded-lg bg-[#edf4ff] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#dceaff]">
                           Review
                         </Link>

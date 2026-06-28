@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import AddressOptionManager from '@/components/address-option-manager';
 import AdminManagementTabs from '@/components/admin-management-tabs';
+import { pakistanAddressData } from '@/lib/pakistan-address-data';
 
 export default async function AdminAddressOptionsPage() {
   const session = await getServerSession(authOptions);
@@ -22,10 +23,19 @@ export default async function AdminAddressOptionsPage() {
     },
   });
 
+  const defaultRows = pakistanAddressData.flatMap((province) => (
+    province.districts.map((district) => ({
+      province: province.province,
+      district: district.name,
+      tehsilCount: district.tehsils.length,
+      tehsils: district.tehsils.map((tehsil) => tehsil.name),
+    }))
+  ));
+
   return (
     <AdminShell email={session.user.email} role={session.user.role}>
       <AdminManagementTabs active="locations" isSuperAdmin={session.user.role === 'super_admin'} />
-      <AddressOptionManager options={options} />
+      <AddressOptionManager options={options} defaultRows={defaultRows} />
     </AdminShell>
   );
 }
