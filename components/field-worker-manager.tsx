@@ -281,12 +281,12 @@ export default function FieldWorkerManager({
   };
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-xl border border-[#dbe4ef] bg-white p-4 sm:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="field-worker-density space-y-5 lg:space-y-3">
+      <section className="rounded-xl border border-[#dbe4ef] bg-white p-4 sm:p-5 lg:p-3">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-[#0f1f33]">{heading}</h2>
-            <p className="mt-1 text-sm text-[#5f718a]">
+            <h2 className="text-lg font-semibold text-[#0f1f33] lg:text-base">{heading}</h2>
+            <p className="mt-1 text-sm text-[#5f718a] lg:mt-0.5 lg:text-xs">
               {description ?? (pagination.total === 0
                 ? 'No workers found'
                 : `Showing ${(pagination.page - 1) * pagination.pageSize + 1}-${Math.min(pagination.page * pagination.pageSize, pagination.total)} of ${pagination.total} workers`)}
@@ -295,33 +295,33 @@ export default function FieldWorkerManager({
           <button
             type="button"
             onClick={openAddModal}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-4 py-3 text-sm font-semibold text-white hover:bg-[#2563eb] sm:w-auto"
+            className="field-worker-control inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-4 py-3 text-sm font-semibold text-white hover:bg-[#2563eb] sm:w-auto lg:min-h-9 lg:rounded-lg lg:px-3 lg:py-1.5 lg:text-xs"
           >
             <Plus size={18} />
             Add Field Worker
           </button>
         </div>
 
-        <form onSubmit={applySearch} className={`mt-5 grid gap-3 ${showSupervisorFilter ? 'lg:grid-cols-[1fr_auto_220px_260px]' : 'lg:grid-cols-[1fr_auto_220px]'}`}>
+        <form onSubmit={applySearch} className={`mt-5 grid gap-3 lg:mt-3 lg:gap-2 ${showSupervisorFilter ? 'lg:grid-cols-[minmax(300px,1fr)_auto_190px_220px]' : 'lg:grid-cols-[minmax(300px,1fr)_auto_190px]'}`}>
           <label className="relative block min-w-0">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8a9bb3]" size={18} />
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Search by name, worker ID, phone, CNIC, supervisor, reference, address"
-              className="w-full rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] py-3 pl-10 pr-4 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
+              className="field-worker-control w-full rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] py-3 pl-10 pr-4 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff] lg:min-h-9 lg:rounded-lg lg:py-1.5 lg:pl-9 lg:pr-3 lg:text-xs"
             />
           </label>
           <button
             type="submit"
-            className="rounded-xl bg-[#0f1f33] px-4 py-3 text-sm font-semibold text-white hover:bg-[#1f2f46]"
+            className="field-worker-control rounded-xl bg-[#0f1f33] px-4 py-3 text-sm font-semibold text-white hover:bg-[#1f2f46] lg:min-h-9 lg:rounded-lg lg:px-3 lg:py-1.5 lg:text-xs"
           >
             Search
           </button>
           <select
             value={filters.project}
             onChange={(event) => navigateTo(buildHref({ project: event.target.value, supervisor: 'all', page: 1 }))}
-            className="rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
+            className="field-worker-control rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff] lg:min-h-9 lg:rounded-lg lg:px-3 lg:py-1.5 lg:text-xs"
           >
             <option value="all">All departments</option>
             {projects.map((project) => (
@@ -334,7 +334,7 @@ export default function FieldWorkerManager({
             <select
               value={filters.supervisor}
               onChange={(event) => navigateTo(buildHref({ supervisor: event.target.value, page: 1 }))}
-              className="rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff]"
+              className="field-worker-control rounded-xl border border-[#dbe4ef] bg-[#f6f9fd] px-4 py-3 text-sm text-[#0f1f33] outline-none transition focus:border-[#3b82f6] focus:ring-2 focus:ring-[#dceaff] lg:min-h-9 lg:rounded-lg lg:px-3 lg:py-1.5 lg:text-xs"
             >
               <option value="all">All supervisors</option>
               {supervisors
@@ -348,27 +348,27 @@ export default function FieldWorkerManager({
           ) : null}
         </form>
 
-        {showSourceFilters || counts.projects.some(({ count }) => count > 0) ? <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+        {showSourceFilters || counts.projects.some(({ count }) => count > 0) ? <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible lg:mt-2.5 lg:gap-1.5">
           {showSourceFilters ? (
             <>
           <button
             type="button"
             onClick={() => navigateTo(buildHref({ source: 'all', page: 1 }))}
-            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.source === 'all' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
+            className={`field-worker-chip shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold lg:px-2.5 lg:py-1.5 lg:text-[11px] ${filters.source === 'all' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
           >
             All {counts.totalAll}
           </button>
           <button
             type="button"
             onClick={() => navigateTo(buildHref({ source: 'admin', page: 1 }))}
-            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.source === 'admin' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
+            className={`field-worker-chip shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold lg:px-2.5 lg:py-1.5 lg:text-[11px] ${filters.source === 'admin' ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
           >
             Admin Added {counts.admin}
           </button>
           <button
             type="button"
             onClick={() => navigateTo(buildHref({ source: 'self', page: 1 }))}
-            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.source === 'self' ? 'border-purple-200 bg-purple-50 text-purple-700' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
+            className={`field-worker-chip shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold lg:px-2.5 lg:py-1.5 lg:text-[11px] ${filters.source === 'self' ? 'border-purple-200 bg-purple-50 text-purple-700' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
           >
             Self Registered {counts.self}
           </button>
@@ -382,7 +382,7 @@ export default function FieldWorkerManager({
                 key={project}
                 type="button"
                 onClick={() => navigateTo(buildHref({ project, supervisor: 'all', page: 1 }))}
-                className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold ${filters.project === project ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
+                className={`field-worker-chip shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold lg:px-2.5 lg:py-1.5 lg:text-[11px] ${filters.project === project ? 'border-[#bfd7ff] bg-[#edf4ff] text-[#2563eb]' : 'border-[#dbe4ef] bg-white text-[#5f718a] hover:bg-[#f6f9fd]'}`}
               >
                 {project} {count}
               </button>
@@ -443,8 +443,8 @@ export default function FieldWorkerManager({
         </div>
 
         <div className="hidden overflow-x-auto md:block">
-          <table className="min-w-full text-left text-sm text-[#506784]">
-            <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
+          <table className="min-w-full text-left text-sm text-[#506784] lg:text-xs">
+            <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white lg:text-[10px]">
               <tr>
                 <th className="px-4 py-4">Worker</th>
                 <th className="px-4 py-4">Department</th>
@@ -465,20 +465,20 @@ export default function FieldWorkerManager({
                 initialWorkers.map((worker) => (
                   <tr key={worker.id} className="border-t border-[#edf2f7] hover:bg-[#f8fbff]">
                     <td className="px-4 py-4">
-                      <p className="font-semibold text-[#0f1f33]">{worker.name ?? 'Unnamed worker'}</p>
-                      <p className="mt-1 text-xs font-semibold text-[#8a9bb3]">{worker.fieldWorkerId ?? worker.id}</p>
-                      <span className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${worker.selfRegistered ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                      <p className="font-semibold leading-5 text-[#0f1f33] lg:leading-4">{worker.name ?? 'Unnamed worker'}</p>
+                      <p className="mt-1 text-xs font-semibold leading-4 text-[#8a9bb3] lg:mt-0.5 lg:text-[11px]">{worker.fieldWorkerId ?? worker.id}</p>
+                      <span className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-semibold leading-4 lg:mt-1 lg:text-[10px] ${worker.selfRegistered ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
                         {worker.selfRegistered ? 'Self Registered' : 'Admin Added'}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-[#506784]">{worker.project ?? '-'}</td>
                     <td className="px-4 py-4 text-[#506784]">
                       <p>{worker.supervisor?.name ?? '-'}</p>
-                      <p className="mt-1 text-xs text-[#8a9bb3]">{worker.supervisor?.phoneNumber ?? ''}</p>
+                      <p className="mt-1 text-xs text-[#8a9bb3] lg:mt-0.5 lg:text-[11px]">{worker.supervisor?.phoneNumber ?? ''}</p>
                     </td>
                     <td className="px-4 py-4">
                       <p>{worker.phoneNumber ?? '-'}</p>
-                      <p className="mt-1 text-xs text-[#8a9bb3]">CNIC: {worker.cnic ? formatCnic(worker.cnic) : '-'}</p>
+                      <p className="mt-1 text-xs text-[#8a9bb3] lg:mt-0.5 lg:text-[11px]">CNIC: {worker.cnic ? formatCnic(worker.cnic) : '-'}</p>
                     </td>
                     <td className="max-w-[220px] px-4 py-4 text-[#5f718a]">{worker.reference ?? '-'}</td>
                     <td className="max-w-[320px] px-4 py-4 text-[#5f718a]">{worker.address ?? '-'}</td>
@@ -489,7 +489,7 @@ export default function FieldWorkerManager({
                           <button
                             type="button"
                             onClick={() => openEditModal(worker)}
-                            className="inline-flex size-9 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white text-[#506784] hover:bg-[#f6f9fd]"
+                            className="inline-flex size-9 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white text-[#506784] hover:bg-[#f6f9fd] lg:size-8"
                             aria-label={`Edit ${worker.name ?? 'field worker'}`}
                             title="Edit"
                           >
@@ -498,7 +498,7 @@ export default function FieldWorkerManager({
                           <button
                             type="button"
                             onClick={() => setDeleteTarget(worker)}
-                            className="inline-flex size-9 items-center justify-center rounded-lg border border-red-100 bg-white text-red-600 hover:bg-red-50"
+                            className="inline-flex size-9 items-center justify-center rounded-lg border border-red-100 bg-white text-red-600 hover:bg-red-50 lg:size-8"
                             aria-label={`Delete ${worker.name ?? 'field worker'}`}
                             title="Delete"
                           >

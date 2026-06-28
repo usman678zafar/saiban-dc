@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 import AdminShell from '@/components/admin-shell';
 import SupervisorManager, { SupervisorListItem } from '@/components/supervisor-manager';
+import AdminManagementTabs from '@/components/admin-management-tabs';
 
 export default async function AdminSupervisorsPage() {
   const session = await getServerSession(authOptions);
@@ -46,13 +47,7 @@ export default async function AdminSupervisorsPage() {
 
   return (
     <AdminShell email={session.user.email} role={session.user.role}>
-      <header className="mb-6 flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Manage Supervisors</h1>
-        <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
-          Add supervisors and assign each one to one or more departments.
-        </p>
-      </header>
-
+      <AdminManagementTabs active="supervisors" isSuperAdmin={session.user.role === 'super_admin'} />
       <SupervisorManager supervisors={items} projects={projects} />
     </AdminShell>
   );

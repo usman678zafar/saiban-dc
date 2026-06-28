@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, ArrowUpRight, Baby, Check, PauseCircle, RotateCcw, UsersRound, X } from 'lucide-react';
+import { ArrowUpRight, Baby, Check, PauseCircle, RotateCcw, UsersRound, X } from 'lucide-react';
 import { applicationStatusLabel } from '@/lib/application-workflow';
 import { formatCnic } from '@/lib/contact-format';
 import { formatDate } from '@/lib/date-format';
@@ -300,11 +300,7 @@ export default function SameFamilyApplicationsModal({
                                     <X className="h-3.5 w-3.5" /> Reject
                                   </button>
                                 </div>
-                              ) : (
-                                <span className="inline-flex min-h-8 w-full items-center justify-center gap-1.5 px-2 text-center text-xs font-medium leading-4 text-slate-500">
-                                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> No admin action at this stage
-                                </span>
-                              )}
+                              ) : null}
                             </div>
                             {pending?.id === application.id ? (
                               <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50/60 p-3">

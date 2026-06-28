@@ -3,17 +3,28 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ClipboardList, KeyRound, LayoutDashboard, LogOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ClipboardList, KeyRound, LayoutDashboard, LogOut } from 'lucide-react';
 import clsx from 'clsx';
 import SignOutButton from './sign-out-button';
 import { useViewerLanguage } from './viewer-language';
-import logo from '@/assests/logo1.png';
+import logo from '@/assests/logo.png';
+import { useSidebarCollapse } from './use-sidebar-collapse';
+import type { LucideIcon } from 'lucide-react';
 
 interface ViewerSidebarProps {
   email?: string | null;
 }
 
-const navItems = [
+type ViewerLanguage = 'en' | 'ur';
+interface ViewerNavItem {
+  href: string;
+  label: Record<ViewerLanguage, string>;
+  mobileLabel: Record<ViewerLanguage, string>;
+  icon: LucideIcon;
+  exact?: boolean;
+}
+
+const navItems: ViewerNavItem[] = [
   { href: '/viewer', label: { en: 'Overview', ur: 'جائزہ' }, mobileLabel: { en: 'Home', ur: 'جائزہ' }, icon: LayoutDashboard, exact: true },
   { href: '/viewer/applications', label: { en: 'Applications', ur: 'درخواستیں' }, mobileLabel: { en: 'Apps', ur: 'درخواستیں' }, icon: ClipboardList },
   { href: '/viewer/account', label: { en: 'Account', ur: 'اکاؤنٹ' }, mobileLabel: { en: 'Acct', ur: 'اکاؤنٹ' }, icon: KeyRound },
@@ -32,48 +43,47 @@ function isActivePath(pathname: string, href: string, exact?: boolean) {
 export default function ViewerSidebar({ email }: ViewerSidebarProps) {
   const pathname = usePathname();
   const { language } = useViewerLanguage();
+  const { collapsed, setCollapsed } = useSidebarCollapse();
   const t = sidebarCopy[language];
+  const profileLabel = email ?? t.signedIn;
+  const profileInitial = profileLabel.charAt(0).toUpperCase();
 
   return (
     <>
-      <aside className="admin-sidebar-scrollbar fixed inset-y-0 left-0 z-40 hidden w-48 flex-col overflow-y-auto border-r border-[#0d315d] bg-[#06264a] text-white lg:flex">
-        <div className="border-b border-white/10 px-3 pb-4 pt-4 text-center">
-          <Image src={logo} alt="Saiban" width={140} height={110} className="mx-auto h-16 w-auto object-contain" priority />
-          <p className="mt-1.5 text-xs font-medium text-[#b7c6db]" dir={language === 'ur' ? 'rtl' : 'ltr'}>{t.portal}</p>
+      <aside className={clsx('admin-sidebar-scrollbar fixed inset-y-0 left-0 z-40 hidden flex-col overflow-y-auto border-r border-[#dbe4ef] bg-white text-[#0f1f33] shadow-[4px_0_24px_rgba(15,31,51,0.025)] transition-[width] duration-200 lg:flex', collapsed ? 'w-[4.75rem]' : 'w-48')}>
+        <div className={clsx('border-b border-[#e5ebf3] text-center', collapsed ? 'px-2 pb-3 pt-4' : 'px-3 pb-4 pt-4')}>
+          <Image src={logo} alt="Saiban" width={160} height={125} className={clsx('mx-auto w-auto object-contain transition-[height] duration-200', collapsed ? 'h-11' : 'h-20')} priority />
+          {!collapsed && <p className="mt-1 text-[11px] font-medium text-[#63758d]" dir={language === 'ur' ? 'rtl' : 'ltr'}>{t.portal}</p>}
         </div>
 
-        <nav className="grid gap-1 py-4">
+        <nav className="grid gap-1 px-2 py-4" aria-label="Viewer navigation">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActivePath(pathname, item.href, item.exact);
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={clsx(
-                  'flex items-center gap-2 px-4 py-2.5 text-xs font-semibold transition',
-                  active
-                    ? 'bg-[#1d74e8] text-white shadow-[0_12px_28px_rgba(29,116,232,0.30)]'
-                    : 'text-[#c9d4e2] hover:bg-white/10 hover:text-white',
-                )}
-              >
-                <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span className="truncate" dir={language === 'ur' ? 'rtl' : 'ltr'}>{item.label[language]}</span>
-              </Link>
+              <div key={item.href}>
+                <Link href={item.href} title={collapsed ? item.label[language] : undefined} aria-current={active ? 'page' : undefined} className={clsx('flex min-h-10 items-center rounded-xl text-xs font-semibold transition-colors', collapsed ? 'justify-center px-2' : 'gap-2.5 px-2.5', active ? 'bg-[#eaf2ff] text-[#2563eb]' : 'text-[#52657d] hover:bg-[#f4f7fb] hover:text-[#0f1f33]')}>
+                  <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                  {!collapsed && <span className="truncate" dir={language === 'ur' ? 'rtl' : 'ltr'}>{item.label[language]}</span>}
+                </Link>
+              </div>
             );
           })}
         </nav>
 
-        <div className="mt-auto border-t border-white/10 p-2.5">
-          <div className="mb-3 min-w-0 px-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#91a1b7]" dir={language === 'ur' ? 'rtl' : 'ltr'}>{t.readOnly}</p>
-            <p className="mt-1 truncate text-xs font-medium text-white">{email ?? t.signedIn}</p>
+        <div className="mt-auto border-t border-[#e5ebf3] p-2">
+          <div className={clsx('mb-2 flex min-w-0 items-center rounded-xl border border-[#e5ebf3] bg-[#f8fafc]', collapsed ? 'justify-center p-2' : 'gap-2.5 p-2.5')}>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#dceaff] text-xs font-bold text-[#2563eb]">{profileInitial}</span>
+            {!collapsed && <div className="min-w-0"><p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#7b8ca3]" dir={language === 'ur' ? 'rtl' : 'ltr'}>{t.readOnly}</p><p className="mt-0.5 truncate text-xs font-semibold text-[#0f1f33]">{profileLabel}</p></div>}
           </div>
-          <SignOutButton className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/15">
+          <SignOutButton ariaLabel={t.signOut} className={clsx('flex min-h-9 w-full items-center justify-center rounded-lg px-2 text-xs font-semibold text-[#64748b] transition-colors hover:bg-[#fff1f2] hover:text-[#dc2626]', !collapsed && 'gap-2')}>
             <LogOut className="h-4 w-4" aria-hidden="true" />
-            <span dir={language === 'ur' ? 'rtl' : 'ltr'}>{t.signOut}</span>
+            {!collapsed && <span dir={language === 'ur' ? 'rtl' : 'ltr'}>{t.signOut}</span>}
           </SignOutButton>
+          <button type="button" onClick={() => setCollapsed(!collapsed)} className="mt-1 flex min-h-8 w-full items-center justify-center rounded-lg text-[#94a3b8] transition-colors hover:bg-[#f4f7fb] hover:text-[#475569]" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
         </div>
       </aside>
 

@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import FieldWorkerManager, { FieldWorkerListItem } from '@/components/field-worker-manager';
+import AdminManagementTabs from '@/components/admin-management-tabs';
 import { projectReviewValues } from '@/lib/field-workers';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
 
@@ -162,13 +163,7 @@ export default async function AdminFieldWorkersPage({
 
   return (
     <AdminShell email={session.user.email} role={session.user.role}>
-      <header className="mb-6 flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Manage Field Workers</h1>
-        <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">
-          Filter workers, manage department assignments, and control who can access the mobile collection portal.
-        </p>
-      </header>
-
+      <AdminManagementTabs active="field-workers" isSuperAdmin={session.user.role === 'super_admin'} />
       <FieldWorkerManager
         initialWorkers={workers}
         supervisors={supervisors}
