@@ -298,13 +298,13 @@ export default async function ViewerApplicationsPage({
           <table className="min-w-full text-left text-sm text-[#506784]">
             <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
               <tr>
-                <th className="px-4 py-3"><ViewerLocalizedText en="Application" ur="درخواست" /></th>
-                <th className="px-4 py-3"><ViewerLocalizedText en="Field Worker" ur="فیلڈ ورکر" /></th>
-                <th className="px-4 py-3"><ViewerLocalizedText en="Department" ur="شعبہ" /></th>
-                <th className="px-4 py-3"><ViewerLocalizedText en="Status" ur="حیثیت" /></th>
-                <th className="px-4 py-3"><ViewerLocalizedText en="Complete" ur="مکمل" /></th>
-                <th className="px-4 py-3"><ViewerLocalizedText en="Updated" ur="تازہ کاری" /></th>
-                <th className="px-4 py-3"><ViewerLocalizedText en="Action" ur="عمل" /></th>
+                <th className="px-4 py-4"><ViewerLocalizedText en="Application" ur="درخواست" /></th>
+                <th className="px-4 py-4"><ViewerLocalizedText en="Field Worker" ur="فیلڈ ورکر" /></th>
+                <th className="px-4 py-4"><ViewerLocalizedText en="Department" ur="شعبہ" /></th>
+                <th className="px-4 py-4"><ViewerLocalizedText en="Status" ur="حیثیت" /></th>
+                <th className="px-4 py-4"><ViewerLocalizedText en="Complete" ur="مکمل" /></th>
+                <th className="px-4 py-4"><ViewerLocalizedText en="Updated" ur="تازہ کاری" /></th>
+                <th className="px-4 py-4"><ViewerLocalizedText en="Action" ur="عمل" /></th>
               </tr>
             </thead>
             <tbody>

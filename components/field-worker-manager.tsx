@@ -446,14 +446,14 @@ export default function FieldWorkerManager({
           <table className="min-w-full text-left text-sm text-[#506784]">
             <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
               <tr>
-                <th className="px-4 py-3">Worker</th>
-                <th className="px-4 py-3">Department</th>
-                <th className="px-4 py-3">Supervisor</th>
-                <th className="px-4 py-3">Contact</th>
-                <th className="px-4 py-3">Reference</th>
-                <th className="px-4 py-3">Address</th>
-                <th className="px-4 py-3">Added</th>
-                {canModifyExistingWorkers ? <th className="px-4 py-3 text-right">Actions</th> : null}
+                <th className="px-4 py-4">Worker</th>
+                <th className="px-4 py-4">Department</th>
+                <th className="px-4 py-4">Supervisor</th>
+                <th className="px-4 py-4">Contact</th>
+                <th className="px-4 py-4">Reference</th>
+                <th className="px-4 py-4">Address</th>
+                <th className="px-4 py-4">Added</th>
+                {canModifyExistingWorkers ? <th className="px-4 py-4 text-right">Actions</th> : null}
               </tr>
             </thead>
             <tbody>

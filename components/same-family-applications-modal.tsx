@@ -233,13 +233,13 @@ export default function SameFamilyApplicationsModal({
                 <table className="w-full min-w-[1180px] table-fixed text-left text-sm text-slate-700">
                   <thead className="sticky top-0 z-10 bg-blue-600 text-xs uppercase text-white shadow-sm">
                     <tr>
-                      <th className="w-[190px] px-4 py-3">Orphan</th>
-                      <th className="w-[90px] px-3 py-3">Age</th>
-                      <th className="w-[155px] px-3 py-3">Father CNIC</th>
-                      <th className="w-[155px] px-3 py-3">Mother CNIC</th>
-                      <th className="w-[175px] px-3 py-3">Guardian CNIC</th>
-                      <th className="w-[150px] px-3 py-3">Status</th>
-                      <th className="w-[245px] px-3 py-3">Actions</th>
+                      <th className="w-[190px] px-4 py-4">Orphan</th>
+                      <th className="w-[90px] px-3 py-4">Age</th>
+                      <th className="w-[155px] px-3 py-4">Father CNIC</th>
+                      <th className="w-[155px] px-3 py-4">Mother CNIC</th>
+                      <th className="w-[175px] px-3 py-4">Guardian CNIC</th>
+                      <th className="w-[150px] px-3 py-4">Status</th>
+                      <th className="w-[245px] px-3 py-4">Actions</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -145,10 +145,10 @@ export default function AddressOptionManager({ options }: { options: AddressOpti
         <table className="min-w-full text-left text-sm text-[#506784]">
           <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
             <tr>
-              <th className="px-4 py-3">Type</th>
-              <th className="px-4 py-3">Province</th>
-              <th className="px-4 py-3">District</th>
-              <th className="px-4 py-3">Name</th>
+              <th className="px-4 py-4">Type</th>
+              <th className="px-4 py-4">Province</th>
+              <th className="px-4 py-4">District</th>
+              <th className="px-4 py-4">Name</th>
             </tr>
           </thead>
           <tbody>

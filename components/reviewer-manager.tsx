@@ -125,13 +125,13 @@ export default function ReviewerManager({ reviewers }: { reviewers: ReviewerList
         <table className="min-w-full text-left text-sm text-[#506784]">
           <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
             <tr>
-              <th className="px-4 py-3">Reviewer</th>
-              <th className="px-4 py-3">Phone</th>
-              <th className="px-4 py-3">CNIC</th>
-              <th className="px-4 py-3">Create Access</th>
-              <th className="px-4 py-3">Address</th>
-              <th className="px-4 py-3">Added</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-4 py-4">Reviewer</th>
+              <th className="px-4 py-4">Phone</th>
+              <th className="px-4 py-4">CNIC</th>
+              <th className="px-4 py-4">Create Access</th>
+              <th className="px-4 py-4">Address</th>
+              <th className="px-4 py-4">Added</th>
+              <th className="px-4 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>

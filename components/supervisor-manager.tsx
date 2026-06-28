@@ -136,13 +136,13 @@ export default function SupervisorManager({ supervisors, projects }: { superviso
         <table className="min-w-full text-left text-sm text-[#506784]">
           <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
             <tr>
-              <th className="px-4 py-3">Supervisor</th>
-              <th className="px-4 py-3">Department</th>
-              <th className="px-4 py-3">Create Access</th>
-              <th className="px-4 py-3">Worker Access</th>
-              <th className="px-4 py-3">Phone</th>
-              <th className="px-4 py-3">Added</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-4 py-4">Supervisor</th>
+              <th className="px-4 py-4">Department</th>
+              <th className="px-4 py-4">Create Access</th>
+              <th className="px-4 py-4">Worker Access</th>
+              <th className="px-4 py-4">Phone</th>
+              <th className="px-4 py-4">Added</th>
+              <th className="px-4 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>

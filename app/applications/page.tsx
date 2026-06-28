@@ -252,10 +252,10 @@ export default async function ApplicationsPage({
         <table className="min-w-full text-left text-sm text-slate-700">
           <thead className="bg-blue-600 text-white">
             <tr>
-              <th className="px-4 py-3 font-semibold">Application</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Updated</th>
-              <th className="w-48 px-4 py-3 font-semibold">Actions</th>
+              <th className="px-4 py-4 font-semibold">Application</th>
+              <th className="px-4 py-4 font-semibold">Status</th>
+              <th className="px-4 py-4 font-semibold">Updated</th>
+              <th className="w-48 px-4 py-4 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
