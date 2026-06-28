@@ -86,7 +86,7 @@ export default function AdminSidebar({ email }: AdminSidebarProps) {
         <div className="mt-auto border-t border-[#e5ebf3] p-2">
           <div className={clsx('mb-2 flex min-w-0 items-center rounded-xl border border-[#e5ebf3] bg-[#f8fafc]', collapsed ? 'justify-center p-2' : 'gap-2.5 p-2.5')}>
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#dceaff] text-xs font-bold text-[#2563eb]">{profileInitial}</span>
-            {!collapsed && <div className="min-w-0"><p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#7b8ca3]">Admin Portal</p><p className="mt-0.5 truncate text-xs font-semibold text-[#0f1f33]">{profileLabel}</p></div>}
+            {!collapsed && <div className="min-w-0"><p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#7b8ca3]">Signed in</p><p className="mt-0.5 truncate text-xs font-semibold text-[#0f1f33]">{profileLabel}</p></div>}
           </div>
           <SignOutButton ariaLabel="Sign out" className={clsx('flex min-h-9 w-full items-center justify-center rounded-lg px-2 text-xs font-semibold text-[#64748b] transition-colors hover:bg-[#fff1f2] hover:text-[#dc2626]', !collapsed && 'gap-2')}>
             <LogOut className="h-4 w-4" aria-hidden="true" />

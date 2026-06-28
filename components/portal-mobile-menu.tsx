@@ -70,9 +70,9 @@ export default function PortalMobileMenu({
   return (
     <>
       <div className="fixed inset-x-0 top-0 z-40 border-b border-[#dbe4ef] bg-white/95 shadow-[0_10px_30px_rgba(15,23,42,0.05)] backdrop-blur lg:hidden">
-        <div className={clsx('mx-auto flex h-16 items-center justify-between gap-3 px-3 sm:px-4', dir === 'rtl' && 'flex-row-reverse')}>
-          <div className={clsx('flex min-w-0 items-center gap-3', dir === 'rtl' && 'flex-row-reverse')}>
-            <Image src={logo} alt="Saiban" width={80} height={56} className="h-10 w-auto shrink-0 object-contain" priority />
+        <div className={clsx('mx-auto flex h-15 items-center justify-between gap-2.5 px-3 sm:h-16 sm:gap-3 sm:px-4', dir === 'rtl' && 'flex-row-reverse')}>
+          <div className={clsx('flex min-w-0 items-center gap-2.5', dir === 'rtl' && 'flex-row-reverse')}>
+            <Image src={logo} alt="Saiban" width={72} height={52} className="h-8 w-auto shrink-0 object-contain sm:h-10" priority />
             <div className={clsx('min-w-0', dir === 'rtl' && 'text-right')}>
               <p className="truncate text-[11px] font-bold uppercase tracking-[0.14em] text-[#7b8ca3]" dir={dir}>{portalLabel}</p>
               <p className="truncate text-sm font-semibold text-[#0f1f33]" dir={dir}>{currentLabel}</p>
@@ -99,18 +99,18 @@ export default function PortalMobileMenu({
           />
           <aside
             className={clsx(
-              'absolute inset-y-0 w-[min(20rem,86vw)] overflow-y-auto border-[#dbe4ef] bg-white shadow-[0_24px_60px_rgba(15,23,42,0.18)]',
+              'absolute inset-y-0 w-[min(15.75rem,78vw)] overflow-y-auto border-[#dbe4ef] bg-white shadow-[0_24px_60px_rgba(15,23,42,0.18)] sm:w-[min(17.5rem,82vw)]',
               dir === 'rtl' ? 'right-0 border-l' : 'left-0 border-r',
             )}
             aria-label={portalLabel}
           >
-            <div className="border-b border-[#e5ebf3] px-4 py-4">
-              <div className={clsx('flex items-start justify-between gap-3', dir === 'rtl' && 'flex-row-reverse')}>
-                <div className={clsx('flex min-w-0 items-center gap-3', dir === 'rtl' && 'flex-row-reverse')}>
-                  <Image src={logo} alt="Saiban" width={100} height={72} className="h-14 w-auto shrink-0 object-contain" priority />
+            <div className="border-b border-[#e5ebf3] px-3 py-3 sm:px-4 sm:py-4">
+              <div className={clsx('flex items-start justify-between gap-2.5 sm:gap-3', dir === 'rtl' && 'flex-row-reverse')}>
+                <div className={clsx('flex min-w-0 items-center gap-2.5 sm:gap-3', dir === 'rtl' && 'flex-row-reverse')}>
+                  <Image src={logo} alt="Saiban" width={84} height={58} className="h-10 w-auto shrink-0 object-contain sm:h-14" priority />
                   <div className={clsx('min-w-0', dir === 'rtl' && 'text-right')}>
                     <p className="truncate text-sm font-semibold text-[#0f1f33]" dir={dir}>{portalLabel}</p>
-                    {portalCaption ? <p className="mt-1 text-xs text-[#63758d]" dir={dir}>{portalCaption}</p> : null}
+                    {portalCaption ? <p className="mt-0.5 text-[11px] leading-4 text-[#63758d] sm:text-xs sm:leading-5" dir={dir}>{portalCaption}</p> : null}
                   </div>
                 </div>
                 <button
@@ -124,18 +124,8 @@ export default function PortalMobileMenu({
               </div>
             </div>
 
-            <div className="p-4">
-              <div className={clsx('mb-4 flex min-w-0 items-center gap-3 rounded-2xl border border-[#e5ebf3] bg-[#f8fbff] p-3', dir === 'rtl' && 'flex-row-reverse')}>
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dceaff] text-sm font-bold text-[#2563eb]">
-                  {profileInitial}
-                </span>
-                <div className={clsx('min-w-0', dir === 'rtl' && 'text-right')}>
-                  {profileMeta ? <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#7b8ca3]" dir={dir}>{profileMeta}</p> : null}
-                  <p className="mt-0.5 truncate text-sm font-semibold text-[#0f1f33]">{profileLabel}</p>
-                </div>
-              </div>
-
-              <nav className="grid gap-1.5" aria-label={portalLabel}>
+            <div className="flex h-full min-h-0 flex-col p-3 sm:p-4">
+              <nav className="grid gap-1" aria-label={portalLabel}>
                 {navItems.map((item) => {
                   const Icon = item.icon;
 
@@ -146,28 +136,40 @@ export default function PortalMobileMenu({
                       onClick={() => setOpen(false)}
                       aria-current={item.active ? 'page' : undefined}
                       className={clsx(
-                        'flex min-h-11 items-center rounded-2xl px-3 text-sm font-semibold transition-colors',
-                        dir === 'rtl' ? 'flex-row-reverse gap-3 text-right' : 'gap-3',
+                        'flex min-h-10 items-center rounded-xl px-3 text-sm font-semibold transition-colors sm:min-h-11 sm:rounded-2xl',
+                        dir === 'rtl' ? 'flex-row-reverse gap-2.5 text-right sm:gap-3' : 'gap-2.5 sm:gap-3',
                         item.active ? 'bg-[#eaf2ff] text-[#2563eb]' : 'text-[#52657d] hover:bg-[#f4f7fb] hover:text-[#0f1f33]',
                       )}
                     >
-                      <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                      <Icon className="h-[17px] w-[17px] shrink-0 sm:h-[18px] sm:w-[18px]" aria-hidden="true" />
                       <span className="truncate" dir={dir}>{item.label}</span>
                     </Link>
                   );
                 })}
               </nav>
 
-              <SignOutButton
-                ariaLabel={signOutLabel}
-                className={clsx(
-                  'mt-4 flex min-h-11 w-full items-center justify-center rounded-2xl px-3 text-sm font-semibold text-[#64748b] transition-colors hover:bg-[#fff1f2] hover:text-[#dc2626]',
-                  dir === 'rtl' ? 'flex-row-reverse gap-2.5' : 'gap-2.5',
-                )}
-              >
-                <LogOut className="h-4 w-4" aria-hidden="true" />
-                <span dir={dir}>{signOutLabel}</span>
-              </SignOutButton>
+              <div className="mt-auto pt-4">
+                <div className={clsx('mb-3 flex min-w-0 items-center gap-2 rounded-2xl border border-[#e5ebf3] bg-[#f8fbff] p-2 sm:mb-4 sm:gap-3 sm:p-3', dir === 'rtl' && 'flex-row-reverse')}>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#dceaff] text-sm font-bold text-[#2563eb] sm:h-10 sm:w-10">
+                    {profileInitial}
+                  </span>
+                  <div className={clsx('min-w-0', dir === 'rtl' && 'text-right')}>
+                    {profileMeta ? <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#7b8ca3]" dir={dir}>{profileMeta}</p> : null}
+                    <p className="mt-0.5 truncate text-[13px] font-semibold text-[#0f1f33] sm:text-sm">{profileLabel}</p>
+                  </div>
+                </div>
+
+                <SignOutButton
+                  ariaLabel={signOutLabel}
+                  className={clsx(
+                    'flex min-h-10 w-full items-center justify-center rounded-xl px-3 text-sm font-semibold text-[#64748b] transition-colors hover:bg-[#fff1f2] hover:text-[#dc2626] sm:min-h-11 sm:rounded-2xl',
+                    dir === 'rtl' ? 'flex-row-reverse gap-2.5' : 'gap-2.5',
+                  )}
+                >
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
+                  <span dir={dir}>{signOutLabel}</span>
+                </SignOutButton>
+              </div>
             </div>
           </aside>
         </div>
