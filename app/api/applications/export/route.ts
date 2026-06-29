@@ -105,6 +105,7 @@ export async function GET(request: NextRequest) {
     'collectorName',
     'collectorProject',
     'childName',
+    'age',
     'fatherName',
     'gender',
     'province',
