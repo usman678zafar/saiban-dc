@@ -58,21 +58,6 @@ export type SameFamilyPoolApplication = Prisma.OrphanApplicationGetPayload<{
   select: typeof sameFamilyApplicationSelect;
 }>;
 
-type SameFamilyStringField =
-  | 'fatherName'
-  | 'fatherCnic'
-  | 'motherName'
-  | 'motherCnic'
-  | 'motherContact'
-  | 'guardianName'
-  | 'guardianCnic'
-  | 'guardianContact'
-  | 'fullAddress';
-
-function cleanText(value: string | null | undefined) {
-  return value?.trim().replace(/\s+/g, ' ') || '';
-}
-
 function digitsOnly(value: string | null | undefined) {
   return value?.replace(/\D/g, '') || '';
 }
@@ -85,35 +70,11 @@ function cnicValues(application: SameFamilyApplicationSource) {
   return unique([
     digitsOnly(application.fatherCnic),
     digitsOnly(application.motherCnic),
-    digitsOnly(application.guardianCnic),
   ].filter((value) => value.length === 13));
 }
 
-function contactValues(application: SameFamilyApplicationSource) {
-  return unique([
-    digitsOnly(application.motherContact),
-    digitsOnly(application.guardianContact),
-  ].filter((value) => value.length >= 10));
-}
-
 function familyTokens(application: SameFamilyApplicationSource) {
-  const tokens = cnicValues(application).map((value) => `cnic:${value}`);
-  const fullAddress = cleanText(application.fullAddress);
-
-  if (fullAddress) {
-    for (const value of contactValues(application)) {
-      tokens.push(`address-contact:${fullAddress}\u0000${value}`);
-    }
-
-    const motherName = cleanText(application.motherName);
-    const guardianName = cleanText(application.guardianName);
-    const fatherName = cleanText(application.fatherName);
-    if (motherName) tokens.push(`address-mother:${fullAddress}\u0000${motherName}`);
-    if (guardianName) tokens.push(`address-guardian:${fullAddress}\u0000${guardianName}`);
-    if (fatherName) tokens.push(`address-father:${fullAddress}\u0000${fatherName}`);
-  }
-
-  return unique(tokens);
+  return cnicValues(application).map((value) => `cnic:${value}`);
 }
 
 function buildFamilyTokenIndex<T extends SameFamilyApplicationSource & { status: ApplicationStatus }>(applications: T[]) {
@@ -128,66 +89,9 @@ function buildFamilyTokenIndex<T extends SameFamilyApplicationSource & { status:
   return tokenIndex;
 }
 
-function exactValue(field: SameFamilyStringField, value: string): Prisma.OrphanApplicationWhereInput {
-  return {
-    [field]: { equals: value, mode: 'insensitive' },
-  } as Prisma.OrphanApplicationWhereInput;
-}
-
-export function sameFamilyWhere(application: SameFamilyApplicationSource): Prisma.OrphanApplicationWhereInput | null {
-  const cnics = cnicValues(application);
-  const contacts = contactValues(application);
-  const fullAddress = cleanText(application.fullAddress);
-  const motherName = cleanText(application.motherName);
-  const guardianName = cleanText(application.guardianName);
-  const fatherName = cleanText(application.fatherName);
-  const or: Prisma.OrphanApplicationWhereInput[] = [];
-
-  for (const value of cnics) {
-    or.push(exactValue('fatherCnic', value));
-    or.push(exactValue('motherCnic', value));
-    or.push(exactValue('guardianCnic', value));
-  }
-
-  if (fullAddress && contacts.length) {
-    for (const value of contacts) {
-      or.push({ AND: [{ fullAddress }, { OR: [exactValue('motherContact', value), exactValue('guardianContact', value)] }] });
-    }
-  }
-
-  if (fullAddress && (motherName || guardianName || fatherName)) {
-    or.push({
-      AND: [
-        { fullAddress },
-        {
-          OR: [
-            ...(motherName ? [{ motherName }] : []),
-            ...(guardianName ? [{ guardianName }] : []),
-            ...(fatherName ? [{ fatherName }] : []),
-          ],
-        },
-      ],
-    });
-  }
-
-  if (or.length === 0) return null;
-
-  return {
-    id: { not: application.id },
-    status: { not: ApplicationStatus.draft },
-    OR: or,
-  };
-}
-
 export async function getSameFamilyApplications(application: SameFamilyApplicationSource) {
-  const where = sameFamilyWhere(application);
-  if (!where) return [];
-
-  return prisma.orphanApplication.findMany({
-    where,
-    orderBy: { updatedAt: 'desc' },
-    select: sameFamilyApplicationSelect,
-  });
+  const relatedApplications = (await getSameFamilyData([application])).relatedApplications;
+  return relatedApplications.get(application.id) ?? [];
 }
 
 export async function loadSameFamilyPool() {
