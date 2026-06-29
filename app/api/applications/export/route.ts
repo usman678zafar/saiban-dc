@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
   if (!session?.user?.email) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
-  if (!['admin', 'super_admin'].includes(session.user.role ?? '')) {
-    return NextResponse.json({ message: 'Admin access required' }, { status: 403 });
+  if (!['admin', 'super_admin', 'viewer'].includes(session.user.role ?? '')) {
+    return NextResponse.json({ message: 'Access denied' }, { status: 403 });
   }
 
   const format = new URL(request.url).searchParams.get('format') || 'csv';
@@ -34,12 +34,31 @@ export async function GET(request: NextRequest) {
       },
       createdBy: {
         select: {
+          name: true,
+          email: true,
+          role: true,
           phoneNumber: true,
           cnic: true,
+          supervisor: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
         },
       },
     },
   });
+
+  function supervisorNameForExport(application: (typeof applications)[number]) {
+    if (application.createdBy.role === 'supervisor') {
+      return application.createdBy.name ?? application.createdBy.email;
+    }
+
+    return application.createdBy.supervisor?.name
+      ?? application.createdBy.supervisor?.email
+      ?? null;
+  }
 
   if (format === 'json') {
     return NextResponse.json(applications.map((application) => {
@@ -53,6 +72,8 @@ export async function GET(request: NextRequest) {
       } = application;
       return {
         ...applicationExport,
+        fatherName: application.fatherName,
+        supervisorName: supervisorNameForExport(application),
         createdByPhoneNumber: createdBy.phoneNumber,
         createdByCnic: createdBy.cnic,
         completionPercentage: filledFieldsPercentage,
@@ -63,7 +84,13 @@ export async function GET(request: NextRequest) {
   }
 
   type ApplicationRow = (typeof applications)[number];
-  type ComputedHeader = 'createdByPhoneNumber' | 'createdByCnic' | 'completionPercentage' | 'completionCompleteItems' | 'completionTotalItems';
+  type ComputedHeader =
+    | 'supervisorName'
+    | 'createdByPhoneNumber'
+    | 'createdByCnic'
+    | 'completionPercentage'
+    | 'completionCompleteItems'
+    | 'completionTotalItems';
 
   const scalarHeaders: Array<keyof ApplicationRow> = [
     'id',
@@ -78,6 +105,7 @@ export async function GET(request: NextRequest) {
     'collectorName',
     'collectorProject',
     'childName',
+    'fatherName',
     'gender',
     'province',
     'district',
@@ -101,7 +129,14 @@ export async function GET(request: NextRequest) {
     'updatedAt',
   ];
 
-  const computedHeaders: ComputedHeader[] = ['completionPercentage', 'completionCompleteItems', 'completionTotalItems', 'createdByPhoneNumber', 'createdByCnic'];
+  const computedHeaders: ComputedHeader[] = [
+    'supervisorName',
+    'completionPercentage',
+    'completionCompleteItems',
+    'completionTotalItems',
+    'createdByPhoneNumber',
+    'createdByCnic',
+  ];
   const nestedHeaders = ['siblings', 'relatives', 'householdAssets'] as const;
   const allHeaders = [
     ...scalarHeaders,
@@ -118,7 +153,9 @@ export async function GET(request: NextRequest) {
       });
       const computedValues = computedHeaders.map((header) => {
         const value =
-          header === 'createdByPhoneNumber'
+          header === 'supervisorName'
+            ? supervisorNameForExport(application)
+            : header === 'createdByPhoneNumber'
             ? application.createdBy.phoneNumber
             : header === 'createdByCnic'
               ? application.createdBy.cnic
