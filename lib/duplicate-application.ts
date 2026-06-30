@@ -1,6 +1,5 @@
 import type { FormData } from '@/components/orphan-application-wizard';
-import { HOUSEHOLD_ASSET_KEYS, householdAssetRowsToOtherItems, householdAssetRowsToSelection } from '@/lib/household-assets';
-import { toDateInputValue } from '@/lib/safe-date';
+import { applicationToWizardData } from '@/lib/application-wizard-data';
 
 const childSpecificFields: Array<keyof FormData> = [
   'registrationNumber',
@@ -60,84 +59,31 @@ const childSpecificFields: Array<keyof FormData> = [
   'documents',
 ];
 
-function toWizardValue(value: unknown) {
-  if (value instanceof Date) return toDateInputValue(value);
-  if (typeof value === 'number') return String(value);
-  return value;
-}
-
-function dateOnly(value: unknown) {
-  return toDateInputValue(value);
-}
-
 export function buildDuplicateFamilyInitialData(application: any): Partial<FormData> {
-  const initialData: Record<string, unknown> = {};
-
-  Object.entries(application).forEach(([key, value]) => {
-    if (['id', 'createdAt', 'updatedAt', 'submittedAt', 'termsAcceptedAt', 'siblings', 'relatives', 'householdAssets'].includes(key)) return;
-    initialData[key] = toWizardValue(value);
-  });
+  const initialData = applicationToWizardData(application);
+  const writableInitialData = initialData as Partial<Record<keyof FormData, unknown>>;
 
   childSpecificFields.forEach((field) => {
     if (field === 'nationality') {
-      initialData[field] = 'Pakistani';
-    } else if (field === 'currentlyStudying' || field === 'enrolledInMadrasa' || field === 'educationUndertakingAccepted' || field === 'termsAccepted') {
-      initialData[field] = false;
+      writableInitialData[field] = 'Pakistani';
+    } else if (
+      field === 'currentlyStudying'
+      || field === 'enrolledInMadrasa'
+      || field === 'educationUndertakingAccepted'
+      || field === 'termsAccepted'
+    ) {
+      writableInitialData[field] = false;
     } else if (field === 'childHobbies' || field === 'documents') {
-      initialData[field] = [];
+      writableInitialData[field] = [];
     } else {
-      initialData[field] = '';
+      writableInitialData[field] = '';
     }
   });
 
   initialData.status = 'draft';
-  initialData.relativeInformationDisclosed = application.relativeInformationDisclosed === true ? 'yes' : application.relativeInformationDisclosed === false ? 'no' : '';
-  initialData.siblings = application.siblings.map((sibling: any) => ({
-    name: sibling.name ?? '',
-    relation: sibling.relation ?? 'brother',
-    dob: dateOnly(sibling.dob),
-    age: sibling.age?.toString() ?? '',
-    educationStatus: sibling.educationStatus ?? '',
-    currentlyStudying: sibling.currentlyStudying === true ? 'yes' : sibling.currentlyStudying === false ? 'no' : '',
-    occupation: sibling.occupation ?? '',
-    monthlyIncomeOrFee: sibling.monthlyIncomeOrFee?.toString() ?? '',
-    maritalStatus: sibling.maritalStatus ?? '',
-  }));
-  initialData.totalSiblings = application.siblings.length ? String(application.siblings.length) : application.totalSiblings?.toString() ?? '';
-  initialData.relatives = application.relatives.map((relative: any) => ({
-    relativeType: relative.relativeType ?? 'paternal_grandfather',
-    name: relative.name ?? '',
-    age: relative.age?.toString() ?? '',
-    monthlyIncome: relative.monthlyIncome?.toString() ?? '',
-    occupation: relative.occupation ?? '',
-    occupationOther: relative.occupationOther ?? '',
-    supportType: relative.supportType ?? '',
-    supportTypeOther: relative.supportTypeOther ?? '',
-  }));
-  const assetRows = application.householdAssets.map((asset: any) => ({
-    assetType: asset.assetType ?? '',
-    quantity: asset.quantity,
-    value: asset.value,
-  }));
-  const householdAssetSelection = householdAssetRowsToSelection(assetRows);
-  const appearsPastAssetStep = Boolean(
-    application.childName ||
-    application.bFormNumber ||
-    application.dateOfBirth ||
-    application.healthStatus ||
-    application.householdHasMonthlyIncome ||
-    (application.siblings ?? []).length,
-  );
-  if ((application.status && application.status !== 'draft') || appearsPastAssetStep) {
-    for (const key of HOUSEHOLD_ASSET_KEYS) {
-      if (key !== 'other' && !householdAssetSelection[key].answered) {
-        householdAssetSelection[key].answered = true;
-      }
-    }
-  }
-  initialData.householdAssetSelection = householdAssetSelection;
-  initialData.otherHouseholdAssets = householdAssetRowsToOtherItems(assetRows);
+  initialData.totalSiblings = application.siblings?.length
+    ? String(application.siblings.length)
+    : application.totalSiblings?.toString() ?? '';
 
-  return initialData as Partial<FormData>;
+  return initialData;
 }
-

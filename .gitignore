@@ -7,4 +7,5 @@ out
 coverage
 **/*.log
 ~$*.xlsx
+admin-approved-applications*.xlsx
 backups/
