@@ -208,6 +208,7 @@ export default function ViewerGeoStoryMap({
   const [locationLevel, setLocationLevel] = useState<LocationLevel>('district');
   const [locationFilter, setLocationFilter] = useState<string>('all');
   const [selectedId, setSelectedId] = useState<string | null>(points[0]?.id ?? null);
+  const [mapReady, setMapReady] = useState(false);
   const mapNodeRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const layerRef = useRef<LayerGroup | null>(null);
@@ -293,6 +294,30 @@ export default function ViewerGeoStoryMap({
     });
   }, [filteredPoints, language, t.active]);
 
+  const statusPie = useMemo(() => {
+    const total = statusBreakdown.reduce((sum, item) => sum + item.total, 0);
+
+    if (!total) {
+      return {
+        background: '#edf2f7',
+        label: `${t.statusMix}: 0`,
+      };
+    }
+
+    let start = 0;
+    const segments = statusBreakdown.map((item) => {
+      const end = start + (item.total / total) * 360;
+      const segment = `${item.color} ${start}deg ${end}deg`;
+      start = end;
+      return segment;
+    });
+
+    return {
+      background: `conic-gradient(from -90deg, ${segments.join(', ')})`,
+      label: `${t.statusMix}: ${statusBreakdown.map((item) => `${item.label} ${item.total} (${item.percent}%)`).join(', ')}`,
+    };
+  }, [statusBreakdown, t.statusMix]);
+
   const selectedLocationLevel = locationLevels.find((item) => item.value === locationLevel) ?? locationLevels[1];
   const numberLocale = language === 'ur' ? 'ur-PK' : 'en-US';
   const isRtl = language === 'ur';
@@ -321,6 +346,7 @@ export default function ViewerGeoStoryMap({
 
       mapRef.current = map;
       layerRef.current = L.layerGroup().addTo(map);
+      setMapReady(true);
       setTimeout(() => map.invalidateSize(), 120);
       setTimeout(() => map.invalidateSize(), 450);
     }
@@ -336,6 +362,8 @@ export default function ViewerGeoStoryMap({
   }, []);
 
   useEffect(() => {
+    if (!mapReady) return;
+
     let disposed = false;
 
     async function renderMarkers() {
@@ -377,7 +405,7 @@ export default function ViewerGeoStoryMap({
     return () => {
       disposed = true;
     };
-  }, [filteredPoints, selectedPoint?.id, language]);
+  }, [filteredPoints, selectedPoint?.id, language, mapReady]);
 
   useEffect(() => {
     if (selectedPoint && selectedPoint.id !== selectedId) setSelectedId(selectedPoint.id);
@@ -423,7 +451,7 @@ export default function ViewerGeoStoryMap({
       </div>
 
       <div className="grid gap-3 p-3 xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[#cddbeb] bg-white shadow-[0_16px_40px_rgba(15,31,51,0.08)]">
+        <div className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-[#cddbeb] bg-white shadow-[0_16px_40px_rgba(15,31,51,0.08)]">
           <div className="shrink-0 space-y-2.5 border-b border-[#d7e3ef] bg-white px-3 py-2.5">
             <div className="flex flex-col gap-2.5 2xl:flex-row 2xl:items-center 2xl:justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#506784]">
@@ -508,7 +536,7 @@ export default function ViewerGeoStoryMap({
             </div>
           </div>
 
-          <div className="relative min-h-[500px] flex-1 bg-[#dfeaf2]">
+          <div className="relative h-[360px] bg-[#dfeaf2] sm:h-[420px]">
             <div ref={mapNodeRef} className="h-full w-full" role="img" aria-label={t.mapAria} />
             <div className="pointer-events-none absolute left-4 top-4 rounded-lg border border-white/80 bg-white/95 px-3 py-2 text-xs font-semibold text-[#0f1f33] shadow-[0_10px_24px_rgba(15,31,51,0.12)] backdrop-blur">
               {locationFilter === 'all' ? t.pakistanOnly : locationFilter}
@@ -525,7 +553,7 @@ export default function ViewerGeoStoryMap({
           </div>
         </div>
 
-        <aside className="min-w-0 space-y-2.5">
+        <aside className="min-w-0 space-y-2.5 xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:grid xl:grid-rows-subgrid xl:space-y-0">
           <section className="rounded-xl border border-[#cddbeb] bg-white p-4 shadow-[0_14px_30px_rgba(15,31,51,0.08)]">
             <div className={`flex items-center justify-between gap-3 ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}>
               <div>
@@ -555,57 +583,88 @@ export default function ViewerGeoStoryMap({
 
           <section className="rounded-xl border border-[#cddbeb] bg-white p-4 shadow-[0_14px_30px_rgba(15,31,51,0.08)]">
             <h3 className={`text-sm font-semibold text-[#0f1f33] ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>{t.statusMix}</h3>
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 flex justify-center">
+              <div
+                className="aspect-square w-full max-w-[190px] rounded-full shadow-[inset_0_0_0_1px_rgba(15,31,51,0.06),0_12px_28px_rgba(15,31,51,0.12)]"
+                style={{ background: statusPie.background }}
+                role="img"
+                aria-label={statusPie.label}
+              />
+            </div>
+            <div className="mt-5 grid gap-2.5">
               {statusBreakdown.map((item) => (
-                <div key={item.value}>
-                  <div className={`mb-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-[#506784] ${isRtl ? 'flex-row-reverse' : ''}`}>
+                <div key={item.value} className={`flex items-center justify-between gap-3 rounded-lg bg-[#f8fbff] px-3 py-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <span className={`flex min-w-0 items-center gap-2 text-xs font-semibold text-[#506784] ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
                     <span className="truncate">{item.label}</span>
-                    <span className="shrink-0">{item.total.toLocaleString(numberLocale)} ({item.percent.toLocaleString(numberLocale)}%)</span>
-                  </div>
-                  <div className="h-2.5 overflow-hidden rounded-full bg-[#edf2f7]">
-                    <div className="h-full rounded-full" style={{ width: `${item.percent}%`, backgroundColor: item.color }} />
-                  </div>
+                  </span>
+                  <span className="shrink-0 text-xs font-semibold text-[#506784]">{item.total.toLocaleString(numberLocale)} ({item.percent.toLocaleString(numberLocale)}%)</span>
                 </div>
               ))}
             </div>
           </section>
+        </aside>
 
-          <section className="rounded-xl border border-[#cddbeb] bg-white p-4 shadow-[0_14px_30px_rgba(15,31,51,0.08)]">
+        <section className="rounded-xl border border-[#cddbeb] bg-white p-4 shadow-[0_14px_30px_rgba(15,31,51,0.08)] sm:p-5 xl:col-start-1 xl:row-start-2">
             <h3 className={`text-sm font-semibold text-[#0f1f33] ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>{selectedLocationLevel.ranking[language]}</h3>
-            <div className="mt-4 space-y-4">
+            <div className="mt-4">
               {locationCounts.length === 0 ? (
                 <p className={`text-sm leading-6 text-[#5f718a] ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>{t.noLocationMatches}</p>
-              ) : null}
-              {locationCounts.map((item, index) => {
-                const width = filteredPoints.length ? Math.max(8, Math.round((item.total / filteredPoints.length) * 100)) : 0;
-                return (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => {
-                      setLocationFilter(item.value);
-                      setSelectedId(null);
-                    }}
-                    className="block w-full rounded-lg px-2 py-1.5 text-left transition hover:bg-[#f6f9fd]"
-                  >
-                    <div className={`mb-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-[#506784] ${isRtl ? 'flex-row-reverse text-right' : ''}`}>
-                      <span className={`flex min-w-0 items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-[#edf4ff] text-[#2563eb]">
-                          {index + 1}
-                        </span>
-                        <span className="truncate">{item.value}</span>
-                      </span>
-                      <span className="shrink-0">{item.total.toLocaleString(numberLocale)} {t.homes}</span>
+              ) : (
+                <div className="overflow-x-auto pb-1">
+                  <div className="min-w-[520px] px-2 pt-7">
+                    <div className="relative h-[260px] border-b border-l border-[#b9c9dc]">
+                      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(203,213,225,0.55)_1px,transparent_1px)] bg-[size:100%_25%]" />
+                      <div className="absolute inset-0 grid grid-cols-5 items-end gap-5 px-5 sm:gap-8 sm:px-8">
+                        {locationCounts.map((item, index) => {
+                          const maximumLocationCount = locationCounts[0]?.total ?? 0;
+                          const height = maximumLocationCount ? Math.max(10, Math.round((item.total / maximumLocationCount) * 100)) : 0;
+
+                          return (
+                            <button
+                              key={item.value}
+                              type="button"
+                              onClick={() => {
+                                setLocationFilter(item.value);
+                                setSelectedId(null);
+                              }}
+                              className="group relative flex h-full min-w-0 items-end justify-center rounded-t-md outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] focus-visible:ring-offset-2"
+                              aria-label={`${index + 1}. ${item.value}: ${item.total.toLocaleString(numberLocale)} ${t.homes}`}
+                            >
+                              <span
+                                className="relative block w-full max-w-[86px] rounded-t-lg bg-gradient-to-t from-[#1d4ed8] via-[#2563eb] to-[#60a5fa] shadow-[0_10px_24px_rgba(37,99,235,0.18)] transition-[height,filter] duration-300 group-hover:brightness-105"
+                                style={{ height: `${height}%` }}
+                              >
+                                <span className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-semibold text-[#23466f]">
+                                  {item.total.toLocaleString(numberLocale)}
+                                </span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="h-2.5 overflow-hidden rounded-full bg-[#edf2f7]">
-                      <div className="h-full rounded-full bg-[#2563eb]" style={{ width: `${width}%` }} />
+                    <div className="grid grid-cols-5 gap-5 px-5 pt-3 sm:gap-8 sm:px-8">
+                      {locationCounts.map((item, index) => (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => {
+                            setLocationFilter(item.value);
+                            setSelectedId(null);
+                          }}
+                          className="min-w-0 text-center text-xs font-semibold leading-4 text-[#506784] transition hover:text-[#2563eb]"
+                        >
+                          <span className="mx-auto mb-1 flex size-5 items-center justify-center rounded-md bg-[#edf4ff] text-[11px] text-[#2563eb]">{index + 1}</span>
+                          <span className="line-clamp-2">{item.value}</span>
+                        </button>
+                      ))}
                     </div>
-                  </button>
-                );
-              })}
+                  </div>
+                </div>
+              )}
             </div>
-          </section>
-        </aside>
+        </section>
       </div>
     </section>
   );
