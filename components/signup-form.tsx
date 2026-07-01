@@ -290,9 +290,6 @@ function RegistrationClosed() {
             <p className="mt-3 max-w-md text-sm leading-6 text-slate-600">
               {FIELD_WORKER_REGISTRATION_CLOSED_MESSAGE}
             </p>
-            <p dir="rtl" lang="ur" className="mt-2 max-w-md text-sm leading-8 text-slate-600">
-              فیلڈ ورکر کی نئی رجسٹریشن فی الحال بند ہے۔ آپ کے تعاون کا شکریہ۔
-            </p>
 
             <Link
               href="/signin"
