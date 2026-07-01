@@ -282,14 +282,7 @@ function RegistrationClosed() {
               />
             </div>
 
-            <div className="mt-4 inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-bold text-amber-800">
-              <span className="registration-status-dot h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />
-              <span className="uppercase tracking-[0.16em]">Temporarily closed</span>
-              <span className="text-amber-300" aria-hidden="true">|</span>
-              <span dir="rtl" lang="ur" className="text-sm font-semibold leading-6">عارضی طور پر بند</span>
-            </div>
-
-            <h1 id="registration-closed-title" className="mt-4 text-2xl font-bold tracking-tight text-slate-950 sm:text-[1.75rem]">
+            <h1 id="registration-closed-title" className="mt-5 text-2xl font-bold tracking-tight text-slate-950 sm:text-[1.75rem]">
               Field worker registration is temporarily closed
             </h1>
             <p dir="rtl" lang="ur" className="mt-2 text-xl font-semibold leading-9 text-slate-900">
