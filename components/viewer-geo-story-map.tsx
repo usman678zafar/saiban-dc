@@ -452,81 +452,95 @@ export default function ViewerGeoStoryMap({
 
       <div className="grid gap-3 p-3 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-[#cddbeb] bg-white shadow-[0_16px_40px_rgba(15,31,51,0.08)]">
-          <div className="shrink-0 space-y-2.5 border-b border-[#d7e3ef] bg-white px-3 py-2.5">
-            <div className="flex flex-col gap-2.5 2xl:flex-row 2xl:items-center 2xl:justify-between">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#506784]">
-                <LocateFixed className="h-4 w-4" aria-hidden="true" />
-                {t.locationLens}
-              </div>
-              <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-end">
-                <div className="flex gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+          <div className="shrink-0 border-b border-[#d7e3ef] bg-[#f8fbff] p-3 sm:p-4">
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)]">
+              <div className="min-w-0">
+                <div className={`mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#647b98] ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
+                  <LocateFixed className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t.viewBy}
+                </div>
+                <div className="grid grid-cols-4 gap-1 rounded-xl border border-[#d6e1ee] bg-[#eaf1f8] p-1 shadow-inner">
                   {locationLevels.map((item) => (
                     <button
                       key={item.value}
                       type="button"
+                      aria-pressed={locationLevel === item.value}
                       onClick={() => {
                         setLocationLevel(item.value);
                         setLocationFilter('all');
                         setSelectedId(null);
                       }}
-                      className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${locationLevel === item.value ? 'border-[#0b3b73] bg-[#0b3b73] text-white shadow-[0_8px_20px_rgba(11,59,115,0.16)]' : 'border-[#dbe4ef] bg-white text-[#0f1f33] hover:bg-[#f6f9fd]'}`}
+                      className={`inline-flex min-h-10 min-w-0 items-center justify-center rounded-lg px-2 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] focus-visible:ring-offset-1 ${locationLevel === item.value ? 'bg-[#0b3b73] text-white shadow-[0_5px_14px_rgba(11,59,115,0.22)]' : 'text-[#38516f] hover:bg-white/80 hover:text-[#0f1f33]'}`}
                     >
-                      {item.label[language]}
+                      <span className="truncate">{item.label[language]}</span>
                     </button>
                   ))}
                 </div>
-                <label className="sr-only" htmlFor="viewer-location-filter">{t.locationLens}</label>
-                <select
-                  id="viewer-location-filter"
-                  value={locationFilter}
-                  onChange={(event) => {
-                    setLocationFilter(event.target.value);
-                    setSelectedId(null);
-                  }}
-                  className="min-h-9 w-full rounded-lg border border-[#dbe4ef] bg-white px-3 text-xs font-semibold text-[#0f1f33] shadow-sm outline-none transition focus:border-[#2563eb] focus:ring-2 focus:ring-[#bfdbfe] lg:w-[220px]"
-                >
-                  <option value="all">{t.allLocations}</option>
-                  {locationOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.value} ({option.total.toLocaleString(numberLocale)})
-                    </option>
-                  ))}
-                </select>
-                {locationFilter !== 'all' ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLocationFilter('all');
+              </div>
+
+              <div className="min-w-0">
+                <label className={`mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#647b98] ${isRtl ? 'flex-row-reverse justify-end' : ''}`} htmlFor="viewer-location-filter">
+                  <MapPinned className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t.locationLens}
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    id="viewer-location-filter"
+                    value={locationFilter}
+                    onChange={(event) => {
+                      setLocationFilter(event.target.value);
                       setSelectedId(null);
                     }}
-                    className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-[#dbe4ef] bg-white px-3 text-xs font-semibold text-[#506784] transition hover:bg-[#f6f9fd]"
+                    className="min-h-12 min-w-0 flex-1 rounded-xl border border-[#d6e1ee] bg-white px-3 text-xs font-semibold text-[#0f1f33] shadow-[0_3px_10px_rgba(15,31,51,0.05)] outline-none transition hover:border-[#b9c9dc] focus:border-[#2563eb] focus:ring-2 focus:ring-[#bfdbfe]"
                   >
-                    {t.clearLocation}
-                  </button>
-                ) : null}
+                    <option value="all">{t.allLocations}</option>
+                    {locationOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.value} ({option.total.toLocaleString(numberLocale)})
+                      </option>
+                    ))}
+                  </select>
+                  {locationFilter !== 'all' ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLocationFilter('all');
+                        setSelectedId(null);
+                      }}
+                      className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl border border-[#d6e1ee] bg-white px-3 text-xs font-semibold text-[#506784] transition hover:border-[#b9c9dc] hover:bg-[#f2f7fc]"
+                    >
+                      {t.clearLocation}
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#506784]">
+            <div className="mt-3 border-t border-[#dfe8f2] pt-3">
+              <div className={`mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#647b98] ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
                 <Filter className="h-4 w-4" aria-hidden="true" />
                 {t.filter}
               </div>
-              <div className="flex gap-1.5 overflow-x-auto pb-1 sm:justify-end sm:pb-0">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
                 {statusFilters.map((item) => {
                   const count = filterCounts.get(item.value) ?? 0;
+                  const color = item.value === 'all' ? '#0b3b73' : item.value === 'active' ? '#f59e0b' : item.value === 'final_approved' ? '#16a34a' : item.value === 'pending' ? '#2563eb' : '#e11d48';
                   return (
                     <button
                       key={item.value}
                       type="button"
+                      aria-pressed={filter === item.value}
                       onClick={() => {
                         setFilter(item.value);
                         setSelectedId(null);
                       }}
-                      className={`inline-flex min-h-9 shrink-0 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition ${filter === item.value ? 'border-[#2563eb] bg-[#2563eb] text-white shadow-[0_8px_20px_rgba(37,99,235,0.2)]' : 'border-[#dbe4ef] bg-white text-[#0f1f33] hover:bg-[#f6f9fd]'}`}
+                      className={`inline-flex min-h-11 min-w-0 items-center justify-between gap-2 rounded-xl border px-3 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] focus-visible:ring-offset-1 ${filter === item.value ? 'border-[#0b3b73] bg-[#0b3b73] text-white shadow-[0_6px_16px_rgba(11,59,115,0.18)]' : 'border-[#d6e1ee] bg-white text-[#243b57] shadow-[0_2px_7px_rgba(15,31,51,0.04)] hover:border-[#b9c9dc] hover:bg-[#fafdff]'}`}
                     >
-                      <span>{item.label[language]}</span>
-                      <span className={`rounded-full px-2 py-0.5 text-[11px] ${filter === item.value ? 'bg-white/20 text-white' : 'bg-[#edf4ff] text-[#2563eb]'}`}>
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: filter === item.value ? '#ffffff' : color }} />
+                        <span className="truncate">{item.label[language]}</span>
+                      </span>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] ${filter === item.value ? 'bg-white/16 text-white' : 'bg-[#edf4ff] text-[#2563eb]'}`}>
                         {count.toLocaleString(numberLocale)}
                       </span>
                     </button>
