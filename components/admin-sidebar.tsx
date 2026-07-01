@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronLeft, ChevronRight, ClipboardList, FolderKanban, KeyRound, LayoutDashboard, LogOut, PlusCircle, ScrollText } from 'lucide-react';
+import { ClipboardList, FolderKanban, KeyRound, LayoutDashboard, LogOut, PlusCircle, ScrollText } from 'lucide-react';
 import clsx from 'clsx';
 import SignOutButton from './sign-out-button';
 import logo from '@/assests/logo.png';
@@ -47,17 +47,17 @@ function isActivePath(pathname: string, href: string, exact?: boolean) {
 
 export default function AdminSidebar({ email, newApplicationsEnabled }: AdminSidebarProps) {
   const pathname = usePathname();
-  const { collapsed, setCollapsed } = useSidebarCollapse();
+  const { collapsed, expandSidebar, collapseSidebar } = useSidebarCollapse();
   const visibleNavItems = navItems.filter((item) => !item.requiresIntakeOpen || newApplicationsEnabled);
   const profileLabel = email ?? 'Signed in';
   const profileInitial = profileLabel.charAt(0).toUpperCase();
 
   return (
     <>
-      <aside className={clsx('admin-sidebar-scrollbar fixed inset-y-0 left-0 z-40 hidden flex-col overflow-y-auto border-r border-[#dbe4ef] bg-white text-[#0f1f33] shadow-[4px_0_24px_rgba(15,31,51,0.025)] transition-[width] duration-200 lg:flex', collapsed ? 'w-[4.75rem]' : 'w-48')}>
+      <aside aria-label="Admin sidebar" aria-expanded={!collapsed} onMouseEnter={expandSidebar} onMouseLeave={collapseSidebar} onFocusCapture={expandSidebar} onBlurCapture={collapseSidebar} className={clsx('admin-sidebar-scrollbar fixed inset-y-0 left-0 z-40 hidden flex-col overflow-x-hidden overflow-y-auto border-r border-[#dbe4ef] bg-white text-[#0f1f33] transition-[width,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:flex', collapsed ? 'w-[4.75rem] shadow-[4px_0_20px_rgba(15,31,51,0.04)]' : 'w-56 shadow-[12px_0_40px_rgba(15,31,51,0.14)]')}>
         <div className={clsx('border-b border-[#e5ebf3] text-center', collapsed ? 'px-2 pb-3 pt-4' : 'px-3 pb-4 pt-4')}>
           <Image src={logo} alt="Saiban" width={160} height={125} className={clsx('mx-auto w-auto object-contain transition-[height] duration-200', collapsed ? 'h-11' : 'h-20')} priority />
-          {!collapsed && <p className="mt-1 text-[11px] font-medium text-[#63758d]">Data Collection System</p>}
+          {!collapsed && <p className="sidebar-item-reveal mt-1 text-[11px] font-medium text-[#63758d]">Data Collection System</p>}
         </div>
 
         <nav className="grid gap-1 px-2 py-4" aria-label="Admin navigation">
@@ -78,7 +78,7 @@ export default function AdminSidebar({ email, newApplicationsEnabled }: AdminSid
                   )}
                 >
                   <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
-                  {!collapsed && <span className="truncate">{item.label}</span>}
+                  {!collapsed && <span className="sidebar-item-reveal truncate">{item.label}</span>}
                 </Link>
               </div>
             );
@@ -88,15 +88,12 @@ export default function AdminSidebar({ email, newApplicationsEnabled }: AdminSid
         <div className="mt-auto border-t border-[#e5ebf3] p-2">
           <div className={clsx('mb-2 flex min-w-0 items-center rounded-xl border border-[#e5ebf3] bg-[#f8fafc]', collapsed ? 'justify-center p-2' : 'gap-2.5 p-2.5')}>
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#dceaff] text-xs font-bold text-[#2563eb]">{profileInitial}</span>
-            {!collapsed && <div className="min-w-0"><p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#7b8ca3]">Signed in</p><p className="mt-0.5 truncate text-xs font-semibold text-[#0f1f33]">{profileLabel}</p></div>}
+            {!collapsed && <div className="sidebar-item-reveal min-w-0"><p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#7b8ca3]">Signed in</p><p className="mt-0.5 truncate text-xs font-semibold text-[#0f1f33]">{profileLabel}</p></div>}
           </div>
           <SignOutButton ariaLabel="Sign out" className={clsx('flex min-h-9 w-full items-center justify-center rounded-lg px-2 text-xs font-semibold text-[#64748b] transition-colors hover:bg-[#fff1f2] hover:text-[#dc2626]', !collapsed && 'gap-2')}>
             <LogOut className="h-4 w-4" aria-hidden="true" />
-            {!collapsed && <span>Sign Out</span>}
+            {!collapsed && <span className="sidebar-item-reveal">Sign Out</span>}
           </SignOutButton>
-          <button type="button" onClick={() => setCollapsed(!collapsed)} className="mt-1 flex min-h-8 w-full items-center justify-center rounded-lg text-[#94a3b8] transition-colors hover:bg-[#f4f7fb] hover:text-[#475569]" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </button>
         </div>
       </aside>
 

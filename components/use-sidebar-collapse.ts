@@ -1,27 +1,36 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-const STORAGE_KEY = 'saiban-sidebar-collapsed';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function useSidebarCollapse() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
+  const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    const storedValue = window.localStorage.getItem(STORAGE_KEY) === 'true';
-    setCollapsed(storedValue);
-    document.documentElement.dataset.sidebarCollapsed = String(storedValue);
-
-    return () => {
-      delete document.documentElement.dataset.sidebarCollapsed;
-    };
+  const cancelCollapse = useCallback(() => {
+    if (collapseTimer.current) {
+      clearTimeout(collapseTimer.current);
+      collapseTimer.current = null;
+    }
   }, []);
 
-  function updateCollapsed(value: boolean) {
-    setCollapsed(value);
-    document.documentElement.dataset.sidebarCollapsed = String(value);
-    window.localStorage.setItem(STORAGE_KEY, String(value));
-  }
+  const expandSidebar = useCallback(() => {
+    cancelCollapse();
+    setCollapsed(false);
+  }, [cancelCollapse]);
 
-  return { collapsed, setCollapsed: updateCollapsed };
+  const collapseSidebar = useCallback(() => {
+    cancelCollapse();
+    collapseTimer.current = setTimeout(() => {
+      setCollapsed(true);
+      collapseTimer.current = null;
+    }, 140);
+  }, [cancelCollapse]);
+
+  useEffect(() => cancelCollapse, [cancelCollapse]);
+
+  return {
+    collapsed,
+    expandSidebar,
+    collapseSidebar,
+  };
 }
