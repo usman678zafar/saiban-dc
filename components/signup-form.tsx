@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import logo from '@/assests/logo.png';
 import baitussalamLogo from '@/assests/baitussalam.webp';
+import pausedRegistrationImage from '@/assests/abcd.png';
 import { formatCnic, formatPakistanMobile, isValidPakistanMobile, normalizePakistanMobile } from '@/lib/contact-format';
 import { useNavigationLoading } from './navigation-loading';
 import { PasswordValueReveal } from './password-input';
@@ -270,29 +271,27 @@ function RegistrationClosed() {
           </div>
 
           <div className="flex flex-col items-center pt-6 text-center">
-            <div className="relative flex h-32 w-32 items-center justify-center sm:h-36 sm:w-36">
+            <div className="relative flex h-40 w-40 items-center justify-center sm:h-44 sm:w-44">
               <span className="registration-image-glow absolute inset-3 rounded-full bg-amber-200/70 blur-2xl" aria-hidden="true" />
               <Image
-                src="/status/registration-paused.webp"
+                src={pausedRegistrationImage}
                 alt="Registration desk with an hourglass"
-                width={512}
-                height={512}
-                className="registration-paused-image relative h-full w-full rounded-3xl object-cover shadow-sm"
+                className="registration-paused-image relative h-full w-full object-contain drop-shadow-[0_12px_18px_rgba(15,23,42,0.14)]"
                 priority
               />
             </div>
 
             <h1 id="registration-closed-title" className="mt-5 text-2xl font-bold tracking-tight text-slate-950 sm:text-[1.75rem]">
-              Field worker registration is temporarily closed
+              Registration temporarily closed
             </h1>
             <p dir="rtl" lang="ur" className="mt-2 text-xl font-semibold leading-9 text-slate-900">
-              فیلڈ ورکر رجسٹریشن عارضی طور پر بند ہے
+              رجسٹریشن عارضی طور پر بند ہے
             </p>
             <p className="mt-3 max-w-md text-sm leading-6 text-slate-600">
               {FIELD_WORKER_REGISTRATION_CLOSED_MESSAGE}
             </p>
             <p dir="rtl" lang="ur" className="mt-2 max-w-md text-sm leading-8 text-slate-600">
-              سائبان کے ساتھ تعاون میں دلچسپی کا شکریہ۔ فی الحال فیلڈ ورکر کی نئی رجسٹریشن قبول نہیں کی جا رہی۔ آپ کے صبر اور تعاون کے لیے ہم تہہ دل سے شکر گزار ہیں۔
+              فیلڈ ورکر کی نئی رجسٹریشن فی الحال بند ہے۔ آپ کے تعاون کا شکریہ۔
             </p>
 
             <Link

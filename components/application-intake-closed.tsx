@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { NEW_APPLICATIONS_CLOSED_MESSAGE } from '@/lib/application-intake';
+import pausedRegistrationImage from '@/assests/abcd.png';
 
 type ApplicationIntakeClosedProps = {
   backHref?: string;
@@ -17,11 +18,9 @@ export default function ApplicationIntakeClosed({
     return (
       <section className="mb-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50/90 p-3 text-amber-950 shadow-sm sm:p-4" aria-label="New applications temporarily paused">
         <Image
-          src="/status/registration-paused.webp"
+          src={pausedRegistrationImage}
           alt="Registration desk with an hourglass"
-          width={512}
-          height={512}
-          className="registration-paused-image h-16 w-16 shrink-0 rounded-xl object-cover shadow-sm sm:h-20 sm:w-20"
+          className="registration-paused-image h-20 w-20 shrink-0 object-contain drop-shadow-sm sm:h-24 sm:w-24"
         />
         <div className="min-w-0">
           <p className="text-sm font-bold">New applications are temporarily paused</p>
@@ -33,14 +32,12 @@ export default function ApplicationIntakeClosed({
 
   return (
     <section className="mx-auto max-w-xl overflow-hidden rounded-2xl border border-amber-200 bg-white p-5 text-center shadow-[0_20px_55px_-30px_rgba(15,23,42,0.4)] sm:p-8" aria-labelledby="application-intake-closed-title">
-      <div className="relative mx-auto flex h-36 w-36 items-center justify-center sm:h-40 sm:w-40">
+      <div className="relative mx-auto flex h-44 w-44 items-center justify-center sm:h-48 sm:w-48">
         <span className="registration-image-glow absolute inset-3 rounded-full bg-amber-200/60 blur-2xl" aria-hidden="true" />
         <Image
-          src="/status/registration-paused.webp"
+          src={pausedRegistrationImage}
           alt="Registration desk with an hourglass"
-          width={512}
-          height={512}
-          className="registration-paused-image relative h-full w-full rounded-3xl object-cover shadow-sm"
+          className="registration-paused-image relative h-full w-full object-contain drop-shadow-[0_12px_18px_rgba(15,23,42,0.14)]"
           priority
         />
       </div>
