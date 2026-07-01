@@ -6,6 +6,8 @@ import AppShell from '@/components/app-shell';
 import SupervisorShell from '@/components/supervisor-shell';
 import OrphanApplicationWizard from '@/components/orphan-application-wizard';
 import { buildDuplicateFamilyInitialData } from '@/lib/duplicate-application';
+import ApplicationIntakeClosed from '@/components/application-intake-closed';
+import { isNewApplicationIntakeEnabled } from '@/lib/application-intake';
 
 interface DuplicateApplicationPageProps {
   params: {
@@ -17,6 +19,34 @@ export default async function DuplicateApplicationPage({ params }: DuplicateAppl
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect(`/signin?callbackUrl=/applications/${params.id}/duplicate`);
 
+  const canCreateApplications = session.user.role === 'field_worker'
+    || session.user.role === 'admin'
+    || session.user.role === 'super_admin'
+    || ((session.user.role === 'supervisor' || session.user.role === 'reviewer') && Boolean(session.user.canCreateApplications));
+  if (!canCreateApplications) notFound();
+
+  if (!isNewApplicationIntakeEnabled()) {
+    const notice = <ApplicationIntakeClosed />;
+    if (session.user.role === 'supervisor') {
+      return (
+        <SupervisorShell
+          email={session.user.email}
+          name={session.user.name}
+          canCreateApplications={Boolean(session.user.canCreateApplications)}
+          canManageFieldWorkers={Boolean(session.user.canManageFieldWorkers)}
+        >
+          {notice}
+        </SupervisorShell>
+      );
+    }
+
+    return (
+      <AppShell title="Application intake" description="New applications are temporarily paused." maxWidth="max-w-6xl">
+        {notice}
+      </AppShell>
+    );
+  }
+
   const application = await prisma.orphanApplication.findUnique({
     where: { id: params.id },
     include: {
@@ -27,11 +57,6 @@ export default async function DuplicateApplicationPage({ params }: DuplicateAppl
   });
 
   if (!application) notFound();
-  const canCreateApplications = session.user.role === 'field_worker'
-    || session.user.role === 'admin'
-    || session.user.role === 'super_admin'
-    || ((session.user.role === 'supervisor' || session.user.role === 'reviewer') && Boolean(session.user.canCreateApplications));
-  if (!canCreateApplications) notFound();
   if (application.createdById !== session.user.id && !['admin', 'super_admin'].includes(session.user.role ?? '')) notFound();
 
   const initialData = buildDuplicateFamilyInitialData(application);

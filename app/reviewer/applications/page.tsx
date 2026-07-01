@@ -12,6 +12,7 @@ import { applicationStatusLabel, badgeClass } from '@/lib/application-workflow';
 import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
 import { getSameFamilySummaries, sameFamilyApplicationSelect } from '@/lib/same-family-applications';
+import { isNewApplicationIntakeEnabled } from '@/lib/application-intake';
 
 export const dynamic = 'force-dynamic';
 
@@ -198,7 +199,7 @@ export default async function ReviewerApplicationsPage({
           <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Reviewer Applications</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a]">Review supervisor-approved applications and revisit approved or rejected reviewer decisions.</p>
         </div>
-        {user?.canCreateApplications ? (
+        {user?.canCreateApplications && isNewApplicationIntakeEnabled() ? (
           <Link href="/applications/new" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(37,99,235,0.22)] transition hover:bg-blue-500 sm:min-w-36">
             <FilePlus2 className="h-4 w-4" aria-hidden="true" />
             Application

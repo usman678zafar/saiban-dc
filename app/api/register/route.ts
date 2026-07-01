@@ -6,6 +6,10 @@ import { prisma } from '@/lib/prisma';
 import { cnicVariants, formatCnic, isValidCnic, normalizePakistanMobile } from '@/lib/contact-format';
 import { rateLimit } from '@/lib/rate-limit';
 import { verifyCaptcha } from '@/lib/captcha';
+import {
+  FIELD_WORKER_REGISTRATION_CLOSED_MESSAGE,
+  isFieldWorkerRegistrationEnabled,
+} from '@/lib/field-worker-registration';
 
 const registerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -40,6 +44,13 @@ function isFieldWorkerIdCollision(error: unknown) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isFieldWorkerRegistrationEnabled()) {
+    return NextResponse.json(
+      { code: 'REGISTRATION_CLOSED', message: FIELD_WORKER_REGISTRATION_CLOSED_MESSAGE },
+      { status: 403, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
+
   const registerLimit = rateLimit(request, 'register', 5, 10 * 60 * 1000);
   if (!registerLimit.allowed) {
     return NextResponse.json(

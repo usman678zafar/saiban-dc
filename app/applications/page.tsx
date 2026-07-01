@@ -15,6 +15,8 @@ import VolunteerApplicationStatus from '@/components/volunteer-application-statu
 import ApplicationDeadlineNotice from '@/components/application-deadline-notice';
 import { isValidDate } from '@/lib/safe-date';
 import { APPLICATION_COMPLETION_DEADLINE_DAYS } from '@/lib/application-deadline';
+import { isNewApplicationIntakeEnabled } from '@/lib/application-intake';
+import ApplicationIntakeClosed from '@/components/application-intake-closed';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,6 +77,7 @@ export default async function ApplicationsPage({
   if (!canCreateApplications) {
     redirect(session.user.role === 'supervisor' ? '/supervisor' : session.user.role === 'reviewer' ? '/reviewer/applications' : '/dashboard');
   }
+  const canStartNewApplication = isNewApplicationIntakeEnabled();
   const user = session?.user?.email
     ? await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -138,6 +141,7 @@ export default async function ApplicationsPage({
 
   const content = (
     <>
+      {!canStartNewApplication ? <ApplicationIntakeClosed compact /> : null}
       <DraftDeletionBanner />
 
       <form action="/applications" className="mb-3 rounded-lg border border-slate-200 bg-white p-2 shadow-sm sm:p-3">
@@ -170,7 +174,7 @@ export default async function ApplicationsPage({
           {total === 0 ? 'No records' : `Showing ${skip + 1}-${Math.min(skip + PAGE_SIZE, total)} of ${total}`}
         </div>
         {applications.length === 0 ? (
-          <EmptyApplicationsState search={search} compact canCreateApplications={canCreateApplications} />
+          <EmptyApplicationsState search={search} compact canCreateApplications={canStartNewApplication} />
         ) : (
           applications.map((application: ApplicationListItem) => (
             <article key={application.id} className="min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
@@ -237,7 +241,7 @@ export default async function ApplicationsPage({
                     className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 ) : null}
-                {DUPLICABLE_STATUSES.has(application.status) ? (
+                {canStartNewApplication && DUPLICABLE_STATUSES.has(application.status) ? (
                   <DuplicateApplicationButton
                     applicationId={application.id}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
@@ -265,7 +269,7 @@ export default async function ApplicationsPage({
             {applications.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-4 py-8">
-                  <EmptyApplicationsState search={search} canCreateApplications={canCreateApplications} />
+                  <EmptyApplicationsState search={search} canCreateApplications={canStartNewApplication} />
                 </td>
               </tr>
             ) : (
@@ -320,7 +324,7 @@ export default async function ApplicationsPage({
                         confirmationText={isSuperAdmin ? 'Are you sure you want to permanently delete this application, including its documents and activity history? This action cannot be undone.' : undefined}
                       />
                     ) : null}
-                    {DUPLICABLE_STATUSES.has(application.status) ? (
+                    {canStartNewApplication && DUPLICABLE_STATUSES.has(application.status) ? (
                       <DuplicateApplicationButton
                         applicationId={application.id}
                         className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
@@ -370,12 +374,14 @@ export default async function ApplicationsPage({
             <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Your Applications</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a]">Browse recent submissions, continue drafts, and open records for review.</p>
           </div>
-          <Link
-            href="/applications/new"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(37,99,235,0.22)] transition hover:bg-blue-500 sm:min-w-36"
-          >
-            + Application
-          </Link>
+          {canStartNewApplication ? (
+            <Link
+              href="/applications/new"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(37,99,235,0.22)] transition hover:bg-blue-500 sm:min-w-36"
+            >
+              + Application
+            </Link>
+          ) : null}
         </header>
         {content}
       </SupervisorShell>
@@ -390,7 +396,7 @@ export default async function ApplicationsPage({
             <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">Your Applications</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f718a]">Browse applications created from your reviewer account.</p>
           </div>
-          {canCreateApplications ? (
+          {canStartNewApplication ? (
             <Link
               href="/applications/new"
               className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(37,99,235,0.22)] transition hover:bg-blue-500 sm:min-w-36"
@@ -462,7 +468,9 @@ function EmptyApplicationsState({ search, compact = false, canCreateApplications
       <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">
         {isSearchEmpty
           ? 'Try a different name, registration number, B-form, CNIC, or department.'
-          : 'Start the first orphan support application. You can save it as a draft and come back anytime.'}
+          : canCreateApplications
+            ? 'Start the first orphan support application. You can save it as a draft and come back anytime.'
+            : 'New applications are temporarily paused. Existing drafts remain available.'}
       </p>
       <div className="mt-5 flex w-full flex-col items-center justify-center gap-2 sm:flex-row">
         {isSearchEmpty ? (

@@ -14,6 +14,7 @@ import PortalMobileMenu from './portal-mobile-menu';
 interface AdminSidebarProps {
   email?: string | null;
   role?: string | null;
+  newApplicationsEnabled?: boolean;
 }
 
 interface AdminNavItem {
@@ -22,12 +23,13 @@ interface AdminNavItem {
   mobileLabel: string;
   icon: LucideIcon;
   exact?: boolean;
+  requiresIntakeOpen?: boolean;
 }
 
 const navItems: AdminNavItem[] = [
   { href: '/admin', label: 'Overview', mobileLabel: 'Home', icon: LayoutDashboard, exact: true },
   { href: '/admin/applications', label: 'Applications', mobileLabel: 'Apps', icon: ClipboardList },
-  { href: '/admin/applications/new', label: 'New Application', mobileLabel: 'New', icon: PlusCircle, exact: true },
+  { href: '/admin/applications/new', label: 'New Application', mobileLabel: 'New', icon: PlusCircle, exact: true, requiresIntakeOpen: true },
   { href: '/admin/management', label: 'Management', mobileLabel: 'Manage', icon: FolderKanban },
   { href: '/admin/audit', label: 'Audit Trail', mobileLabel: 'Audit', icon: ScrollText },
   { href: '/admin/account', label: 'Account', mobileLabel: 'Acct', icon: KeyRound },
@@ -43,10 +45,10 @@ function isActivePath(pathname: string, href: string, exact?: boolean) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function AdminSidebar({ email }: AdminSidebarProps) {
+export default function AdminSidebar({ email, newApplicationsEnabled }: AdminSidebarProps) {
   const pathname = usePathname();
   const { collapsed, setCollapsed } = useSidebarCollapse();
-  const visibleNavItems = navItems;
+  const visibleNavItems = navItems.filter((item) => !item.requiresIntakeOpen || newApplicationsEnabled);
   const profileLabel = email ?? 'Signed in';
   const profileInitial = profileLabel.charAt(0).toUpperCase();
 
