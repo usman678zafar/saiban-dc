@@ -9,6 +9,7 @@ import SignOutButton from './sign-out-button';
 import HeaderHelpMenu from './header-help-menu';
 import logo from '@/assests/logo.png';
 import { NavigationLoadingScope } from './navigation-loading';
+import { isNewApplicationIntakeEnabled } from '@/lib/application-intake';
 
 interface AppShellProps {
   title: string;
@@ -27,7 +28,8 @@ export default async function AppShell({ title, titleBadge, description, actions
   const isFieldWorker = session?.user?.role === 'field_worker';
   const isSupervisor = session?.user?.role === 'supervisor';
   const isReviewer = session?.user?.role === 'reviewer';
-  const canCreateApplications = isFieldWorker || isAdmin || ((isSupervisor || isReviewer) && Boolean(session.user.canCreateApplications));
+  const canManageApplications = isFieldWorker || isAdmin || ((isSupervisor || isReviewer) && Boolean(session.user.canCreateApplications));
+  const newApplicationsEnabled = isNewApplicationIntakeEnabled();
   const canManageFieldWorkers = isSupervisor && Boolean(session.user.canManageFieldWorkers);
   const navLinkClass = 'inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-lg px-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 min-[361px]:px-2.5 sm:h-10 sm:px-3 sm:text-sm';
   const primaryNavLinkClass = 'inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-blue-600 px-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-500 min-[361px]:px-2.5 sm:h-10 sm:px-3 sm:text-sm';
@@ -67,14 +69,16 @@ export default async function AppShell({ title, titleBadge, description, actions
                 Field Workers
               </Link>
             ) : null}
-            {canCreateApplications ? (
+            {canManageApplications ? (
               <>
                 <Link href="/applications" className={navLinkClass}>
                   Applications
                 </Link>
-                <Link href="/applications/new" className={primaryNavLinkClass}>
-                  + Application
-                </Link>
+                {newApplicationsEnabled ? (
+                  <Link href="/applications/new" className={primaryNavLinkClass}>
+                    + Application
+                  </Link>
+                ) : null}
               </>
             ) : null}
             {isAdmin ? (

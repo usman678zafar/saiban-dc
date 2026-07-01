@@ -3,6 +3,7 @@ node_modules
 .next-dev
 out
 .env*
+!.env.example
 .DS_Store
 coverage
 **/*.log

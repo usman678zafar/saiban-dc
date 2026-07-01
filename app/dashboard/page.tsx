@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import AppShell from '@/components/app-shell';
 import { redirect } from 'next/navigation';
+import { isNewApplicationIntakeEnabled } from '@/lib/application-intake';
 
 async function getStats() {
   const [total, draft, submitted, validated, rejected, migrated] = await Promise.all([
@@ -31,6 +32,7 @@ export default async function DashboardPage() {
     || session.user.role === 'admin'
     || session.user.role === 'super_admin'
     || ((session.user.role === 'supervisor' || session.user.role === 'reviewer') && Boolean(session.user.canCreateApplications));
+  const canStartNewApplication = canCreateApplications && isNewApplicationIntakeEnabled();
 
   if (session?.user?.role === 'field_worker') {
     redirect('/applications');
@@ -78,11 +80,16 @@ export default async function DashboardPage() {
           ))}
       </div>
       <section className="mt-6 grid gap-4 lg:grid-cols-3">
-        {canCreateApplications ? (
+        {canStartNewApplication ? (
           <Link href="/applications/new" className="rounded-lg border border-blue-200 bg-blue-50 p-5 text-blue-950 hover:bg-blue-100">
             <p className="text-xl font-semibold">Start New Application</p>
             <p className="mt-2 text-sm text-blue-900">Open the registration wizard and capture a new case.</p>
           </Link>
+        ) : canCreateApplications ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-amber-950">
+            <p className="text-xl font-semibold">New applications temporarily paused</p>
+            <p className="mt-2 text-sm text-amber-900">Existing drafts can still be completed and submitted.</p>
+          </div>
         ) : null}
         <Link href="/applications" className="rounded-lg border border-slate-200 bg-white p-5 text-slate-900 shadow-sm hover:bg-slate-50">
           <p className="text-xl font-semibold">Recent Applications</p>

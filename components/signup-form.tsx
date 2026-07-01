@@ -4,11 +4,14 @@ import Image from 'next/image';
 import { FormEvent, useEffect, useState } from 'react';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import logo from '@/assests/logo.png';
 import baitussalamLogo from '@/assests/baitussalam.webp';
 import { formatCnic, formatPakistanMobile, isValidPakistanMobile, normalizePakistanMobile } from '@/lib/contact-format';
 import { useNavigationLoading } from './navigation-loading';
 import { PasswordValueReveal } from './password-input';
+import { FIELD_WORKER_REGISTRATION_CLOSED_MESSAGE } from '@/lib/field-worker-registration';
 
 type SuccessInfo = {
   fieldWorkerId: string;
@@ -19,7 +22,12 @@ type SuccessInfo = {
 
 const SECURITY_CHECK_FAILED_MESSAGE = 'Security check failed. Please try again.';
 
-export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: string }) {
+type SignupFormProps = {
+  registrationEnabled: boolean;
+  turnstileSiteKey?: string;
+};
+
+export default function SignupForm({ registrationEnabled, turnstileSiteKey }: SignupFormProps) {
   const router = useRouter();
   const { startLoading } = useNavigationLoading();
   const [name, setName] = useState('');
@@ -33,6 +41,10 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
 
   const normalizedPhoneNumber = normalizePakistanMobile(phoneNumber);
   const derivedPassword = normalizedPhoneNumber.slice(-4);
+
+  if (!registrationEnabled) {
+    return <RegistrationClosed />;
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -241,6 +253,78 @@ export default function SignupForm({ turnstileSiteKey }: { turnstileSiteKey?: st
   );
 }
 
+function RegistrationClosed() {
+  return (
+    <div className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-lg items-center px-2 sm:px-0">
+      <section
+        className="registration-closed-card relative w-full overflow-hidden rounded-2xl border border-white/80 bg-white/95 p-5 shadow-[0_24px_70px_-28px_rgba(15,23,42,0.45)] backdrop-blur sm:p-7"
+        aria-labelledby="registration-closed-title"
+      >
+        <div className="pointer-events-none absolute -right-20 -top-24 h-52 w-52 rounded-full bg-amber-100/70 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-28 -left-20 h-56 w-56 rounded-full bg-blue-100/60 blur-3xl" />
+
+        <div className="relative">
+          <div className="flex items-center justify-between gap-5 border-b border-slate-100 pb-4">
+            <Image src={logo} alt="Saiban" width={180} height={130} className="h-14 w-auto object-contain sm:h-16" priority />
+            <Image src={baitussalamLogo} alt="Baitussalam" width={156} height={114} className="h-14 w-auto object-contain sm:h-16" priority />
+          </div>
+
+          <div className="flex flex-col items-center pt-6 text-center">
+            <div className="relative flex h-32 w-32 items-center justify-center sm:h-36 sm:w-36">
+              <span className="registration-image-glow absolute inset-3 rounded-full bg-amber-200/70 blur-2xl" aria-hidden="true" />
+              <Image
+                src="/status/registration-paused.webp"
+                alt="Registration desk with an hourglass"
+                width={512}
+                height={512}
+                className="registration-paused-image relative h-full w-full rounded-3xl object-cover shadow-sm"
+                priority
+              />
+            </div>
+
+            <div className="mt-4 inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-bold text-amber-800">
+              <span className="registration-status-dot h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />
+              <span className="uppercase tracking-[0.16em]">Temporarily closed</span>
+              <span className="text-amber-300" aria-hidden="true">|</span>
+              <span dir="rtl" lang="ur" className="text-sm font-semibold leading-6">عارضی طور پر بند</span>
+            </div>
+
+            <h1 id="registration-closed-title" className="mt-4 text-2xl font-bold tracking-tight text-slate-950 sm:text-[1.75rem]">
+              Field worker registration is temporarily closed
+            </h1>
+            <p dir="rtl" lang="ur" className="mt-2 text-xl font-semibold leading-9 text-slate-900">
+              فیلڈ ورکر رجسٹریشن عارضی طور پر بند ہے
+            </p>
+            <p className="mt-3 max-w-md text-sm leading-6 text-slate-600">
+              {FIELD_WORKER_REGISTRATION_CLOSED_MESSAGE}
+            </p>
+            <p dir="rtl" lang="ur" className="mt-2 max-w-md text-sm leading-8 text-slate-600">
+              سائبان کے ساتھ تعاون میں دلچسپی کا شکریہ۔ فی الحال فیلڈ ورکر کی نئی رجسٹریشن قبول نہیں کی جا رہی۔ آپ کے صبر اور تعاون کے لیے ہم تہہ دل سے شکر گزار ہیں۔
+            </p>
+
+            <Link
+              href="/signin"
+              className="group mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-slate-800 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
+            >
+              Sign in to your account
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+            </Link>
+
+            <p className="mt-4 text-xs text-slate-500">
+              Need help? Call{' '}
+              <a href="tel:+923332552956" className="font-semibold text-slate-700 hover:text-slate-950 hover:underline">
+                +92 333 2552956
+              </a>
+            </p>
+          </div>
+
+          <AuthFooter showPhone={false} />
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function SecurityCheckHelp() {
   return (
     <div className="mt-2 space-y-2 border-t border-red-100 pt-2 text-[11px] leading-4 text-red-800">
@@ -264,7 +348,7 @@ function SecurityCheckHelp() {
   );
 }
 
-function AuthFooter() {
+function AuthFooter({ showPhone = true }: { showPhone?: boolean }) {
   return (
     <footer className="mt-2 border-t border-slate-200 pt-2 text-center text-[10px] leading-4 text-slate-500">
       <a href="/privacy-policy" className="font-medium text-slate-600 hover:text-slate-900 hover:underline">
@@ -272,10 +356,14 @@ function AuthFooter() {
       </a>
       <span className="mx-2 text-slate-300">|</span>
       <span>&copy; {new Date().getFullYear()} Saiban. All rights reserved.</span>
-      <span className="mx-2 text-slate-300">|</span>
-      <a href="tel:+923332552956" className="font-medium text-slate-600 hover:text-slate-900 hover:underline">
-        +92 333 2552956
-      </a>
+      {showPhone ? (
+        <>
+          <span className="mx-2 text-slate-300">|</span>
+          <a href="tel:+923332552956" className="font-medium text-slate-600 hover:text-slate-900 hover:underline">
+            +92 333 2552956
+          </a>
+        </>
+      ) : null}
     </footer>
   );
 }

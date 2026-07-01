@@ -6,6 +6,8 @@ import { authOptions } from '@/lib/auth';
 import { getApplicationCollectorPrefill } from '@/lib/application-prefill';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
+import ApplicationIntakeClosed from '@/components/application-intake-closed';
+import { isNewApplicationIntakeEnabled } from '@/lib/application-intake';
 
 export default async function NewApplicationPage() {
   const session = await getServerSession(authOptions);
@@ -19,8 +21,15 @@ export default async function NewApplicationPage() {
     redirect(session.user.role === 'supervisor' ? '/supervisor' : session.user.role === 'reviewer' ? '/reviewer' : '/applications');
   }
 
-  const collectorPrefill = await getApplicationCollectorPrefill(session);
-  const content = <OrphanApplicationWizard initialData={collectorPrefill} />;
+  const intakeEnabled = isNewApplicationIntakeEnabled();
+  const collectorPrefill = intakeEnabled ? await getApplicationCollectorPrefill(session) : null;
+  const content = intakeEnabled
+    ? <OrphanApplicationWizard initialData={collectorPrefill!} />
+    : <ApplicationIntakeClosed />;
+  const title = intakeEnabled ? '+ Application' : 'Application intake';
+  const description = intakeEnabled
+    ? 'Follow the numbered steps through review and submission.'
+    : 'New applications are temporarily paused. Existing drafts remain available.';
 
   if (session.user.role === 'supervisor') {
     return (
@@ -31,8 +40,8 @@ export default async function NewApplicationPage() {
         canManageFieldWorkers={Boolean(session.user.canManageFieldWorkers)}
       >
         <header className="mb-5 flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">+ Application</h1>
-          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">Follow the numbered steps through review and submission.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">{title}</h1>
+          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">{description}</p>
         </header>
         {content}
       </SupervisorShell>
@@ -47,8 +56,8 @@ export default async function NewApplicationPage() {
         canCreateApplications={Boolean(session.user.canCreateApplications)}
       >
         <header className="mb-5 flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">+ Application</h1>
-          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">Follow the numbered steps through review and submission.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0f1f33] sm:text-3xl">{title}</h1>
+          <p className="max-w-3xl text-sm leading-6 text-[#5f718a]">{description}</p>
         </header>
         {content}
       </ReviewerShell>
@@ -57,8 +66,8 @@ export default async function NewApplicationPage() {
 
   return (
     <AppShell
-      title="New Orphan Application"
-      description="Follow the numbered steps through review and submission."
+      title={intakeEnabled ? 'New Orphan Application' : 'Application intake'}
+      description={description}
       maxWidth="max-w-5xl"
     >
       {content}

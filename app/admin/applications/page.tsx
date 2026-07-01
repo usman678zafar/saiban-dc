@@ -17,6 +17,8 @@ import { applicationSearchWhere } from '@/lib/application-search';
 import { formatDate } from '@/lib/date-format';
 import { collectorProjectReviewWhere } from '@/lib/field-workers';
 import { getFieldWorkerProjectOptions } from '@/lib/project-options';
+import { isNewApplicationIntakeEnabled } from '@/lib/application-intake';
+import ApplicationIntakeClosed from '@/components/application-intake-closed';
 import {
   buildSameFamilyData,
   loadSameFamilyPool,
@@ -375,11 +377,15 @@ export default async function AdminApplicationsPage({
           <Link href="/api/applications/export?format=json" className="rounded-xl border border-[#dbe4ef] bg-white px-4 py-3 text-center text-sm font-semibold text-[#0f1f33] hover:bg-[#f6f9fd]">
             Export JSON
           </Link>
-          <Link href="/admin/applications/new" className="rounded-xl bg-[#3b82f6] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-[#2563eb]">
-            New Application
-          </Link>
+          {isNewApplicationIntakeEnabled() ? (
+            <Link href="/admin/applications/new" className="rounded-xl bg-[#3b82f6] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-[#2563eb]">
+              New Application
+            </Link>
+          ) : null}
         </div>
       </header>
+
+      {!isNewApplicationIntakeEnabled() ? <ApplicationIntakeClosed compact /> : null}
 
       <form action="/admin/applications" className="mb-4 rounded-xl border border-[#dbe4ef] bg-white p-3">
         <div className="grid gap-2 lg:grid-cols-2 xl:grid-cols-[minmax(260px,1fr)_minmax(150px,210px)_minmax(150px,210px)_minmax(145px,190px)_minmax(160px,210px)]">

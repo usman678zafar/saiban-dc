@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { compare } from 'bcryptjs';
+import { isNewApplicationIntakeEnabled, NEW_APPLICATIONS_CLOSED_MESSAGE } from '@/lib/application-intake';
 import { ZodError } from 'zod';
 import type { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
@@ -727,6 +728,13 @@ export async function POST(request: NextRequest) {
 
   if (!canCreateApplications(user)) {
     return NextResponse.json({ message: 'You do not have permission to create applications.' }, { status: 403 });
+  }
+
+  if (!isNewApplicationIntakeEnabled()) {
+    return NextResponse.json(
+      { code: 'NEW_APPLICATIONS_CLOSED', message: NEW_APPLICATIONS_CLOSED_MESSAGE },
+      { status: 403, headers: { 'Cache-Control': 'no-store' } },
+    );
   }
 
   const body = await request.json();

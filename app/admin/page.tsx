@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma';
 import AdminShell from '@/components/admin-shell';
 import ViewerGeoStoryMap, { type ViewerGeoApplication } from '@/components/viewer-geo-story-map';
 import { ViewerLanguageProvider } from '@/components/viewer-language';
+import { isNewApplicationIntakeEnabled } from '@/lib/application-intake';
 
 type AdminMetric = {
   label: string;
@@ -153,9 +154,11 @@ export default async function AdminPortalPage() {
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-              <Link href="/admin/applications/new" className="rounded-lg bg-[#3b82f6] px-3 py-2 text-center text-xs font-semibold text-white shadow-[0_10px_20px_rgba(59,130,246,0.18)] transition hover:bg-[#2563eb]">
-                New Application
-              </Link>
+              {isNewApplicationIntakeEnabled() ? (
+                <Link href="/admin/applications/new" className="rounded-lg bg-[#3b82f6] px-3 py-2 text-center text-xs font-semibold text-white shadow-[0_10px_20px_rgba(59,130,246,0.18)] transition hover:bg-[#2563eb]">
+                  New Application
+                </Link>
+              ) : null}
               <Link href="/admin/applications?status=all" className="rounded-lg border border-[#dbe4ef] bg-white px-3 py-2 text-center text-xs font-semibold text-[#0f1f33] transition hover:bg-[#f6f9fd]">
                 View All
               </Link>
