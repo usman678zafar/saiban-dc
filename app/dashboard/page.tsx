@@ -64,9 +64,9 @@ export default async function DashboardPage() {
             View Applications
           </Link>
           {isAdmin ? (
-            <Link href="/api/applications/export?format=csv" className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+            <a href="/api/applications/export?format=csv" className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">
               Export CSV
-            </Link>
+            </a>
           ) : null}
         </>
       }

@@ -418,12 +418,12 @@ export default async function ApplicationsPage({
       actions={
         isAdmin ? (
           <>
-            <Link href="/api/applications/export?format=csv" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto">
+            <a href="/api/applications/export?format=csv" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 sm:w-auto">
               Export CSV
-            </Link>
-            <Link href="/api/applications/export?format=json" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-300 sm:w-auto">
+            </a>
+            <a href="/api/applications/export?format=json" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-300 sm:w-auto">
               Export JSON
-            </Link>
+            </a>
           </>
         ) : null
       }

@@ -371,12 +371,12 @@ export default async function AdminApplicationsPage({
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-          <Link href="/api/applications/export?format=csv" className="rounded-xl bg-[#1f2b3d] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-[#2f3d52]">
+          <a href="/api/applications/export?format=csv" className="rounded-xl bg-[#1f2b3d] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-[#2f3d52]">
             Export CSV
-          </Link>
-          <Link href="/api/applications/export?format=json" className="rounded-xl border border-[#dbe4ef] bg-white px-4 py-3 text-center text-sm font-semibold text-[#0f1f33] hover:bg-[#f6f9fd]">
+          </a>
+          <a href="/api/applications/export?format=json" className="rounded-xl border border-[#dbe4ef] bg-white px-4 py-3 text-center text-sm font-semibold text-[#0f1f33] hover:bg-[#f6f9fd]">
             Export JSON
-          </Link>
+          </a>
           {isNewApplicationIntakeEnabled() ? (
             <Link href="/admin/applications/new" className="rounded-xl bg-[#3b82f6] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-[#2563eb]">
               New Application
