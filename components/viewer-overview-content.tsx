@@ -88,20 +88,20 @@ export default function ViewerOverviewContent({
         </div>
       </header>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <section className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-5">
         {metrics.map((metric) => {
           const style = metricStyles[metric.tone];
           const Icon = style.icon;
 
           return (
-            <div key={metric.key} className={`min-h-[92px] overflow-hidden rounded-xl bg-gradient-to-br px-4 py-3 text-white shadow-[0_16px_34px_rgba(15,31,51,0.14)] ${style.card}`}>
-              <div className={`flex h-full items-center gap-3 ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}>
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/18 text-white ring-1 ring-white/20">
+            <div key={metric.key} className={`min-h-[88px] min-w-0 overflow-hidden rounded-xl bg-gradient-to-br px-3 py-3 text-white shadow-[0_16px_34px_rgba(15,31,51,0.14)] sm:min-h-[92px] sm:px-4 ${style.card}`}>
+              <div className={`flex h-full min-w-0 items-center gap-2 sm:gap-3 ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}>
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/18 text-white ring-1 ring-white/20 sm:size-11 sm:rounded-xl">
                   <Icon size={19} strokeWidth={2.1} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-semibold leading-5 text-white/82" dir={dir}>{t.metrics[metric.key]}</p>
-                  <p className="mt-1 truncate text-2xl font-bold leading-none text-white">
+                  <p className="mt-1 truncate text-xl font-bold leading-none text-white sm:text-2xl">
                     {metric.value.toLocaleString(language === 'ur' ? 'ur-PK' : 'en-US')}
                   </p>
                 </div>

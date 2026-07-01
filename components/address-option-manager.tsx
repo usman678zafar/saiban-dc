@@ -169,12 +169,12 @@ export default function AddressOptionManager({
         {message ? <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{message}</p> : null}
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
+      <section className="overflow-x-auto overscroll-x-contain rounded-xl border border-[#dbe4ef] bg-white">
         <div className="flex items-center gap-2 border-b border-[#edf2f7] bg-[#f6f9fd] px-4 py-3">
           <MapPin className="h-4 w-4 text-[#3b82f6]" aria-hidden="true" />
           <h2 className="text-sm font-semibold text-[#0f1f33]">Admin Added Options</h2>
         </div>
-        <table className="min-w-full text-left text-sm text-[#506784]">
+        <table className="w-full min-w-[720px] text-left text-sm text-[#506784]">
           <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
             <tr>
               <th className="px-4 py-4">Type</th>

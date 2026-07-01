@@ -104,8 +104,8 @@ export default function AdminManager({ admins }: { admins: AdminListItem[] }) {
 
       {message ? <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{message}</p> : null}
 
-      <section className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
-        <table className="min-w-full text-left text-sm text-[#506784]">
+      <section className="overflow-x-auto overscroll-x-contain rounded-xl border border-[#dbe4ef] bg-white">
+        <table className="w-full min-w-[720px] text-left text-sm text-[#506784]">
           <thead className="bg-blue-600 text-xs uppercase tracking-[0.12em] text-white">
             <tr>
               <th className="px-4 py-4">Admin</th>

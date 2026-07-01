@@ -183,6 +183,21 @@ function formatCoordinate(value: number) {
   return value.toFixed(5);
 }
 
+function piePoint(angle: number, radius: number) {
+  const radians = ((angle - 90) * Math.PI) / 180;
+  return {
+    x: 110 + radius * Math.cos(radians),
+    y: 110 + radius * Math.sin(radians),
+  };
+}
+
+function pieSlicePath(startAngle: number, endAngle: number) {
+  const start = piePoint(endAngle, 104);
+  const end = piePoint(startAngle, 104);
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  return `M 110 110 L ${start.x} ${start.y} A 104 104 0 ${largeArc} 0 ${end.x} ${end.y} Z`;
+}
+
 function locationValue(point: ViewerGeoApplication, level: LocationLevel, fallback: string, language: Language) {
   const value = point[level]?.trim();
   return value ? normalizeLocationName(value, language) : fallback;
@@ -296,26 +311,30 @@ export default function ViewerGeoStoryMap({
 
   const statusPie = useMemo(() => {
     const total = statusBreakdown.reduce((sum, item) => sum + item.total, 0);
+    const label = `${t.statusMix}: ${statusBreakdown.map((item) => `${item.label} ${item.total} (${item.percent}%)`).join(', ')}`;
 
-    if (!total) {
-      return {
-        background: '#edf2f7',
-        label: `${t.statusMix}: 0`,
+    if (!total) return { slices: [], label };
+
+    let startAngle = 0;
+    const slices = statusBreakdown.filter((item) => item.total > 0).map((item) => {
+      const sweep = (item.total / total) * 360;
+      const endAngle = startAngle + sweep;
+      const labelRadius = item.percent < 5 ? 88 : item.percent < 10 ? 74 : 58;
+      const labelPoint = piePoint(startAngle + sweep / 2, labelRadius);
+      const fullCircle = sweep > 359.999;
+      const slice = {
+        ...item,
+        path: pieSlicePath(startAngle, endAngle),
+        labelX: fullCircle ? 110 : labelPoint.x,
+        labelY: fullCircle ? 110 : labelPoint.y,
+        labelFontSize: item.percent < 5 ? 13 : item.percent < 10 ? 15 : 18,
+        fullCircle,
       };
-    }
-
-    let start = 0;
-    const segments = statusBreakdown.map((item) => {
-      const end = start + (item.total / total) * 360;
-      const segment = `${item.color} ${start}deg ${end}deg`;
-      start = end;
-      return segment;
+      startAngle = endAngle;
+      return slice;
     });
 
-    return {
-      background: `conic-gradient(from -90deg, ${segments.join(', ')})`,
-      label: `${t.statusMix}: ${statusBreakdown.map((item) => `${item.label} ${item.total} (${item.percent}%)`).join(', ')}`,
-    };
+    return { slices, label };
   }, [statusBreakdown, t.statusMix]);
 
   const selectedLocationLevel = locationLevels.find((item) => item.value === locationLevel) ?? locationLevels[1];
@@ -429,20 +448,20 @@ export default function ViewerGeoStoryMap({
   }
 
   return (
-    <section className="overview-map-density mt-4 overflow-hidden rounded-2xl border border-[#c8d7ea] bg-[#eef5fb] shadow-[0_20px_48px_rgba(15,31,51,0.12)]">
-      <div className="border-b border-[#d9e5f2] bg-gradient-to-r from-[#06264a] via-[#082e59] to-[#0b3b73] px-4 py-4 sm:px-5">
+    <section className="overview-map-density mt-3 min-w-0 overflow-hidden rounded-2xl border border-[#c8d7ea] bg-[#eef5fb] shadow-[0_20px_48px_rgba(15,31,51,0.12)] sm:mt-4">
+      <div className="border-b border-[#d9e5f2] bg-gradient-to-r from-[#06264a] via-[#082e59] to-[#0b3b73] px-3 py-4 sm:px-5">
         <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
           <div className={`min-w-0 w-full ${isRtl ? 'text-right' : 'text-left'}`}>
             <p className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8fc7ff] ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
               <Navigation className="h-4 w-4" aria-hidden="true" />
               {t.eyebrow}
             </p>
-            <h2 className="mt-1.5 text-2xl font-semibold tracking-tight text-white sm:text-3xl" dir={isRtl ? 'rtl' : 'ltr'}>{t.title}</h2>
+            <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-white sm:text-3xl" dir={isRtl ? 'rtl' : 'ltr'}>{t.title}</h2>
             <p className={`mt-1.5 max-w-4xl text-sm leading-6 text-[#c9d8ea] ${isRtl ? 'ml-auto' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>{t.subtitle}</p>
           </div>
         </div>
 
-        <div className="mt-4 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-2.5 xl:grid-cols-4">
           <SummaryTile icon={MapPinned} label={t.mappedHomes} value={filteredPoints.length.toLocaleString(numberLocale)} tone="blue" />
           <SummaryTile icon={LocateFixed} label={`${selectedLocationLevel.label[language]} ${t.coverage}`} value={summary.areas.toLocaleString(numberLocale)} tone="violet" />
           <SummaryTile icon={ShieldCheck} label={t.finalApproved} value={summary.finalApproved.toLocaleString(numberLocale)} tone="emerald" />
@@ -450,7 +469,7 @@ export default function ViewerGeoStoryMap({
         </div>
       </div>
 
-      <div className="grid gap-3 p-3 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="grid min-w-0 gap-2 p-2 sm:gap-3 sm:p-3 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-[#cddbeb] bg-white shadow-[0_16px_40px_rgba(15,31,51,0.08)]">
           <div className="shrink-0 border-b border-[#d7e3ef] bg-[#f8fbff] p-3 sm:p-4">
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)]">
@@ -483,7 +502,7 @@ export default function ViewerGeoStoryMap({
                   <MapPinned className="h-3.5 w-3.5" aria-hidden="true" />
                   {t.locationLens}
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 min-[480px]:flex-row">
                   <select
                     id="viewer-location-filter"
                     value={locationFilter}
@@ -507,7 +526,7 @@ export default function ViewerGeoStoryMap({
                         setLocationFilter('all');
                         setSelectedId(null);
                       }}
-                      className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl border border-[#d6e1ee] bg-white px-3 text-xs font-semibold text-[#506784] transition hover:border-[#b9c9dc] hover:bg-[#f2f7fc]"
+                      className="inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-xl border border-[#d6e1ee] bg-white px-3 text-xs font-semibold text-[#506784] transition hover:border-[#b9c9dc] hover:bg-[#f2f7fc] min-[480px]:min-h-12 min-[480px]:w-auto"
                     >
                       {t.clearLocation}
                     </button>
@@ -550,15 +569,17 @@ export default function ViewerGeoStoryMap({
             </div>
           </div>
 
-          <div className="relative h-[360px] bg-[#dfeaf2] sm:h-[420px]">
+          <div className="relative h-[330px] bg-[#dfeaf2] sm:h-[420px]">
             <div ref={mapNodeRef} className="h-full w-full" role="img" aria-label={t.mapAria} />
-            <div className="pointer-events-none absolute left-4 top-4 rounded-lg border border-white/80 bg-white/95 px-3 py-2 text-xs font-semibold text-[#0f1f33] shadow-[0_10px_24px_rgba(15,31,51,0.12)] backdrop-blur">
-              {locationFilter === 'all' ? t.pakistanOnly : locationFilter}
+            <div className="pointer-events-none absolute inset-x-3 top-3 flex min-w-0 items-start justify-between gap-2 sm:inset-x-4 sm:top-4">
+              <div className="min-w-0 truncate rounded-lg border border-white/80 bg-white/95 px-2.5 py-2 text-[11px] font-semibold text-[#0f1f33] shadow-[0_10px_24px_rgba(15,31,51,0.12)] backdrop-blur sm:px-3 sm:text-xs">
+                {locationFilter === 'all' ? t.pakistanOnly : locationFilter}
+              </div>
+              <div className="shrink-0 rounded-lg border border-white/80 bg-[#101c2f]/90 px-2.5 py-2 text-[11px] font-semibold text-white shadow-[0_10px_24px_rgba(15,31,51,0.18)] backdrop-blur sm:px-3 sm:text-xs">
+                {filteredPoints.length.toLocaleString(numberLocale)} / {points.length.toLocaleString(numberLocale)} {t.homes}
+              </div>
             </div>
-            <div className="pointer-events-none absolute right-4 top-4 rounded-lg border border-white/80 bg-[#101c2f]/90 px-3 py-2 text-xs font-semibold text-white shadow-[0_10px_24px_rgba(15,31,51,0.18)] backdrop-blur">
-              {filteredPoints.length.toLocaleString(numberLocale)} / {points.length.toLocaleString(numberLocale)} {t.homes}
-            </div>
-            <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 rounded-lg border border-white/80 bg-white/95 px-3 py-2 text-xs font-semibold text-[#506784] shadow-[0_12px_28px_rgba(15,31,51,0.14)] backdrop-blur sm:right-auto">
+            <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-x-2 gap-y-1 rounded-lg border border-white/80 bg-white/95 px-2.5 py-2 text-[10px] font-semibold text-[#506784] shadow-[0_12px_28px_rgba(15,31,51,0.14)] backdrop-blur sm:bottom-4 sm:left-4 sm:right-auto sm:gap-2 sm:px-3 sm:text-xs">
               <LegendDot color="#f59e0b" label={statusFilters[1].label[language]} />
               <LegendDot color="#16a34a" label={statusFilters[2].label[language]} />
               <LegendDot color="#2563eb" label={statusFilters[3].label[language]} />
@@ -595,26 +616,43 @@ export default function ViewerGeoStoryMap({
             )}
           </section>
 
-          <section className="rounded-xl border border-[#cddbeb] bg-white p-4 shadow-[0_14px_30px_rgba(15,31,51,0.08)]">
+          <section className="rounded-xl border border-[#cddbeb] bg-white p-4 shadow-[0_14px_30px_rgba(15,31,51,0.08)] xl:flex xl:min-h-0 xl:flex-col">
             <h3 className={`text-sm font-semibold text-[#0f1f33] ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>{t.statusMix}</h3>
-            <div className="mt-4 flex justify-center">
-              <div
-                className="aspect-square w-full max-w-[190px] rounded-full shadow-[inset_0_0_0_1px_rgba(15,31,51,0.06),0_12px_28px_rgba(15,31,51,0.12)]"
-                style={{ background: statusPie.background }}
-                role="img"
-                aria-label={statusPie.label}
-              />
-            </div>
-            <div className="mt-5 grid gap-2.5">
-              {statusBreakdown.map((item) => (
-                <div key={item.value} className={`flex items-center justify-between gap-3 rounded-lg bg-[#f8fbff] px-3 py-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                  <span className={`flex min-w-0 items-center gap-2 text-xs font-semibold text-[#506784] ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="truncate">{item.label}</span>
-                  </span>
-                  <span className="shrink-0 text-xs font-semibold text-[#506784]">{item.total.toLocaleString(numberLocale)} ({item.percent.toLocaleString(numberLocale)}%)</span>
+            <div className="mt-4 rounded-xl border border-[#e1e9f2] bg-[#f8fbff] p-3 sm:p-4 xl:flex xl:flex-1 xl:items-center">
+              <div className="flex min-w-0 flex-1 flex-col items-center gap-3 min-[420px]:flex-row min-[420px]:justify-center" role="img" aria-label={statusPie.label}>
+                <svg viewBox="0 0 220 220" className="aspect-square w-full max-w-[190px] shrink-0 xl:max-w-[175px]" aria-hidden="true">
+                  {statusPie.slices.length === 0 ? (
+                    <circle cx="110" cy="110" r="104" fill="#e2e8f0" stroke="#ffffff" strokeWidth="2" />
+                  ) : statusPie.slices.map((slice) => (
+                    <g key={slice.value}>
+                      {slice.fullCircle ? (
+                        <circle cx="110" cy="110" r="104" fill={slice.color} stroke="#ffffff" strokeWidth="2" />
+                      ) : (
+                        <path d={slice.path} fill={slice.color} stroke="#ffffff" strokeWidth="2" strokeLinejoin="round" />
+                      )}
+                      <text
+                        x={slice.labelX}
+                        y={slice.labelY}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className="fill-white font-bold"
+                        style={{ fontSize: slice.labelFontSize, paintOrder: 'stroke', stroke: 'rgba(15, 31, 51, 0.24)', strokeWidth: 2 }}
+                      >
+                        {slice.total.toLocaleString(numberLocale)}
+                      </text>
+                    </g>
+                  ))}
+                </svg>
+
+                <div className="grid w-full min-w-0 grid-cols-2 gap-2 min-[420px]:w-[112px] min-[420px]:shrink-0 min-[420px]:grid-cols-1" aria-hidden="true">
+                  {statusBreakdown.map((item) => (
+                    <div key={item.value} className={`flex min-w-0 items-center gap-2 ${isRtl ? 'flex-row-reverse text-right' : ''}`}>
+                      <span className="size-4 shrink-0 rounded-[3px]" style={{ backgroundColor: item.color }} />
+                      <span className="min-w-0 text-xs font-semibold leading-4 text-[#506784]" dir={isRtl ? 'rtl' : 'ltr'}>{item.label}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           </section>
         </aside>
@@ -625,11 +663,11 @@ export default function ViewerGeoStoryMap({
               {locationCounts.length === 0 ? (
                 <p className={`text-sm leading-6 text-[#5f718a] ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>{t.noLocationMatches}</p>
               ) : (
-                <div className="overflow-x-auto pb-1">
-                  <div className="min-w-[520px] px-2 pt-7">
-                    <div className="relative h-[260px] border-b border-l border-[#b9c9dc]">
+                <div className="min-w-0 pb-1">
+                  <div className="w-full px-0 pt-7 sm:px-2">
+                    <div className="relative h-[220px] border-b border-l border-[#b9c9dc] sm:h-[260px]">
                       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(203,213,225,0.55)_1px,transparent_1px)] bg-[size:100%_25%]" />
-                      <div className="absolute inset-0 grid grid-cols-5 items-end gap-5 px-5 sm:gap-8 sm:px-8">
+                      <div className="absolute inset-0 grid grid-cols-5 items-end gap-2 px-1 sm:gap-5 sm:px-5 lg:gap-8 lg:px-8">
                         {locationCounts.map((item, index) => {
                           const maximumLocationCount = locationCounts[0]?.total ?? 0;
                           const height = maximumLocationCount ? Math.max(10, Math.round((item.total / maximumLocationCount) * 100)) : 0;
@@ -658,7 +696,7 @@ export default function ViewerGeoStoryMap({
                         })}
                       </div>
                     </div>
-                    <div className="grid grid-cols-5 gap-5 px-5 pt-3 sm:gap-8 sm:px-8">
+                    <div className="grid grid-cols-5 gap-2 px-1 pt-3 sm:gap-5 sm:px-5 lg:gap-8 lg:px-8">
                       {locationCounts.map((item, index) => (
                         <button
                           key={item.value}
