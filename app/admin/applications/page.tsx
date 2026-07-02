@@ -518,60 +518,72 @@ export default async function AdminApplicationsPage({
           />
         ) : null}
       <div className="overflow-hidden rounded-xl border border-[#dbe4ef] bg-white">
-        <div className="grid gap-3 p-3 md:hidden">
+        <div className="grid gap-2 p-2 md:hidden">
           {applications.length === 0 ? (
             <p className="px-4 py-10 text-center text-sm text-[#8a9bb3]">No applications found.</p>
           ) : (
             applications.map((application: ApplicationListItem) => (
-              <div key={application.id} className="rounded-xl border border-[#edf2f7] bg-white p-4">
-                {canBulkSelectDrafts ? (
-                  <label className="mb-3 inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#dbe4ef] bg-[#f6f9fd] px-3 text-xs font-semibold text-[#0f1f33]">
-                    <input
-                      type="checkbox"
-                      name="applicationId"
-                      data-draft-select="true"
-                      value={application.id}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200"
-                    />
-                    Select
-                  </label>
-                ) : null}
-                <Link href={`/admin/applications/${application.id}`} className="block hover:bg-[#f8fbff]">
-                  <div className="font-semibold text-[#0f1f33]">{application.registrationNumber ?? application.id}</div>
-                  <div className="mt-1 text-xs text-[#8a9bb3]">{application.childName ?? 'No child name'}</div>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                    <span className="rounded-lg bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
-                    <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{departmentLabel(application) === '-' ? 'No department' : departmentLabel(application)}</span>
-                    <span className="rounded-lg bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{fieldWorkerLabel(application)}</span>
-                    <span className="rounded-lg bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">{application.filledFieldsPercentage}% complete</span>
+              <div key={application.id} className="rounded-xl border border-[#e3eaf3] bg-white p-3 shadow-[0_3px_12px_rgba(15,31,51,0.035)]">
+                <div className="flex min-w-0 items-start gap-2">
+                  <Link href={`/admin/applications/${application.id}`} className="min-w-0 flex-1 rounded-md hover:text-[#2563eb]">
+                    <p className="break-words text-[13px] font-bold leading-5 text-[#0f1f33] [overflow-wrap:anywhere]">{application.registrationNumber ?? application.id}</p>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] leading-4 text-[#8a9bb3]">
+                      <span className="font-medium text-[#63758d]">{application.childName ?? 'No child name'}</span>
+                      <span aria-hidden="true">{'\u00B7'}</span>
+                      <span>Updated {formatDate(application.updatedAt)}</span>
+                    </div>
+                  </Link>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <span className="rounded-md bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">{application.filledFieldsPercentage}%</span>
+                    {canBulkSelectDrafts ? (
+                      <label className="inline-flex min-h-7 items-center gap-1.5 rounded-md border border-[#dbe4ef] bg-[#f6f9fd] px-2 text-[11px] font-semibold text-[#506784]">
+                        <input
+                          type="checkbox"
+                          name="applicationId"
+                          data-draft-select="true"
+                          value={application.id}
+                          aria-label={`Select ${application.registrationNumber ?? application.id}`}
+                          className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-200"
+                        />
+                        Select
+                      </label>
+                    ) : null}
                   </div>
-                  <p className="mt-3 text-xs text-[#8a9bb3]">Updated {formatDate(application.updatedAt)}</p>
-                </Link>
-                <div className="mt-3">
-                  <SameFamilyBadge
-                    summary={sameFamilySummaries.get(application.id)}
-                    currentStatus={application.status}
-                    modalApplications={sameFamilyModalApplications.get(application.id)}
-                    currentApplicationId={application.id}
-                    actorRole={isSuperAdmin ? 'super_admin' : 'admin'}
-                  />
                 </div>
-                <div className="mt-3 flex gap-2">
-                  <ApplicationReviewDownloadButton
-                    applicationId={application.id}
-                    fileName={application.registrationNumber ?? application.id}
-                    label="Download"
-                    className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-70"
-                  />
-                  {(isSuperAdmin || application.status === ApplicationStatus.reviewer_approved || application.status === ApplicationStatus.admin_on_hold) ? (
-                    <Link
-                      href={`/applications/${application.id}/edit`}
-                      className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100"
-                    >
-                      <Pencil className="h-4 w-4" aria-hidden="true" />
-                      Edit
-                    </Link>
-                  ) : null}
+
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[11px]">
+                  <span className="rounded-md bg-[#edf4ff] px-2 py-1 font-semibold text-[#2563eb]">{applicationStatusLabel(application.status)}</span>
+                  <span className="rounded-md bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{departmentLabel(application) === '-' ? 'No department' : departmentLabel(application)}</span>
+                  <span className="rounded-md bg-[#f6f9fd] px-2 py-1 font-semibold text-[#506784]">{fieldWorkerLabel(application)}</span>
+                </div>
+
+                <div className="mt-2 flex min-w-0 items-center justify-between gap-2 border-t border-[#edf2f7] pt-2">
+                  <div className="min-w-0">
+                    <SameFamilyBadge
+                      summary={sameFamilySummaries.get(application.id)}
+                      currentStatus={application.status}
+                      modalApplications={sameFamilyModalApplications.get(application.id)}
+                      currentApplicationId={application.id}
+                      actorRole={isSuperAdmin ? 'super_admin' : 'admin'}
+                    />
+                  </div>
+                  <div className="flex shrink-0 gap-1.5">
+                    <ApplicationReviewDownloadButton
+                      applicationId={application.id}
+                      fileName={application.registrationNumber ?? application.id}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50 text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-70"
+                    />
+                    {(isSuperAdmin || application.status === ApplicationStatus.reviewer_approved || application.status === ApplicationStatus.admin_on_hold) ? (
+                      <Link
+                        href={`/applications/${application.id}/edit`}
+                        aria-label="Edit application"
+                        title="Edit application"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      >
+                        <Pencil className="h-4 w-4" aria-hidden="true" />
+                      </Link>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             ))

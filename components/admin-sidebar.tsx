@@ -30,7 +30,7 @@ const navItems: AdminNavItem[] = [
   { href: '/admin', label: 'Overview', mobileLabel: 'Home', icon: LayoutDashboard, exact: true },
   { href: '/admin/applications', label: 'Applications', mobileLabel: 'Apps', icon: ClipboardList },
   { href: '/admin/applications/new', label: 'New Application', mobileLabel: 'New', icon: PlusCircle, exact: true, requiresIntakeOpen: true },
-  { href: '/admin/management', label: 'Management', mobileLabel: 'Manage', icon: FolderKanban },
+  { href: '/admin/projects', label: 'Management', mobileLabel: 'Manage', icon: FolderKanban },
   { href: '/admin/audit', label: 'Audit Trail', mobileLabel: 'Audit', icon: ScrollText },
   { href: '/admin/account', label: 'Account', mobileLabel: 'Acct', icon: KeyRound },
 ];
@@ -38,7 +38,7 @@ const navItems: AdminNavItem[] = [
 function isActivePath(pathname: string, href: string, exact?: boolean) {
   if (exact) return pathname === href;
   if (href === '/admin/applications' && pathname.startsWith('/admin/applications/new')) return false;
-  if (href === '/admin/management') {
+  if (href === '/admin/projects') {
     return ['/admin/management', '/admin/projects', '/admin/address-options', '/admin/supervisors', '/admin/reviewers', '/admin/field-workers', '/admin/admins']
       .some((path) => pathname === path || pathname.startsWith(`${path}/`));
   }

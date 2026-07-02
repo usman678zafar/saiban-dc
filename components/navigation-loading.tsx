@@ -86,14 +86,8 @@ function NavigationLoadingInner({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({ startLoading, stopLoading }), [startLoading, stopLoading]);
 
   const scopedLoadingOverlay = scopeNode ? createPortal(
-    <div className="pointer-events-none absolute inset-0 z-[100] flex items-center justify-center bg-white/72" role="status" aria-live="polite" aria-label="Loading">
-      <div className="absolute left-0 top-0 h-1 w-full overflow-hidden bg-blue-100/90">
-        <div className="h-full w-1/2 animate-[navigation-progress_1.1s_ease-in-out_infinite] bg-blue-600" />
-      </div>
-      <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-lg">
-        <span className="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600" aria-hidden="true" />
-        Loading...
-      </div>
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-[100] h-1 overflow-hidden bg-blue-100/90" role="status" aria-live="polite" aria-label="Loading">
+      <div className="h-full w-1/2 animate-[navigation-progress_1.1s_ease-in-out_infinite] bg-blue-600" />
     </div>,
     scopeNode,
   ) : null;
