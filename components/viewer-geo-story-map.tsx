@@ -569,7 +569,7 @@ export default function ViewerGeoStoryMap({
             </div>
           </div>
 
-          <div className="relative h-[330px] bg-[#dfeaf2] sm:h-[420px]">
+          <div className="relative z-0 isolate h-[330px] overflow-hidden bg-[#dfeaf2] sm:h-[420px]">
             <div ref={mapNodeRef} className="h-full w-full" role="img" aria-label={t.mapAria} />
             <div className="pointer-events-none absolute inset-x-3 top-3 flex min-w-0 items-start justify-between gap-2 sm:inset-x-4 sm:top-4">
               <div className="min-w-0 truncate rounded-lg border border-white/80 bg-white/95 px-2.5 py-2 text-[11px] font-semibold text-[#0f1f33] shadow-[0_10px_24px_rgba(15,31,51,0.12)] backdrop-blur sm:px-3 sm:text-xs">

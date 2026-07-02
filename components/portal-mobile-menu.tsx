@@ -99,12 +99,12 @@ export default function PortalMobileMenu({
           />
           <aside
             className={clsx(
-              'absolute inset-y-0 w-[min(15.75rem,78vw)] overflow-y-auto border-[#dbe4ef] bg-white shadow-[0_24px_60px_rgba(15,23,42,0.18)] sm:w-[min(17.5rem,82vw)]',
+              'absolute inset-y-0 flex h-dvh max-h-dvh w-[min(15.75rem,78vw)] flex-col overflow-hidden border-[#dbe4ef] bg-white shadow-[0_24px_60px_rgba(15,23,42,0.18)] sm:w-[min(17.5rem,82vw)]',
               dir === 'rtl' ? 'right-0 border-l' : 'left-0 border-r',
             )}
             aria-label={portalLabel}
           >
-            <div className="border-b border-[#e5ebf3] px-3 py-3 sm:px-4 sm:py-4">
+            <div className="shrink-0 border-b border-[#e5ebf3] px-3 py-3 sm:px-4 sm:py-4">
               <div className={clsx('flex items-start justify-between gap-2.5 sm:gap-3', dir === 'rtl' && 'flex-row-reverse')}>
                 <div className={clsx('flex min-w-0 items-center gap-2.5 sm:gap-3', dir === 'rtl' && 'flex-row-reverse')}>
                   <Image src={logo} alt="Saiban" width={84} height={58} className="h-10 w-auto shrink-0 object-contain sm:h-14" priority />
@@ -124,8 +124,8 @@ export default function PortalMobileMenu({
               </div>
             </div>
 
-            <div className="flex h-full min-h-0 flex-col p-3 sm:p-4">
-              <nav className="grid gap-1" aria-label={portalLabel}>
+            <div className="flex min-h-0 flex-1 flex-col px-3 sm:px-4">
+              <nav className="grid min-h-0 flex-1 content-start gap-1 overflow-y-auto overscroll-contain py-3 sm:py-4" aria-label={portalLabel}>
                 {navItems.map((item) => {
                   const Icon = item.icon;
 
@@ -148,8 +148,8 @@ export default function PortalMobileMenu({
                 })}
               </nav>
 
-              <div className="mt-auto pt-4">
-                <div className={clsx('mb-3 flex min-w-0 items-center gap-2 rounded-2xl border border-[#e5ebf3] bg-[#f8fbff] p-2 sm:mb-4 sm:gap-3 sm:p-3', dir === 'rtl' && 'flex-row-reverse')}>
+              <div className="shrink-0 border-t border-[#e5ebf3] pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-3 sm:pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <div className={clsx('mb-2 flex min-w-0 items-center gap-2 rounded-xl border border-[#e5ebf3] bg-[#f8fbff] p-2 sm:mb-3 sm:gap-3 sm:rounded-2xl sm:p-3', dir === 'rtl' && 'flex-row-reverse')}>
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#dceaff] text-sm font-bold text-[#2563eb] sm:h-10 sm:w-10">
                     {profileInitial}
                   </span>
